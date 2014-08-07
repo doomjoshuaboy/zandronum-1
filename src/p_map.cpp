@@ -4080,7 +4080,29 @@ fixed_t P_AimLineAttack (AActor *t1, angle_t angle, fixed_t distance, AActor **p
 //
 //==========================================================================
 
-static ETraceStatus CheckForGhost (FTraceResults &res, void *userdata)
+struct Origin
+{
+	AActor *Caller;
+};
+
+static ETraceStatus CheckForSameSpecie(FTraceResults &res, void *userdata)
+{
+	if (res.HitType != TRACE_HitActor)
+	{
+		return TRACE_Stop;
+	}
+
+	Origin *data = (Origin *)userdata;
+
+	// check for physical attacks on the same specie
+	if (res.Actor->GetSpecies() == data->Caller->GetSpecies() || res.Actor->flags4 & MF4_SPECTRAL)
+	{
+		return TRACE_Skip;
+	}
+
+	return TRACE_Stop;
+}
+static ETraceStatus CheckForGhost(FTraceResults &res, void *userdata)
 {
 	if (res.HitType != TRACE_HitActor)
 	{
@@ -4095,8 +4117,24 @@ static ETraceStatus CheckForGhost (FTraceResults &res, void *userdata)
 
 	return TRACE_Stop;
 }
+static ETraceStatus CheckForSpecieAndGhost(FTraceResults &res, void *userdata)
+{
+	if (res.HitType != TRACE_HitActor)
+	{
+		return TRACE_Stop;
+	}
 
-static ETraceStatus CheckForSpectral (FTraceResults &res, void *userdata)
+	Origin *data = (Origin *)userdata;
+
+	// check for physical attacks
+	if (res.Actor->GetSpecies() == data->Caller->GetSpecies() || res.Actor->flags3 & MF3_GHOST || res.Actor->flags4 & MF4_SPECTRAL)
+	{
+		return TRACE_Skip;
+	}
+
+	return TRACE_Stop;
+}
+static ETraceStatus CheckForSpectral(FTraceResults &res, void *userdata)
 {
 	if (res.HitType != TRACE_HitActor)
 	{
@@ -4133,9 +4171,12 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 	}
 	fixed_t vx, vy, vz, shootz;
 	FTraceResults trace;
+	Origin TData;
+	TData.Caller = t1;
 	angle_t srcangle = angle;
 	int srcpitch = pitch;
 	bool hitGhosts;
+	bool hitSameSpecie;
 	bool killPuff = false;
 	AActor *puff = NULL;
 	int pflag = 0;
@@ -4186,6 +4227,8 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 		(t1->player->ReadyWeapon->flags2 & MF2_THRUGHOST)) ||
 		(puffDefaults && (puffDefaults->flags2 & MF2_THRUGHOST));
 
+	hitSameSpecie = (puffDefaults && (puffDefaults->flags6 & MF6_MTHRUSPECIES));
+
 	// if the puff uses a non-standard damage type, this will override default, hitscan and melee damage type.
 	// All other explicitly passed damage types (currenty only MDK) will be preserved.
 	if ((damageType == NAME_None || damageType == NAME_Melee || damageType == NAME_Hitscan) &&
@@ -4201,7 +4244,7 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 	// [Spleen]
 	const bool hitSomething = Trace (t1->x, t1->y, shootz, t1->Sector, vx, vy, vz, distance,
 		MF_SHOOTABLE, ML_BLOCKEVERYTHING|ML_BLOCKHITSCAN, t1, trace,
-		tflags, hitGhosts ? CheckForGhost : CheckForSpectral);
+		tflags, hitGhosts ? (hitSameSpecie ? CheckForSpecieAndGhost : CheckForGhost) : hitSameSpecie ? CheckForSameSpecie : CheckForSpectral, &TData);
 
 	// [Spleen]
 	UNLAGGED_Restore( t1 );
