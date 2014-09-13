@@ -1851,6 +1851,7 @@ void G_FinishTravel ()
 			pawn->lastenemy = NULL;
 			pawn->player->mo = pawn;
 			pawn->player->camera = pawn;
+			pawn->flags2 &= ~MF2_BLASTED;
 			DObject::StaticPointerSubstitution (oldpawn, pawn);
 			oldpawn->Destroy();
 			pawndup->Destroy ();
