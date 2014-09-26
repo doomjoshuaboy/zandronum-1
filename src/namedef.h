@@ -302,6 +302,7 @@ xx(Abs)
 xx(ACS_NamedExecuteWithResult)
 xx(CallACS)
 xx(Sqrt)
+xx(CheckClass)
 
 // Various actor names which are used internally
 xx(MapSpot)
