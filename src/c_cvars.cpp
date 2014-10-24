@@ -539,9 +539,10 @@ UCVarValue FBaseCVar::FromString (const char *value, ECVarType type)
 					goodv = false;
 				break;
 			default:
-				if (value[i] < '0' && value[i] > '9' &&
-					value[i] < 'A' && value[i] > 'F' &&
-					value[i] < 'a' && value[i] > 'f')
+				if (value[i] < '0' || 
+					(value[i] > '9' && value[i] < 'A') || 
+					(value[i] > 'F' && value[i] < 'a') || 
+					value[i] > 'f')
 				{
 					goodv = false;
 				}
