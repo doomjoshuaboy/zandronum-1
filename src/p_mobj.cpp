@@ -1559,21 +1559,7 @@ void P_ExplodeMissile (AActor *mo, line_t *line, AActor *target)
 				SERVERCOMMANDS_SetThingFrame( mo, nextstate );
 		}
 	}
-
-	// [BB] We need to keep track if the state change changes the flags.
-	const DWORD dwSavedMoFlags = mo->flags;
-	// [BB] If nextstate is still equal to NULL, mo->SetState (nextstate)
-	// returns false and we have to break out here.
-	if (!(mo->SetState (nextstate)))
-		return;
-	// [BB] If the flags were just changed, we'll have to take special care later.
-	const bool bFlagsChanged = ( mo->flags != dwSavedMoFlags );
 	
-	if (mo->ObjectFlags & OF_EuthanizeMe)
-	{
-		return;
-	}
-
 	if (line != NULL && line->special == Line_Horizon && !(mo->flags3 & MF3_SKYEXPLODE))
 	{
 		// [RH] Don't explode missiles on horizon lines.
@@ -1652,8 +1638,24 @@ void P_ExplodeMissile (AActor *mo, line_t *line, AActor *target)
 		}
 	}
 
-	if (nextstate != NULL)
+	// play the sound before changing the state, so that AActor::Destroy can call S_RelinkSounds on it and the death state can override it.
+	if (mo->DeathSound)
 	{
+		S_Sound (mo, CHAN_VOICE, mo->DeathSound, 1,
+			(mo->flags3 & MF3_FULLVOLDEATH) ? ATTN_NONE : ATTN_NORM);
+	}
+
+	// [BB] We need to keep track if the state change changes the flags.
+	const DWORD dwSavedMoFlags = mo->flags;
+	// [BB] If nextstate is still equal to NULL, mo->SetState (nextstate)
+	// returns false and we have to break out here.
+	if (!(mo->SetState (nextstate)))
+		return;
+	// [BB] If the flags were just changed, we'll have to take special care later.
+	const bool bFlagsChanged = ( mo->flags != dwSavedMoFlags );
+	if (!(mo->ObjectFlags & OF_EuthanizeMe))
+	{
+		// The rest only applies if the missile actor still exists.
 		// [RH] Change render style of exploding rockets
 		if (mo->flags5 & MF5_DEHEXPLOSION)
 		{
@@ -1694,11 +1696,6 @@ void P_ExplodeMissile (AActor *mo, line_t *line, AActor *target)
 		if ( bFlagsChanged && ( NETWORK_GetState( ) == NETSTATE_SERVER ) )
 			SERVERCOMMANDS_SetThingFlags( mo, FLAGSET_FLAGS );
 
-		if (mo->DeathSound)
-		{
-			S_Sound (mo, CHAN_VOICE, mo->DeathSound, 1,
-				(mo->flags3 & MF3_FULLVOLDEATH) ? ATTN_NONE : ATTN_NORM);
-		}
 	}
 }
 
