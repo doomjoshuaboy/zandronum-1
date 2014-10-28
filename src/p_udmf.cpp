@@ -686,6 +686,7 @@ public:
 
 			case NAME_FillColor:
 				th->fillcolor = CheckInt(key);
+				break;
 
 			case NAME_Health:
 				th->health = CheckInt(key);
