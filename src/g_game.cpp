@@ -5189,7 +5189,7 @@ void G_DoPlayDemo (void)
 		}
 
 		DefaultExtension (defdemoname, ".lmp");
-		M_ReadFile (defdemoname, &demobuffer);
+		M_ReadFileMalloc (defdemoname, &demobuffer);
 	}
 	demo_p = demobuffer;
 
