@@ -5677,7 +5677,8 @@ APlayerPawn *P_SpawnPlayer (FPlayerStart *mthing, int playernum, int flags)
 		if ( invul != NULL )
 		{
 			invul->EffectTics = 3*TICRATE;
-			invul->BlendColor = 0;				// don't mess with the view
+			invul->BlendColor = 0;			// don't mess with the view
+			invul->ItemFlags |= IF_UNDROPPABLE;	// Don't drop this
 			// [BB] The clients are informed about the powerup and these adjustments later.
 
 			// Apply respawn invulnerability effect.
