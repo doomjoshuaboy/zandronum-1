@@ -341,6 +341,10 @@ enum
 	MF7_ALWAYSTELEFRAG	= 0x00000004,	// will unconditionally be telefragged when in the way. Overrides all other settings.
 	MF7_HANDLENODELAY	= 0x00000008,	// respect NoDelay state flag
 
+	MF7_HITTARGET		= 0x00004000,	// The actor the projectile dies on is set to target, provided it's targetable anyway.
+	MF7_HITMASTER		= 0x00008000,	// Same as HITTARGET, except it's master instead of target.
+	MF7_HITTRACER		= 0x00010000,	// Same as HITTARGET, but for tracer.
+
 	// [BC] More object flags for Skulltag.
 
 	// Object can only be picked up by blue team members.
