@@ -1526,9 +1526,9 @@ void P_ExplodeMissile (AActor *mo, line_t *line, AActor *target)
 	// As workaround we check if the target is a player.
 	if (target != NULL && ((target->flags & (MF_SHOOTABLE|MF_CORPSE)) || (target->flags6 & MF6_KILLED) || target->player ) )
 	{
-		if (target->flags7 & MF7_HITTARGET)	mo->target = target;
-		if (target->flags7 & MF7_HITMASTER)	mo->master = target;
-		if (target->flags7 & MF7_HITTRACER)	mo->tracer = target;
+		if (mo->flags7 & MF7_HITTARGET)	mo->target = target;
+		if (mo->flags7 & MF7_HITMASTER)	mo->master = target;
+		if (mo->flags7 & MF7_HITTRACER)	mo->tracer = target;
 		if (target->flags & MF_NOBLOOD) nextstate = mo->FindState(NAME_Crash);
 		if (nextstate == NULL) nextstate = mo->FindState(NAME_Death, NAME_Extreme);
 	}
