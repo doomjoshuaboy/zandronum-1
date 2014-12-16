@@ -4350,6 +4350,8 @@ AActor *P_LineAttack(AActor *t1, angle_t angle, fixed_t distance,
 			hity += trace.unlaggedHitOffset[1];
 			hitz += trace.unlaggedHitOffset[2];
 
+			
+
 			// Spawn bullet puffs or blood spots, depending on target type.
 			// [CK] We don't want to enter here unless we're predicting puffs.
 			if (((puffDefaults != NULL && puffDefaults->flags3 & MF3_PUFFONACTORS) ||
@@ -4369,6 +4371,13 @@ AActor *P_LineAttack(AActor *t1, angle_t angle, fixed_t distance,
 			// so we can exit. We will only continue on if we want blood decals.
 			if ( NETWORK_InClientMode() && cl_hitscandecalhack == false )
 				return NULL;
+
+			if (puffDefaults != NULL && trace.Actor != NULL)
+			{
+				if (puffDefaults->flags7 && MF7_HITTARGET)	puffDefaults->target = trace.Actor;
+				if (puffDefaults->flags7 && MF7_HITMASTER)	puffDefaults->master = trace.Actor;
+				if (puffDefaults->flags7 && MF7_HITTRACER)	puffDefaults->tracer = trace.Actor;
+			}
 
 			// Allow puffs to inflict poison damage, so that hitscans can poison, too.
 			// [EP] Skip this for clients.
@@ -4390,7 +4399,7 @@ AActor *P_LineAttack(AActor *t1, angle_t angle, fixed_t distance,
 				{
 					dmgflags |= DMG_NO_ARMOR;
 				}
-
+				
 				if (puff == NULL)
 				{
 					// Since the puff is the damage inflictor we need it here 
@@ -4796,7 +4805,7 @@ void P_RailAttack(AActor *source, int damage, int offset_xy, fixed_t offset_z, i
 	int flags;
 
 	assert(puffclass != NULL);		// Because we set it to a default above
-	AActor *puffDefaults = GetDefaultByType(puffclass->GetReplacement());
+	AActor *puffDefaults = GetDefaultByType(puffclass->GetReplacement()); //Contains all the flags such as FOILINVUL, etc.
 
 	flags = (puffDefaults->flags6 & MF6_NOTRIGGER) ? 0 : TRACE_PCross | TRACE_Impact;
 	rail_data.StopAtInvul = (puffDefaults->flags3 & MF3_FOILINVUL) ? false : true;
@@ -4854,6 +4863,12 @@ void P_RailAttack(AActor *source, int damage, int offset_xy, fixed_t offset_z, i
 			{
 				P_SpawnPuff(source, puffclass, x, y, z, (source->angle + angleoffset) - ANG90, 1, puffflags);
 			}
+			if (hitactor != NULL && puffDefaults != NULL)
+			{
+				if (puffDefaults->flags7 & MF7_HITTARGET)	puffDefaults->target = hitactor;
+				if (puffDefaults->flags7 & MF7_HITMASTER)	puffDefaults->master = hitactor;
+				if (puffDefaults->flags7 & MF7_HITTRACER)	puffDefaults->tracer = hitactor;
+			}
 			// [BC] Damage is server side.
 			if ( NETWORK_InClientMode() == false )
 			{
@@ -4865,7 +4880,8 @@ void P_RailAttack(AActor *source, int damage, int offset_xy, fixed_t offset_z, i
 				if ( instagib )
 					damage = 999;
 
-			int newdam = P_DamageMobj(hitactor, thepuff ? thepuff : source, source, damage, damagetype, DMG_INFLICTOR_IS_PUFF);
+				int newdam = P_DamageMobj(hitactor, thepuff ? thepuff : source, source, damage, damagetype, DMG_INFLICTOR_IS_PUFF);
+
 				if (bleed)
 				{
 					P_SpawnBlood(x, y, z, (source->angle + angleoffset) - ANG180, newdam > 0 ? newdam : damage, hitactor);
