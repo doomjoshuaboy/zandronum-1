@@ -2843,6 +2843,9 @@ void D_DoomMain (void)
 		// [BB] Parse the GAMEMODE lump.
 		GAMEMODE_ParseGamemodeInfo( );
 
+		// Try setting previously unknown cvars again, as a CVARINFO may have made them known.
+		C_ExecStoredSets();
+
 		// [RH] Initialize localizable strings.
 		GStrings.LoadStrings (false);
 
