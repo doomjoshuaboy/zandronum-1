@@ -4367,7 +4367,7 @@ AActor *P_LineAttack(AActor *t1, angle_t angle, fixed_t distance,
 					puffFlags |= PF_HITTHINGBLEED;
 
 				// We must pass the unreplaced puff type here 
-				puff = P_SpawnPuff(t1, pufftype, hitx, hity, hitz, angle - ANG180, 2, puffFlags | PF_HITTHING);
+				puff = P_SpawnPuff(t1, pufftype, hitx, hity, hitz, angle - ANG180, 2, puffFlags | PF_HITTHING, trace.Actor);
 			}
 
 			// [CK] The client by this point has predicted their desired
@@ -4375,13 +4375,6 @@ AActor *P_LineAttack(AActor *t1, angle_t angle, fixed_t distance,
 			// so we can exit. We will only continue on if we want blood decals.
 			if ( NETWORK_InClientMode() && cl_hitscandecalhack == false )
 				return NULL;
-
-			if (puffDefaults != NULL && trace.Actor != NULL && puff != NULL)
-			{
-				if (puffDefaults->flags7 && MF7_HITTARGET)	puff->target = trace.Actor;
-				if (puffDefaults->flags7 && MF7_HITMASTER)	puff->master = trace.Actor;
-				if (puffDefaults->flags7 && MF7_HITTRACER)	puff->tracer = trace.Actor;
-			}
 
 			// Allow puffs to inflict poison damage, so that hitscans can poison, too.
 			// [EP] Skip this for clients.
@@ -4410,7 +4403,7 @@ AActor *P_LineAttack(AActor *t1, angle_t angle, fixed_t distance,
 					// regardless of whether it is displayed or not.
 					// [BB] In case the puff has a custom obituary, the clients need to spawn it too.
 					const bool bTellClientToSpawn = pufftype && ( pufftype->Meta.GetMetaString (AMETA_Obituary) != NULL );
-					puff = P_SpawnPuff(t1, pufftype, hitx, hity, hitz, angle - ANG180, 2, puffFlags | PF_HITTHING | PF_TEMPORARY, bTellClientToSpawn );
+					puff = P_SpawnPuff(t1, pufftype, hitx, hity, hitz, angle - ANG180, 2, puffFlags | PF_HITTHING | PF_TEMPORARY, NULL, bTellClientToSpawn );
 					killPuff = true;
 				}
 				newdam = P_DamageMobj(trace.Actor, puff ? puff : t1, t1, damage, damageType, dmgflags);
@@ -4865,13 +4858,7 @@ void P_RailAttack(AActor *source, int damage, int offset_xy, fixed_t offset_z, i
 			}
 			if (spawnpuff)
 			{
-				P_SpawnPuff(source, puffclass, x, y, z, (source->angle + angleoffset) - ANG90, 1, puffflags);
-			}
-			if (hitactor != NULL && puffDefaults != NULL && thepuff != NULL)
-			{
-				if (puffDefaults->flags7 & MF7_HITTARGET)	thepuff->target = hitactor;
-				if (puffDefaults->flags7 & MF7_HITMASTER)	thepuff->master = hitactor;
-				if (puffDefaults->flags7 & MF7_HITTRACER)	thepuff->tracer = hitactor;
+				P_SpawnPuff(source, puffclass, x, y, z, (source->angle + angleoffset) - ANG90, 1, puffflags, hitactor);
 			}
 			// [BC] Damage is server side.
 			if ( NETWORK_InClientMode() == false )
