@@ -1600,6 +1600,7 @@ FxExpression *FxAbs::Resolve(FCompileContext &ctx)
 
 		case VAL_Float:
 			value.Float = fabs(value.Float);
+			break;
 
 		default:
 			// shouldn't happen
