@@ -1098,6 +1098,7 @@ public:
 		strncpy(sdt->midtexture, "-", 8);
 		sd->SetTextureXScale(FRACUNIT);
 		sd->SetTextureYScale(FRACUNIT);
+		sd->Index = index;
 
 		sc.MustGetToken('{');
 		while (!sc.CheckToken('}'))
