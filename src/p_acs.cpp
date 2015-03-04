@@ -9742,7 +9742,7 @@ scriptwait:
 			break;
 
 		case PCD_PLAYERINGAME:
-			if (STACK(1) < 0 || STACK(1) > MAXPLAYERS)
+			if (STACK(1) < 0 || STACK(1) >= MAXPLAYERS)
 			{
 				STACK(1) = false;
 			}
@@ -9754,7 +9754,7 @@ scriptwait:
 			break;
 
 		case PCD_PLAYERISBOT:
-			if (STACK(1) < 0 || STACK(1) > MAXPLAYERS || !playeringame[STACK(1)])
+			if (STACK(1) < 0 || STACK(1) >= MAXPLAYERS || !playeringame[STACK(1)])
 			{
 				STACK(1) = false;
 			}
