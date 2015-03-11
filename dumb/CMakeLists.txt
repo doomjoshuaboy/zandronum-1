@@ -47,7 +47,6 @@ add_library( dumb
     src/helpers/sampbuf.c
     src/helpers/silence.c
     src/helpers/stdfile.c
-    src/it/filter.cpp
     src/it/itload.c
     src/it/itload2.c
     src/it/itmisc.c
