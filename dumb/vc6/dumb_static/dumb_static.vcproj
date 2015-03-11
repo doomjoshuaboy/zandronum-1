@@ -1203,10 +1203,6 @@
 				Name="it"
 				>
 				<File
-					RelativePath="..\..\src\it\filter.cpp"
-					>
-				</File>
-				<File
 					RelativePath="..\..\src\it\itload.c"
 					>
 					<FileConfiguration
