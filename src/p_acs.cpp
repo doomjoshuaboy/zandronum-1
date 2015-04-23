@@ -4308,10 +4308,14 @@ void DLevelScript::DoSetActorProperty (AActor *actor, int property, int value)
 		if (actor->IsKindOf (RUNTIME_CLASS (APlayerPawn)))
 		{
 			static_cast<APlayerPawn *>(actor)->ViewHeight = value;
+			if (actor->player != NULL)
+			{
+				actor->player->viewheight = value;
 
-			// [BB] Tell the clients about the changed view height.
-			if( NETWORK_GetState() == NETSTATE_SERVER )
-				SERVERCOMMANDS_SetPlayerViewHeight ( actor->player - players );
+				// [BB] Tell the clients about the changed view height.
+				if( NETWORK_GetState() == NETSTATE_SERVER )
+					SERVERCOMMANDS_SetPlayerViewHeight ( actor->player - players );
+			}
 		}
 		break;
 
