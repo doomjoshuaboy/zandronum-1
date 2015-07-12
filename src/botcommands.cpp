@@ -1902,7 +1902,8 @@ static void botcmd_StopFiringWeapon( CSkullBot *pBot )
 //
 static void botcmd_GetCurrentWeapon( CSkullBot *pBot )
 {
-	if ( pBot->GetPlayer( )->PendingWeapon == WP_NOCHANGE )
+	if (( pBot->GetPlayer( )->PendingWeapon == WP_NOCHANGE ) ||
+		( pBot->GetPlayer( )->PendingWeapon == NULL ))
 	{
 		if ( pBot->GetPlayer( )->ReadyWeapon )
 		{
