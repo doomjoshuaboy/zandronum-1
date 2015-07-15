@@ -147,6 +147,7 @@ extern bool FancyStdOut;
 extern HINSTANCE g_hInst;
 extern FILE *Logfile;
 extern bool NativeMouse;
+extern bool ConWindowHidden;
 
 // PUBLIC DATA DEFINITIONS -------------------------------------------------
 
@@ -997,12 +998,11 @@ void ToEditControl(HWND edit, const char *buf, wchar_t *wbuf, int bpos)
 //
 //==========================================================================
 
-void I_PrintStr(const char *cp)
+static void DoPrintStr(const char *cp, HWND edit, HANDLE StdOut)
 {
-	if (ConWindow == NULL && StdOut == NULL)
+	if (edit == NULL && StdOut == NULL)
 		return;
 
-	HWND edit = ConWindow;
 	char buf[256];
 	wchar_t wbuf[countof(buf)];
 	int bpos = 0;
@@ -1132,6 +1132,30 @@ void I_PrintStr(const char *cp)
 	{ // Set text back to gray, in case it was changed.
 		SetConsoleTextAttribute(StdOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
 	}
+}
+
+static TArray<FString> bufferedConsoleStuff;
+
+void I_PrintStr(const char *cp)
+{
+	if (ConWindowHidden)
+	{
+		bufferedConsoleStuff.Push(cp);
+		DoPrintStr(cp, NULL, StdOut);
+	}
+	else
+	{
+		DoPrintStr(cp, ConWindow, StdOut);
+	}
+}
+
+void I_FlushBufferedConsoleStuff()
+{
+	for (unsigned i = 0; i < bufferedConsoleStuff.Size(); i++)
+	{
+		DoPrintStr(bufferedConsoleStuff[i], ConWindow, NULL);
+	}
+	bufferedConsoleStuff.Clear();
 }
 
 //==========================================================================
