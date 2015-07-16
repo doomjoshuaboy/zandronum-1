@@ -3492,6 +3492,26 @@ void SERVERCOMMANDS_SoundActor( AActor *pActor, LONG lChannel, const char *pszSo
 
 //*****************************************************************************
 //
+void SERVERCOMMANDS_SoundSector( sector_t *sector, int channel, const char *sound, float volume, float attenuation, ULONG ulPlayerExtra, ServerCommandFlags flags )
+{
+	if ( sector == NULL )
+		return;
+
+	int sectorID = sector - sectors;
+	if (( sectorID < 0 ) || ( sectorID >= numsectors ))
+		return;
+
+	NetCommand command( SVC2_SOUNDSECTOR );
+	command.addShort( sectorID );
+	command.addShort( channel );
+	command.addString( sound );
+	command.addByte( LONG ( clamp( volume, 0.0f, 2.0f ) * 127 ) );
+	command.addByte( NETWORK_AttenuationFloatToInt ( attenuation ));
+	command.sendCommandToClients( ulPlayerExtra, flags );
+}
+
+//*****************************************************************************
+//
 void SERVERCOMMANDS_SoundPoint( LONG lX, LONG lY, LONG lZ, LONG lChannel, const char *pszSound, float fVolume, float fAttenuation, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	NetCommand command ( SVC_SOUNDPOINT );
