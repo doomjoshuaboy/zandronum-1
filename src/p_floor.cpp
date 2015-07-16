@@ -1079,6 +1079,7 @@ manual_stair:
 				floor->m_Type = DFloor::buildStair;	//jff 3/31/98 do not leave uninited
 				//jff 2/27/98 fix uninitialized crush field
 				floor->m_Crush = (!usespecials && speed == 4*FRACUNIT) ? 10 : -1;
+				floor->m_Hexencrush = false;
 				floor->m_ResetCount = reset;	// [RH] Tics until reset (0 if never)
 				floor->m_OrgDist = sec->floorplane.d;	// [RH] Height to reset to
 
