@@ -339,6 +339,7 @@ static	void	client_ACSScriptExecute( BYTESTREAM_s *pByteStream );
 // Sound commands.
 static	void	client_Sound( BYTESTREAM_s *pByteStream );
 static	void	client_SoundActor( BYTESTREAM_s *pByteStream, bool bRespectActorPlayingSomething = false );
+static	void	client_SoundSector( BYTESTREAM_s *pByteStream );
 static	void	client_SoundPoint( BYTESTREAM_s *pByteStream );
 static	void	client_AnnouncerSound( BYTESTREAM_s *pByteSream );
 
@@ -2878,6 +2879,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 			// [EP]
 			case SVC2_SETTHINGSCALE:
 				client_SetThingScale( pByteStream );
+				break;
+
+			case SVC2_SOUNDSECTOR:
+				client_SoundSector( pByteStream );
 				break;
 
 			default:
@@ -10038,6 +10043,35 @@ static void client_SoundActor( BYTESTREAM_s *pByteStream, bool bRespectActorPlay
 
 	// Finally, play the sound.
 	S_Sound( pActor, lChannel, pszSoundString, (float)lVolume / 127.f, NETWORK_AttenuationIntToFloat ( lAttenuation ) );
+}
+
+//*****************************************************************************
+//
+static void client_SoundSector( BYTESTREAM_s *pByteStream )
+{
+	// Read in the spot ID.
+	int sectorID = NETWORK_ReadShort( pByteStream );
+
+	// Read in the channel.
+	int channel = NETWORK_ReadShort( pByteStream );
+
+	// Read in the name of the sound to play.
+	const char *soundString = NETWORK_ReadString( pByteStream );
+
+	// Read in the volume.
+	int volume = NETWORK_ReadByte( pByteStream );
+	if ( volume > 127 )
+		volume = 127;
+
+	// Read in the attenuation.
+	int attenuation = NETWORK_ReadByte( pByteStream );
+
+	// Make sure the sector ID is valid.
+	if (( sectorID < 0 ) && ( sectorID >= numsectors ))
+		return;
+
+	// Finally, play the sound.
+	S_Sound( &sectors[sectorID], channel, soundString, (float)volume / 127.f, NETWORK_AttenuationIntToFloat ( attenuation ) );
 }
 
 //*****************************************************************************
