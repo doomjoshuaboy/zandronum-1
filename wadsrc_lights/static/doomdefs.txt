@@ -578,6 +578,44 @@ object BlurSphere
     frame PINSD { light BLURSPHERE5 }
 }
 
+// Mega Sphere
+pointlight MEGASPHERE1
+{
+    color 0.7 0.59 0.51
+    size 40
+    offset 0 16 0
+}
+
+pointlight MEGASPHERE2
+{
+    color 0.7 0.59 0.51
+    size 32
+    offset 0 16 0
+}
+
+pointlight MEGASPHERE3
+{
+    color 0.7 0.59 0.51
+    size 24
+    offset 0 16 0
+}
+
+pointlight MEGASPHERE4
+{
+    color 0.7 0.59 0.51
+    size 16
+    offset 0 16 0
+}
+
+object MegaSphere
+{
+    frame MEGAA0 { light MEGASPHERE1 }
+
+    frame MEGAB0 { light MEGASPHERE2 }
+    frame MEGAC0 { light MEGASPHERE3 }
+    frame MEGAD0 { light MEGASPHERE4 }
+}
+
 // Health Potion
 pulselight HEALTHPOTION
 {
@@ -1255,4 +1293,250 @@ object TeleportFog
     frame TFOGF { light DTFOG4 }
     frame TFOGI { light DTFOG4 }
     frame TFOGJ { light DTFOG3 }
+}
+
+// ------------------
+// -- Skulltag Effects --
+// ------------------
+
+// ------------------
+// -- Spheres --
+// ------------------
+
+// Doom Sphere
+pulselight DOOMSPHERE
+{
+    color 0.5 0.0 0.0
+    size 40
+    secondarySize 42
+    interval 2.0
+    offset 0 16 0
+}
+
+object DoomSphere
+{
+    frame DOOM { light DOOMSPHERE }
+}
+
+// Invisibility Sphere
+pulselight INVISIBILITYSPHERE
+{
+    color 0.0 0.0 0.8
+    size 40
+    secondarySize 42
+    interval 2.0
+    offset 0 16 0
+}
+
+object InvisibilitySphere
+{
+    frame INVS { light INVISIBILITYSPHERE }
+}
+
+// Guard Sphere
+pulselight GUARDSPHERE
+{
+    color 0.1 0.5 0.0
+    size 40
+    secondarySize 42
+    interval 2.0
+    offset 0 16 0
+}
+
+object GuardSphere
+{
+    frame GARD { light GUARDSPHERE }
+}
+
+// Time Freeze Sphere
+pulselight TIMEFREEZESPHERE
+{
+    color 0.8 0.8 0.8
+    size 40
+    secondarySize 42
+    interval 2.0
+    offset 0 16 0
+}
+
+object TimefreezeSphere
+{
+    frame TIME { light TIMEFREEZESPHERE }
+}
+
+// Turbo Sphere
+pulselight TURBOSPHERE
+{
+    color 0.8 0.3 0.0
+    size 40
+    secondarySize 42
+    interval 2.0
+    offset 0 16 0
+}
+
+object TurboSphere
+{
+    frame TURB { light TURBOSPHERE }
+}
+
+// Possession Stone
+flickerlight POSSESSIONSTONE
+{
+    color 0.0 1.0 0.0
+    size 56
+    secondarySize 64
+    chance 0.25
+}
+
+flickerlight POSSESSIONSTONE_X1
+{
+    color 0.0 1.0 0.0
+    size 72
+    secondarySize 80
+    chance 0.25
+}
+
+flickerlight POSSESSIONSTONE_X2
+{
+    color 0.0 0.9 0.0
+    size 88
+    secondarySize 96
+    chance 0.25
+}
+
+flickerlight POSSESSIONSTONE_X3
+{
+    color 0.0 0.7 0.0
+    size 104
+    secondarySize 112
+    chance 0.25
+}
+
+object PossessionStone
+{
+    frame PPOSA0 { light POSSESSIONSTONE }
+    frame PPOSB0 { light POSSESSIONSTONE }
+
+    frame PPOSC0 { light POSSESSIONSTONE_X1 }
+    frame PPOSD0 { light POSSESSIONSTONE_X2 }
+    frame PPOSE0 { light POSSESSIONSTONE_X3 }
+    frame PPOSF0 { light POSSESSIONSTONE_X1 }
+}
+
+
+// Terminator Ball
+flickerlight TERMINATORBALL
+{
+    color 1.0 0.0 0.0
+    size 56
+    secondarySize 64
+    chance 0.25
+}
+
+flickerlight TERMINATORBALL_X1
+{
+    color 1.0 0.0 0.0
+    size 72
+    secondarySize 80
+    chance 0.25
+}
+
+flickerlight TERMINATORBALL_X2
+{
+    color 0.8 0.0 0.0
+    size 88
+    secondarySize 96
+    chance 0.25
+}
+
+flickerlight TERMINATORBALL_X3
+{
+    color 0.5 0.0 0.0
+    size 104
+    secondarySize 112
+    chance 0.25
+}
+
+object Terminator
+{
+    frame ARNOA0 { light TERMINATORBALL }
+    frame ARNOB0 { light TERMINATORBALL }
+
+    frame ARNOC0 { light TERMINATORBALL_X1 }
+    frame ARNOD0 { light TERMINATORBALL_X2 }
+}
+
+// ------------------
+// -- Items --
+// ------------------
+
+// Max Health Potion
+pulselight MAXHEALTHPOTION
+{
+    color 0.6 0.0 0.0
+    size 16
+    secondarySize 18
+    interval 2.0
+}
+
+object MaxHealthBonus
+{
+    frame BON3 { light MAXHEALTHPOTION }
+}
+
+// Max Armour Helmet
+pulselight MAXARMORBONUS
+{
+    color 0.0 0.0 0.8
+    size 16
+    secondarySize 14
+    interval 1.0
+}
+
+object MaxArmorBonus
+{
+    frame BON4 { light MAXARMORBONUS }
+}
+
+// ------------------
+// -- Weapons --
+// ------------------
+
+// Grenade
+pointlight GRENADE
+{
+    color 1.0 0.5 0.0
+    size 22
+}
+
+flickerlight GRENADE_X1
+{
+    color 1.0 0.5 0.0
+    size 22
+    secondarySize 72
+    chance 0.3
+}
+
+flickerlight GRENADE_X2
+{
+    color 0.3 0.0 0.0
+    size 28
+    secondarySize 88
+    chance 0.3
+}
+
+flickerlight GRENADE_X3
+{
+    color 0.2 0.0 0.0
+    size 32
+    secondarySize 104
+    chance 0.3
+}
+
+object Grenade
+{
+    frame SGRN { light GRENADE    }
+
+    frame MISLB { light GRENADE_X1 }
+    frame MISLC { light GRENADE_X2 }
+    frame MISLD { light GRENADE_X3 }
 }
