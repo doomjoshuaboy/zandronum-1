@@ -55,8 +55,6 @@
 // [BB] New #includes.
 #include "gl/gl_functions.h"
 
-//
-
 // externally settable lighting properties
 static float distfogtable[2][256];	// light to fog conversion table for black fog
 static PalEntry outsidefogcolor;

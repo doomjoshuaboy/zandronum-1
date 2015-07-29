@@ -57,6 +57,7 @@
 // Texture CVARs
 //
 //==========================================================================
+// [BB] Changed default
 CUSTOM_CVAR(Float,gl_texture_filter_anisotropic,1.0f,CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOINITCALL)
 {
 	if (GLRenderer != NULL) GLRenderer->FlushTextures();
@@ -67,6 +68,7 @@ CCMD(gl_flush)
 	if (GLRenderer != NULL) GLRenderer->FlushTextures();
 }
 
+// [BB] Changed default
 CUSTOM_CVAR(Int, gl_texture_filter, 0, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOINITCALL)
 {
 	if (self < 0 || self > 5) self=4;
@@ -520,7 +522,7 @@ void FTexture::CheckTrans(unsigned char * buffer, int size, int trans)
 //
 //===========================================================================
 
-#ifdef __BIG_ENDIAN__
+#ifdef WORDS_BIGENDIAN
 #define MSB 0
 #define SOME_MASK 0xffffff00
 #else
