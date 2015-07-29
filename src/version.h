@@ -108,37 +108,15 @@ unsigned int GetRevisionNumber();
 // SAVESIG should match SAVEVER.
 
 // MINSAVEVER is the minimum level snapshot version that can be loaded.
-#define MINSAVEVER 3100
+#define MINSAVEVER	3100
 
-#if ZD_SVN_REVISION_NUMBER < MINSAVEVER
-// If we don't know the current revision write something very high to ensure that
-// the reesulting executable can read its own savegames but no regular engine can.
-#define SAVEVER			999999
-#define SAVESIG			MakeSaveSig()
-static inline const char *MakeSaveSig()
-{
-	static char foo[] = { 'Z','D','O','O','M','S','A','V','E',
-#if SAVEVER > 99999
-		'0' + (SAVEVER / 100000),
-#endif
-#if SAVEVER > 9999
-		'0' + ((SAVEVER / 10000) % 10),
-#endif
-#if SAVEVER > 999
-		'0' + ((SAVEVER / 1000) % 10),
-#endif
-		'0' + ((SAVEVER / 100) % 10),
-		'0' + ((SAVEVER / 10) % 10),
-		'0' + (SAVEVER % 10),
-		'\0'
-	};
-	return foo;
-}
-#else
-// savegame versioning is based on ZDoom revisions
-#define SAVEVER			ZD_SVN_REVISION_NUMBER
-#define SAVESIG			"ZDOOMSAVE"ZD_SVN_REVISION_STRING
-#endif
+// Use 4500 as the base git save version, since it's higher than the
+// SVN revision ever got.
+#define SAVEVER 4500
+
+#define SAVEVERSTRINGIFY2(x) str(x)
+#define SAVEVERSTRINGIFY(x) #x
+#define SAVESIG "ZDOOMSAVE" SAVEVERSTRINGIFY(SAVEVER)
 
 #define DYNLIGHT
 
