@@ -50,7 +50,7 @@ unsigned int GetRevisionNumber();
 #define DOTVERSIONSTR GAMEVER_STRING "-alpha"
 #define VERSIONSTR DOTVERSIONSTR
 
-#define ZDVER_STRING "2.7.0"
+#define ZDVER_STRING "2.8pre"
 #define ZD_SVN_REVISION_STRING "4342"
 #define ZD_SVN_REVISION_NUMBER 4342
 
