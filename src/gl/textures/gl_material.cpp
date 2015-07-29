@@ -331,8 +331,7 @@ unsigned char * FGLTexture::CreateTexBuffer(int cm, int translation, int & w, in
 	{
 		buffer = WarpBuffer(buffer, W, H, warp);
 	}
-	// [BB] Potentially upsample the buffer. Note: Even is the buffer is not upsampled,
-	// w, h are set to the width and height of the buffer.
+	// [BB] The hqnx upsampling (not the scaleN one) destroys partial transparency, don't upsamle textures using it.
 	// Also don't upsample warped textures.
 	else //if (bIsTransparent != 1)
 	{
