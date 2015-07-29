@@ -2698,10 +2698,6 @@
 			Name="Versioning"
 			>
 			<File
-				RelativePath=".\src\baseversion.h"
-				>
-			</File>
-			<File
 				RelativePath=".\src\win32\serverconsole\serverconsole.rc"
 				>
 				<FileConfiguration
