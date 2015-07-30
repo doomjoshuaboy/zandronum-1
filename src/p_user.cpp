@@ -3905,6 +3905,7 @@ void player_t::Serialize (FArchive &arc)
 		<< bInConsole
 		<< ulRailgunShots
 		<< lMaxHealthBonus
+		<< cheats2
 		// [BB] Skulltag additions - end
 		;
 	if (SaveVersion < 3427)

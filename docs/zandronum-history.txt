@@ -20,6 +20,12 @@
 !	- Removed the internal server browser. It was only useful for debugging purposes anyway and the CCMDs querymaster and dumpserverlist are sufficient for this. [Torr Samaho]
 
 
+2.2
+---
+
+-	- Fixed: The effects of the terminator sphere and the hellstone on a player were not properly stored in save games. [Torr Samaho]
+
+
 2.1.2
 -----
 
