@@ -13,7 +13,7 @@ include( FindOpenGL )
 include( CheckLibraryExists )
 
 option( NO_ASM "Disable assembly code" )
-if( CMAKE_COMPILER_IS_GNUCXX )
+if( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" )
 	option( NO_STRIP "Do not strip Release or MinSizeRel builds" )
 	# At least some versions of Xcode fail if you strip with the linker
 	# instead of the separate strip utility.
@@ -24,7 +24,7 @@ if( CMAKE_COMPILER_IS_GNUCXX )
 	if( RELEASE_WITH_DEBUG_FILE )
 		set( NO_STRIP ON )
 	endif( RELEASE_WITH_DEBUG_FILE )
-endif( CMAKE_COMPILER_IS_GNUCXX )
+endif( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" )
 
 option( DYN_FLUIDSYNTH "Dynamically load fluidsynth" )
 
@@ -51,7 +51,7 @@ set( MINOR_VERSIONS "50" "49" "48" "47" "46" "45" "44" "43" "42" "41"
 	"27" "26" "25" "24" "23" "22" "21" "20" "21" "19" "18" "17" "16"
 	"15" "14" "13" "12" "11" "10" "09" "08" "07" "06" "05" "04" "03"
 	"02" "01" "00" )
-set( MAJOR_VERSIONS "34" "28" "26" "24" "22" "20" )
+set( MAJOR_VERSIONS "44" "34" "28" "26" "24" "22" "20" )
 set( FMOD_DIR_VERSIONS ${FMOD_DIR_VERSIONS} "../fmod" )
 foreach( majver ${MAJOR_VERSIONS} )
 	foreach( minver ${MINOR_VERSIONS} )
@@ -472,7 +472,7 @@ endif( SSE_MATTERS )
 
 # Set up flags for GCC
 
-if( CMAKE_COMPILER_IS_GNUCXX )
+if( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" )
 	if( PROFILE )
 		set( CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -pg" )
 		set( CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -pg" )
@@ -501,7 +501,7 @@ if( CMAKE_COMPILER_IS_GNUCXX )
 		set (CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -s" )
 		set (CMAKE_EXE_LINKER_FLAGS_MINSIZEREL "${CMAKE_EXE_LINKER_FLAGS_MINSIZEREL} -s" )
 	endif( NOT NO_STRIP )
-endif( CMAKE_COMPILER_IS_GNUCXX )
+endif( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" )
 
 # MSVC Flags
 
@@ -651,17 +651,17 @@ if( WIN32 )
 		win32/serverconsole/serverconsole.cpp
 		win32/serverconsole/serverconsole_dmflags.cpp
 		win32/serverconsole/serverconsole_settings.cpp )
-	if( CMAKE_COMPILER_IS_GNUCXX )
+	if( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" )
 		# CMake is not set up to compile and link rc files with GCC. :(
 		add_custom_command( OUTPUT zdoom-rc.o
 			COMMAND windres -o zdoom-rc.o -i ${CMAKE_CURRENT_SOURCE_DIR}/win32/zdoom.rc
 			DEPENDS win32/zdoom.rc )
 		set( SYSTEM_SOURCES ${SYSTEM_SOURCES} zdoom-rc.o )
-	else( CMAKE_COMPILER_IS_GNUCXX )
+	else( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" )
 		set( SYSTEM_SOURCES ${SYSTEM_SOURCES} win32/zdoom.rc )
 		# [BB] Added RC file for the Windows server console.
 		set( SYSTEM_SOURCES ${SYSTEM_SOURCES} win32/serverconsole/serverconsole.rc )
-	endif( CMAKE_COMPILER_IS_GNUCXX )
+	endif( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" )
 else( WIN32 )
 	set( SYSTEM_SOURCES_DIR sdl )
 	set( SYSTEM_SOURCES
@@ -1250,7 +1250,7 @@ if( NOT WIN32 )
 		COMMAND chmod +x ${CMAKE_CURRENT_BINARY_DIR}/link-make
 		COMMAND /bin/sh -c ${CMAKE_CURRENT_BINARY_DIR}/link-make )
 endif( NOT WIN32 )
-if( CMAKE_COMPILER_IS_GNUCXX )
+if( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" )
 	# GCC misoptimizes this file
 	set_source_files_properties( oplsynth/fmopl.cpp PROPERTIES COMPILE_FLAGS "-fno-tree-dominator-opts -fno-tree-fre" )
 
@@ -1258,7 +1258,7 @@ if( CMAKE_COMPILER_IS_GNUCXX )
 	if( SSE_MATTERS )
 		set_source_files_properties( x86.cpp PROPERTIES COMPILE_FLAGS "-msse2 -mmmx" )
 	endif( SSE_MATTERS )
-endif( CMAKE_COMPILER_IS_GNUCXX )
+endif( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" )
 
 if( MSVC )
 	set_target_properties(zdoom PROPERTIES LINK_FLAGS "/MANIFEST:NO")
