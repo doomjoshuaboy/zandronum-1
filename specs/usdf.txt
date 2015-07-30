@@ -120,7 +120,7 @@ conversation // Starts a dialog.
                 amount = <integer>; // Minimum amount of the item needed.
             }
 
-            displaycost     = <bool>;    // Wether the cost should be
+            displaycost     = <bool>;    // Whether the cost should be
                                          // displayed with the option.
                                          // If no cost is specified this should
                                          // be ignored.
