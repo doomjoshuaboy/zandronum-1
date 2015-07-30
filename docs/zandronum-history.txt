@@ -12,6 +12,12 @@
 ===============================================================================================================
 
 
+2.2
+---
+
+-	- Fixed: The effects of the terminator sphere and the hellstone on a player were not properly stored in save games. [Torr Samaho]
+
+
 2.1.2
 -----
 
