@@ -1203,10 +1203,11 @@ public:
 
 	bool HasSpecialDeathStates () const;
 
-	// [GZDoom]
+	// begin of GZDoom specific additions
 	TArray<TObjPtr<AActor> >		dynamiclights;
 	void *				lightassociations;
 	bool				hasmodel;
+	// end of GZDoom specific additions
 
 	size_t PropagateMark();
 };
