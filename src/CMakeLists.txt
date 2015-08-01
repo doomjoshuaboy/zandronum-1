@@ -421,13 +421,13 @@ if( NOT NO_ASM )
 	ENDMACRO( ADD_ASM_FILE )
 endif( NOT NO_ASM )
 
-# [AL] OpenGL on OS X: Search for GLEW include files
+# OpenGL on OS X: Search for GLEW include files
 
 if( APPLE )
 	find_path( GLEW_INCLUDE_DIR GL/glew.h
 		PATHS "/usr/include"
 		"/usr/local/include" )
-		
+
 	if( GLEW_INCLUDE_DIR )
 		message( STATUS "GLEW include files found at ${GLEW_INCLUDE_DIR}" )
 	else( GLEW_INCLUDE_DIR )
@@ -436,6 +436,7 @@ if( APPLE )
 endif( APPLE )
 
 # Decide on SSE setup
+
 set( SSE_MATTERS NO )
 
 # SSE only matters on 32-bit targets. We check compiler flags to know if we can do it.
@@ -448,7 +449,6 @@ if( CMAKE_SIZEOF_VOID_P MATCHES "4" AND NOT CMAKE_OSX_ARCHITECTURES MATCHES ppc 
 		set( SSE_MATTERS YES )
 	elseif( CAN_DO_ARCHSSE2 )
 		set( SSE1_ENABLE -arch:SSE )
-
 		set( SSE2_ENABLE -arch:SSE2 )
 		set( SSE_MATTERS YES )
 	endif( CAN_DO_MFPMATH )
@@ -596,17 +596,18 @@ FIND_PACKAGE ( OpenSSL REQUIRED )
 include_directories( ${OPENSSL_INCLUDE_DIR} )
 set ( ZDOOM_LIBS ${ZDOOM_LIBS} ${OPENSSL_LIBRARIES} )
 
-# [AL/BB] OpenGL on OS X: GLEW include directory
-if( APPLE )
-	include_directories( "${GLEW_INCLUDE_DIR}" )
-endif( APPLE )
-
 if( FLUIDSYNTH_FOUND )
   if( NOT DYN_FLUIDSYNTH)
 	set( ZDOOM_LIBS ${ZDOOM_LIBS} "${FLUIDSYNTH_LIBRARIES}" )
 	include_directories( "${FLUIDSYNTH_INCLUDE_DIR}" )
   endif( NOT DYN_FLUIDSYNTH )
 endif( FLUIDSYNTH_FOUND )
+
+# OpenGL on OS X: GLEW include directory
+
+if( APPLE )
+	include_directories( "${GLEW_INCLUDE_DIR}" )
+endif( APPLE )
 
 # Start defining source files for ZDoom
 
