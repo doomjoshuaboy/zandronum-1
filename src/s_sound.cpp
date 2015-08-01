@@ -1788,7 +1788,7 @@ bool S_GetSoundPlayingInfo (const FPolyObj *poly, int sound_id)
 //
 //==========================================================================
 
-bool S_IsChannelUsed(AActor *actor, int channel, int *seen)
+static bool S_IsChannelUsed(AActor *actor, int channel, int *seen)
 {
 	if (*seen & (1 << channel))
 	{
