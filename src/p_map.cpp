@@ -4108,7 +4108,7 @@ static ETraceStatus CheckForSpectral (FTraceResults &res, void *userdata)
 //==========================================================================
 
 AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
-				   int pitch, int damage, FName damageType, const PClass *pufftype, int flags, AActor **victim)
+				   int pitch, int damage, FName damageType, const PClass *pufftype, int flags, AActor **victim, int *actualdamage)
 {
 	// [BB] The only reason the client should try to execute P_LineAttack, is the online hitscan decal fix. 
 	// [CK] And also predicted puffs and blood decals.
@@ -4133,6 +4133,10 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 	if (victim != NULL)
 	{
 		*victim = NULL;
+	}
+	if (actualdamage != NULL)
+	{
+		*actualdamage = 0;
 	}
 
 	angle >>= ANGLETOFINESHIFT;
@@ -4376,6 +4380,10 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 					killPuff = true;
 				}
 				newdam = P_DamageMobj (trace.Actor, puff ? puff : t1, t1, damage, damageType, dmgflags);
+				if (actualdamage != NULL)
+				{
+					*actualdamage = newdam;
+				}
 			}
 			if (!(puffDefaults != NULL && puffDefaults->flags3&MF3_BLOODLESSIMPACT))
 			{
@@ -4456,7 +4464,7 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 }
 
 AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
-				   int pitch, int damage, FName damageType, FName pufftype, int flags, AActor **victim)
+				   int pitch, int damage, FName damageType, FName pufftype, int flags, AActor **victim, int *actualdamage)
 {
 	const PClass * type = PClass::FindClass(pufftype);
 	if (victim != NULL)
@@ -4469,7 +4477,7 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 	}
 	else
 	{
-		return P_LineAttack(t1, angle, distance, pitch, damage, damageType, type, flags, victim);
+		return P_LineAttack(t1, angle, distance, pitch, damage, damageType, type, flags, victim, actualdamage);
 	}
 	return NULL;
 }

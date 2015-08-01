@@ -1827,6 +1827,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomPunch)
 	angle_t 	angle;
 	int 		pitch;
 	AActor *	linetarget;
+	int			actualdamage;
 
 	// [BC] Weapons are handled by the server.
 	if ( NETWORK_InClientMode() )
@@ -1859,7 +1860,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomPunch)
 	if (!PuffType) PuffType = PClass::FindClass(NAME_BulletPuff);
 	int puffFlags = LAF_ISMELEEATTACK | (flags & CPF_NORANDOMPUFFZ)? LAF_NORANDOMPUFFZ : 0;
 
-	P_LineAttack (self, angle, Range, pitch, Damage, NAME_Melee, PuffType, puffFlags, &linetarget);
+	P_LineAttack (self, angle, Range, pitch, Damage, NAME_Melee, PuffType, puffFlags, &linetarget, &actualdamage);
 
 	// turn to face target
 	if (linetarget)
@@ -1868,8 +1869,8 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomPunch)
 		// [EP] Is the actor's health changed by the life steal?
 		const int prevhealth = self->health;
 
-		if (LifeSteal)
-			P_GiveBody (self, (Damage * LifeSteal) >> FRACBITS);
+		if (LifeSteal && !(linetarget->flags5 & MF5_DONTDRAIN))
+			P_GiveBody (self, (actualdamage * LifeSteal) >> FRACBITS);
 
 		if (weapon != NULL)
 		{

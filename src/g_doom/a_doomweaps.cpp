@@ -204,6 +204,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Saw)
 	angle_t slope;
 	player_t *player;
 	AActor *linetarget;
+	int actualdamage;
 
 	// [BC] Weapons are handled by the server.
 	if ( NETWORK_InClientMode() )
@@ -249,7 +250,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Saw)
 			return;
 	}
 
-	P_LineAttack (self, angle, Range, slope, damage, NAME_Melee, pufftype, false, &linetarget);
+	P_LineAttack (self, angle, Range, slope, damage, NAME_Melee, pufftype, false, &linetarget, &actualdamage);
 
 	// [BC] Apply spread.
 	if ( player->cheats2 & CF2_SPREAD )
@@ -307,8 +308,8 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Saw)
 	// [EP] Is the actor's health changed by the life steal?
 	const int prevhealth = self->health;
 
-	if (LifeSteal)
-		P_GiveBody (self, (damage * LifeSteal) >> FRACBITS);
+	if (LifeSteal && !(linetarget->flags5 & MF5_DONTDRAIN))
+		P_GiveBody (self, (actualdamage * LifeSteal) >> FRACBITS);
 
 	// [EP] Inform the clients about the player health change if needed.
 	if ( ( NETWORK_GetState() == NETSTATE_SERVER ) && self->player && prevhealth != self->health )
