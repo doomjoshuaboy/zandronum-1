@@ -17,6 +17,11 @@
 #include <sys/stat.h>
 #include <time.h>
 
+#ifdef _WIN32
+#define popen _popen
+#define pclose _pclose
+#endif
+
 // Used to strip newline characters from lines read by fgets.
 void stripnl(char *str)
 {
@@ -32,9 +37,8 @@ void stripnl(char *str)
 
 int main(int argc, char **argv)
 {
-	char *name;
 	// [BB] Increased length of lastlog.
-	char vertag[64], lastlog[128], lasthash[64], run[256], *hash = NULL;
+	char vertag[64], lastlog[128], lasthash[64], *hash = NULL;
 	FILE *stream = NULL;
 	int gotrev = 0, needupdate = 1;
 
@@ -47,9 +51,9 @@ int main(int argc, char **argv)
 	vertag[0] = '\0';
 	lastlog[0] = '\0';
 
-	if (argc != 3)
+	if (argc != 2)
 	{
-		fprintf(stderr, "Usage: %s <repository directory> <path to gitinfo.h>\n", argv[0]);
+		fprintf(stderr, "Usage: %s <path to gitinfo.h>\n", argv[0]);
 		return 1;
 	}
 
@@ -58,23 +62,14 @@ int main(int argc, char **argv)
 	// commits since the tag>-<short hash>.
 	// Use git log to get the time of the latest commit in ISO 8601 format and its full hash.
 	// [BB] Changed to use hg instead of git.
-	sprintf(run, "hg log --template \"{latesttag}-{latesttagdistance}-{node|short}\\n\" --rev -1 && hg log -r. --template \"{date|isodatesec}*{node}?{date|hgdate}\\n\" && hg identify -n", argv[1]);
-	if ((name = tempnam(NULL, "gitout")) != NULL)
+	stream = popen("hg log --template \"{latesttag}-{latesttagdistance}-{node|short}\\n\" --rev -1 && hg log -r. --template \"{date|isodatesec}*{node}?{date|hgdate}\\n\" && hg identify -n", "r");
+
+	if (NULL != stream)
 	{
-#ifdef __APPLE__
-		// tempnam will return errno of 2 even though it is successful for our purposes.
-		errno = 0;
-#endif
-		if((stream = freopen(name, "w+b", stdout)) != NULL &&
-		   system(run) == 0 &&
-#ifndef __FreeBSD__ // [BB]
-		   errno == 0 &&
-#endif
-		   fseek(stream, 0, SEEK_SET) == 0 &&
-		   fgets(vertag, sizeof vertag, stream) == vertag &&
-		   fgets(lastlog, sizeof lastlog, stream) == lastlog
-		   // [BB] Added to figure out if there are local changes.
-		   && fgets(hgidentify, sizeof hgidentify, stream) == hgidentify)
+		if (fgets(vertag, sizeof vertag, stream) == vertag &&
+			fgets(lastlog, sizeof lastlog, stream) == lastlog
+			// [BB] Added to figure out if there are local changes.
+			&& fgets(hgidentify, sizeof hgidentify, stream) == hgidentify)
 		{
 			stripnl(vertag);
 			stripnl(lastlog);
@@ -93,15 +88,8 @@ int main(int argc, char **argv)
 				}
 			}
 		}
-	}
-	if (stream != NULL)
-	{
-		fclose(stream);
-		remove(name);
-	}
-	if (name != NULL)
-	{
-		free(name);
+
+		pclose(stream);
 	}
 
 	if (gotrev)
@@ -130,7 +118,7 @@ int main(int argc, char **argv)
 		hash = lastlog + 1;
 	}
 
-	stream = fopen (argv[2], "r");
+	stream = fopen (argv[1], "r");
 	if (stream != NULL)
 	{
 		if (!gotrev)
@@ -154,7 +142,7 @@ int main(int argc, char **argv)
 
 	if (needupdate)
 	{
-		stream = fopen (argv[2], "w");
+		stream = fopen (argv[1], "w");
 		if (stream == NULL)
 		{
 			return 1;
@@ -184,11 +172,11 @@ int main(int argc, char **argv)
 		}
 
 		fclose(stream);
-		fprintf(stderr, "%s updated to commit %s.\n", argv[2], vertag);
+		fprintf(stderr, "%s updated to commit %s.\n", argv[1], vertag);
 	}
 	else
 	{
-		fprintf (stderr, "%s is up to date at commit %s.\n", argv[2], vertag);
+		fprintf (stderr, "%s is up to date at commit %s.\n", argv[1], vertag);
 	}
 
 	return 0;
