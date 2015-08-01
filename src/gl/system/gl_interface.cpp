@@ -218,7 +218,6 @@ static bool ReadInitExtensions()
 // 
 //
 //==========================================================================
-const char *wgl_extensions;
 
 static void CollectExtensions()
 {
