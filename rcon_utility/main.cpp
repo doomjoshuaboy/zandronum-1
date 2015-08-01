@@ -1262,7 +1262,7 @@ BOOL CALLBACK main_AboutDialogCallback( HWND hDlg, UINT Message, WPARAM wParam, 
 		SendMessage( GetDlgItem( hDlg, IDC_INTROTEXT ), WM_SETFONT, (WPARAM) CreateFont( 17, 0, 0, 0, 600, 0, 0, 0, 0, 0, 0, 0, 0, "Tahoma" ), (LPARAM) 1 );
 		SendMessage( GetDlgItem( hDlg, IDC_DESCTEXT ), WM_SETFONT, (WPARAM) CreateFont( 13, 0, 0, 0, 0, TRUE, 0, 0, 0, 0, 0, 0, 0, "Tahoma" ), (LPARAM) 1 );
 
-		SetDlgItemText( hDlg, IDC_REVISION, "Revision "SVN_REVISION_STRING" - compatible with "COMPATIBLE_WITH"." );
+		SetDlgItemText( hDlg, IDC_REVISION, "Revision "HG_TIME" - compatible with "COMPATIBLE_WITH"." );
 
 		break;
 	case WM_COMMAND:
