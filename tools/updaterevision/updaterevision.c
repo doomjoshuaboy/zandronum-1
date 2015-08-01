@@ -1,8 +1,9 @@
 /* updaterevision.c
  *
- * Public domain. This program uses the svnversion command to get the
- * repository revision for a particular directory and writes it into
- * a header file so that it can be used as a project's build number.
+ * Public domain. This program uses git commands command to get
+ * various bits of repository status for a particular directory
+ * and writes it into a header file so that it can be used for a
+ * project's versioning.
  */
 
 #define _CRT_SECURE_NO_DEPRECATE
@@ -16,29 +17,49 @@
 #include <sys/stat.h>
 #include <time.h>
 
+// Used to strip newline characters from lines read by fgets.
+void stripnl(char *str)
+{
+	if (*str != '\0')
+	{
+		size_t len = strlen(str);
+		if (str[len - 1] == '\n')
+		{
+			str[len - 1] = '\0';
+		}
+	}
+}
+
 int main(int argc, char **argv)
 {
 	char *name;
-	char currev[64], lastrev[64], run[256], *rev;
-	unsigned long urev;
+	// [BB] Increased length of lastlog.
+	char vertag[64], lastlog[128], lasthash[64], run[256], *hash = NULL;
 	FILE *stream = NULL;
 	int gotrev = 0, needupdate = 1;
-	char hgdateString[64];
+
+	// [BB]
+	char hgidentify[64];
 	time_t hgdate = 0;
-	char hgHash[13];
-	hgHash[0] = '\0';
+	int localchanges = 0;
+	hgidentify[0] = '\0';
+
+	vertag[0] = '\0';
+	lastlog[0] = '\0';
 
 	if (argc != 3)
 	{
-		fprintf (stderr, "Usage: %s <repository directory> <path to svnrevision.h>\n", argv[0]);
+		fprintf(stderr, "Usage: %s <repository directory> <path to gitinfo.h>\n", argv[0]);
 		return 1;
 	}
 
-	// Use svnversion to get the revision number. If that fails, pretend it's
-	// revision 0. Note that this requires you have the command-line svn tools installed.
-	// [BB] We use Hg instead of SVN.
-	sprintf (run, "hg identify -n"); 
-	if ((name = tempnam(NULL, "svnout")) != NULL)
+	// Use git describe --tags to get a version string. If we are sitting directly
+	// on a tag, it returns that tag. Otherwise it returns <most recent tag>-<number of
+	// commits since the tag>-<short hash>.
+	// Use git log to get the time of the latest commit in ISO 8601 format and its full hash.
+	// [BB] Changed to use hg instead of git.
+	sprintf(run, "hg log --template \"{latesttag}-{latesttagdistance}-{node|short}\\n\" --rev -1 && hg log -r. --template \"{date|isodatesec}*{node}?{date|hgdate}\\n\" && hg identify -n", argv[1]);
+	if ((name = tempnam(NULL, "gitout")) != NULL)
 	{
 #ifdef __APPLE__
 		// tempnam will return errno of 2 even though it is successful for our purposes.
@@ -46,68 +67,67 @@ int main(int argc, char **argv)
 #endif
 		if((stream = freopen(name, "w+b", stdout)) != NULL &&
 		   system(run) == 0 &&
-#ifndef __FreeBSD__
+#ifndef __FreeBSD__ // [BB]
 		   errno == 0 &&
 #endif
 		   fseek(stream, 0, SEEK_SET) == 0 &&
-		   fgets(currev, sizeof currev, stream) == currev &&
-		   (isdigit(currev[0]) || (currev[0] == '-' && currev[1] == '1')))
+		   fgets(vertag, sizeof vertag, stream) == vertag &&
+		   fgets(lastlog, sizeof lastlog, stream) == lastlog
+		   // [BB] Added to figure out if there are local changes.
+		   && fgets(hgidentify, sizeof hgidentify, stream) == hgidentify)
 		{
+			stripnl(vertag);
+			stripnl(lastlog);
 			gotrev = 1;
-			// [BB] Find the date the revision of the working copy was created.
-			if ( ( system("hg log -r. --template \"{date|hgdate} {node|short}\"") == 0 ) &&
-				( fseek(stream, strlen(currev), SEEK_SET) == 0 ) &&
-				( fgets(hgdateString, sizeof ( hgdateString ), stream) == hgdateString ) )
+
+			// [BB]
+			if ( strrchr ( hgidentify, '+' ) )
+				localchanges = 1;
+
 			{
-				// [BB] Find the hash in the output and store it.
-				char *p = strrchr ( hgdateString, ' ' );
-				strncpy ( hgHash, p ? ( p+1 ) : "hashnotfound" , sizeof( hgHash ) - 1 );
-				hgHash[ sizeof ( hgHash ) - 1 ] = '\0';
-				// [BB] Extract the date from the output and store it.
-				hgdate = atoi ( hgdateString );
+				char *p = strrchr ( lastlog, '?' );
+				if ( p )
+				{
+					*p = 0;
+					hgdate = atoi ( p+1 );
+				}
 			}
 		}
 	}
 	if (stream != NULL)
 	{
-		fclose (stream);
-		remove (name);
+		fclose(stream);
+		remove(name);
 	}
 	if (name != NULL)
 	{
-		free (name);
+		free(name);
 	}
 
-	if (!gotrev)
+	if (gotrev)
 	{
-		fprintf (stderr, "Failed to get current revision: %s\n", strerror(errno));
-		strcpy (currev, "0");
-		rev = currev;
-	}
-	else
-	{
-		rev = strchr (currev, ':');
-		if (rev == NULL)
+		hash = strchr(lastlog, '*');
+		if (hash != NULL)
 		{
-			rev = currev;
-		}
-		else
-		{
-			rev += 1;
-		}
-	}
+			*hash = '\0';
+			hash++;
 
-	// [BB] Create date version string.
-	if ( gotrev )
+			// [BB]
+			if ( localchanges )
+			{
+				hash[40] = '+';
+				hash[41] = '\0';
+			}
+		}
+	}
+	if (hash == NULL)
 	{
-		char *endptr;
-		unsigned long parsedRev = strtoul(rev, &endptr, 10);
-		unsigned int localChanges = ( *endptr == '+' );
-		struct tm	*lt = gmtime( &hgdate );
-		if ( localChanges )
-			sprintf ( rev, "%d%02d%02d-%02d%02dM", lt->tm_year - 100, lt->tm_mon + 1, lt->tm_mday, lt->tm_hour, lt->tm_min);
-		else
-			sprintf ( rev, "%d%02d%02d-%02d%02d", lt->tm_year - 100, lt->tm_mon + 1, lt->tm_mday, lt->tm_hour, lt->tm_min);
+		fprintf(stderr, "Failed to get commit info: %s\n", strerror(errno));
+		strcpy(vertag, "<unknown version>");
+		lastlog[0] = '\0';
+		lastlog[1] = '0';
+		lastlog[2] = '\0';
+		hash = lastlog + 1;
 	}
 
 	stream = fopen (argv[2], "r");
@@ -115,20 +135,16 @@ int main(int argc, char **argv)
 	{
 		if (!gotrev)
 		{ // If we didn't get a revision but the file does exist, leave it alone.
-			fprintf( stderr, "No revision found.\n" );
 			fclose (stream);
 			return 0;
 		}
 		// Read the revision that's in this file already. If it's the same as
 		// what we've got, then we don't need to modify it and can avoid rebuilding
 		// dependant files.
-		if (fgets(lastrev, sizeof lastrev, stream) == lastrev)
+		if (fgets(lasthash, sizeof lasthash, stream) == lasthash)
 		{
-			if (lastrev[0] != '\0')
-			{ // Strip trailing \n
-				lastrev[strlen(lastrev) - 1] = '\0';
-			}
-			if (strcmp(rev, lastrev + 3) == 0)
+			stripnl(lasthash);
+			if (strcmp(hash, lasthash + 3) == 0)
 			{
 				needupdate = 0;
 			}
@@ -143,30 +159,36 @@ int main(int argc, char **argv)
 		{
 			return 1;
 		}
-		// [BB] Use hgdate as revision number.
-		if ( hgdate )
-			urev = hgdate;
-		else
-			urev = strtoul(rev, NULL, 10);
-		fprintf (stream,
+		fprintf(stream,
 "// %s\n"
 "//\n"
 "// This file was automatically generated by the\n"
 "// updaterevision tool. Do not edit by hand.\n"
 "\n"
-"#define HG_TIME \"%s\"\n"
-"#define HG_REVISION_NUMBER %lu\n",
-			rev, rev, urev);
+"#define GIT_DESCRIPTION \"%s\"\n"
+"#define GIT_HASH \"%s\"\n"
+"#define GIT_TIME \"%s\"\n",
+			hash, vertag, hash, lastlog);
 
-		// [BB] Also save the hg hash.
-		fprintf (stream, "#define HG_REVISION_HASH_STRING \"%s\"\n", hgHash);
+		// [BB] Also save out hg info.
+		fprintf (stream, "#define HG_REVISION_NUMBER %lu\n", hgdate);
+		// [BB] We use the short hash.
+		hash[12] = 0;
+		fprintf (stream, "#define HG_REVISION_HASH_STRING \"%s\"\n", hash);
+		{
+			struct tm	*lt = gmtime( &hgdate );
+			fprintf (stream, "#define HG_TIME \"%d%02d%02d-%02d%02d", lt->tm_year - 100, lt->tm_mon + 1, lt->tm_mday, lt->tm_hour, lt->tm_min);
+			if ( localchanges )
+				fprintf (stream, "M" );
+			fprintf (stream, "\"\n" );
+		}
 
-		fclose (stream);
-		fprintf (stderr, "%s updated to revision %s.\n", argv[2], rev);
+		fclose(stream);
+		fprintf(stderr, "%s updated to commit %s.\n", argv[2], vertag);
 	}
 	else
 	{
-		fprintf (stderr, "%s is up to date at revision %s.\n", argv[2], rev);
+		fprintf (stderr, "%s is up to date at commit %s.\n", argv[2], vertag);
 	}
 
 	return 0;
