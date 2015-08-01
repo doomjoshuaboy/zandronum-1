@@ -55,7 +55,7 @@ unsigned int GetRevisionNumber();
 #define ZD_SVN_REVISION_NUMBER 4342
 
 // [BB] The version string that includes revision / compatibility data.
-#define DOTVERSIONSTR_REV DOTVERSIONSTR "-r" SVN_REVISION_STRING
+#define DOTVERSIONSTR_REV DOTVERSIONSTR "-r" HG_TIME
 
 // [BC] What version of ZDoom is this based off of?
 #define	ZDOOMVERSIONSTR		ZDVER_STRING"-"ZD_SVN_REVISION_STRING

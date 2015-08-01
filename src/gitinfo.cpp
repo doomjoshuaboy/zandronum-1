@@ -54,7 +54,7 @@ const char *GetGitHash()
 const char *GetGitTime()
 {
 	// [BB]
-	return SVN_REVISION_STRING; // GIT_TIME;
+	return HG_TIME; // GIT_TIME;
 }
 
 const char *GetVersionString()
@@ -75,7 +75,7 @@ const char *GetVersionString()
 // [BB]
 const char *GetVersionStringRev()
 {
-	//FString s = DOTVERSIONSTR "-r" SVN_REVISION_STRING;
+	//FString s = DOTVERSIONSTR "-r" HG_TIME;
 	//return s.GetChars();
 	return DOTVERSIONSTR_REV;
 }
@@ -83,5 +83,5 @@ const char *GetVersionStringRev()
 // [BB]
 unsigned int GetRevisionNumber()
 {
-	return SVN_REVISION_NUMBER;
+	return HG_REVISION_NUMBER;
 }
