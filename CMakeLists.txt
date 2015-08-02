@@ -70,7 +70,7 @@ if( MSVC )
 	set( ALL_C_FLAGS "/GF /Gy /GR- /fp:fast" )
 	
 	# Avoid CRT DLL dependancies in release builds
-	set( REL_C_FLAGS "/MT /Oy" )
+	set( REL_C_FLAGS "/MT /Oi" )
 
 	# Debug allocations in debug builds
 	set( DEB_C_FLAGS "/D _CRTDBG_MAP_ALLOC /MTd /Gm" )
