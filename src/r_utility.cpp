@@ -64,6 +64,9 @@
 extern bool DrawFSHUD;		// [RH] Defined in d_main.cpp
 EXTERN_CVAR (Bool, cl_capfps)
 
+extern lighttable_t*	fixedcolormap;
+extern FSpecialColormap*realfixedcolormap;
+
 // TYPES -------------------------------------------------------------------
 
 struct InterpolationViewer
@@ -1012,6 +1015,11 @@ void FCanvasTextureInfo::UpdateAll ()
 {
 	FCanvasTextureInfo *probe;
 
+	// curse Doom's overuse of global variables in the renderer.
+	// These get clobbered by rendering to a camera texture but they need to be preserved so the final rendering can be done with the correct palette.
+	unsigned char *savecolormap = fixedcolormap;
+	FSpecialColormap *savecm = realfixedcolormap;
+
 	for (probe = List; probe != NULL; probe = probe->Next)
 	{
 		if (probe->Viewpoint != NULL && probe->Texture->bNeedsUpdate)
@@ -1019,6 +1027,9 @@ void FCanvasTextureInfo::UpdateAll ()
 			Renderer->RenderTextureView(probe->Texture, probe->Viewpoint, probe->FOV);
 		}
 	}
+
+	fixedcolormap = savecolormap;
+	realfixedcolormap = savecm;
 }
 
 //==========================================================================
