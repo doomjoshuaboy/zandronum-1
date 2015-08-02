@@ -469,6 +469,10 @@
 			Filter="c;cpp"
 			>
 			<File
+				RelativePath=".\src\__autostart.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\actorptrselect.cpp"
 				>
 			</File>
@@ -482,14 +486,6 @@
 			</File>
 			<File
 				RelativePath=".\src\astar.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\autostart.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\autozend.cpp"
 				>
 			</File>
 			<File
@@ -1222,6 +1218,10 @@
 			</File>
 			<File
 				RelativePath=".\src\zstring.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\zzautozend.cpp"
 				>
 			</File>
 		</Filter>
