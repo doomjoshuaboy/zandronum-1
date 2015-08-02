@@ -166,10 +166,21 @@ DEFINE_ACTION_FUNCTION(AActor, A_JabDagger)
 //
 //============================================================================
 
+enum
+{
+	AMF_TARGETEMITTER = 1,
+	AMF_TARGETNONPLAYER = 2,
+	AMF_EMITFROMTARGET = 4,
+};
+
 DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_AlertMonsters)
 {
 	ACTION_PARAM_START(1);
 	ACTION_PARAM_FIXED(maxdist, 0);
+	ACTION_PARAM_INT(Flags, 1);
+
+	AActor * target;
+	AActor * emitter = self;
 
 	// [BC] Weapons are handled by the server.
 	if ( NETWORK_InClientMode() )
@@ -177,13 +188,24 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_AlertMonsters)
 		return;
 	}
 
-	if (self->player != NULL)
+	if (self->player != NULL || (Flags & AMF_TARGETEMITTER))
 	{
-		P_NoiseAlert(self, self, false, maxdist);
+		target = self;
+	}
+	else if (self->target != NULL && (Flags & AMF_TARGETNONPLAYER))
+	{
+		target = self->target;
 	}
 	else if (self->target != NULL && self->target->player != NULL)
 	{
-		P_NoiseAlert (self->target, self, false, maxdist);
+		target = self->target;
+	}
+
+	if (Flags & AMF_EMITFROMTARGET) emitter = target;
+
+	if (target != NULL && emitter != NULL)
+	{
+		P_NoiseAlert(target, emitter, false, maxdist);
 	}
 }
 
