@@ -717,7 +717,8 @@ bool I_WriteIniFailed ()
 
 static const char *pattern;
 
-#if defined ( __APPLE__ ) || ( defined ( __FreeBSD__ ) && ( __FreeBSD__ < 8 ) )
+// [BB] Added FreeBSD checks
+#if ( defined(__APPLE__) && !defined(__llvm__) ) || ( defined ( __FreeBSD__ ) && ( __FreeBSD__ < 8 ) )
 static int matchfile (struct dirent *ent)
 #else
 static int matchfile (const struct dirent *ent)
