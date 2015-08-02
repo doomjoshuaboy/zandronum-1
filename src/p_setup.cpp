@@ -4109,7 +4109,9 @@ void P_SetupLevel (char *lumpname, int position)
 		}
 		else
 		{
+			times[0].Clock();
 			P_ParseTextMap(map, missingtex);
+			times[0].Unclock();
 		}
 
 		times[6].Clock();
