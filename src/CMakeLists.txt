@@ -737,6 +737,7 @@ endif( DYN_FLUIDSYNTH )
 # [BB] Only complile the gl sources, if we want GL support.
 if( NOT NO_GL )
 	set( GL_SOURCES
+		gl/api/gl_api.cpp
 		gl/data/gl_sections.cpp
 		gl/data/gl_data.cpp
 		gl/data/gl_portaldata.cpp
