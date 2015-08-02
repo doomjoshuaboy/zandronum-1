@@ -575,6 +575,7 @@ xx(SwitchOnPickup)
 xx(MoveBob)
 xx(StillBob)
 xx(PlayerClass)
+xx(Wi_NoAutostartMap)
 
 // [BB] Zandronum userinfo settings.
 xx(RailColor)

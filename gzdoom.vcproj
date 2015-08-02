@@ -765,6 +765,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\m_specialpaths.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\maprotation.cpp"
 				>
 			</File>
