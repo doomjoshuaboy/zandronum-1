@@ -134,7 +134,9 @@ enum
 	IF_RESTRICTABSOLUTELY = 1<<19,	// RestrictedTo and ForbiddenTo do not allow pickup in any form by other classes
 	IF_NEVERRESPAWN		= 1<<20,	// Never, ever respawns
 	IF_NOSCREENFLASH	= 1<<21,	// No pickup flash on the player's screen
-	IF_FORCERESPAWNINSURVIVAL = 1<<22,	// [BB] Will be respawned in survival even without DF_ITEMS_RESPAWN.
+	IF_TOSSED			= 1<<22,	// Was spawned by P_DropItem (i.e. as a monster drop)
+	IF_FORCERESPAWNINSURVIVAL = 1<<23,	// [BB] Will be respawned in survival even without DF_ITEMS_RESPAWN.
+
 };
 
 

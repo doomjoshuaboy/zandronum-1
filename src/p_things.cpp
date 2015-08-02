@@ -608,6 +608,7 @@ bool P_Thing_Raise(AActor *thing, bool bIgnorePositionCheck)
 	thing->flags4 = info->flags4;
 	thing->flags5 = info->flags5;
 	thing->flags6 = info->flags6;
+	thing->flags7 = info->flags7;
 	// [BC] Apply new ST flags as well.
 	thing->ulSTFlags = info->ulSTFlags;
 	thing->ulNetworkFlags = info->ulNetworkFlags;

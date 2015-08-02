@@ -237,6 +237,9 @@ static FFlagDef ActorFlags[]=
 	DEFINE_FLAG(MF6, NOTONAUTOMAP, AActor, flags6),
 	DEFINE_FLAG(MF6, RELATIVETOFLOOR, AActor, flags6),
 
+	DEFINE_FLAG(MF7, NEVERTARGET, AActor, flags7),
+	DEFINE_FLAG(MF7, NOTELESTOMP, AActor, flags7),
+
 	// [BC] New DECORATE flag defines here.
 	DEFINE_FLAG(STFL, BLUETEAM, AActor, ulSTFlags),
 	DEFINE_FLAG(STFL, REDTEAM, AActor, ulSTFlags),
@@ -328,6 +331,7 @@ static FFlagDef InventoryFlags[] =
 	DEFINE_FLAG(IF, RESTRICTABSOLUTELY, AInventory, ItemFlags),
 	DEFINE_FLAG(IF, NEVERRESPAWN, AInventory, ItemFlags),
 	DEFINE_FLAG(IF, NOSCREENFLASH, AInventory, ItemFlags),
+	DEFINE_FLAG(IF, TOSSED, AInventory, ItemFlags),
 	// [BB] New ST flags.
 	DEFINE_FLAG(IF, FORCERESPAWNINSURVIVAL, AInventory, ItemFlags),
 
