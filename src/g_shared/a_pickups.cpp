@@ -884,7 +884,7 @@ void AInventory::BecomePickup ()
 		LinkToWorld ();
 		P_FindFloorCeiling (this);
 	}
-	flags = GetDefault()->flags | MF_DROPPED;
+	flags = (GetDefault()->flags | MF_DROPPED) & ~MF_COUNTITEM;
 	renderflags &= ~RF_INVISIBLE;
 	SetState (SpawnState);
 }
@@ -2191,10 +2191,10 @@ bool ABackpackItem::HandlePickup (AInventory *item)
 AInventory *ABackpackItem::CreateTossable ()
 {
 	ABackpackItem *pack = static_cast<ABackpackItem *>(Super::CreateTossable());
-	// [BB] Clients don't convert the item to a pickup, they just remove it from their inventory.
-	// Hence we need the following check.
-	if ( pack != NULL )
+	if (pack != NULL)
+	{
 		pack->bDepleted = true;
+	}
 	return pack;
 }
 
