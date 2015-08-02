@@ -129,7 +129,7 @@ void FTextureManager::DeleteAll()
 	{
 		if (mAnimatedDoors[i].TextureFrames != NULL)
 		{
-			delete mAnimatedDoors[i].TextureFrames;
+			delete[] mAnimatedDoors[i].TextureFrames;
 			mAnimatedDoors[i].TextureFrames = NULL;
 		}
 	}
