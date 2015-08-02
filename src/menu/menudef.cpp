@@ -1376,7 +1376,7 @@ static void InitLevelsList()
 		// block here as well.
 		try
 		{
-			if (( mdata = P_OpenMapData( wadlevelinfos[i].mapname )) != NULL )
+			if (( mdata = P_OpenMapData( wadlevelinfos[i].mapname, false )) != NULL )
 			{
 				level_info_t& info = wadlevelinfos[i];
 				pair.Value = i;

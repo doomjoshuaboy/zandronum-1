@@ -3196,7 +3196,7 @@ void GAME_ResetScripts ( )
 	}
 
 	// Open the current map and load its BEHAVIOR lump.
-	MapData *pMap = P_OpenMapData( level.mapname );
+	MapData *pMap = P_OpenMapData( level.mapname, false );
 	if ( pMap == NULL )
 		I_Error( "GAME_ResetMap: Unable to open map '%s'\n", level.mapname );
 	else if ( pMap->HasBehavior )
