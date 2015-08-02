@@ -1240,7 +1240,7 @@ bool SERVER_PerformAuthenticationChecksum( BYTESTREAM_s *pByteStream )
 	FString		clientTextmapString;
 
 	// [BB] Open the map. Since we are already using the map, we won't get a NULL pointer.
-	pMap = P_OpenMapData( level.mapname );
+	pMap = P_OpenMapData( level.mapname, false );
 
 	// Generate checksums for the map lumps.
 	// [Dusk] Only if not UDMF. In UDMF, make the TEXTMAP checksum instead.

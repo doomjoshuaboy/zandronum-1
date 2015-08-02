@@ -3070,7 +3070,7 @@ void CLIENT_AuthenticateLevel( const char *pszMapName )
 	MapData		*pMap;
 
 	// [BB] Check if the wads contain the map at all. If not, don't send any checksums.
-	pMap = P_OpenMapData( pszMapName );
+	pMap = P_OpenMapData( pszMapName, false );
 
 	if ( pMap == NULL )
 	{

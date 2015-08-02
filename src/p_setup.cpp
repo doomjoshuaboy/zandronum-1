@@ -286,7 +286,7 @@ static int GetMapIndex(const char *mapname, int lastindex, const char *lumpname,
 //
 //===========================================================================
 
-MapData *P_OpenMapData(const char * mapname)
+MapData *P_OpenMapData(const char * mapname, bool justcheck)
 {
 	MapData * map = new MapData;
 	FileReader * wadReader = NULL;
@@ -367,12 +367,17 @@ MapData *P_OpenMapData(const char * mapname)
 					const char * lumpname = Wads.GetLumpFullName(lump_name + i);
 					try
 					{
-						index = GetMapIndex(mapname, index, lumpname, true);
+						index = GetMapIndex(mapname, index, lumpname, !justcheck);
 					}
 					catch(...)
 					{
 						delete map;
 						throw;
+					}
+					if (index == -2)
+					{
+						delete map;
+						return NULL;
 					}
 					if (index == ML_BEHAVIOR) map->HasBehavior = true;
 
@@ -507,12 +512,17 @@ MapData *P_OpenMapData(const char * mapname)
 			{
 				try
 				{
-					index = GetMapIndex(maplabel, index, lumpname, true);
+					index = GetMapIndex(maplabel, index, lumpname, !justcheck);
 				}
 				catch(...)
 				{
 					delete map;
 					throw;
+				}
+				if (index == -2)
+				{
+					delete map;
+					return NULL;
 				}
 				if (index == ML_BEHAVIOR) map->HasBehavior = true;
 
@@ -544,7 +554,7 @@ MapData *P_OpenMapData(const char * mapname)
 
 bool P_CheckMapData(const char *mapname)
 {
-	MapData *mapd = P_OpenMapData(mapname);
+	MapData *mapd = P_OpenMapData(mapname, true);
 	if (mapd == NULL) return false;
 	delete mapd;
 	return true;
@@ -677,7 +687,7 @@ bool P_CheckIfMapExists(const char * mapname){
 	// [BB] P_OpenMapData throws an exception if we open a non-map lump.
 	try {
 		bool mapExists = true;
-		MapData* map = P_OpenMapData( mapname );
+		MapData* map = P_OpenMapData( mapname, false );
 		// [BB] P_OpenMapData returns a valid pointer if a lump named mapname exists, no matter
 		// if the lump is a map or not. So we must check if the lump actually contains valid map data.
 		if( ( map == NULL ) || ( ( map->isText == false ) && ( map->Size(ML_VERTEXES) == 0 ) ) )
@@ -3963,7 +3973,7 @@ void P_SetupLevel (char *lumpname, int position)
 	P_FreeLevelData ();
 	interpolator.ClearInterpolations();	// [RH] Nothing to interpolate on a fresh level.
 
-	MapData *map = P_OpenMapData(lumpname);
+	MapData *map = P_OpenMapData(lumpname, true);
 	if (map == NULL)
 	{
 		I_Error("Unable to open map '%s'\n", lumpname);
