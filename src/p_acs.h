@@ -270,6 +270,8 @@ enum
 	APROP_Radius		= 36,
 	APROP_ReactionTime  = 37,
 	APROP_MeleeRange	= 38,
+	APROP_ViewHeight	= 39,
+	APROP_AttackZOffset	= 40,
 };	
 
 // [Dusk] Enumeration for GetTeamProperty
