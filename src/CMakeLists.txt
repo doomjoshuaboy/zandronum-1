@@ -85,6 +85,7 @@ if( WIN32 )
 		"C:/Program Files (x86)/FMOD SoundSystem/FMOD Programmers API ${WIN_TYPE}/api"
 		"E:/Program Files (x86)/FMOD SoundSystem/FMOD Programmers API ${WIN_TYPE}/api"
 		# This next one is for me.
+		"D:/portable/FMOD SoundSystem 4.26/FMOD Programmers API WIN32/api"
 		"E:/Software/Dev/FMOD/${WIN_TYPE}/api" )
 	set( FMOD_INC_PATH_SUFFIXES PATH_SUFFIXES inc )
 	set( FMOD_LIB_PATH_SUFFIXES PATH_SUFFIXES lib )
@@ -686,6 +687,20 @@ if( WIN32 )
 		# [BB] Added RC file for the Windows server console.
 		set( SYSTEM_SOURCES ${SYSTEM_SOURCES} win32/serverconsole/serverconsole.rc )
 	endif( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" )
+
+	# [BB] Maxim Stepin's hq2x/3x/4x pixel upsampling algorithm as library. Currently only used with VC++.
+	if( MSVC )
+		# [BB] Only if necessary
+		if( NOT NO_GL )
+			set( SYSTEM_SOURCES
+				${SYSTEM_SOURCES}
+				gl/hqnx/Image.cpp
+				gl/hqnx/hq2x.cpp
+				gl/hqnx/hq3x.cpp
+				gl/hqnx/hq4x.cpp
+		)
+		ENDIF ( NOT NO_GL )
+	endif( MSVC )
 else( WIN32 )
 	set( SYSTEM_SOURCES_DIR sdl )
 	set( SYSTEM_SOURCES ${PLAT_SDL_SOURCES} )
@@ -843,6 +858,18 @@ file( GLOB HEADER_FILES
 	textures/*.h
 	thingdef/*.h
 	xlat/*.h
+	gl/*.h
+	gl/api/*.h
+	gl/data/*.h
+	gl/dynlights/*.h
+	gl/hqnx/*.h
+	gl/models/*.h
+	gl/renderer/*.h
+	gl/scene/*.h
+	gl/shaders/*.h
+	gl/system/*.h
+	gl/textures/*.h
+	gl/utility/*.h
 	*.h
 )
 
