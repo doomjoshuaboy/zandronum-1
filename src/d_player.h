@@ -390,7 +390,7 @@ struct userinfo_t : TMap<FName,FBaseCVar *>
 	void Reset();
 	// [BB] Zandronum still uses its own team code.
 	//int TeamChanged(int team);
-	int SkinChanged(const char *skinname);
+	int SkinChanged(const char *skinname, int playerclass);
 	int SkinNumChanged(int skinnum);
 	int GenderChanged(const char *gendername);
 	int PlayerClassChanged(const char *classname);
@@ -455,8 +455,8 @@ struct userinfo_t : TMap<FName,FBaseCVar *>
 	}
 };
 
-FArchive &operator<< (FArchive &arc, userinfo_t &info);
-
+void ReadUserInfo(FArchive &arc, userinfo_t &info, FString &skin);
+void WriteUserInfo(FArchive &arc, userinfo_t &info);
 
 //
 // Extended player object info: player_t

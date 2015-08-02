@@ -594,7 +594,7 @@ void D_SetupUserInfo ()
 			// Some cvars don't copy their original value directly.
 			// [BB] Zandronum still uses its own team code.
 			//case NAME_Team:			coninfo->TeamChanged(team); break;
-			case NAME_Skin:			coninfo->SkinChanged(skin); break;
+			case NAME_Skin:			coninfo->SkinChanged(skin, players[consoleplayer].CurrentPlayerClass); break;
 			case NAME_Gender:		coninfo->GenderChanged(gender); break;
 			case NAME_PlayerClass:	coninfo->PlayerClassChanged(playerclass); break;
 			// [BB]
@@ -663,10 +663,9 @@ int userinfo_t::TeamChanged(int team)
 }
 */
 
-int userinfo_t::SkinChanged(const char *skinname)
+int userinfo_t::SkinChanged(const char *skinname, int playerclass)
 {
-	// [BB] We need to take into account CurrentPlayerClass when determining the skin.
-	int skinnum = R_FindSkin(skinname, players[consoleplayer].CurrentPlayerClass);
+	int skinnum = R_FindSkin(skinname, playerclass);
 	*static_cast<FIntCVar *>((*this)[NAME_Skin]) = skinnum;
 	return skinnum;
 }
@@ -1319,7 +1318,7 @@ void D_ReadUserInfoStrings (int pnum, BYTE **stream, bool update)
 				break;
 
 			case NAME_Skin:
-				info->SkinChanged(value);
+				info->SkinChanged(value, players[pnum].CurrentPlayerClass);
 
 				// [BC] If the skin was hidden, reveal it!
 				if ( skins[info->GetSkin()].bRevealed == false )
@@ -1493,14 +1492,21 @@ void WriteUserInfo(FArchive &arc, userinfo_t &info)
 	arc << name;
 }
 
-void ReadUserInfo(FArchive &arc, userinfo_t &info)
+void ReadUserInfo(FArchive &arc, userinfo_t &info, FString &skin)
 {
 	FName name;
 	FBaseCVar **cvar;
 	char *str = NULL;
 	UCVarValue val;
 
+	if (SaveVersion < 4253)
+	{
+		ReadCompatibleUserInfo(arc, info);
+		return;
+	}
+
 	info.Reset();
+	skin = NULL;
 	for (arc << name; name != NAME_None; arc << name)
 	{
 		cvar = info.CheckKey(name);
@@ -1511,7 +1517,7 @@ void ReadUserInfo(FArchive &arc, userinfo_t &info)
 			{
 			// [BB] Zandronum still uses its own team code.
 			//case NAME_Team:			info.TeamChanged(atoi(str)); break;
-			case NAME_Skin:			info.SkinChanged(str); break;
+			case NAME_Skin:			skin = str; break;	// Caller must call SkinChanged() once current calss is known
 			case NAME_PlayerClass:	info.PlayerClassChanged(str); break;
 			default:
 				val.String = str;
@@ -1524,23 +1530,6 @@ void ReadUserInfo(FArchive &arc, userinfo_t &info)
 	{
 		delete[] str;
 	}
-}
-
-FArchive &operator<< (FArchive &arc, userinfo_t &info)
-{
-	if (SaveVersion < 4253)
-	{
-		ReadCompatibleUserInfo(arc, info);
-	}
-	else if (arc.IsStoring())
-	{
-		WriteUserInfo(arc, info);
-	}
-	else
-	{
-		ReadUserInfo(arc, info);
-	}
-	return arc;
 }
 
 CCMD (playerinfo)
