@@ -749,8 +749,11 @@ void FTextureManager::ParseAnimatedDoor(FScanner &sc)
 	{
 		error = true;
 	}
-
-	while (sc.GetString ())
+	else
+	{
+		Texture(anim.BaseTexture)->bNoDecals = true;
+	}
+	while (sc.GetString())
 	{
 		if (sc.Compare ("opensound"))
 		{
@@ -779,9 +782,9 @@ void FTextureManager::ParseAnimatedDoor(FScanner &sc)
 			}
 			frames.Push(v);
 		}
-		else if (!sc.Compare("allowdecals"))
+		else if (sc.Compare("allowdecals"))
 		{
-			if (anim.BaseTexture.Exists()) Texture(anim.BaseTexture)->bNoDecals = true;
+			if (anim.BaseTexture.Exists()) Texture(anim.BaseTexture)->bNoDecals = false;
 		}
 		else
 		{
