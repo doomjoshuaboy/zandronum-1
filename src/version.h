@@ -134,7 +134,7 @@ unsigned int GetRevisionNumber();
 // [BC] This is what's displayed as the title for server windows.
 #define	SERVERCONSOLE_TITLESTRING	GAMENAME " v" DOTVERSIONSTR " Server"
 
-#ifdef unix
+#ifdef __unix__
 #define GAME_DIR ".config/" GAMENAMELOWERCASE
 #elif defined(__APPLE__)
 #define GAME_DIR GAMENAME

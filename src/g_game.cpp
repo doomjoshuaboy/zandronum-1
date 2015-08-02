@@ -1014,7 +1014,10 @@ static void ChangeSpy (int changespy)
 	int pnum = consoleplayer;
 	if (changespy != SPY_CANCEL) 
 	{
-		pnum = int(players[consoleplayer].camera->player - players);
+		player_t *player = players[consoleplayer].camera->player;
+		// only use the camera as starting index if it's a valid player.
+		if (player != NULL) pnum = int(players[consoleplayer].camera->player - players);
+
 		int step = (changespy == SPY_NEXT) ? 1 : -1;
 
 		// [SP] Let's ignore special LMS settigns if we're playing a demo. Otherwise, we need to enforce
@@ -4443,7 +4446,7 @@ FString G_BuildSaveName (const char *prefix, int slot)
 	leader = Args->CheckValue ("-savedir");
 	if (leader.IsEmpty())
 	{
-#if !defined(unix) && !defined(__APPLE__)
+#if !defined(__unix__) && !defined(__APPLE__)
 		if (Args->CheckParm ("-cdrom"))
 		{
 			leader = CDROM_DIR "/";
@@ -4455,7 +4458,7 @@ FString G_BuildSaveName (const char *prefix, int slot)
 		}
 		if (leader.IsEmpty())
 		{
-#ifdef unix
+#ifdef __unix__
 			leader = "~/" GAME_DIR;
 #elif defined(__APPLE__)
 			char cpath[PATH_MAX];
