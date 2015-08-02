@@ -823,7 +823,7 @@ bool FMODSoundRenderer::Init()
 	}
 	
 	result = Sys->getNumDrivers(&driver);
-#ifdef unix
+#ifdef __unix__
 	if (result == FMOD_OK)
 	{
 		// On Linux, FMOD defaults to OSS. If OSS is not present, it doesn't
