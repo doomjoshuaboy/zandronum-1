@@ -26,7 +26,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="$(InputDir)..\Debug\updaterevision.exe $(InputDir) $(InputDir)svnrevision.h"
+				CommandLine="$(InputDir)..\Debug\updaterevision.exe $(InputDir)svnrevision.h"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -119,7 +119,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="$(InputDir)..\Release\updaterevision.exe $(InputDir) $(InputDir)svnrevision.h"
+				CommandLine="$(InputDir)..\Release\updaterevision.exe $(InputDir)svnrevision.h"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
