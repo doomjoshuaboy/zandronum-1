@@ -952,6 +952,14 @@ OptionValue MaplabelTypes
 	2, "Not for hubs"
 }
 
+OptionValue STSTypes
+{
+	0, "Off"
+	1, "Front"
+	2, "Animated"
+	3, "Rotated"
+}
+
 OptionMenu AutomapOptions
 {
 	Title "AUTOMAP OPTIONS"
@@ -974,6 +982,7 @@ OptionMenu AutomapOptions
 	Option "Draw map background",		"am_drawmapback", "OnOff"
 	Option "Show keys (cheat)",			"am_showkeys", "OnOff"
 	Option "Show trigger lines",		"am_showtriggerlines", "OnOff"
+	Option "Show things as sprites",	"am_showthingsprites", "STSTypes"
 }
 
 //-------------------------------------------------------------------------------------------
