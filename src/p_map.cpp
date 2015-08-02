@@ -4187,7 +4187,7 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 
 	// [Spleen]
 	const bool hitSomething = Trace (t1->x, t1->y, shootz, t1->Sector, vx, vy, vz, distance,
-		MF_SHOOTABLE, ML_BLOCKEVERYTHING, t1, trace,
+		MF_SHOOTABLE, ML_BLOCKEVERYTHING|ML_BLOCKHITSCAN, t1, trace,
 		tflags, hitGhosts ? CheckForGhost : CheckForSpectral);
 
 	// [Spleen]
