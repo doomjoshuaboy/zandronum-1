@@ -3028,6 +3028,7 @@ static bool P_CheckForResurrection(AActor *self, bool usevilestates)
 			corpsehit->flags4 = info->flags4;
 			corpsehit->flags5 = info->flags5;
 			corpsehit->flags6 = info->flags6;
+			corpsehit->flags7 = info->flags7;
 
 			// [BC] Apply new ST flags as well.
 			// [BB] The STFL_LEVELSPAWNED flag may not be removed by the default flags.
@@ -3540,6 +3541,7 @@ AInventory *P_DropItem (AActor *source, const PClass *type, int dropamount, int 
 			{
 				AInventory * inv = static_cast<AInventory *>(mo);
 				ModifyDropAmount(inv, dropamount);
+				inv->ItemFlags |= IF_TOSSED;
 
 				// [BB] Now that the ammo amount from weapon pickups is handled on the server
 				// this shouldn't be necessary anymore. Remove after thorough testing.

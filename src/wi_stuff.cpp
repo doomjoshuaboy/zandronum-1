@@ -2566,7 +2566,7 @@ void WI_Ticker(void)
 		else if (level.info->InterMusic.IsNotEmpty()) 
 			S_ChangeMusic(level.info->InterMusic, level.info->intermusicorder);
 		else
-			S_ChangeMusic (gameinfo.intermissionMusic.GetChars()); 
+			S_ChangeMusic (gameinfo.intermissionMusic.GetChars(), gameinfo.intermissionOrder); 
 
 	}
 	
