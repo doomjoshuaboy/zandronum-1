@@ -49,6 +49,8 @@
 // [EP] New #includes.
 #include "gl/gl_functions.h"
 
+void gl_SetTextureMode(int type);
+
 FRenderState gl_RenderState;
 int FStateAttr::ChangeCounter;
 
@@ -297,7 +299,7 @@ void FRenderState::Apply(bool forcenoshader)
 		GLRenderer->mShaderManager->SetActiveShader(NULL);
 		if (mTextureMode != ffTextureMode)
 		{
-			gl.SetTextureMode((ffTextureMode = mTextureMode));
+			gl_SetTextureMode((ffTextureMode = mTextureMode));
 		}
 		if (mTextureEnabled != ffTextureEnabled)
 		{

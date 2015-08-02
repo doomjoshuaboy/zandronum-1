@@ -138,7 +138,6 @@ EXTERN_CVAR (Bool, queryiwad);
 // Used on welcome/IWAD screen.
 EXTERN_CVAR (Int, vid_renderer)
 EXTERN_CVAR (Bool, fullscreen)
-EXTERN_CVAR (Bool, gl_vid_compatibility)
 
 
 extern HWND Window, ConWindow, GameTitleWindow;
@@ -1162,7 +1161,6 @@ BOOL CALLBACK IWADBoxCallback(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPa
 		// Check the current video settings.
 		SendDlgItemMessage( hDlg, vid_renderer ? IDC_WELCOME_OPENGL : IDC_WELCOME_SOFTWARE, BM_SETCHECK, BST_CHECKED, 0 );
 		SendDlgItemMessage( hDlg, IDC_WELCOME_FULLSCREEN, BM_SETCHECK, fullscreen ? BST_CHECKED : BST_UNCHECKED, 0 );
-		SendDlgItemMessage( hDlg, IDC_WELCOME_COMPAT, BM_SETCHECK, gl_vid_compatibility ? BST_CHECKED : BST_UNCHECKED, 0 );
 
 		// Set the state of the "Don't ask me again" checkbox.
 		SendDlgItemMessage ( hDlg, IDC_DONTASKIWAD, BM_SETCHECK, queryiwad ? BST_UNCHECKED : BST_CHECKED, 0);
@@ -1228,7 +1226,6 @@ BOOL CALLBACK IWADBoxCallback(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPa
 		{
 			SetQueryIWad(hDlg);
 			vid_renderer = SendDlgItemMessage( hDlg, IDC_WELCOME_OPENGL, BM_GETCHECK, 0, 0 ) == BST_CHECKED;
-			gl_vid_compatibility = SendDlgItemMessage( hDlg, IDC_WELCOME_COMPAT, BM_GETCHECK, 0, 0 ) == BST_CHECKED;
 			fullscreen = SendDlgItemMessage( hDlg, IDC_WELCOME_FULLSCREEN, BM_GETCHECK, 0, 0 ) == BST_CHECKED;
 			ctrl = GetDlgItem (hDlg, IDC_IWADLIST);
 			EndDialog(hDlg, SendMessage (ctrl, LB_GETCURSEL, 0, 0));
