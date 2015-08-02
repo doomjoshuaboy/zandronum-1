@@ -241,8 +241,6 @@ CCMD (playerclasses)
 // 16 pixels of bob
 #define MAXBOB			0x100000
 
-bool onground;
-
 FArchive &operator<< (FArchive &arc, player_t *&p)
 {
 	return arc.SerializePointer (players, (BYTE **)&p, sizeof(*players));
@@ -296,6 +294,7 @@ player_t::player_t()
   PremorphWeapon(0),
   chickenPeck(0),
   jumpTics(0),
+  onground(0),
   respawn_time(0),
   camera(0),
   air_finished(0),
@@ -429,6 +428,7 @@ player_t &player_t::operator=(const player_t &p)
 	PremorphWeapon = p.PremorphWeapon;
 	chickenPeck = p.chickenPeck;
 	jumpTics = p.jumpTics;
+	onground = p.onground;
 	respawn_time = p.respawn_time;
 	camera = p.camera;
 	air_finished = p.air_finished;
@@ -2634,7 +2634,7 @@ void P_CalcHeight (player_t *player)
 	{
 		player->bob = 0;
 	}
-	else if ((player->mo->flags & MF_NOGRAVITY) && !onground)
+	else if ((player->mo->flags & MF_NOGRAVITY) && !player->onground)
 	{
 		player->bob = FRACUNIT / 2;
 	}
@@ -2785,7 +2785,7 @@ void P_MovePlayer (player_t *player, ticcmd_t *cmd)
 	if ( GAME_GetEndLevelDelay( ))
 		memset( cmd, 0, sizeof( ticcmd_t ));
 
-	onground = (mo->z <= mo->floorz) || (mo->flags2 & MF2_ONMOBJ) || (mo->BounceFlags & BOUNCE_MBF) || (player->cheats & CF_NOCLIP2);
+	player->onground = (mo->z <= mo->floorz) || (mo->flags2 & MF2_ONMOBJ) || (mo->BounceFlags & BOUNCE_MBF) || (player->cheats & CF_NOCLIP2);
 
 	// killough 10/98:
 	//
@@ -2803,7 +2803,7 @@ void P_MovePlayer (player_t *player, ticcmd_t *cmd)
 
 		movefactor = P_GetMoveFactor (mo, &friction);
 		bobfactor = friction < ORIG_FRICTION ? movefactor : ORIG_FRICTION_FACTOR;
-		if (!onground && !(player->mo->flags & MF_NOGRAVITY) && !player->mo->waterlevel)
+		if (!player->onground && !(player->mo->flags & MF_NOGRAVITY) && !player->mo->waterlevel)
 		{
 			// [RH] allow very limited movement if not on ground.
 			if ( zacompatflags & ZACOMPATF_LIMITED_AIRMOVEMENT )
@@ -2885,7 +2885,7 @@ void P_MovePlayer (player_t *player, ticcmd_t *cmd)
 		{
 			player->mo->velz = 3*FRACUNIT;
 		}
-		else if (level.IsJumpingAllowed() && onground && player->jumpTics == 0)
+		else if (level.IsJumpingAllowed() && player->onground && player->jumpTics == 0)
 		{
 			fixed_t	JumpMomz;
 			ULONG	ulJumpTicks;
@@ -3033,12 +3033,12 @@ void P_DeathThink (player_t *player)
 
 	P_MovePsprites (player);
 
-	onground = (player->mo->z <= player->mo->floorz);
+	player->onground = (player->mo->z <= player->mo->floorz);
 	if (player->mo->IsKindOf (RUNTIME_CLASS(APlayerChunk)))
 	{ // Flying bloody skull or flying ice chunk
 		player->viewheight = 6 * FRACUNIT;
 		player->deltaviewheight = 0;
-		if (onground)
+		if (player->onground)
 		{
 			if (player->mo->pitch > -(int)ANGLE_1*19)
 			{
@@ -3642,7 +3642,7 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 	if (player->jumpTics != 0)
 	{
 		player->jumpTics--;
-		if (onground && player->jumpTics < -18)
+		if (player->onground && player->jumpTics < -18)
 		{
 			player->jumpTics = 0;
 		}
@@ -4171,6 +4171,14 @@ void player_t::Serialize (FArchive &arc)
 	else
 	{
 		settings_controller = (this - players == Net_Arbitrator);
+	}
+	if (SaveVersion >= 4505)
+	{
+		arc << onground;
+	}
+	else
+	{
+		onground = (mo->z <= mo->floorz) || (mo->flags2 & MF2_ONMOBJ) || (mo->BounceFlags & BOUNCE_MBF) || (cheats & CF_NOCLIP2);
 	}
 
 	if (arc.IsLoading ())
