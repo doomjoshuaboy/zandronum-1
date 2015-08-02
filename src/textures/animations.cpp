@@ -776,8 +776,12 @@ void FTextureManager::ParseAnimatedDoor(FScanner &sc)
 				{
 					sc.ScriptError ("Unknown texture %s", sc.String);
 				}
-				frames.Push (v);
 			}
+			frames.Push(v);
+		}
+		else if (!sc.Compare("allowdecals"))
+		{
+			if (anim.BaseTexture.Exists()) Texture(anim.BaseTexture)->bNoDecals = true;
 		}
 		else
 		{
