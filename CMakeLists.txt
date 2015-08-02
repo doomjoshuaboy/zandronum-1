@@ -1,6 +1,9 @@
 cmake_minimum_required( VERSION 2.4 )
 project(Zandronum)
 
+list( APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR} )
+include( CreateLaunchers )
+
 # Generator expression are available some time in CMake 2.8. Due to
 # cmake_minimum_required, we can assume a minor version of > 7 implies major >= 2
 if(${CMAKE_MAJOR_VERSION} GREATER 2 OR ${CMAKE_MINOR_VERSION} GREATER 7)
@@ -19,20 +22,30 @@ function( add_pk3 PK3_NAME PK3_DIR )
 		set( PK3_TARGET "pk3" )
 	endif( ${PK3_TARGET} STREQUAL "zdoom_pk3" )
 
-	if( NOT NO_GENERATOR_EXPRESSIONS )
+	if( NOT NO_GENERATOR_EXPRESSIONS AND NOT ZDOOM_OUTPUT_OLDSTYLE )
 		add_custom_command( OUTPUT ${ZDOOM_OUTPUT_DIR}/${PK3_NAME}
 			COMMAND ${ZIPDIR_EXE} -udf ${ZDOOM_OUTPUT_DIR}/${PK3_NAME} ${PK3_DIR}
 			COMMAND ${CMAKE_COMMAND} -E copy_if_different ${ZDOOM_OUTPUT_DIR}/${PK3_NAME} $<TARGET_FILE_DIR:zdoom>
 			DEPENDS zipdir ${PK3_DIR} )
-	else( NOT NO_GENERATOR_EXPRESSIONS )
+	else( NOT NO_GENERATOR_EXPRESSIONS AND NOT ZDOOM_OUTPUT_OLDSTYLE )
 		add_custom_command( OUTPUT ${ZDOOM_OUTPUT_DIR}/${PK3_NAME}
 			COMMAND ${ZIPDIR_EXE} -udf ${ZDOOM_OUTPUT_DIR}/${PK3_NAME} ${PK3_DIR}
 			DEPENDS zipdir ${PK3_DIR} )
-	endif( NOT NO_GENERATOR_EXPRESSIONS )
+	endif( NOT NO_GENERATOR_EXPRESSIONS AND NOT ZDOOM_OUTPUT_OLDSTYLE )
 
 	add_custom_target( ${PK3_TARGET} ALL
 		DEPENDS ${ZDOOM_OUTPUT_DIR}/${PK3_NAME} )
 endfunction( add_pk3 )
+
+# Macro for building libraries without debugging information
+macro( make_release_only )
+	set( CMAKE_C_FLAGS_MINSIZEREL ${CMAKE_C_FLAGS_RELEASE} )
+	set( CMAKE_C_FLAGS_RELWITHDEBINFO ${CMAKE_C_FLAGS_RELEASE} )
+	string( REPLACE "/MT " "/MTd " CMAKE_C_FLAGS_DEBUG ${CMAKE_C_FLAGS_RELEASE} )
+	set( CMAKE_CXX_FLAGS_MINSIZEREL ${CMAKE_CXX_FLAGS_RELEASE} )
+	set( CMAKE_CXX_FLAGS_RELWITHDEBINFO ${CMAKE_CXX_FLAGS_RELEASE} )
+	string( REPLACE "/MT " "/MTd " CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_RELEASE} )
+endmacro( make_release_only )
 
 IF( NOT CMAKE_BUILD_TYPE )
 	SET( CMAKE_BUILD_TYPE Debug CACHE STRING
@@ -42,6 +55,13 @@ ENDIF( NOT CMAKE_BUILD_TYPE )
 
 set( ZDOOM_OUTPUT_DIR ${CMAKE_BINARY_DIR} CACHE PATH "Directory where zdoom.pk3 and the executable will be created." )
 set( ZDOOM_EXE_NAME "zandronum" CACHE FILEPATH "Name of the executable to create" )
+if( MSVC )
+	# Allow the user to use ZDOOM_OUTPUT_DIR as a single release point.
+	# Use zdoom, zdoomd, zdoom64, and zdoomd64 for the binary names
+	option( ZDOOM_OUTPUT_OLDSTYLE "Don't use Release/Debug directories." OFF )
+else( MSVC )
+	set( ZDOOM_OUTPUT_OLDSTYLE OFF )
+endif( MSVC )
 
 if( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" )
 	set( PROFILE 0 CACHE BOOL "Enable profiling with gprof for Debug and RelWithDebInfo build types." )
@@ -70,7 +90,7 @@ if( MSVC )
 	set( ALL_C_FLAGS "/GF /Gy /GR- /fp:fast" )
 	
 	# Avoid CRT DLL dependancies in release builds
-	set( REL_C_FLAGS "/MT /Oi" )
+	set( REL_C_FLAGS "/MT /Oy /Oi" )
 
 	# Debug allocations in debug builds
 	set( DEB_C_FLAGS "/D _CRTDBG_MAP_ALLOC /MTd /Gm" )

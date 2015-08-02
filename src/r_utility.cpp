@@ -586,6 +586,7 @@ void R_InterpolateView (player_t *player, fixed_t frac, InterpolationViewer *ivi
 	// [BC] This makes the mouse incredibly jerky for client games.
 /*
 	if (player != NULL &&
+		!(player->cheats & CF_INTERPVIEW) &&
 		player - players == consoleplayer &&
 		camera == player->mo &&
 		!demoplayback &&

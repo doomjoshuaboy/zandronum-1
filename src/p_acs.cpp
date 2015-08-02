@@ -9404,10 +9404,13 @@ scriptwait:
 			if (STACK(2) == 0)
 			{
 				if (activator != NULL)
-					activator->angle = STACK(1) << 16;
-				// [BB] Tell the clients about the changed angle.
-				if( NETWORK_GetState() == NETSTATE_SERVER )
-					SERVERCOMMANDS_SetThingAngleExact( activator );
+				{
+					activator->SetAngle(STACK(1) << 16);
+
+					// [BB] Tell the clients about the changed angle.
+					if( NETWORK_GetState() == NETSTATE_SERVER )
+						SERVERCOMMANDS_SetThingAngleExact( activator );
+				}
 			}
 			else
 			{
@@ -9416,7 +9419,7 @@ scriptwait:
 
 				while ( (actor = iterator.Next ()) )
 				{
-					actor->angle = STACK(1) << 16;
+					actor->SetAngle(STACK(1) << 16);
 					// [BB] Tell the clients about the changed angle.
 					// This fixes the "rave room" in SPACEDM5.wad.
 					if( NETWORK_GetState() == NETSTATE_SERVER )
@@ -9430,11 +9433,13 @@ scriptwait:
 			if (STACK(2) == 0)
 			{
 				if (activator != NULL)
-					activator->pitch = STACK(1) << 16;
+				{
+					activator->SetPitch(STACK(1) << 16);
 
-				// [BB] Tell the clients about the changed pitch.
-				if( NETWORK_GetState() == NETSTATE_SERVER )
-					SERVERCOMMANDS_MoveThingExact( activator, CM_PITCH );
+					// [BB] Tell the clients about the changed pitch.
+					if( NETWORK_GetState() == NETSTATE_SERVER )
+						SERVERCOMMANDS_MoveThingExact( activator, CM_PITCH );
+				}
 			}
 			else
 			{
@@ -9443,7 +9448,7 @@ scriptwait:
 
 				while ( (actor = iterator.Next ()) )
 				{
-					actor->pitch = STACK(1) << 16;
+					actor->SetPitch(STACK(1) << 16);
 
 					// [BB] Tell the clients about the changed pitch.
 					if( NETWORK_GetState() == NETSTATE_SERVER )

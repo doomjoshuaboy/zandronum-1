@@ -4737,7 +4737,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_SetAngle)
 {
 	ACTION_PARAM_START(1);
 	ACTION_PARAM_ANGLE(angle, 0);
-	self->angle = angle;
+	self->SetAngle(angle);
 }
 
 //===========================================================================
@@ -4775,8 +4775,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_SetPitch)
 		}
 		pitch = clamp<int>(pitch, min, max);
 	}
-
-	self->pitch = pitch;
+	self->SetPitch(pitch);
 }
 
 //===========================================================================

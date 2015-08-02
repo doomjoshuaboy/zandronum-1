@@ -245,6 +245,7 @@ int NoWipe;				// [RH] Allow wipe? (Needs to be set each time)
 bool singletics = false;	// debug flag to cancel adaptiveness
 FString startmap;
 bool autostart;
+FString StoredWarp;
 bool advancedemo;
 FILE *debugfile;
 event_t events[MAXEVENTS];
@@ -2572,7 +2573,7 @@ static void CheckCmdLine()
 		else
 			startmap = "&wt@01";
 	}
-	autostart = false;
+	autostart = StoredWarp.IsNotEmpty();
 				
 	const char *val = Args->CheckValue ("-skill");
 	if (val)
@@ -3132,6 +3133,11 @@ void D_DoomMain (void)
 						if (demorecording)
 							G_BeginRecording (startmap);
 						G_InitNew (startmap, false);
+					if (StoredWarp.IsNotEmpty())
+					{
+						AddCommandString(StoredWarp.LockBuffer());
+						StoredWarp = NULL;
+					}
 					}
 					else if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
 					{

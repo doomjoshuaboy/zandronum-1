@@ -1,5 +1,7 @@
 cmake_minimum_required( VERSION 2.4 )
 
+make_release_only()
+
 include( CheckFunctionExists )
 include( CheckCXXCompilerFlag )
 
