@@ -354,7 +354,7 @@ player_t::player_t()
   bUnarmed( false )
 {
 	memset (&cmd, 0, sizeof(cmd));
-	// [BB]
+	// [BB] Check if this is still necessary.
 	userinfo.Reset();
 	memset (psprites, 0, sizeof(psprites));
 

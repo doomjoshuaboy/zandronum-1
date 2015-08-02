@@ -370,7 +370,7 @@ int FIWadManager::CheckIWAD (const char *doomwaddir, WadStuff *wads)
 // Under UNIX OSes, the search path is:
 //	  1. Current directory
 //	  2. $DOOMWADDIR
-//	  3. $HOME/.zdoom
+//	  3. $HOME/.config/zdoom
 //	  4. The share directory defined at compile time (/usr/local/share/zdoom)
 //
 // The search path can be altered by editing the IWADSearch.Directories
@@ -523,9 +523,19 @@ int FIWadManager::IdentifyVersion (TArray<FString> &wadfiles, const char *iwad, 
 		I_FatalError ("Cannot find a game IWAD (doom.wad, doom2.wad, heretic.wad, etc.).\n"
 					  "Did you install "GAMENAME" properly? You can do either of the following:\n"
 					  "\n"
+#if defined(_WIN32)
 					  "1. Place one or more of these wads in the same directory as "GAMENAME".\n"
 					  "2. Edit your "GAMENAMELOWERCASE"-username.ini and add the directories of your iwads\n"
 					  "to the list beneath [IWADSearch.Directories]");
+#elif defined(__APPLE__)
+					  "1. Place one or more of these wads in ~/Library/Application Support/zdoom/\n"
+					  "2. Edit your ~/Library/Preferences/zdoom.ini and add the directories\n"
+					  "of your iwads to the list beneath [IWADSearch.Directories]");
+#else
+					  "1. Place one or more of these wads in ~/.config/zdoom/.\n"
+					  "2. Edit your ~/.config/zdoom/zdoom.ini and add the directories of your\n"
+					  "iwads to the list beneath [IWADSearch.Directories]");
+#endif
 	}
 #endif
 
