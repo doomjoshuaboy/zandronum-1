@@ -726,9 +726,10 @@ static bool DoLoadGLNodes(FileReader ** lumps)
 
 static bool MatchHeader(const char * label, const char * hdata)
 {
-	if (!memcmp(hdata, "LEVEL=", 6) == 0)
+	if (memcmp(hdata, "LEVEL=", 6) == 0)
 	{
 		size_t labellen = strlen(label);
+		labellen = MIN(size_t(8), labellen);
 
 		if (strnicmp(hdata+6, label, labellen)==0 && 
 			(hdata[6+labellen]==0xa || hdata[6+labellen]==0xd))
@@ -773,7 +774,7 @@ static int FindGLNodesInWAD(int labellump)
 				if (Wads.GetLumpFile(lump)==wadfile)
 				{
 					FMemLump mem = Wads.ReadLump(lump);
-					if (MatchHeader(Wads.GetLumpFullName(labellump), (const char *)mem.GetMem())) return true;
+					if (MatchHeader(Wads.GetLumpFullName(labellump), (const char *)mem.GetMem())) return lump;
 				}
 			}
 		}
@@ -783,7 +784,7 @@ static int FindGLNodesInWAD(int labellump)
 
 //===========================================================================
 //
-// FindGLNodesInWAD
+// FindGLNodesInFile
 //
 // Looks for GL nodes in the same WAD as the level itself
 // Function returns the lump number within the file. Returns -1 if the input
@@ -931,13 +932,13 @@ bool P_LoadGLNodes(MapData * map)
 			result=true;
 			for(unsigned i=0; i<4;i++)
 			{
-				if (strnicmp(f_gwa->GetLump(i)->Name, check[i], 8))
+				if (strnicmp(f_gwa->GetLump(i+1)->Name, check[i], 8))
 				{
 					result=false;
 					break;
 				}
 				else
-					gwalumps[i] = f_gwa->GetLump(i)->NewReader();
+					gwalumps[i] = f_gwa->GetLump(i+1)->NewReader();
 			}
 			if (result) result = DoLoadGLNodes(gwalumps);
 		}
