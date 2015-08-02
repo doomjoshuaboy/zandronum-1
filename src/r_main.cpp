@@ -735,10 +735,6 @@ void R_EnterMirror (drawseg_t *ds, int depth)
 			R_EnterMirror (drawsegs + WallMirrors[mirrorsAtStart], depth + 1);
 		}
 	}
-	else
-	{
-		depth = depth;
-	}
 
 	viewangle = startang;
 	viewx = startx;

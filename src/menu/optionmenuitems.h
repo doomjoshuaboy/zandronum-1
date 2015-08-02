@@ -582,8 +582,8 @@ public:
 		mSliderShort = 0;
 	}
 
-	virtual double GetValue() = 0;
-	virtual void SetValue(double val) = 0;
+	virtual double GetSliderValue() = 0;
+	virtual void SetSliderValue(double val) = 0;
 
 	//=============================================================================
 	//
@@ -637,14 +637,14 @@ public:
 		// [TP] Support for graying
 		drawLabel(indent, y, selected? OptionSettings.mFontColorSelection : OptionSettings.mFontColor, Selectable() == false );
 		mDrawX = indent + CURSORSPACE;
-		DrawSlider (mDrawX, y, mMin, mMax, GetValue(), mShowValue, indent);
+		DrawSlider (mDrawX, y, mMin, mMax, GetSliderValue(), mShowValue, indent);
 		return indent;
 	}
 
 	//=============================================================================
 	bool MenuEvent (int mkey, bool fromcontroller)
 	{
-		double value = GetValue();
+		double value = GetSliderValue();
 
 		if (mkey == MKEY_Left)
 		{
@@ -658,7 +658,7 @@ public:
 		{
 			return FOptionMenuItem::MenuEvent(mkey, fromcontroller);
 		}
-		SetValue(clamp(value, mMin, mMax));
+		SetSliderValue(clamp(value, mMin, mMax));
 		S_Sound (CHAN_VOICE | CHAN_UI, "menu/change", snd_menuvolume, ATTN_NONE);
 		return true;
 	}
@@ -685,9 +685,9 @@ public:
 
 		x = clamp(x, slide_left, slide_right);
 		double v = mMin + ((x - slide_left) * (mMax - mMin)) / (slide_right - slide_left);
-		if (v != GetValue())
+		if (v != GetSliderValue())
 		{
-			SetValue(v);
+			SetSliderValue(v);
 			//S_Sound (CHAN_VOICE | CHAN_UI, "menu/change", snd_menuvolume, ATTN_NONE);
 		}
 		if (type == DMenu::MOUSE_Click)
@@ -715,7 +715,7 @@ public:
 		mCVar = FindCVar(menu, NULL);
 	}
 
-	double GetValue()
+	double GetSliderValue()
 	{
 		if (mCVar != NULL)
 		{
@@ -727,7 +727,7 @@ public:
 		}
 	}
 
-	void SetValue(double val)
+	void SetSliderValue(double val)
 	{
 		if (mCVar != NULL)
 		{
@@ -761,12 +761,12 @@ public:
 		mPVal = pVal;
 	}
 
-	double GetValue()
+	double GetSliderValue()
 	{
 		return *mPVal;
 	}
 
-	void SetValue(double val)
+	void SetSliderValue(double val)
 	{
 		*mPVal = (float)val;
 	}
