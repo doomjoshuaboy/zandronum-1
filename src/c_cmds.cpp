@@ -1337,8 +1337,8 @@ CCMD(nextmap)
 // [TL] I think it's safe to remove this (I've factored it in above).
 	if (netgame)
 	{
-		Printf ("Use "TEXTCOLOR_BOLD"changemap"TEXTCOLOR_NORMAL" instead. "TEXTCOLOR_BOLD"Nextmap"
-				TEXTCOLOR_NORMAL" is for single-player only.\n");
+		Printf ("Use " TEXTCOLOR_BOLD "changemap" TEXTCOLOR_NORMAL " instead. " TEXTCOLOR_BOLD "Nextmap"
+				TEXTCOLOR_NORMAL " is for single-player only.\n");
 		return;
 	}
 	char *next = NULL;
@@ -1408,8 +1408,8 @@ CCMD(nextsecret)
 /* [BB] For the time being I'll keep ST's nextmap version.
 	if (netgame)
 	{
-		Printf ("Use "TEXTCOLOR_BOLD"changemap"TEXTCOLOR_NORMAL" instead. "TEXTCOLOR_BOLD"Nextsecret"
-				TEXTCOLOR_NORMAL" is for single-player only.\n");
+		Printf ("Use " TEXTCOLOR_BOLD "changemap" TEXTCOLOR_NORMAL " instead. " TEXTCOLOR_BOLD "Nextsecret"
+				TEXTCOLOR_NORMAL " is for single-player only.\n");
 		return;
 	}
 	char *next = NULL;
