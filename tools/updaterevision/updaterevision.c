@@ -62,7 +62,7 @@ int main(int argc, char **argv)
 	// commits since the tag>-<short hash>.
 	// Use git log to get the time of the latest commit in ISO 8601 format and its full hash.
 	// [BB] Changed to use hg instead of git.
-	stream = popen("hg log --template \"{latesttag}-{latesttagdistance}-{node|short}\\n\" --rev -1 && hg log -r. --template \"{date|isodatesec}*{node}?{date|hgdate}\\n\" && hg identify -n", "r");
+	stream = popen("hg log --template \"{latesttag}-{latesttagdistance}-{node|short}\\n\" --rev . && hg log -r. --template \"{date|isodatesec}*{node}?{date|hgdate}\\n\" && hg identify -n", "r");
 
 	if (NULL != stream)
 	{
