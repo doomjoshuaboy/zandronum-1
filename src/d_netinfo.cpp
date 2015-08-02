@@ -1410,7 +1410,7 @@ void D_ReadUserInfoStrings (int pnum, BYTE **stream, bool update)
 					val.String = CleanseString(value.LockBuffer());
 					(*cvar_ptr)->SetGenericRep(val, CVAR_String);
 					value.UnlockBuffer();
-					if (keyname == NAME_Name && update && oldname != value)
+					if (keyname == NAME_Name && update && oldname.Compare (value))
 					{
 						// [BB] Added "\\c-"
 						Printf("%s \\c-is now known as %s\n", oldname.GetChars(), value.GetChars());

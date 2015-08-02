@@ -4752,6 +4752,8 @@ enum EACSFunctions
 	ACSF_CheckFont,
 	ACSF_DropItem,
 	ACSF_CheckFlag,
+	ACSF_SetLineActivation,
+	ACSF_GetLineActivation,
 
 	// [BB] Skulltag functions
 	ACSF_ResetMap = 100,
@@ -5825,6 +5827,26 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 			}
 			break;
 		}
+
+		case ACSF_SetLineActivation:
+			if (argCount >= 2)
+			{
+				int line = -1;
+
+				while ((line = P_FindLineFromID(args[0], line)) >= 0)
+				{
+					lines[line].activation = args[1];
+				}
+			}
+			break;
+
+		case ACSF_GetLineActivation:
+			if (argCount > 0)
+			{
+				int line = P_FindLineFromID(args[0], -1);
+				return line >= 0 ? lines[line].activation : 0;
+			}
+			break;
 
 		// [BL] Skulltag function
 		case ACSF_AnnouncerSound:

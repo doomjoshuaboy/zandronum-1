@@ -1030,7 +1030,10 @@ bool DPlayerMenu::MenuEvent (int mkey, bool fromcontroller)
 				// item specific handling comes here
 
 			case NAME_Playerbox:
-				PlayerNameChanged(li);
+				if (mkey == MKEY_Input)
+				{
+					PlayerNameChanged(li);
+				}
 				break;
 
 			case NAME_Team:
