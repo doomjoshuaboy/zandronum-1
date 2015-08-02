@@ -365,7 +365,15 @@ MapData *P_OpenMapData(const char * mapname)
 					// Since levels must be stored in WADs they can't really have full
 					// names and for any valid level lump this always returns the short name.
 					const char * lumpname = Wads.GetLumpFullName(lump_name + i);
-					index = GetMapIndex(mapname, index, lumpname, i != 1 || Wads.LumpLength(lump_name + i) == 0);
+					try
+					{
+						index = GetMapIndex(mapname, index, lumpname, true);
+					}
+					catch(...)
+					{
+						delete map;
+						throw;
+					}
 					if (index == ML_BEHAVIOR) map->HasBehavior = true;
 
 					// The next lump is not part of this map anymore
@@ -497,7 +505,15 @@ MapData *P_OpenMapData(const char * mapname)
 
 			if (i>0)
 			{
-				index = GetMapIndex(maplabel, index, lumpname, true);
+				try
+				{
+					index = GetMapIndex(maplabel, index, lumpname, true);
+				}
+				catch(...)
+				{
+					delete map;
+					throw;
+				}
 				if (index == ML_BEHAVIOR) map->HasBehavior = true;
 
 				// The next lump is not part of this map anymore

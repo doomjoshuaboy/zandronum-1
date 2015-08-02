@@ -51,6 +51,7 @@
 
 #include "i_system.h"
 
+#include "doomerrors.h"
 #include "doomstat.h"
 #include "gstrings.h"
 #include "s_sound.h"
@@ -553,44 +554,52 @@ CCMD (changemap)
 
 	if (argv.argc() > 1)
 	{
-		if (!P_CheckMapData(argv[1]))
+		try
 		{
-			Printf ("No map %s\n", argv[1]);
-		}
-		else
-		{
-			// [BB] We cannot end the map during survival's countdown, so just end the map after the countdown ends.
-			if ( ( survival ) && ( SURVIVAL_GetState( ) == SURVS_COUNTDOWN ) )
+			if (!P_CheckMapData(argv[1]))
 			{
-				char commandString[128];
-				sprintf ( commandString, "wait %lu;changemap %s", SURVIVAL_GetCountdownTicks() + TICRATE, argv[1] );
-				Printf ( "changemap called during a survival countdown. Delaying the map change till the countdown ends.\n" );
-				AddCommandString ( commandString );
-				return;
-			}
-
-			// Fuck that DEM shit!
-			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			{
-				strncpy( level.nextmap, argv[1], 8 );
-
-				level.flags |= LEVEL_CHANGEMAPCHEAT;
-
-				G_ExitLevel( 0, false );
+				Printf ("No map %s\n", argv[1]);
 			}
 			else
 			{
-				if (argv.argc() > 2)
+				// [BB] We cannot end the map during survival's countdown, so just end the map after the countdown ends.
+				if ( ( survival ) && ( SURVIVAL_GetState( ) == SURVS_COUNTDOWN ) )
 				{
-					Net_WriteByte (DEM_CHANGEMAP2);
-					Net_WriteByte (atoi(argv[2]));
+					char commandString[128];
+					sprintf ( commandString, "wait %lu;changemap %s", SURVIVAL_GetCountdownTicks() + TICRATE, argv[1] );
+					Printf ( "changemap called during a survival countdown. Delaying the map change till the countdown ends.\n" );
+					AddCommandString ( commandString );
+					return;
+				}
+
+				// Fuck that DEM shit!
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				{
+					strncpy( level.nextmap, argv[1], 8 );
+
+					level.flags |= LEVEL_CHANGEMAPCHEAT;
+
+					G_ExitLevel( 0, false );
 				}
 				else
 				{
-					Net_WriteByte (DEM_CHANGEMAP);
+					if (argv.argc() > 2)
+					{
+						Net_WriteByte (DEM_CHANGEMAP2);
+						Net_WriteByte (atoi(argv[2]));
+					}
+					else
+					{
+						Net_WriteByte (DEM_CHANGEMAP);
+					}
+					Net_WriteString (argv[1]);
 				}
-				Net_WriteString (argv[1]);
 			}
+		}
+		catch(CRecoverableError &error)
+		{
+			if (error.GetMessage())
+				Printf("%s", error.GetMessage());
 		}
 	}
 	else
