@@ -1632,6 +1632,7 @@ userinfo_t::~userinfo_t()
 	{
 		delete pair->Value;
 	}
+	this->Clear();
 }
 
 #ifdef _DEBUG

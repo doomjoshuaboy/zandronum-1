@@ -134,12 +134,10 @@ unsigned int GetRevisionNumber();
 // [BC] This is what's displayed as the title for server windows.
 #define	SERVERCONSOLE_TITLESTRING	GAMENAME " v" DOTVERSIONSTR " Server"
 
-#ifdef __unix__
-#define GAME_DIR ".config/" GAMENAMELOWERCASE
-#elif defined(__APPLE__)
+#if defined(__APPLE__) || defined(_WIN32)
 #define GAME_DIR GAMENAME
 #else
-#define CDROM_DIR "C:\\ZDOOMDAT"
+#define GAME_DIR ".config/" GAMENAMELOWERCASE
 #endif
 
 

@@ -364,6 +364,177 @@ player_t::player_t()
 	memset( &ServerXYZMom, 0, sizeof( fixed_t ) * 3 );
 }
 
+player_t &player_t::operator=(const player_t &p)
+{
+	mo = p.mo;
+	playerstate = p.playerstate;
+	cmd = p.cmd;
+	original_cmd = p.original_cmd;
+	original_oldbuttons = p.original_oldbuttons;
+	// Intentionally not copying userinfo!
+	cls = p.cls;
+	DesiredFOV = p.DesiredFOV;
+	FOV = p.FOV;
+	viewz = p.viewz;
+	viewheight = p.viewheight;
+	deltaviewheight = p.deltaviewheight;
+	bob = p.bob;
+	velx = p.velx;
+	vely = p.vely;
+	centering = p.centering;
+	turnticks = p.turnticks;
+	attackdown = p.attackdown;
+	usedown = p.usedown;
+	oldbuttons = p.oldbuttons;
+	health = p.health;
+	inventorytics = p.inventorytics;
+	CurrentPlayerClass = p.CurrentPlayerClass;
+	backpack = p.backpack;
+	// [BB] Zandronum doesn't have this.
+	//memcpy(frags, &p.frags, sizeof(frags));
+	fragcount = p.fragcount;
+	/* [BB] Zandronum doesn't have these.
+	lastkilltime = p.lastkilltime;
+	multicount = p.multicount;
+	spreecount = p.spreecount;
+	*/
+	WeaponState = p.WeaponState;
+	ReadyWeapon = p.ReadyWeapon;
+	PendingWeapon = p.PendingWeapon;
+	cheats = p.cheats;
+	timefreezer = p.timefreezer;
+	refire = p.refire;
+	// [BB] Zandronum doesn't have this.
+	//inconsistant = p.inconsistant;
+	waiting = p.waiting;
+	killcount = p.killcount;
+	itemcount = p.itemcount;
+	secretcount = p.secretcount;
+	damagecount = p.damagecount;
+	bonuscount = p.bonuscount;
+	hazardcount = p.hazardcount;
+	poisoncount = p.poisoncount;
+	poisontype = p.poisontype;
+	poisonpaintype = p.poisonpaintype;
+	poisoner = p.poisoner;
+	attacker = p.attacker;
+	extralight = p.extralight;
+	fixedcolormap = p.fixedcolormap;
+	fixedlightlevel = p.fixedlightlevel;
+	memcpy(psprites, &p.psprites, sizeof(psprites));
+	morphTics = p.morphTics;
+	MorphedPlayerClass = p.MorphedPlayerClass;
+	MorphStyle = p.MorphStyle;
+	MorphExitFlash = p.MorphExitFlash;
+	PremorphWeapon = p.PremorphWeapon;
+	chickenPeck = p.chickenPeck;
+	jumpTics = p.jumpTics;
+	respawn_time = p.respawn_time;
+	camera = p.camera;
+	air_finished = p.air_finished;
+	LastDamageType = p.LastDamageType;
+	/* [BB] Zandronum doesn't have these.
+	savedyaw = p.savedyaw;
+	savedpitch = p.savedpitch;
+	angle = p.angle;
+	dest = p.dest;
+	prev = p.prev;
+	enemy = p.enemy;
+	missile = p.missile;
+	mate = p.mate;
+	last_mate = p.last_mate;
+	*/
+	settings_controller = p.settings_controller;
+	/* [BB] Zandronum doesn't have these.
+	skill = p.skill;
+	t_active = p.t_active;
+	t_respawn = p.t_respawn;
+	t_strafe = p.t_strafe;
+	t_react = p.t_react;
+	t_fight = p.t_fight;
+	t_roam = p.t_roam;
+	t_rocket = p.t_rocket;
+	isbot = p.isbot;
+	first_shot = p.first_shot;
+	sleft = p.sleft;
+	allround = p.allround;
+	oldx = p.oldx;
+	oldy = p.oldy;
+	*/
+	BlendR = p.BlendR;
+	BlendG = p.BlendG;
+	BlendB = p.BlendB;
+	BlendA = p.BlendA;
+	LogText = p.LogText;
+	MinPitch = p.MinPitch;
+	MaxPitch = p.MaxPitch;
+	crouching = p.crouching;
+	crouchdir = p.crouchdir;
+	crouchfactor = p.crouchfactor;
+	crouchoffset = p.crouchoffset;
+	crouchviewdelta = p.crouchviewdelta;
+	weapons = p.weapons;
+	ConversationNPC = p.ConversationNPC;
+	ConversationPC = p.ConversationPC;
+	ConversationNPCAngle = p.ConversationNPCAngle;
+	ConversationFaceTalker = p.ConversationFaceTalker;
+
+	// [BB] Zandronum additions
+	bOnTeam = p.bOnTeam;
+	ulTeam = p.ulTeam;
+	lPointCount = p.lPointCount;
+	ulDeathCount = p.ulDeathCount;
+	ulLastFragTick = p.ulLastFragTick;
+	ulLastExcellentTick = p.ulLastExcellentTick;
+	ulLastBFGFragTick = p.ulLastBFGFragTick;
+	ulConsecutiveHits = p.ulConsecutiveHits;
+	ulConsecutiveRailgunHits = p.ulConsecutiveRailgunHits;
+	ulFragsWithoutDeath = p.ulFragsWithoutDeath;
+	ulDeathsWithoutFrag = p.ulDeathsWithoutFrag;
+	ulUnrewardedDamageDealt = p.ulUnrewardedDamageDealt;
+	bChatting = p.bChatting;
+	bInConsole = p.bInConsole;
+	bSpectating = p.bSpectating;
+	bDeadSpectator = p.bDeadSpectator;
+	ulLivesLeft = p.ulLivesLeft;
+	bStruckPlayer = p.bStruckPlayer;
+	ulRailgunShots = p.ulRailgunShots;
+	memcpy(ulMedalCount, &p.ulMedalCount, sizeof( ULONG ) * NUM_MEDALS);
+	pIcon = p.pIcon;
+	lMaxHealthBonus = p.lMaxHealthBonus;
+	ulWins = p.ulWins;
+	pSkullBot = p.pSkullBot;
+	bIsBot = p.bIsBot;
+	bIgnoreChat = p.bIgnoreChat;
+	lIgnoreChatTicks = p.lIgnoreChatTicks;
+	memcpy(ServerXYZ, &p.ServerXYZ, sizeof( ServerXYZ ));
+	memcpy(ServerXYZMom, &p.ServerXYZMom, sizeof( ServerXYZMom ));
+	ulPing = p.ulPing;
+	ulPingAverages = p.ulPingAverages;
+	bReadyToGoOn = p.bReadyToGoOn;
+	bSpawnOkay = p.bSpawnOkay;
+	SpawnX = p.SpawnX;
+	SpawnY = p.SpawnY;
+	SpawnAngle = p.SpawnAngle;
+	OldPendingWeapon = p.OldPendingWeapon;
+	StartingWeaponName = p.StartingWeaponName;
+	bClientSelectedWeapon = p.bClientSelectedWeapon;
+	bLagging = p.bLagging;
+	bSpawnTelefragged = p.bSpawnTelefragged;
+	ulTime = p.ulTime;
+	bUnarmed = p.bUnarmed;
+	memcpy(unlaggedX, &p.unlaggedX, sizeof( unlaggedX ));
+	memcpy(unlaggedY, &p.unlaggedY, sizeof( unlaggedY ));
+	memcpy(unlaggedZ, &p.unlaggedZ, sizeof( unlaggedZ ));
+	restoreX = p.restoreX;
+	restoreY = p.restoreY;
+	restoreZ = p.restoreZ;
+	restoreFloorZ = p.restoreFloorZ;
+	restoreCeilingZ = p.restoreCeilingZ;
+
+	return *this;
+}
+
 // This function supplements the pointer cleanup in dobject.cpp, because
 // player_t is not derived from DObject. (I tried it, and DestroyScan was
 // unable to properly determine the player object's type--possibly
