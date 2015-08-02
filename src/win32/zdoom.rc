@@ -256,8 +256,6 @@ BEGIN
                     BS_AUTORADIOBUTTON,12,160,93,10
 	CONTROL         "Fullscreen",IDC_WELCOME_FULLSCREEN,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP, 124,160,48,10
-	CONTROL         "GL compatibility mode",IDC_WELCOME_COMPAT,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP, 124,170,86,10
 	CONTROL         "Don't ask me this again",IDC_DONTASKIWAD,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,72,192,87,10
 	CTEXT           "", IDC_WELCOME_SHIFTLABEL,12,204,200,8

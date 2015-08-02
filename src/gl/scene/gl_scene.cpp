@@ -536,7 +536,7 @@ void FGLRenderer::RenderScene(int recursion)
 	// [BB] We may only do this when drawing the final eye.
 	GLint drawBuffer;
 	glGetIntegerv ( GL_DRAW_BUFFER, &drawBuffer );
-	if (!(gl.flags&RFL_NOSTENCIL) && (drawBuffer != GL_BACK_LEFT))	// needs a stencil to work!
+	if ( drawBuffer != GL_BACK_LEFT )
 	{
 		gl.DepthMask(false);							// don't write to Z-buffer!
 		gl_RenderState.EnableFog(true);
