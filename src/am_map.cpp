@@ -121,6 +121,7 @@ CVAR (Color, am_interlevelcolor,	0xff0000,	CVAR_ARCHIVE);
 CVAR (Color, am_secretsectorcolor,	0xff00ff,	CVAR_ARCHIVE);
 CVAR (Color, am_thingcolor_friend,	0xfcfcfc,	CVAR_ARCHIVE);
 CVAR (Color, am_thingcolor_monster,	0xfcfcfc,	CVAR_ARCHIVE);
+CVAR (Color, am_thingcolor_ncmonster,	0xfcfcfc,	CVAR_ARCHIVE);
 CVAR (Color, am_thingcolor_item,	0xfcfcfc,	CVAR_ARCHIVE);
 CVAR (Color, am_thingcolor_citem,	0xfcfcfc,	CVAR_ARCHIVE);
 
@@ -140,6 +141,7 @@ CVAR (Color, am_ovsecretsectorcolor,0x00ffff,	CVAR_ARCHIVE);
 CVAR (Color, am_ovthingcolor,		0xe88800,	CVAR_ARCHIVE);
 CVAR (Color, am_ovthingcolor_friend,	0xe88800,	CVAR_ARCHIVE);
 CVAR (Color, am_ovthingcolor_monster,	0xe88800,	CVAR_ARCHIVE);
+CVAR (Color, am_ovthingcolor_ncmonster,	0xe88800,	CVAR_ARCHIVE);
 CVAR (Color, am_ovthingcolor_item,		0xe88800,	CVAR_ARCHIVE);
 CVAR (Color, am_ovthingcolor_citem,		0xe88800,	CVAR_ARCHIVE);
 
@@ -196,6 +198,7 @@ static const char *ColorNames[] = {
 		"ThingColor_Item", 
 		"ThingColor_CountItem", 
 		"ThingColor_Monster", 
+		"ThingColor_NocountMonster", 
 		"ThingColor_Friend",
 		"SpecialWallColor", 
 		"SecretWallColor", 
@@ -225,6 +228,7 @@ struct AMColorset
 		ThingColor_Item, 
 		ThingColor_CountItem, 
 		ThingColor_Monster, 
+		ThingColor_NocountMonster, 
 		ThingColor_Friend,
 		SpecialWallColor, 
 		SecretWallColor, 
@@ -324,6 +328,7 @@ static FColorCVar *cv_standard[] = {
 	&am_thingcolor_item,
 	&am_thingcolor_citem,
 	&am_thingcolor_monster,
+	&am_thingcolor_ncmonster,
 	&am_thingcolor_friend,
 	&am_specialwallcolor,
 	&am_secretwallcolor,
@@ -348,6 +353,7 @@ static FColorCVar *cv_overlay[] = {
 	&am_ovthingcolor_item,
 	&am_ovthingcolor_citem,
 	&am_ovthingcolor_monster,
+	&am_ovthingcolor_ncmonster,
 	&am_ovthingcolor_friend,
 	&am_ovspecialwallcolor,
 	&am_ovsecretwallcolor,
@@ -374,6 +380,7 @@ static unsigned char DoomColors[]= {
 	0x74,0xfc,0x6c, // thingcolor_item
 	0x74,0xfc,0x6c, // thingcolor_citem
 	0x74,0xfc,0x6c, // thingcolor_monster
+	0x74,0xfc,0x6c, // thingcolor_ncmonster
 	0x74,0xfc,0x6c, // thingcolor_friend
 	NOT_USED,		// specialwallcolor
 	NOT_USED,		// secretwallcolor
@@ -399,6 +406,7 @@ static unsigned char StrifeColors[]= {
 	219, 171,   0,	// thingcolor_item
 	219, 171,   0,	// thingcolor_citem
 	0xfc,0x00,0x00,	// thingcolor_monster
+	0xfc,0x00,0x00,	// thingcolor_ncmonster
 	0xfc,0x00,0x00, // thingcolor_friend
 	NOT_USED,		// specialwallcolor
 	NOT_USED,		// secretwallcolor
@@ -424,6 +432,7 @@ static unsigned char RavenColors[]= {
 	236, 236, 236,	// thingcolor_item
 	236, 236, 236,	// thingcolor_citem
 	236, 236, 236,	// thingcolor_monster
+	236, 236, 236,	// thingcolor_ncmonster
 	236, 236, 236,	// thingcolor_friend
 	NOT_USED,		// specialwallcolor
 	NOT_USED,		// secretwallcolor
@@ -2687,7 +2696,8 @@ void AM_drawThings ()
 					// use separate colors for special thing types
 					if (t->flags3&MF3_ISMONSTER && !(t->flags&MF_CORPSE))
 					{
-						if (t->flags & MF_FRIENDLY || !(t->flags & MF_COUNTKILL)) color = AMColors[AMColors.ThingColor_Friend];
+						if (t->flags & MF_FRIENDLY) color = AMColors[AMColors.ThingColor_Friend];
+						else if (!(t->flags & MF_COUNTKILL)) color = AMColors[AMColors.ThingColor_NocountMonster];
 						else color = AMColors[AMColors.ThingColor_Monster];
 					}
 					else if (t->flags&MF_SPECIAL)

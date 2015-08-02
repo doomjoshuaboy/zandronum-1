@@ -792,7 +792,7 @@ public:
 		: FOptionMenuItem(label, menu)
 	{
 		FBaseCVar *cv = FindCVar(menu, NULL);
-		if (cv->GetRealType() == CVAR_Color)
+		if (cv != NULL && cv->GetRealType() == CVAR_Color)
 		{
 			mCVar = (FColorCVar*)cv;
 		}
