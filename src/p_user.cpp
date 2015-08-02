@@ -3757,7 +3757,7 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 				{
 					player->mo->flags2 |= MF2_FLY;
 					player->mo->flags |= MF_NOGRAVITY;
-					if (player->mo->velz <= -39*FRACUNIT)
+					if ((player->mo->velz <= -39 * FRACUNIT) && !CLIENT_PREDICT_IsPredicting( )) // [BB] Adapted prediction.
 					{ // Stop falling scream
 						S_StopSound (player->mo, CHAN_VOICE);
 					}
