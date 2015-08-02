@@ -477,6 +477,7 @@ public:
 		FString arg0str, arg1str;
 
 		memset(th, 0, sizeof(*th));
+		th->gravity = FRACUNIT;
 		sc.MustGetToken('{');
 		while (!sc.CheckToken('}'))
 		{
@@ -515,6 +516,11 @@ public:
 			case NAME_Special:
 				CHECK_N(Hx | Zd | Zdt | Va)
 				th->special = CheckInt(key);
+				break;
+
+			case NAME_Gravity:
+				CHECK_N(Zd | Zdt)
+				th->gravity = CheckFixed(key);
 				break;
 
 			case NAME_Arg0:
@@ -921,6 +927,10 @@ public:
 
 			case NAME_blocksight:
 				Flag(ld->flags, ML_BLOCKSIGHT, key); 
+				continue;
+			
+			case NAME_blockhitscan:
+				Flag(ld->flags, ML_BLOCKHITSCAN, key); 
 				continue;
 			
 			// [Dusk] lock number

@@ -2819,6 +2819,7 @@ FUNC(LS_Line_SetBlocking)
 		ML_RAILING,
 		ML_BLOCKUSE,
 		ML_BLOCKSIGHT,
+		ML_BLOCKHITSCAN,
 		-1
 	};
 
