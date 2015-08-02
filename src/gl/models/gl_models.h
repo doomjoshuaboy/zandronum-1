@@ -94,17 +94,6 @@ protected:
 		char            name[16];
 		FModelVertex *vertices;
 		FModelVertex *normals;
-
-		ModelFrame()
-		{
-			vertices = normals = NULL;
-		}
-
-		~ModelFrame()
-		{
-			if (vertices) delete [] vertices;
-			if (normals) delete [] normals;
-		}
 	};
 
 	struct DMDLoDInfo
@@ -212,7 +201,6 @@ class FMD3Model : public FModel
 			if (tris) delete [] tris;
 			if (vertices) delete [] vertices;
 			if (texcoords) delete [] texcoords;
-			for (int i=0;i<numSkins;i++) delete skins[i];
 			if (skins) delete [] skins;
 		}
 	};
