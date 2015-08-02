@@ -35,24 +35,11 @@
 char* itoa(int value, char* str, int base);
 char *strupr(char *string);
 
-// [C]
-struct POINT { 
-  long int x; 
-  long int y; 
-};
-struct RECT { 
-  long int left; 
-  long int top; 
-  long int right; 
-  long int bottom; 
-}; 
 void I_Sleep( int iMS );
 char *I_ConsoleInput (void);
 
 typedef unsigned char UCHAR;
 typedef bool BOOL;
-
-#define _access(a,b)	access(a,b)
 
 #endif
 
