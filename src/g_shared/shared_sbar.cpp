@@ -53,6 +53,7 @@
 #include "d_player.h"
 #include "farchive.h"
 #include "a_hexenglobal.h"
+#include "gstrings.h"
 
 #include "../version.h"
 // [BC] New #includes.
@@ -1410,8 +1411,8 @@ void DBaseStatusBar::Draw (EHudState state)
 			// Draw monster count
 			if (am_showmonsters)
 			{
-				mysnprintf (line, countof(line), "MONSTERS:" TEXTCOLOR_GREY " %d/%d",
-					level.killed_monsters, level.total_monsters);
+				mysnprintf (line, countof(line), "%s" TEXTCOLOR_GREY " %d/%d",
+					GStrings("AM_MONSTERS"), level.killed_monsters, level.total_monsters);
 				screen->DrawText (SmallFont, highlight, 8, y, line,
 					DTA_CleanNoMove, true, TAG_DONE);
 				y += height;
@@ -1420,8 +1421,8 @@ void DBaseStatusBar::Draw (EHudState state)
 			// Draw secret count
 			if (am_showsecrets)
 			{
-				mysnprintf (line, countof(line), "SECRETS:" TEXTCOLOR_GREY " %d/%d",
-					level.found_secrets, level.total_secrets);
+				mysnprintf (line, countof(line), "%s" TEXTCOLOR_GREY " %d/%d",
+					GStrings("AM_SECRETS"), level.found_secrets, level.total_secrets);
 				screen->DrawText (SmallFont, highlight, 8, y, line,
 					DTA_CleanNoMove, true, TAG_DONE);
 				y += height;
@@ -1430,8 +1431,8 @@ void DBaseStatusBar::Draw (EHudState state)
 			// Draw item count
 			if (am_showitems)
 			{
-				mysnprintf (line, countof(line), "ITEMS:" TEXTCOLOR_GREY " %d/%d",
-					level.found_items, level.total_items);
+				mysnprintf (line, countof(line), "%s" TEXTCOLOR_GREY " %d/%d",
+					GStrings("AM_ITEMS"), level.found_items, level.total_items);
 				screen->DrawText (SmallFont, highlight, 8, y, line,
 					DTA_CleanNoMove, true, TAG_DONE);
 			}
