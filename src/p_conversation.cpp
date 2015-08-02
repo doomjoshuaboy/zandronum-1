@@ -959,6 +959,7 @@ public:
 		if (CurNode->SpeakerName != NULL)
 		{
 			speakerName = CurNode->SpeakerName;
+			if (speakerName[0] == '$') speakerName = GStrings(speakerName+1);
 		}
 		else
 		{
