@@ -272,6 +272,7 @@ enum
 	APROP_MeleeRange	= 38,
 	APROP_ViewHeight	= 39,
 	APROP_AttackZOffset	= 40,
+	APROP_StencilColor	= 41,
 };	
 
 // [Dusk] Enumeration for GetTeamProperty
