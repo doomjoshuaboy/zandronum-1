@@ -707,19 +707,6 @@ if( WIN32 )
 		set( SYSTEM_SOURCES ${SYSTEM_SOURCES} win32/serverconsole/serverconsole.rc )
 	endif( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" )
 
-	# [BB] Maxim Stepin's hq2x/3x/4x pixel upsampling algorithm as library. Currently only used with VC++.
-	if( MSVC AND NOT X64 )
-		# [BB] Only if necessary
-		if( NOT NO_GL )
-			set( SYSTEM_SOURCES
-				${SYSTEM_SOURCES}
-				gl/hqnx/Image.cpp
-				gl/hqnx/hq2x.cpp
-				gl/hqnx/hq3x.cpp
-				gl/hqnx/hq4x.cpp
-		)
-		ENDIF ( NOT NO_GL )
-	endif( MSVC AND NOT X64)
 else( WIN32 )
 	set( SYSTEM_SOURCES_DIR sdl )
 	set( SYSTEM_SOURCES ${PLAT_SDL_SOURCES} )
@@ -797,6 +784,10 @@ if( NOT NO_GL )
 		gl/renderer/gl_renderer.cpp
 		gl/renderer/gl_renderstate.cpp
 		gl/renderer/gl_lightdata.cpp
+		gl/hqnx/init.cpp
+		gl/hqnx/hq2x.cpp
+		gl/hqnx/hq3x.cpp
+		gl/hqnx/hq4x.cpp
 		gl/textures/gl_hwtexture.cpp
 		gl/textures/gl_texture.cpp
 		gl/textures/gl_material.cpp
@@ -837,16 +828,6 @@ if( NOT NO_GL )
 		gl/models/gl_models.cpp
 		gl/models/gl_voxels.cpp
 	)
-        # [BB] Maxim Stepin's hq2x/3x/4x pixel upsampling algorithm as library. Currently only used with VC++.
-        if( MSVC )
-	set( GL_SOURCES
-                ${GL_SOURCES}
-		gl/hqnx/Image.cpp
-		gl/hqnx/hq2x.cpp
-		gl/hqnx/hq3x.cpp
-		gl/hqnx/hq4x.cpp
-        )
-        endif( MSVC )
 else( NOT NO_GL )
 	set( GL_SOURCES sdl/glstubs.cpp )
 endif( NOT NO_GL )
@@ -1267,6 +1248,10 @@ add_executable( zdoom WIN32
 	menu/videomenu.cpp
 	${GL_SOURCES}
 
+	gl/hqnx/init.cpp
+	gl/hqnx/hq2x.cpp
+	gl/hqnx/hq3x.cpp
+	gl/hqnx/hq4x.cpp
 	oplsynth/fmopl.cpp
 	oplsynth/mlopl.cpp
 	oplsynth/mlopl_io.cpp
