@@ -2849,7 +2849,7 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 	fixed_t oldz = mo->z;
 	fixed_t grav = mo->GetGravity();
 
-//	
+//
 // check for smooth step up
 //
 	// [BC] Don't adjust viewheight while predicting.
