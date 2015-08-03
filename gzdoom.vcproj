@@ -4105,6 +4105,10 @@
 				Name="hqnx"
 				>
 				<File
+					RelativePath=".\src\gl\hqnx\common.h"
+					>
+				</File>
+				<File
 					RelativePath=".\src\gl\hqnx\hq2x.cpp"
 					>
 				</File>
@@ -4121,11 +4125,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\gl\hqnx\Image.cpp"
+					RelativePath=".\src\gl\hqnx\init.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\src\gl\hqnx\Image.h"
+					RelativePath=".\src\gl\hqnx\mystdint.h"
 					>
 				</File>
 			</Filter>
