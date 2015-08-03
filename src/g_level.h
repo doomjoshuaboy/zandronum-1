@@ -575,6 +575,7 @@ enum ESkillProperty
 	SKILLP_NoPain,
 	SKILLP_ArmorFactor,
 	SKILLP_EasyKey,
+	SKILLP_SlowMonsters,
 };
 int G_SkillProperty(ESkillProperty prop);
 const char * G_SkillName();
@@ -589,6 +590,7 @@ struct FSkillInfo
 	fixed_t AmmoFactor, DoubleAmmoFactor, DropAmmoFactor;
 	fixed_t DamageFactor;
 	bool FastMonsters;
+	bool SlowMonsters;
 	bool DisableCheats;
 	bool AutoUseHealth;
 
