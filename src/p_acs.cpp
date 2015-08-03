@@ -8991,7 +8991,7 @@ scriptwait:
 				if (tag != 0)
 					secnum = P_FindSectorFromTag (tag, -1);
 				else
-					secnum = P_PointInSector (x, y) - sectors;
+					secnum = int(P_PointInSector (x, y) - sectors);
 
 				if (secnum >= 0)
 				{
