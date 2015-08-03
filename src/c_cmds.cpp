@@ -683,12 +683,26 @@ CCMD (exec)
 	}
 }
 
+void execLogfile(const char *fn)
+{
+	if ((Logfile = fopen(fn, "w")))
+	{
+		const char *timestr = myasctime();
+		Printf("Log started: %s\n", timestr);
+	}
+	else
+	{
+		Printf("Could not start log\n");
+	}
+}
+
 CCMD (logfile)
 {
-	// This function may not be used by ConsoleCommand.
+	// [BC/BB] This function may not be used by ConsoleCommand.
 	if ( ACS_IsCalledFromConsoleCommand( ))
 		return;
 
+	// [BB] Zandronum handles logging differently.
 	if ( Logfile )
 		StopLogging( );
 
