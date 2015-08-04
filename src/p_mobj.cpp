@@ -1,4 +1,5 @@
 // Emacs style mode select	 -*- C++ -*- 
+// Emacs style mode select	 -*- C++ -*- 
 //-----------------------------------------------------------------------------
 //
 // $Id:$
@@ -3889,24 +3890,24 @@ void AActor::SetShade (int r, int g, int b)
 	fillcolor = MAKEARGB(ColorMatcher.Pick (r, g, b), r, g, b);
 }
 
-void AActor::SetPitch(int p)
+void AActor::SetPitch(int p, bool interpolate)
 {
 	if (p != pitch)
 	{
 		pitch = p;
-		if (player != NULL)
+		if (player != NULL && interpolate)
 		{
 			player->cheats |= CF_INTERPVIEW;
 		}
 	}
 }
 
-void AActor::SetAngle(angle_t ang)
+void AActor::SetAngle(angle_t ang, bool interpolate)
 {
 	if (ang != angle)
 	{
 		angle = ang;
-		if (player != NULL)
+		if (player != NULL && interpolate)
 		{
 			player->cheats |= CF_INTERPVIEW;
 		}
@@ -7701,6 +7702,67 @@ int AActor::SpawnHealth()
 	{
 		int adj = FixedMul(defhealth, G_SkillProperty(SKILLP_MonsterHealth));
 		return (adj <= 0) ? 1 : adj;
+	}
+}
+
+FState *AActor::GetRaiseState()
+{
+	if (!(flags & MF_CORPSE))
+	{
+		return NULL;	// not a monster
+	}
+
+	if (tics != -1 && // not lying still yet
+		!state->GetCanRaise()) // or not ready to be raised yet
+	{
+		return NULL;
+	}
+
+	if (IsKindOf(RUNTIME_CLASS(APlayerPawn)))
+	{
+		return NULL;	// do not resurrect players
+	}
+
+	return FindState(NAME_Raise);
+}
+
+void AActor::Revive()
+{
+	AActor *info = GetDefault();
+	flags = info->flags;
+	flags2 = info->flags2;
+	flags3 = info->flags3;
+	flags4 = info->flags4;
+	flags5 = info->flags5;
+	flags6 = info->flags6;
+	flags7 = info->flags7;
+
+	// [BC] Apply new ST flags as well.
+	// [BB] The STFL_LEVELSPAWNED flag may not be removed by the default flags.
+	// Otherwise level spawned actors revived by an Archvile won't be restored
+	// during a call of GAME_ResetMap.
+	// [WS] We also need this similar treatment for STFL_POSITIONCHANGED.
+	const bool actorWasLevelSpawned = !!(ulSTFlags & STFL_LEVELSPAWNED);
+	const bool actorHasPositionChanged = !!(ulSTFlags & STFL_POSITIONCHANGED);
+	ulSTFlags = info->ulSTFlags;
+	if ( actorWasLevelSpawned )
+		ulSTFlags |= STFL_LEVELSPAWNED;
+	if ( actorHasPositionChanged )
+		ulSTFlags |= STFL_POSITIONCHANGED;
+	ulNetworkFlags = info->ulNetworkFlags;
+
+	DamageType = info->DamageType;
+	health = SpawnHealth();
+	target = NULL;
+	lastenemy = NULL;
+
+	// [RH] If it's a monster, it gets to count as another kill
+	if (CountsAsKill())
+	{
+		level.total_monsters++;
+
+		// [BB] The number of total monsters was increased, update the invasion monster count accordingly.
+		INVASION_UpdateMonsterCount( this, false );
 	}
 }
 

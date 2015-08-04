@@ -562,18 +562,11 @@ void P_Thing_SetVelocity(AActor *actor, fixed_t vx, fixed_t vy, fixed_t vz, bool
 // the thing.
 bool P_Thing_Raise(AActor *thing, bool bIgnorePositionCheck)
 {
-	if (thing == NULL)
-		return false;	// not valid
-
-	if (!(thing->flags & MF_CORPSE) )
-		return true;	// not a corpse
-	
-	if (thing->tics != -1)
-		return true;	// not lying still yet
-	
-	FState * RaiseState = thing->FindState(NAME_Raise);
+	FState * RaiseState = thing->GetRaiseState();
 	if (RaiseState == NULL)
+	{
 		return true;	// monster doesn't have a raise state
+	}
 	
 	AActor *info = thing->GetDefault ();
 
@@ -595,42 +588,16 @@ bool P_Thing_Raise(AActor *thing, bool bIgnorePositionCheck)
 		return false;
 	}
 
+
 	S_Sound (thing, CHAN_BODY, "vile/raise", 1, ATTN_IDLE);
-	
+
+	thing->Revive();
+
 	// [BC] If we're the server, tell clients to put the thing into its raise state.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCOMMANDS_SetThingState( thing, STATE_RAISE );
 
 	thing->SetState (RaiseState);
-	thing->flags = info->flags;
-	thing->flags2 = info->flags2;
-	thing->flags3 = info->flags3;
-	thing->flags4 = info->flags4;
-	thing->flags5 = info->flags5;
-	thing->flags6 = info->flags6;
-	thing->flags7 = info->flags7;
-	// [BC] Apply new ST flags as well.
-	thing->ulSTFlags = info->ulSTFlags;
-	thing->ulNetworkFlags = info->ulNetworkFlags;
-	thing->health = info->health;
-	thing->target = NULL;
-	thing->lastenemy = NULL;
-
-	// [RH] If it's a monster, it gets to count as another kill
-	if (thing->CountsAsKill())
-	{
-		level.total_monsters++;
-
-		// [BC] Update invasion's HUD.
-		if (( invasion ) && ( NETWORK_InClientMode() == false ))
-		{
-			INVASION_SetNumMonstersLeft( INVASION_GetNumMonstersLeft( ) + 1 );
-
-			// [BC] If we're the server, tell the client how many monsters are left.
-			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SetInvasionNumMonstersLeft( );
-		}
-	}
 
 	return true;
 }
