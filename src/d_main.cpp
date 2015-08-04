@@ -2408,8 +2408,19 @@ static void D_DoomInit()
 
 	SetLanguageIDs ();
 
-	rngseed = I_MakeRNGSeed();
-
+	const char *v = Args->CheckValue("-rngseed");
+	if (v)
+	{
+		rngseed = staticrngseed = atoi(v);
+		use_staticrng = true;
+		Printf("D_DoomInit: Static RNGseed %d set.\n", rngseed);
+	}
+	else
+	{
+		rngseed = I_MakeRNGSeed();
+		use_staticrng = false;
+	}
+		
 	// Initialize the map rotation list. We need to do this before we call M_LoadDefaults,
 	// because that executes autoexec.cfg, where people may have +addmap. We don't want to over-
 	// write what they do.
