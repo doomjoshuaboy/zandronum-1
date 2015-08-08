@@ -351,6 +351,13 @@ CCMD (noclip2)
 	if (CheckCheatmode())
 		return;
 
+	// [BB] Clients need to request the cheat from the server.
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	{
+		CLIENTCOMMANDS_GenericCheat( CHT_NOCLIP2 );
+		return;
+	}
+
 	Net_WriteByte (DEM_GENERICCHEAT);
 	Net_WriteByte (CHT_NOCLIP2);
 }
@@ -1300,6 +1307,13 @@ CCMD(thaw)
 {
 	if (CheckCheatmode())
 		return;
+
+	// [BB] Clients need to request the cheat from the server.
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	{
+		CLIENTCOMMANDS_GenericCheat( CHT_CLEARFROZENPROPS );
+		return;
+	}
 
 	Net_WriteByte (DEM_GENERICCHEAT);
 	Net_WriteByte (CHT_CLEARFROZENPROPS);
