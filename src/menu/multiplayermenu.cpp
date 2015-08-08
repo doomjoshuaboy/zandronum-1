@@ -699,9 +699,12 @@ CCMD ( menu_joingame )
 CCMD ( menu_joingamewithclass )
 {
 	if ( menu_joinclassidx >= 0
-		&& static_cast<unsigned>( menu_joinclassidx ) < PlayerClasses.Size() )
+		&& static_cast<unsigned>( menu_joinclassidx ) < PlayerClasses.Size() + 1 )
 	{
-		playerclass = GetPrintableDisplayName( PlayerClasses[menu_joinclassidx].Type );
+		if ( menu_joinclassidx == PlayerClasses.Size() )
+			playerclass = "Random";
+		else
+			playerclass = GetPrintableDisplayName( PlayerClasses[menu_joinclassidx].Type );
 		M_DoJoinFromMenu();
 	}
 }

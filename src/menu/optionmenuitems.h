@@ -1371,17 +1371,24 @@ public:
 
 	bool IsValid ( int classId )
 	{
-		return TEAM_IsClassAllowedForTeam( classId, menu_jointeamidx );
+		// [BB] The random class is always a valid choice.
+		if ( classId == ( Maximum() - 1 ) )
+			return true;
+		else
+			return TEAM_IsClassAllowedForTeam( classId, menu_jointeamidx );
 	}
 
 	int Maximum()
 	{
-		return PlayerClasses.Size();
+		return PlayerClasses.Size() + 1;
 	}
 
 	FString RepresentOption ( int classId )
 	{
-		return GetPrintableDisplayName( PlayerClasses[classId].Type );
+		if ( classId == ( Maximum() - 1 ) )
+			return "Random";
+		else
+			return GetPrintableDisplayName( PlayerClasses[classId].Type );
 	}
 };
 
