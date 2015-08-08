@@ -47,11 +47,9 @@ IMPLEMENT_POINTY_CLASS (ASkyViewpoint)
 END_POINTERS
 
 // If this actor has no TID, make it the default sky box
-// [BB] The clients don't know the TIDs yet when calling
-// BeginPlay, so we have to do the following in PostBeginPlay.
-void ASkyViewpoint::PostBeginPlay ()
+void ASkyViewpoint::BeginPlay ()
 {
-	Super::PostBeginPlay ();
+	Super::BeginPlay ();
 
 	if (tid == 0 && level.DefaultSkybox == NULL)
 	{
