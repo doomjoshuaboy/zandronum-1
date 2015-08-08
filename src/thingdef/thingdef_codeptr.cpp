@@ -5326,6 +5326,10 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Warp)
 		oldy,
 		oldz;
 
+	// [BB] This is handled server-side.
+	if ( NETWORK_InClientModeAndActorNotClientHandled( self ) )
+		return;
+
 	AActor *reference = COPY_AAPTR(self, destination_selector);
 
 	if (!reference)
@@ -5430,11 +5434,15 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Warp)
 			}
 		}
 
+		// [BB] Inform the clients.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_MoveThing( self, CM_X|CM_Y|CM_Z|CM_ANGLE );
+
 		if (success_state)
 		{
 			ACTION_SET_RESULT(false);	// Jumps should never set the result for inventory state chains!
 			// in this case, you have the statejump to help you handle all the success anyway.
-			ACTION_JUMP(success_state, false);	// [BB] Let's hope that the clients know enough.
+			ACTION_JUMP(success_state, true);	// [BB] Client's don't go in here.
 			return;
 		}
 
