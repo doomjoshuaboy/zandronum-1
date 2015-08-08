@@ -3389,16 +3389,7 @@ void SERVER_UpdateActorProperties( AActor *pActor, ULONG ulClient )
 		SERVERCOMMANDS_SetThingReactionTime( pActor, ulClient, SVCF_ONLYTHISCLIENT );
 
 	// [EP] Update the actor's scale if it's changed.
-	if (( pActor->scaleX != pActor->GetDefault()->scaleX ) || ( pActor->scaleY != pActor->GetDefault()->scaleY ))
-	{
-		unsigned int scaleFlags = 0;
-		if ( pActor->scaleX != pActor->GetDefault()->scaleX )
-			scaleFlags |= ACTORSCALE_X;
-		if ( pActor->scaleY != pActor->GetDefault()->scaleY )
-			scaleFlags |= ACTORSCALE_Y;
-
-		SERVERCOMMANDS_SetThingScale( pActor, scaleFlags, ulClient, SVCF_ONLYTHISCLIENT );
-	}
+	SERVERCOMMANDS_UpdateThingScaleNotAtDefault ( pActor, ulClient, SVCF_ONLYTHISCLIENT );
 }
 
 //*****************************************************************************

@@ -2590,6 +2590,9 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_SpawnItemEx)
 			// [BB] To properly handle actor-actor bouncing, the client must know the target.
 			if ( mo->BounceFlags != BOUNCE_None )
 				SERVERCOMMANDS_SetThingTarget ( mo );
+
+			// [BB] Set scale if necessary.
+			SERVERCOMMANDS_UpdateThingScaleNotAtDefault ( mo );
 		}
 
 		// [BC] Flag this actor as being client-spawned.

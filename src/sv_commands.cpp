@@ -3954,6 +3954,24 @@ void SERVERCOMMANDS_SetThingScale( AActor* mobj, unsigned int scaleFlags, ULONG 
 
 //*****************************************************************************
 //
+void SERVERCOMMANDS_UpdateThingScaleNotAtDefault( AActor* pActor, ULONG ulPlayerExtra, ServerCommandFlags flags )
+{
+	// [BB] Sanity check.
+	if ( pActor == NULL )
+		return;
+
+	unsigned int scaleFlags = 0;
+	if ( pActor->scaleX != pActor->GetDefault()->scaleX )
+		scaleFlags |= ACTORSCALE_X;
+	if ( pActor->scaleY != pActor->GetDefault()->scaleY )
+		scaleFlags |= ACTORSCALE_Y;
+
+	if ( scaleFlags != 0 )
+		SERVERCOMMANDS_SetThingScale( pActor, scaleFlags, ulPlayerExtra, flags  );
+}
+
+//*****************************************************************************
+//
 void SERVERCOMMANDS_FullUpdateCompleted( ULONG ulClient )
 {
 	NetCommand command ( SVC2_FULLUPDATECOMPLETED );
