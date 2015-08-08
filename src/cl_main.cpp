@@ -6690,6 +6690,10 @@ static void client_SetThingFlags( BYTESTREAM_s *pByteStream )
 
 		pActor->flags6 = ulFlags;
 		break;
+	case FLAGSET_FLAGS7:
+
+		pActor->flags7 = ulFlags;
+		break;
 	case FLAGSET_FLAGSST:
 
 		pActor->ulSTFlags = ulFlags;
