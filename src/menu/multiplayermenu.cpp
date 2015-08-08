@@ -329,10 +329,10 @@ static void M_StartSkirmishGame()
 	{
 		for ( unsigned int i = 0; i < countof( BotSlots ); ++i )
 		{
-			if ( *BotTeamSlots[i] < 0 )
+			if ( *BotSlots[i] < 0 )
 				continue; // No bot selected
 
-			unsigned int botId = **BotTeamSlots[i];
+			unsigned int botId = **BotSlots[i];
 
 			if ( BOTINFO_GetRevealed( botId ) && ( BOTINFO_GetName( botId ) != NULL ))
 			{
