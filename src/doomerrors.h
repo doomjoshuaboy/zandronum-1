@@ -72,11 +72,6 @@ class CNoRunExit : public CDoomError
 {
 };
 
-// [RC]
-class CNoIWADError : public CDoomError
-{
-};
-
 class CRecoverableError : public CDoomError
 {
 public:

@@ -27,6 +27,7 @@
 
 struct ticcmd_t;
 struct WadStuff;
+struct FIWadManager; // [BB] For NoIWADsScreen
 
 // Index values into the LanguageIDs array
 enum
@@ -136,7 +137,7 @@ void I_GetWelcomeScreenKeyString( char *pszString );
 void I_SetIWADInfo ();
 
 // [RC] Show a helpful dialog when no IWADs were found.
-void I_ShowNoIWADsScreen( void );
+void I_ShowNoIWADsScreen( FIWadManager *IWadMan );
 
 // Pick from multiple IWADs to use
 int I_PickIWad (WadStuff *wads, int numwads, bool queryiwad, int defaultiwad);
