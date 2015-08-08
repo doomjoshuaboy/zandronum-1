@@ -74,8 +74,8 @@ OptionValue ZA_UpdateRate
 
 OptionValue ZA_ConnectionType
 {
-	0.0, "DSL"
-	1.0, "56k / ISDN"
+	0.0, "56k / ISDN"
+	1.0, "DSL"
 }
 
 OptionMenu ZA_NetworkOptions
