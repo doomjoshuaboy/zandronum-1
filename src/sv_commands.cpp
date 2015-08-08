@@ -1799,6 +1799,7 @@ void SERVERCOMMANDS_SetThingFlags( AActor *pActor, FlagSet flagset, ULONG ulPlay
 		case FLAGSET_FLAGS4:	ulActorFlags = pActor->flags4; break;
 		case FLAGSET_FLAGS5:	ulActorFlags = pActor->flags5; break;
 		case FLAGSET_FLAGS6:	ulActorFlags = pActor->flags6; break;
+		case FLAGSET_FLAGS7:	ulActorFlags = pActor->flags7; break;
 		case FLAGSET_FLAGSST:	ulActorFlags = pActor->ulSTFlags; break;
 		default: return;
 	}
@@ -1837,6 +1838,10 @@ void SERVERCOMMANDS_UpdateThingFlagsNotAtDefaults( AActor *pActor, ULONG ulPlaye
 	if ( pActor->flags6 != pActor->GetDefault( )->flags6 )
 	{
 		SERVERCOMMANDS_SetThingFlags( pActor, FLAGSET_FLAGS6, ulPlayerExtra, flags );
+	}
+	if ( pActor->flags7 != pActor->GetDefault( )->flags7 )
+	{
+		SERVERCOMMANDS_SetThingFlags( pActor, FLAGSET_FLAGS7, ulPlayerExtra, flags );
 	}
 	// [BB] ulSTFlags is intentionally left out here.
 }
