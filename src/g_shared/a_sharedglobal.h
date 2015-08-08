@@ -94,7 +94,7 @@ class ASkyViewpoint : public AActor
 	HAS_OBJECT_POINTERS
 public:
 	void Serialize (FArchive &arc);
-	void PostBeginPlay ();
+	void BeginPlay ();
 	void Destroy ();
 	bool bInSkybox;
 	bool bAlways;
