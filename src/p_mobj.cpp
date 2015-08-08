@@ -6522,27 +6522,28 @@ void P_SpawnBlood (fixed_t x, fixed_t y, fixed_t z, angle_t dir, int damage, AAc
 				cls = cls->ParentClass;
 			}
 		}
-
-		// [BC] If we're the server, tell clients to spawn the blood.
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		{
-			// [BB] If the bloodcolor is not the standard one, we have to inform the client 
-			// about the correct color.
-			if ( bloodcolor == 0 )
-			{
-				// [BC] It's not translated, nor is it spawning in a state other than its
-				// spawn state. Therefore, there's no need to treat it as a special case.
-				// [BB] This saves bandwidth, but doesn't spawn the blood size based on the damage dealt,
-				// so only use this for players with a slow connection.
-				SERVERCOMMANDS_SpawnThingNoNetID( th, MAXPLAYERS, SVCF_ONLY_CONNECTIONTYPE_0 );
-				SERVERCOMMANDS_SpawnBlood( x, y, z, dir, damage, originator, MAXPLAYERS, SVCF_ONLY_CONNECTIONTYPE_1 );
-			}
-			else
-				SERVERCOMMANDS_SpawnBlood( x, y, z, dir, damage, originator );
-		}
 	}
 
 statedone:
+
+	// [BC] If we're the server, tell clients to spawn the blood.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
+		// [BB] If the bloodcolor is not the standard one, we have to inform the client 
+		// about the correct color.
+		if ( bloodcolor == 0 )
+		{
+			// [BC] It's not translated, nor is it spawning in a state other than its
+			// spawn state. Therefore, there's no need to treat it as a special case.
+			// [BB] This saves bandwidth, but doesn't spawn the blood size based on the damage dealt,
+			// so only use this for players with a slow connection.
+			SERVERCOMMANDS_SpawnThingNoNetID( th, MAXPLAYERS, SVCF_ONLY_CONNECTIONTYPE_0 );
+			SERVERCOMMANDS_SpawnBlood( x, y, z, dir, damage, originator, MAXPLAYERS, SVCF_ONLY_CONNECTIONTYPE_1 );
+		}
+		else
+			SERVERCOMMANDS_SpawnBlood( x, y, z, dir, damage, originator );
+	}
+
 	if (!(bloodtype <= 1)) th->renderflags |= RF_INVISIBLE;
 	if (bloodtype >= 1)
 		P_DrawSplash2 (40, x, y, z, dir, 2, bloodcolor);
