@@ -103,8 +103,7 @@ static FSpecialColormapParameters SpecialColormapParms[] =
 	{ { 0, 0, 0 }, {    0,    0, 1.5 } },
 };
 
-// [BC]
-//static void FreeSpecialLights();
+static void FreeSpecialLights();
 
 
 
@@ -224,8 +223,7 @@ FDynamicColormap *GetSpecialLights (PalEntry color, PalEntry fade, int desaturat
 //
 //==========================================================================
 
-// [BC] No longer static.
-/*static*/ void FreeSpecialLights()
+static void FreeSpecialLights()
 {
 	FDynamicColormap *colormap, *next;
 

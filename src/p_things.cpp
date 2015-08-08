@@ -534,28 +534,6 @@ void P_RemoveThing(AActor * actor)
 	}
 }
 
-void P_Thing_SetVelocity(AActor *actor, fixed_t vx, fixed_t vy, fixed_t vz, bool add, bool setbob)
-{
-	if (actor != NULL)
-	{
-		if (!add)
-		{
-			actor->velx = actor->vely = actor->velz = 0;
-			if (actor->player != NULL) actor->player->velx = actor->player->vely = 0;
-		}
-		actor->velx += vx;
-		actor->vely += vy;
-		actor->velz += vz;
-		if (setbob && actor->player != NULL)
-		{
-			actor->player->velx += vx;
-			actor->player->vely += vy;
-		}
-		// [Dusk] Update momentum
-		SERVER_UpdateThingMomentum( actor, true );
-	}
-}
-
 // [BB] Added bIgnorePositionCheck: If the server instructs the client to raise
 // a thing with SERVERCOMMANDS_SetThingState, the client has to ignore the
 // P_CheckPosition check. For example this is relevant if an Archvile raised
@@ -598,8 +576,29 @@ bool P_Thing_Raise(AActor *thing, bool bIgnorePositionCheck)
 		SERVERCOMMANDS_SetThingState( thing, STATE_RAISE );
 
 	thing->SetState (RaiseState);
-
 	return true;
+}
+
+void P_Thing_SetVelocity(AActor *actor, fixed_t vx, fixed_t vy, fixed_t vz, bool add, bool setbob)
+{
+	if (actor != NULL)
+	{
+		if (!add)
+		{
+			actor->velx = actor->vely = actor->velz = 0;
+			if (actor->player != NULL) actor->player->velx = actor->player->vely = 0;
+		}
+		actor->velx += vx;
+		actor->vely += vy;
+		actor->velz += vz;
+		if (setbob && actor->player != NULL)
+		{
+			actor->player->velx += vx;
+			actor->player->vely += vy;
+		}
+		// [Dusk] Update momentum
+		SERVER_UpdateThingMomentum( actor, true );
+	}
 }
 
 const PClass *P_GetSpawnableType(int spawnnum)
