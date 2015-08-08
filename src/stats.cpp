@@ -108,8 +108,7 @@ void FStat::ToggleStat ()
 void FStat::PrintStat ()
 {
 	int fontheight = ConFont->GetHeight() + 1;
-	// [BC] The server doesn't actually load any fonts.
-	int y = ( NETWORK_GetState( ) == NETSTATE_SERVER ) ? 0 : SCREENHEIGHT;
+	int y = SCREENHEIGHT;
 	int count = 0;
 
 	for (FStat *stat = FirstStat; stat != NULL; stat = stat->m_Next)

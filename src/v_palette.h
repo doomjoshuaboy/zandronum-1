@@ -111,7 +111,4 @@ void V_AddPlayerBlend (player_t *CPlayer, float blend[4], float maxinvalpha, int
 void RGBtoHSV (float r, float g, float b, float *h, float *s, float *v);
 void HSVtoRGB (float *r, float *g, float *b, float h, float s, float v);
 
-// [BC] Moved this here since we need it in D_DoomMain().
-void FreeSpecialLights( );
-
 #endif //__V_PALETTE_H__

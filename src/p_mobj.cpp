@@ -1034,19 +1034,22 @@ bool AActor::GiveAmmo (const PClass *type, int amount)
 	if (type != NULL)
 	{
 		AInventory *item = static_cast<AInventory *>(Spawn (type, 0, 0, 0, NO_REPLACE));
-		item->Amount = amount;
-		item->flags |= MF_DROPPED;
-		if (!item->CallTryPickup (this))
+		if (item)
 		{
-			item->Destroy ();
-			return false;
+			item->Amount = amount;
+			item->flags |= MF_DROPPED;
+			if (!item->CallTryPickup (this))
+			{
+				item->Destroy ();
+				return false;
+			}
+
+			// [BB] The server tells the client how much ammo it gets.
+			if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( player ))
+				SERVERCOMMANDS_GiveInventory( ULONG(player - players), item );
+
+			return true;
 		}
-
-		// [BB] The server tells the client how much ammo it gets.
-		if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( player ))
-			SERVERCOMMANDS_GiveInventory( ULONG(player - players), item );
-
-		return true;
 	}
 	return false;
 }
@@ -2225,8 +2228,9 @@ fixed_t P_XYMovement (AActor *mo, fixed_t scrollx, fixed_t scrolly)
 		ptryx = startx + Scale (xmove, step, steps);
 		ptryy = starty + Scale (ymove, step, steps);
 
-//		Printf ("%d,%d/%d: %d %d %d %d %d %d %d %d\n", level.time, step, steps, startxmove, Scale(xmove,step,steps), startymove, Scale(ymove,step,steps), mo->x, mo->y, mo->z);
-
+/*		if (mo->player)
+		Printf ("%d,%d/%d: %d %d %d %d %d %d %d\n", level.time, step, steps, startxmove, Scale(xmove,step,steps), startymove, Scale(ymove,step,steps), mo->x, mo->y, mo->z);
+*/
 		// [RH] If walking on a slope, stay on the slope
 		// killough 3/15/98: Allow objects to drop off
 		fixed_t startvelx = mo->velx, startvely = mo->vely;
@@ -2405,33 +2409,33 @@ explode:
 						// Hack to prevent missiles exploding against the sky.
 						// Does not handle sky floors.
 
-					// Player didn't strike another player with this missile.
-					if ( mo->target && mo->target->player )
-						mo->target->player->ulConsecutiveHits = 0;
+						// Player didn't strike another player with this missile.
+						if ( mo->target && mo->target->player )
+							mo->target->player->ulConsecutiveHits = 0;
 
-					// [Dusk] Tell the clients that the mobj was deleted
-					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-						SERVERCOMMANDS_DestroyThing( mo );
+						// [Dusk] Tell the clients that the mobj was deleted
+						if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+							SERVERCOMMANDS_DestroyThing( mo );
 
 						mo->Destroy ();
 						return oldfloorz;
 					}
 
-				// Potentially reward the player who shot this missile with an accuracy/precision medal.
-				if ((( mo->ulSTFlags & STFL_EXPLODEONDEATH ) == false ) && mo->target && mo->target->player )
-				{
-					if ( mo->target->player->bStruckPlayer )
-						PLAYER_StruckPlayer( mo->target->player );
-					else
-						mo->target->player->ulConsecutiveHits = 0;
-				}
+					// Potentially reward the player who shot this missile with an accuracy/precision medal.
+					if ((( mo->ulSTFlags & STFL_EXPLODEONDEATH ) == false ) && mo->target && mo->target->player )
+					{
+						if ( mo->target->player->bStruckPlayer )
+							PLAYER_StruckPlayer( mo->target->player );
+						else
+							mo->target->player->ulConsecutiveHits = 0;
+					}
 
 					// [RH] Don't explode on horizon lines.
 					if (mo->BlockingLine != NULL && mo->BlockingLine->special == Line_Horizon)
 					{
-					// [Dusk] Tell the clients that the mobj was deleted
-					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-						SERVERCOMMANDS_DestroyThing( mo );
+						// [Dusk] Tell the clients that the mobj was deleted
+						if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+							SERVERCOMMANDS_DestroyThing( mo );
 
 						mo->Destroy ();
 						return oldfloorz;
@@ -3119,7 +3123,6 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 				}
 			}
 			mo->z = mo->floorz;
-
 			if (mo->velz < 0)
 			{
 				const fixed_t minvel = -8*FRACUNIT;	// landing speed from a jump with normal gravity
@@ -3448,7 +3451,6 @@ void P_NightmareRespawn (AActor *mobj)
 	{
 		//[GrafZahl] MF_COUNTKILL still needs to be checked here.
 		mo->ClearCounters();
-
 		mo->Destroy ();
 		return;		// no respawn
 	}
@@ -3942,6 +3944,7 @@ void AActor::Tick ()
 
 
 	AActor *onmo;
+	int i;
 
 	//assert (state != NULL);
 	if (state == NULL)
@@ -4667,10 +4670,10 @@ bool AActor::UpdateWaterLevel (fixed_t oldz, bool dosplash)
 			{
 				reset = true;
 			}
-			}
+		}
 #ifdef _3DFLOORS
-			else
-			{
+		else
+		{
 			// Check 3D floors as well!
 			for(unsigned int i=0;i<Sector->e->XFloor.ffloors.Size();i++)
 			{
@@ -5315,6 +5318,7 @@ void AActor::AdjustFloorClip ()
 // Most of the player structure stays unchanged between levels.
 //
 EXTERN_CVAR (Bool, chasedemo)
+
 extern bool demonew;
 
 APlayerPawn *P_SpawnPlayer (FPlayerStart *mthing, int playernum, int flags)
@@ -5462,7 +5466,6 @@ APlayerPawn *P_SpawnPlayer (FPlayerStart *mthing, int playernum, int flags)
 		// [RH] set color translations for player sprites
 		mobj->Translation = TRANSLATION(TRANSLATION_Players,playernum);
 	}
-
 
 	mobj->angle = spawn_angle;
 	mobj->pitch = mobj->roll = 0;
@@ -5796,7 +5799,7 @@ APlayerPawn *P_SpawnPlayer (FPlayerStart *mthing, int playernum, int flags)
 //
 // P_SpawnMapThing
 // The fields of the mapthing should
-// already be in host BYTE order.
+// already be in host byte order.
 //
 // [RH] position is used to weed out unwanted start spots
 AActor *P_SpawnMapThing (FMapThing *mthing, int position)
@@ -6437,6 +6440,7 @@ AActor *P_SpawnPuff (AActor *source, const PClass *pufftype, fixed_t x, fixed_t 
 // P_SpawnBlood
 // 
 //---------------------------------------------------------------------------
+
 void P_SpawnBlood (fixed_t x, fixed_t y, fixed_t z, angle_t dir, int damage, AActor *originator)
 {
 	AActor *th;
@@ -6789,7 +6793,7 @@ bool P_HitWater (AActor * thing, sector_t * sec, fixed_t x, fixed_t y, fixed_t z
 #ifdef _3DFLOORS
 foundone:
 #endif
-	
+
 	int splashnum = Terrains[terrainnum].Splash;
 	bool smallsplash = false;
 	const secplane_t *plane;
