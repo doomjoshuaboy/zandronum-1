@@ -156,6 +156,12 @@ enum FlagSet
 	FLAGSET_FLAGSST
 };
 
+enum ActorScaleFlag
+{
+	ACTORSCALE_X = 1,
+	ACTORSCALE_Y = 2
+};
+
 // Which actor sound is being updated?
 #define	ACTORSOUND_SEESOUND			1
 #define	ACTORSOUND_ATTACKSOUND		2

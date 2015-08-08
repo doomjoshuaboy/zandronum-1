@@ -3934,6 +3934,26 @@ void SERVERCOMMANDS_SetThingHealth( AActor* mobj, ULONG ulPlayerExtra, ServerCom
 
 //*****************************************************************************
 //
+void SERVERCOMMANDS_SetThingScale( AActor* mobj, unsigned int scaleFlags, ULONG ulPlayerExtra, ServerCommandFlags flags )
+{
+	if ( !EnsureActorHasNetID (mobj) )
+		return;
+
+	if ( scaleFlags == 0 )
+		return;
+
+	NetCommand command( SVC2_SETTHINGSCALE );
+	command.addShort( mobj->lNetID );
+	command.addByte( scaleFlags );
+	if ( scaleFlags & ACTORSCALE_X )
+		command.addLong( mobj->scaleX );
+	if ( scaleFlags & ACTORSCALE_Y )
+		command.addLong( mobj->scaleY );
+	command.sendCommandToClients( ulPlayerExtra, flags );
+}
+
+//*****************************************************************************
+//
 void SERVERCOMMANDS_FullUpdateCompleted( ULONG ulClient )
 {
 	NetCommand command ( SVC2_FULLUPDATECOMPLETED );

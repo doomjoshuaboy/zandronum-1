@@ -3020,8 +3020,29 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_SetScale)
 	ACTION_PARAM_FIXED(scalex, 0);
 	ACTION_PARAM_FIXED(scaley, 1);
 
+	// [EP] This is handled server-side.
+	if ( NETWORK_InClientModeAndActorNotClientHandled( self ) )
+		return;
+
+	// [EP] Save the previous scale values.
+	fixed_t savedScaleX = self->scaleX;
+	fixed_t savedScaleY = self->scaleY;
+
 	self->scaleX = scalex;
 	self->scaleY = scaley ? scaley : scalex;
+
+	// [EP] Tell the clients to change the scale if anything changed.
+	if ( NETWORK_GetState() == NETSTATE_SERVER )
+	{
+		unsigned int scaleFlags = 0;
+		if ( savedScaleX != self->scaleX )
+			scaleFlags |= ACTORSCALE_X;
+		if ( savedScaleY != self->scaleY )
+			scaleFlags |= ACTORSCALE_Y;
+
+		if ( scaleFlags != 0 )
+			SERVERCOMMANDS_SetThingScale( self, scaleFlags );
+	}
 }
 
 //===========================================================================

@@ -234,6 +234,7 @@ static	void	client_SetThingTics( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingTID( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingGravity( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingFrame( BYTESTREAM_s *pByteStream, bool bCallStateFunction );
+static	void	client_SetThingScale( BYTESTREAM_s *pByteStream );
 static	void	client_SetWeaponAmmoGive( BYTESTREAM_s *pByteStream );
 static	void	client_ThingIsCorpse( BYTESTREAM_s *pByteStream );
 static	void	client_HideThing( BYTESTREAM_s *pByteStream );
@@ -2866,6 +2867,11 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 			// [EP]
 			case SVC2_BUILDSTAIR:
 				client_BuildStair( pByteStream );
+				break;
+
+			// [EP]
+			case SVC2_SETTHINGSCALE:
+				client_SetThingScale( pByteStream );
 				break;
 
 			default:
@@ -7176,6 +7182,43 @@ static void client_SetThingFrame( BYTESTREAM_s *pByteStream, bool bCallStateFunc
 		else
 			pActor->SetState( pNewState, true );
 	}
+}
+
+//*****************************************************************************
+//
+static void client_SetThingScale( BYTESTREAM_s *pByteStream )
+{
+	fixed_t scaleX = 0, scaleY = 0;
+
+	// Get the ID of the actor whose scale is being updated.
+	int mobjNetID = NETWORK_ReadShort( pByteStream );
+
+	// Get which side of the scale is being updated.
+	unsigned ActorScaleFlags = NETWORK_ReadByte( pByteStream );
+
+	// Get the new scaleX if needed.
+	if ( ActorScaleFlags & ACTORSCALE_X )
+		scaleX = NETWORK_ReadLong( pByteStream );
+
+	// Get the new scaleY if needed.
+	if ( ActorScaleFlags & ACTORSCALE_Y )
+		scaleY = NETWORK_ReadLong( pByteStream );
+
+	// Now try to find the corresponding actor.
+	AActor *mo = CLIENT_FindThingByNetID( mobjNetID );
+	if ( mo == NULL )
+	{
+#ifdef CLIENT_WARNING_MESSAGES
+		Printf( "client_SetThingScale: Couldn't find thing: %d\n", mobjNetID );
+#endif
+		return;
+	}
+
+	// Finally, set the actor's scale.
+	if ( ActorScaleFlags & ACTORSCALE_X )
+		mo->scaleX = scaleX;
+	if ( ActorScaleFlags & ACTORSCALE_Y )
+		mo->scaleY = scaleY;
 }
 
 //*****************************************************************************
