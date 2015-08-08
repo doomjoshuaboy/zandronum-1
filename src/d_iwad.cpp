@@ -517,7 +517,12 @@ int FIWadManager::IdentifyVersion (TArray<FString> &wadfiles, const char *iwad, 
 	if (numwads == 0)
 // [BB] Skulltag uses Rivecoder's IWAD setup screen now (only available under Windows).
 #ifdef _WIN32
-		throw CNoIWADError(); // [RC]
+	{
+		// [BB] Pass this FIWadManager instance. Creating a new one
+		// would require parsing the IWAD definitions in BASEWAD again.
+		I_ShowNoIWADsScreen( this );
+		exit( 0 );
+	}
 #else
 	{
 		I_FatalError ("Cannot find a game IWAD (doom.wad, doom2.wad, heretic.wad, etc.).\n"

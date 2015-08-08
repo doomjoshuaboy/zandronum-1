@@ -94,6 +94,7 @@
 #include "cl_demo.h"
 #include "cl_main.h"
 #include "campaign.h"
+#include "serverconsole/serverconsole.h"
 
 // MACROS ------------------------------------------------------------------
 
@@ -160,6 +161,8 @@ uint32 LanguageIDs[4];
 
 // [K6/BB]
 extern FString g_VersionWithOS;
+// [BB]
+FIWadManager *g_IWadMan = NULL;
 
 int (*I_GetTime) (bool saveMS);
 int (*I_WaitForTic) (int);
@@ -1341,9 +1344,7 @@ BOOL CALLBACK NoIWADBox_Welcome_Callback (HWND hDlg, UINT message, WPARAM wParam
 			return FALSE;
 
 		// See if this directory contains any IWADs.
-		FIWadManager *iwad_man = new FIWadManager;
-		const bool haveIWADs = iwad_man->DoesDirectoryHaveIWADs( szPathName );
-		delete iwad_man;
+		const bool haveIWADs = g_IWadMan->DoesDirectoryHaveIWADs( szPathName );
 		if ( haveIWADs )
 		{
 			// Add this directory to the user's profile, restart, and play!
@@ -1474,8 +1475,15 @@ BOOL CALLBACK NoIWADBoxCallback (HWND hDlg, UINT message, WPARAM wParam, LPARAM 
 
 //*****************************************************************************
 //
-void I_ShowNoIWADsScreen( void )
+void I_ShowNoIWADsScreen( FIWadManager *IWadMan )
 {
+	g_IWadMan = IWadMan;
+
+	if ( Args->CheckParm( "-host" ) )
+		SERVERCONSOLE_Hide( );
+	else
+		ShowWindow( Window, SW_HIDE );
+
 	DialogBox( g_hInst, MAKEINTRESOURCE(IDD_NOIWADS), NULL, (DLGPROC)NoIWADBoxCallback );
 }
 
