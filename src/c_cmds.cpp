@@ -1404,7 +1404,8 @@ CCMD(nextsecret)
 	// [TL] Get the secret level or next map if not available.
 	const char * next = G_GetSecretExitMap();
 	
-	if ( next && strncmp(next, "enDSeQ", 6) )
+	// [BB] G_GetSecretExitMap() can return an empty string.
+	if ( next && strncmp(next, "enDSeQ", 6) && ( strlen ( next ) > 0 ) )
 	{
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		{
