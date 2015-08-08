@@ -24,6 +24,7 @@
 ---
 
 -	- Fixed: The effects of the terminator sphere and the hellstone on a player were not properly stored in save games. [Torr Samaho]
+-	- Fixed: SetPlayerProperty could still change certain flags on a spectator. [Leonard]
 
 
 2.1.2

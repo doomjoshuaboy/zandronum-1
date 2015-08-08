@@ -3125,6 +3125,10 @@ FUNC(LS_SetPlayerProperty)
 
 	if (arg0 == 0)
 	{
+		// [Leo] Not done for spectators.
+		if ( it->player->bSpectating )
+			return false;
+
 		int oldCheats = it->player->cheats;
 
 		if (arg1)
@@ -3165,7 +3169,8 @@ FUNC(LS_SetPlayerProperty)
 
 		for (i = 0; i < MAXPLAYERS; i++)
 		{
-			if (!playeringame[i])
+			// [Leo] Skip spectators.
+			if (!playeringame[i] || players[i].bSpectating)
 				continue;
 
 			int oldCheats = players[i].cheats;
