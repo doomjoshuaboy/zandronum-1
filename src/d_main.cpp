@@ -3274,6 +3274,8 @@ CCMD(restart)
 	Args->RemoveArgs("-savedir");
 	Args->RemoveArgs("-xlat");
 	Args->RemoveArgs("-oldsprites");
+	// [BB]
+	Args->RemoveArgs("-connect");
 
 	if (argv.argc() > 1)
 	{
