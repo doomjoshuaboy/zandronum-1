@@ -485,7 +485,8 @@ void FSliderItem::Drawer(bool selected)
 	if (*text == '$') text = GStrings(text+1);
 	screen->DrawText(mFont, selected? OptionSettings.mFontColorSelection : mFontColor, mXpos, mYpos, text, DTA_Clean, true, TAG_DONE);
 
-	int x = SmallFont->StringWidth ("Green") + 8 + mXpos;
+	// [BB] "Green" -> "Handicap"
+	int x = SmallFont->StringWidth ("Handicap") + 8 + mXpos;
 	DrawSlider (x, mYpos);
 }
 
