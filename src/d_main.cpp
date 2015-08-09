@@ -3176,7 +3176,8 @@ void D_DoomMain (void)
 						
 			atterm (D_QuitNetGame);		// killough
 		}
-		else
+		// [BB] The server doesn't need any of this to restart.
+		else if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 		{
 			// let the renderer reinitialize some stuff if needed
 			screen->GameRestart();
