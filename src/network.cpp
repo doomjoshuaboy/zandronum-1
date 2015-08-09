@@ -423,6 +423,7 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 	}
 
 	// [BB] Initialize the actor network class indices.
+	g_ActorNetworkIndexClassPointerMap.Clear();
 	for ( unsigned int i = 0; i < PClass::m_Types.Size(); i++ )
 	{
 		PClass* cls = PClass::m_Types[i];
