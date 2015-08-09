@@ -527,19 +527,6 @@ void P_PlayerInSpecialSector (player_t *player, sector_t * sector)
 	// [BC] Sector specials are server-side.
 	if ( NETWORK_InClientMode() )
 	{
-		// Just do secret triggers, and get out.
-		if ( sector->special & SECRET_MASK )
-		{
-			if (player->mo->CheckLocalView (consoleplayer))
-			{
-				player->secretcount++;
-				level.found_secrets++;
-				sector->special &= ~SECRET_MASK;
-				C_MidPrint (SmallFont, secretmessage);
-				S_Sound (CHAN_AUTO, "misc/secret", 1, ATTN_NORM);
-			}
-		}
-
 		return;
 	}
 
@@ -814,19 +801,39 @@ void P_SectorDamage(int tag, int amount, FName type, const PClass *protectClass,
 
 void P_GiveSecret(AActor *actor, bool printmessage, bool playsound)
 {
+	// [BB] The server handles this.
+	if ( NETWORK_InClientMode() )
+		return;
+
 	if (actor != NULL)
 	{
 		if (actor->player != NULL)
 		{
 			actor->player->secretcount++;
 		}
-		if (actor->CheckLocalView (consoleplayer))
+		// [BB] The server needs to do this for every client.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		{
+			for ( int i = 0; i < MAXPLAYERS; ++i )
+			{
+				if ( actor->CheckLocalView ( i ) )
+				{
+					if (playsound) SERVERCOMMANDS_Sound( CHAN_AUTO | CHAN_UI, "misc/secret", 1, ATTN_NORM, i, SVCF_ONLYTHISCLIENT );
+					if (printmessage) SERVERCOMMANDS_PrintMid( secretmessage, false, i, SVCF_ONLYTHISCLIENT );
+				}
+			}
+		}
+		else if (actor->CheckLocalView (consoleplayer))
 		{
 			if (printmessage) C_MidPrint (SmallFont, secretmessage);
 			if (playsound) S_Sound (CHAN_AUTO | CHAN_UI, "misc/secret", 1, ATTN_NORM);
 		}
 	}
 	level.found_secrets++;
+
+	// [BB] Inform clients.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SetMapNumFoundSecrets();
 }
 
 //============================================================================

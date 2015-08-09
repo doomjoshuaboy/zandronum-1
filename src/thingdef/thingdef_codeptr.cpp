@@ -4542,6 +4542,10 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_ChangeFlag)
 			{ // It no longer counts as an secret
 				level.total_secrets--;
 			}
+
+			// [BB] If we're the server, tell clients the new number of total items.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetMapNumTotalSecrets( );
 		}
 	}
 	else

@@ -3689,6 +3689,15 @@ void SERVERCOMMANDS_SetMapNumTotalItems( ULONG ulPlayerExtra, ServerCommandFlags
 
 //*****************************************************************************
 //
+void SERVERCOMMANDS_SetMapNumTotalSecrets( ULONG ulPlayerExtra, ServerCommandFlags flags )
+{
+	NetCommand command ( SVC2_SETMAPNUMTOTALSECRETS );
+	command.addShort ( level.total_secrets );
+	command.sendCommandToClients ( ulPlayerExtra, flags );
+}
+
+//*****************************************************************************
+//
 void SERVERCOMMANDS_SetMapMusic( const char *pszMusic, int track, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	NetCommand command ( SVC_SETMAPMUSIC );
