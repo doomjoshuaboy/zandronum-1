@@ -1247,11 +1247,6 @@ add_executable( zdoom WIN32
 	menu/readthis.cpp
 	menu/videomenu.cpp
 	${GL_SOURCES}
-
-	gl/hqnx/init.cpp
-	gl/hqnx/hq2x.cpp
-	gl/hqnx/hq3x.cpp
-	gl/hqnx/hq4x.cpp
 	oplsynth/fmopl.cpp
 	oplsynth/mlopl.cpp
 	oplsynth/mlopl_io.cpp
