@@ -2682,11 +2682,13 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 		}
 	}
 
-	// Tell clients the found/total item count.
+	// Tell clients the found/total item/secrets count.
 	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_COOPERATIVE )
 	{
 		SERVERCOMMANDS_SetMapNumFoundItems( ulClient, SVCF_ONLYTHISCLIENT );
 		SERVERCOMMANDS_SetMapNumTotalItems( ulClient, SVCF_ONLYTHISCLIENT );
+		SERVERCOMMANDS_SetMapNumFoundSecrets( ulClient, SVCF_ONLYTHISCLIENT );
+		SERVERCOMMANDS_SetMapNumTotalSecrets( ulClient, SVCF_ONLYTHISCLIENT );
 	}
 
 	// Also let the client know about any cameras set to textures.

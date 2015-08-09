@@ -2859,6 +2859,12 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 				}
 				break;
 
+			case SVC2_SETMAPNUMTOTALSECRETS:
+				{
+ 					level.total_secrets = NETWORK_ReadShort( pByteStream );
+				}
+				break;
+
 			// [EP]
 			case SVC2_STOPPOLYOBJSOUND:
 				client_StopPolyobjSound( pByteStream );
