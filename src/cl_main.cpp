@@ -10382,7 +10382,7 @@ static void client_GiveInventory( BYTESTREAM_s *pByteStream )
 	usActorNetworkIndex = NETWORK_ReadShort( pByteStream );
 
 	// Read in the amount of this inventory type the player has.
-	lAmount = NETWORK_ReadShort( pByteStream );
+	lAmount = NETWORK_ReadLong( pByteStream );
 
 	// Check to make sure everything is valid. If not, break out.
 	if (( PLAYER_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
@@ -10501,7 +10501,7 @@ static void client_TakeInventory( BYTESTREAM_s *pByteStream )
 	pszName = NETWORK_ReadString( pByteStream );
 
 	// Read in the new amount of this inventory type the player has.
-	lAmount = NETWORK_ReadShort( pByteStream );
+	lAmount = NETWORK_ReadLong( pByteStream );
 
 	// Check to make sure everything is valid. If not, break out.
 	if (( PLAYER_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
