@@ -5628,6 +5628,10 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_RadiusGive)
 	ACTION_PARAM_INT(flags, 2);
 	ACTION_PARAM_INT(amount, 3);
 
+	// [BB] This is handled server-side.
+	if ( NETWORK_InClientModeAndActorNotClientHandled( self ) )
+		return;
+
 	// We need a valid item, valid targets, and a valid range
 	if (item == NULL || (flags & RGF_MASK) == 0 || distance <= 0)
 	{
@@ -5740,6 +5744,9 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_RadiusGive)
 			{
 				gift->Destroy ();
 			}
+			// [BB] If a player got something, inform the clients.
+			else if ( ( thing->player ) && ( NETWORK_GetState( ) == NETSTATE_SERVER ) )
+				SERVERCOMMANDS_GiveInventoryNotOverwritingAmount( thing, gift );
 		}
 	}
 }
