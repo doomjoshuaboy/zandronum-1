@@ -997,7 +997,8 @@ int PrintString (int printlevel, const char *outline)
 	}
 
 	// For servers, dump message to console window.
-	if ( Args->CheckParm( "-host" ))
+	// [BB] If we are coming from I_Quit, Args is possibly already invalid.
+	if ( Args && Args->CheckParm( "-host" ))
 	{
 		if ( printlevel != PRINT_LOW )
 		{			
