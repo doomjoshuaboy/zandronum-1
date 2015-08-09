@@ -3708,7 +3708,7 @@ void SERVERCOMMANDS_GiveInventory( ULONG ulPlayer, AInventory *pInventory, ULONG
 	NetCommand command ( SVC_GIVEINVENTORY );
 	command.addByte ( ulPlayer );
 	command.addShort (  pInventory->GetClass()->getActorNetworkIndex() );
-	command.addShort ( pInventory->Amount );
+	command.addLong ( pInventory->Amount );
 	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 
 	// [BB] Clients don't know that a BackpackItem may be depleted. In this case we have to resync the ammo count.
@@ -3751,7 +3751,7 @@ void SERVERCOMMANDS_TakeInventory( ULONG ulPlayer, const char *pszClassName, ULO
 	NetCommand command ( SVC_TAKEINVENTORY );
 	command.addByte ( ulPlayer );
 	command.addString ( pszClassName );
-	command.addShort ( ulAmount );
+	command.addLong ( ulAmount );
 	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
