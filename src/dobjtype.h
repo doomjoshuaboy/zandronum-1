@@ -7,9 +7,6 @@
 
 #include "thingdef/thingdef_type.h"
 
-// [Dusk] forward-declaration
-class FString;
-
 // Symbol information -------------------------------------------------------
 
 enum ESymbolType
@@ -148,9 +145,6 @@ struct PClass
 	unsigned short getActorNetworkIndex () const {
 		return ActorNetworkIndex;
 	}
-
-	// [Dusk] Get the actor's most human-readable name.
-	FString GetPrettyName() const;
 
 	void (*ConstructNative)(void *);
 
