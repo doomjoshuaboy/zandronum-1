@@ -19,6 +19,7 @@
 -	- Fixed: SetPlayerProperty could still change certain flags on a spectator. [Leonard]
 -	- Fixed: Changing the CVAR 'fullscreen' crashed the server. [Torr Samaho]
 -	- Fixed: sv_sharekeys did not use actor tags properly anymore after the ZDoom update in 2.0. [Dusk]
+-	- Fixed: Free spectate mode would crash the game. [Dusk]
 
 
 2.1.2
