@@ -2006,7 +2006,7 @@ public:
 	void Activate (AActor *activator);
 	void Deactivate (AActor *activator);
 	// [BC]
-	bool IsActive( void );
+	bool IsActive( void ) const;
 
 protected:
 	bool bActive;
@@ -2243,7 +2243,7 @@ void AAmbientSound::Deactivate (AActor *activator)
 //
 //=============================================================================
 
-bool AAmbientSound::IsActive( void )
+bool AAmbientSound::IsActive( void ) const
 {
 	return ( bActive );
 }

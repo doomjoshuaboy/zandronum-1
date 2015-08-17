@@ -5016,7 +5016,7 @@ void AActor::Deactivate (AActor *activator)
 //
 //=============================================================================
 
-bool AActor::IsActive( void )
+bool AActor::IsActive( void ) const
 {
 	return (( flags2 & MF2_DORMANT ) == false );
 }
