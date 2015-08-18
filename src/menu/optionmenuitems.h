@@ -180,8 +180,8 @@ public:
 	{
 		bool grayed = mGrayCheck != NULL && !(mGrayCheck->GetGenericRep(CVAR_Bool).Bool);
 
-		// [TP] Also gray it if we cannot edit this cvar because of multiplayer.
-		if ( IsNetworkBlocked() )
+		// [TP] Also gray it if we cannot edit this cvar for some other reason.
+		if ( IsDisabled() )
 			grayed = true;
 
 		if (mCenter)
@@ -325,7 +325,7 @@ public:
 	}
 
 	// [TP]
-	bool IsServerInfo()
+	bool IsServerInfo() const
 	{
 		return mCVar && mCVar->IsServerInfo();
 	}
@@ -738,7 +738,7 @@ public:
 	}
 
 	// [TP]
-	bool IsServerInfo()
+	bool IsServerInfo() const
 	{
 		return mCVar && mCVar->IsServerInfo();
 	}
@@ -840,7 +840,7 @@ public:
 	}
 
 	// [TP]
-	bool IsServerInfo()
+	bool IsServerInfo() const
 	{
 		return mCVar && mCVar->IsServerInfo();
 	}
@@ -1054,7 +1054,7 @@ public:
 		return false;
 	}
 
-	bool IsServerInfo()
+	bool IsServerInfo() const
 	{
 		return mCVar && mCVar->IsServerInfo();
 	}
