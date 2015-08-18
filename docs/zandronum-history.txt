@@ -21,6 +21,7 @@
 -	- Fixed: sv_sharekeys did not use actor tags properly anymore after the ZDoom update in 2.0. [Dusk]
 -	- Fixed: Free spectate mode would crash the game. [Dusk]
 -	- Fixed: The game could tick too fast after getting kicked. [Leonard]
+!	- Spectators may now move freely even when the game has ended and players are frozen in place. [Dusk]
 
 
 2.1.2

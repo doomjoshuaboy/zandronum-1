@@ -2511,7 +2511,8 @@ void P_MovePlayer (player_t *player, ticcmd_t *cmd)
 		mo->angle += cmd->ucmd.yaw << 16;
 	}
 
-	if ( GAME_GetEndLevelDelay( ))
+	// [TP] Allow spectators to move freely even if the game is suspended.
+	if ( GAME_GetEndLevelDelay( ) && ( player->bSpectating == false ))
 		memset( cmd, 0, sizeof( ticcmd_t ));
 
 	onground = (mo->z <= mo->floorz) || (mo->flags2 & MF2_ONMOBJ) || (mo->BounceFlags & BOUNCE_MBF);
@@ -3289,7 +3290,8 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 
 	// [BB] Since the game is currently suspended, prevent the player from doing anything.
 	// Note: This needs to be done after ticking the bot, otherwise the bot could still act.
-	if ( GAME_GetEndLevelDelay( ) )
+	// [TP] Allow spectators to move freely even if the game is suspended.
+	if ( GAME_GetEndLevelDelay( ) && ( player->bSpectating == false ))
 		memset( cmd, 0, sizeof( ticcmd_t ));
 
 	// Handle crouching
