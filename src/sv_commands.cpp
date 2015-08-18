@@ -3795,7 +3795,11 @@ void SERVERCOMMANDS_GivePowerup( ULONG ulPlayer, APowerup *pPowerup, ULONG ulPla
 	command.addShort( pPowerup->GetClass( )->getActorNetworkIndex() );
 	// Can we have multiple amounts of a powerup? Probably not, but I'll be safe for now.
 	command.addShort( pPowerup->Amount );
-	command.addShort( pPowerup->EffectTics );
+	command.addByte( pPowerup->IsActiveRune() );
+
+	if ( pPowerup->IsActiveRune() == false )
+		command.addShort( pPowerup->EffectTics );
+
 	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
