@@ -10579,8 +10579,11 @@ static void client_GivePowerup( BYTESTREAM_s *pByteStream )
 	// Read in the amount of this inventory type the player has.
 	lAmount = NETWORK_ReadShort( pByteStream );
 
+	// [TP]
+	bool isRune = NETWORK_ReadByte( pByteStream );
+
 	// Read in the amount of time left on this powerup.
-	lEffectTics = NETWORK_ReadShort( pByteStream );
+	lEffectTics = ( isRune == false ) ? NETWORK_ReadShort( pByteStream ) : 0;
 
 	// Check to make sure everything is valid. If not, break out.
 	if (( PLAYER_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
@@ -10619,7 +10622,13 @@ static void client_GivePowerup( BYTESTREAM_s *pByteStream )
 	}
 
 	if ( pInventory )
+	{
 		static_cast<APowerup *>( pInventory )->EffectTics = lEffectTics;
+
+		// [TP]
+		if ( isRune )
+			pInventory->Owner->Rune = static_cast<APowerup *>( pInventory );
+	}
 
 	// Since an item displayed on the HUD may have been given, refresh the HUD.
 	SCOREBOARD_RefreshHUD( );
