@@ -2022,6 +2022,11 @@ void AM_drawPlayers ()
 			continue;
 		}
 
+		// [TP] Don't render spectators other than the consoleplayer. Also don't render the
+		// consoleplayer if we're spectating and spying someone else.
+		if ( p->bSpectating && ( p != players[consoleplayer].camera->player ))
+			continue;
+
 		if (p->mo->alpha < OPAQUE)
 		{
 			color = AlmostBackground;
