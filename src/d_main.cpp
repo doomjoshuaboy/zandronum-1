@@ -2975,8 +2975,8 @@ void D_DoomMain (void)
 
 		FActorInfo::StaticSetActorNums ();
 
-		// [ZZ] Added PWO lump loading here
-		PWO_LoadDefs();
+		// [TP] Init preferred weapon order
+		PWO_Init();
 
 		/* [BB] Zandronum uses different bot code.
 		//Added by MC:
