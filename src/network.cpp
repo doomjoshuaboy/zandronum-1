@@ -776,29 +776,21 @@ return;
 //
 const char *NETWORK_AddressToString( NETADDRESS_s Address )
 {
-	static char	s_szAddress[64];
-
-	sprintf( s_szAddress, "%i.%i.%i.%i:%i", Address.abIP[0], Address.abIP[1], Address.abIP[2], Address.abIP[3], ntohs( Address.usPort ));
-
-	return ( s_szAddress );
+	return Address.ToString();
 }
 
 //*****************************************************************************
 //
 const char *NETWORK_AddressToStringIgnorePort( NETADDRESS_s Address )
 {
-	static char	s_szAddress[64];
-
-	sprintf( s_szAddress, "%i.%i.%i.%i", Address.abIP[0], Address.abIP[1], Address.abIP[2], Address.abIP[3] );
-
-	return ( s_szAddress );
+	return Address.ToStringIgnorePort();
 }
 
 //*****************************************************************************
 //
 void NETWORK_SetAddressPort( NETADDRESS_s &Address, USHORT usPort )
 {
-	Address.usPort = htons( usPort );
+	Address.SetPort( usPort );
 }
 
 //*****************************************************************************
