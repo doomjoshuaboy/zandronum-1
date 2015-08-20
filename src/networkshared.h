@@ -295,13 +295,7 @@ void			NETWORK_WriteFloat( BYTESTREAM_s *pByteStream, float Float );
 void			NETWORK_WriteString( BYTESTREAM_s *pByteStream, const char *pszString );
 
 void			NETWORK_WriteHeader( BYTESTREAM_s *pByteStream, int Byte );
-bool			NETWORK_CompareAddress( NETADDRESS_s Address1, NETADDRESS_s Address2, bool bIgnorePort );
-bool			NETWORK_StringToAddress( const char *pszString, NETADDRESS_s *pAddress );
-void			NETWORK_SocketAddressToNetAddress( struct sockaddr_in *s, NETADDRESS_s *a );
-void			NETWORK_NetAddressToSocketAddress( NETADDRESS_s &Address, struct sockaddr_in &SocketAddress );
 bool			NETWORK_StringToIP( const char *pszAddress, char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3 );
-void			NETWORK_AddressToIPStringArray( const NETADDRESS_s &Address, IPStringArray &szAddress );
-const char		*NETWORK_GetHostByIPAddress( NETADDRESS_s Address );
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 //-- CLASSES ---------------------------------------------------------------------------------------------------------------------------------------

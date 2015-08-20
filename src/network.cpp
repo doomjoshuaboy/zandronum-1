@@ -773,27 +773,6 @@ return;
 
 //*****************************************************************************
 //
-const char *NETWORK_AddressToString( NETADDRESS_s Address )
-{
-	return Address.ToString();
-}
-
-//*****************************************************************************
-//
-const char *NETWORK_AddressToStringIgnorePort( NETADDRESS_s Address )
-{
-	return Address.ToStringNoPort();
-}
-
-//*****************************************************************************
-//
-void NETWORK_SetAddressPort( NETADDRESS_s &Address, USHORT usPort )
-{
-	Address.SetPort( usPort );
-}
-
-//*****************************************************************************
-//
 NETADDRESS_s NETWORK_GetLocalAddress( void )
 {
 	char				szBuffer[512];
