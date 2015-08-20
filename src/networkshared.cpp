@@ -467,6 +467,31 @@ void NETADDRESS_s::ToIPStringArray( IPStringArray& address ) const
 
 //*****************************************************************************
 //
+void NETADDRESS_s::SetPort ( USHORT port )
+{
+	usPort = htons( port );
+}
+
+//*****************************************************************************
+//
+const char* NETADDRESS_s::ToString() const
+{
+	static char	buffer[64];
+	sprintf( buffer, "%i.%i.%i.%i:%i", abIP[0], abIP[1], abIP[2], abIP[3], ntohs( usPort ));
+	return ( buffer );
+}
+
+//*****************************************************************************
+//
+const char* NETADDRESS_s::ToStringIgnorePort() const
+{
+	static char	buffer[64];
+	sprintf( buffer, "%i.%i.%i.%i", abIP[0], abIP[1], abIP[2], abIP[3] );
+	return ( buffer );
+}
+
+//*****************************************************************************
+//
 bool NETWORK_CompareAddress( NETADDRESS_s Address1, NETADDRESS_s Address2, bool bIgnorePort )
 {
 	return Address1.Compare( Address2, bIgnorePort );

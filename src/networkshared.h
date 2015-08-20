@@ -195,9 +195,12 @@ struct NETADDRESS_s
 	USHORT		usPad;
 
 	bool Compare ( const NETADDRESS_s& other, bool ignorePort ) const;
+	const char* ToHostName() const;
 	void ToIPStringArray ( IPStringArray& address ) const;
 	struct sockaddr_in ToSocketAddress() const;
-	const char* ToHostName() const;
+	void SetPort ( USHORT port );
+	const char* ToString() const;
+	const char* ToStringIgnorePort() const;
 
 	static bool FromString ( const char* string, NETADDRESS_s& target );
 	static NETADDRESS_s FromSocketAddress ( const struct sockaddr_in& sockaddr );
