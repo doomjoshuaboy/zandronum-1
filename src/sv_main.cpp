@@ -920,7 +920,7 @@ LONG SERVER_FindClientByAddress( NETADDRESS_s Address )
 	       continue;
 
 	   // If the client's address matches the given IP, return the client's index.
-	   if ( NETWORK_CompareAddress( g_aClients[ulIdx].Address, Address, false ))
+	   if ( g_aClients[ulIdx].Address.Compare( Address ))
 	       return ( ulIdx );
 	}
 	
@@ -1090,7 +1090,7 @@ void SERVER_GetPackets( void )
 		if ( g_lCurrentClient == -1 )
 		{
 			// [BB] Or it's from the auth server.
-			if ( NETWORK_CompareAddress( NETWORK_GetFromAddress( ), NETWORK_AUTH_GetCachedServerAddress( ), false ) )
+			if ( NETWORK_GetFromAddress().Compare( NETWORK_AUTH_GetCachedServerAddress() ))
 			{
 				SERVER_AUTH_ParsePacket( pByteStream );
 				continue;
@@ -1663,8 +1663,9 @@ void SERVER_DetermineConnectionType( BYTESTREAM_s *pByteStream )
 	if ( lCommand == -1 )
 		return;
 
-	if ( lCommand == MSC_IPISBANNED && NETWORK_CompareAddress( NETWORK_GetFromAddress( ), SERVER_MASTER_GetMasterAddress( ), false ) &&
-		SERVER_STATISTIC_GetTotalSecondsElapsed( ) < 20 )
+	if ( lCommand == MSC_IPISBANNED
+		&& NETWORK_GetFromAddress().Compare( SERVER_MASTER_GetMasterAddress() )
+		&& SERVER_STATISTIC_GetTotalSecondsElapsed( ) < 20 )
 	{
 		Printf( "\n*** ERROR: You are banned from hosting on the master server!\n" );
 		return;
@@ -1710,7 +1711,7 @@ void SERVER_DetermineConnectionType( BYTESTREAM_s *pByteStream )
 		case MASTER_SERVER_VERIFICATION:
 		case MASTER_SERVER_BANLISTPART:
 
-			if ( NETWORK_CompareAddress( NETWORK_GetFromAddress( ), SERVER_MASTER_GetMasterAddress( ), false ))
+			if ( NETWORK_GetFromAddress().Compare( SERVER_MASTER_GetMasterAddress() ))
 			{
 				FString MasterBanlistVerificationString = NETWORK_ReadString( pByteStream );
 				if ( SERVER_GetMasterBanlistVerificationString().Compare ( MasterBanlistVerificationString ) == 0 )
@@ -1846,7 +1847,7 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 		ULONG ulOtherClientsFromIP = 0;
 		for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 		{
-			if ( NETWORK_CompareAddress( AddressFrom, g_aClients[ulIdx].Address, true ) )
+			if ( AddressFrom.CompareNoPort( g_aClients[ulIdx].Address ))
 				ulOtherClientsFromIP++;
 		}
 
@@ -3706,7 +3707,7 @@ LONG SERVER_GetPlayerIgnoreTic( ULONG ulPlayer, NETADDRESS_s Address )
 	// Search for entries with this address.
 	for ( std::list<STORED_QUERY_IP_s>::iterator i = SERVER_GetClient( ulPlayer )->IgnoredAddresses.begin(); i != SERVER_GetClient( ulPlayer )->IgnoredAddresses.end(); ++i )
 	{
-		if ( NETWORK_CompareAddress( i->Address, Address, true ))
+		if ( i->Address.CompareNoPort( Address ))
 		{
 			if ( i->lNextAllowedGametic != -1 )
 				return i->lNextAllowedGametic - gametic;
@@ -4684,7 +4685,7 @@ static bool server_Ignore( BYTESTREAM_s *pByteStream )
 	NETADDRESS_s AddressToIgnore  = SERVER_GetClient( ulTargetIdx )->Address;
 	for ( std::list<STORED_QUERY_IP_s>::iterator i = SERVER_GetClient( g_lCurrentClient )->IgnoredAddresses.begin(); i != SERVER_GetClient( g_lCurrentClient )->IgnoredAddresses.end( ); )
 	{
-		if ( NETWORK_CompareAddress( i->Address, AddressToIgnore, true ))
+		if ( i->Address.CompareNoPort( AddressToIgnore ))
 			i = SERVER_GetClient( g_lCurrentClient )->IgnoredAddresses.erase( i ); // Returns a new iterator.
 		else
 			++i;

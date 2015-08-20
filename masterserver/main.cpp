@@ -473,7 +473,7 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 				// First count the number of servers from this IP.
 				for( std::set<SERVER_s, SERVERCompFunc>::const_iterator it = g_Servers.begin(); it != g_Servers.end(); ++it )
 				{
-					if ( NETWORK_CompareAddress( it->Address, AddressFrom, true ))
+					if ( it->Address.CompareNoPort( AddressFrom ))
 						iNumOtherServers++;
 				}
 
@@ -639,7 +639,7 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 						if ( ( it->bEnforcesBanList == true ) || ( g_bHideBanIgnoringServers == false ) )
 							serverPortList.push_back ( it->Address.usPort );
 						++it;
-					} while ( ( it != g_Servers.end() ) && NETWORK_CompareAddress( it->Address, serverAddress, true ) );
+					} while ( ( it != g_Servers.end() ) && it->Address.CompareNoPort( serverAddress ) );
 
 					// [BB] All servers on this IP ignore the list, nothing to send.
 					if ( serverPortList.size() == 0 )

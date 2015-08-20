@@ -577,7 +577,7 @@ int NETWORK_GetPackets( void )
 
 	// Decode the huffman-encoded message we received.
 	// [BB] Communication with the auth server is not Huffman-encoded.
-	if ( NETWORK_CompareAddress( g_AddressFrom, NETWORK_AUTH_GetCachedServerAddress( ), false ) == false )
+	if ( g_AddressFrom.Compare( NETWORK_AUTH_GetCachedServerAddress() ) == false )
 	{
 		HUFFMAN_Decode( g_ucHuffmanBuffer, (unsigned char *)g_NetworkMessage.pbData, lNumBytes, &iDecodedNumBytes );
 		g_NetworkMessage.ulCurrentSize = iDecodedNumBytes;
@@ -666,7 +666,7 @@ int NETWORK_GetLANPackets( void )
 
 	// Decode the huffman-encoded message we received.
 	// [BB] Communication with the auth server is not Huffman-encoded.
-	if ( NETWORK_CompareAddress( g_AddressFrom, NETWORK_AUTH_GetCachedServerAddress( ), false ) == false )
+	if ( g_AddressFrom.Compare( NETWORK_AUTH_GetCachedServerAddress() ) == false )
 	{
 		HUFFMAN_Decode( g_ucHuffmanBuffer, (unsigned char *)g_NetworkMessage.pbData, lNumBytes, &iDecodedNumBytes );
 		g_NetworkMessage.ulCurrentSize = iDecodedNumBytes;
@@ -708,7 +708,7 @@ void NETWORK_LaunchPacket( NETBUFFER_s *pBuffer, NETADDRESS_s Address )
 	struct sockaddr_in SocketAddress = Address.ToSocketAddress();
 
 	// [BB] Communication with the auth server is not Huffman-encoded.
-	if ( NETWORK_CompareAddress( Address, NETWORK_AUTH_GetCachedServerAddress( ), false ) == false )
+	if ( Address.Compare( NETWORK_AUTH_GetCachedServerAddress() ) == false )
 		HUFFMAN_Encode( (unsigned char *)pBuffer->pbData, g_ucHuffmanBuffer, pBuffer->ulCurrentSize, &iNumBytesOut );
 	else
 	{
@@ -782,7 +782,7 @@ const char *NETWORK_AddressToString( NETADDRESS_s Address )
 //
 const char *NETWORK_AddressToStringIgnorePort( NETADDRESS_s Address )
 {
-	return Address.ToStringIgnorePort();
+	return Address.ToStringNoPort();
 }
 
 //*****************************************************************************

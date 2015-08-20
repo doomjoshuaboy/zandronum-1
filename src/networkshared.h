@@ -194,16 +194,21 @@ struct NETADDRESS_s
 	// What's this for?
 	USHORT		usPad;
 
-	bool Compare ( const NETADDRESS_s& other, bool ignorePort ) const;
+	bool Compare ( const NETADDRESS_s& other, bool ignorePort = false ) const;
+	bool CompareNoPort ( const NETADDRESS_s& other ) const { return Compare( other, true ); }
 	const char* ToHostName() const;
 	void ToIPStringArray ( IPStringArray& address ) const;
 	struct sockaddr_in ToSocketAddress() const;
 	void SetPort ( USHORT port );
 	const char* ToString() const;
-	const char* ToStringIgnorePort() const;
+	const char* ToStringNoPort() const;
 
 	static bool FromString ( const char* string, NETADDRESS_s& target );
 	static NETADDRESS_s FromSocketAddress ( const struct sockaddr_in& sockaddr );
+
+private:
+	bool operator==( const NETADDRESS_s& );
+	bool operator!=( const NETADDRESS_s& );
 };
 
 //*****************************************************************************

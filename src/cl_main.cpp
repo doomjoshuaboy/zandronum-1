@@ -1060,8 +1060,8 @@ void CLIENT_GetPackets( void )
 		pByteStream = &NETWORK_GetNetworkMessageBuffer( )->ByteStream;
 
 		// If we're a client and receiving a message from the server...
-		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) &&
-			( NETWORK_CompareAddress( NETWORK_GetFromAddress( ), CLIENT_GetServerAddress( ), false )))
+		if ( NETWORK_GetState() == NETSTATE_CLIENT
+			&& NETWORK_GetFromAddress().Compare( CLIENT_GetServerAddress() ))
 		{
 			// Statistics.
 			CLIENTSTATISTICS_AddToBytesReceived( lSize );
@@ -1152,7 +1152,7 @@ void CLIENT_GetPackets( void )
 				AddressFrom = NETWORK_GetFromAddress( );
 
 			// If we're receiving info from the master server...
-			if ( NETWORK_CompareAddress( AddressFrom, MasterAddress, false ))
+			if ( AddressFrom.Compare( MasterAddress ))
 			{
 				lCommand = NETWORK_ReadLong( pByteStream );
 				switch ( lCommand )
