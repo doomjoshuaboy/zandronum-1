@@ -189,7 +189,7 @@ void NETWORK_Construct( USHORT usPort, const char *pszIPAddress )
 	}
 
 	// Print out our local IP address.
-	printf( "IP address %s\n", NETWORK_AddressToString( LocalAddress ));
+	printf( "IP address %s\n", LocalAddress.ToString() );
 
 	printf( "UDP Initialized.\n" );
 }
@@ -226,7 +226,7 @@ int NETWORK_GetPackets( void )
 
         if ( errno == WSAEMSGSIZE )
 		{
-             printf( "NETWORK_GetPackets:  WARNING! Oversize packet from %s\n", NETWORK_AddressToString( g_AddressFrom ));
+             printf( "NETWORK_GetPackets:  WARNING! Oversize packet from %s\n", g_AddressFrom.ToString() );
              return ( false );
         }
 
@@ -305,15 +305,18 @@ void NETWORK_LaunchPacket( NETBUFFER_s *pBuffer, NETADDRESS_s Address )
 		{
 		case WSAEACCES:
 
-			printf( "NETWORK_LaunchPacket: Error #%d, WSAEACCES: Permission denied for address: %s\n", iError, NETWORK_AddressToString( Address ));
+			printf( "NETWORK_LaunchPacket: Error #%d, WSAEACCES: Permission denied for address: %s\n", iError, 
+Address.ToString() );
 			return;
 		case WSAEADDRNOTAVAIL:
 
-			printf( "NETWORK_LaunchPacket: Error #%d, WSAEADDRENOTAVAIL: Address %s not available\n", iError, NETWORK_AddressToString( Address ));
+			printf( "NETWORK_LaunchPacket: Error #%d, WSAEADDRENOTAVAIL: Address %s not available\n", iError, 
+Address.ToString() );
 			return;
 		case WSAEHOSTUNREACH:
 
-			printf( "NETWORK_LaunchPacket: Error #%d, WSAEHOSTUNREACH: Address %s unreachable\n", iError, NETWORK_AddressToString( Address ));
+			printf( "NETWORK_LaunchPacket: Error #%d, WSAEHOSTUNREACH: Address %s unreachable\n", iError, 
+Address.ToString() );
 			return;				
 		default:
 
@@ -328,7 +331,7 @@ return;
               return;
 
 		printf( "NETWORK_LaunchPacket: %s\n", strerror( errno ));
-		printf( "NETWORK_LaunchPacket: Address %s\n", NETWORK_AddressToString( Address ));
+		printf( "NETWORK_LaunchPacket: Address %s\n", Address.ToString() );
 
 #endif
 	}

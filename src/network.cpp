@@ -273,7 +273,7 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 		}
 
 		// Print out our local IP address.
-		Printf( "IP address %s\n", NETWORK_AddressToString( g_LocalAddress ));
+		Printf( "IP address %s\n", g_LocalAddress.ToString() );
 	}
 
 	// Init our read buffer.
@@ -542,7 +542,7 @@ int NETWORK_GetPackets( void )
 
 		if ( errno == WSAEMSGSIZE )
 		{
-			Printf( "NETWORK_GetPackets:  WARNING! Oversize packet from %s\n", NETWORK_AddressToString( g_AddressFrom ));
+			Printf( "NETWORK_GetPackets:  WARNING! Oversized packet from %s\n", g_AddressFrom.ToString() );
 			return ( false );
 		}
 
@@ -631,7 +631,7 @@ int NETWORK_GetLANPackets( void )
 
         if ( errno == WSAEMSGSIZE )
 		{
-             Printf( "NETWORK_GetPackets:  WARNING! Oversize packet from %s\n", NETWORK_AddressToString( g_AddressFrom ));
+             Printf( "NETWORK_GetPackets:  WARNING! Oversized packet from %s\n", g_AddressFrom.ToString() );
              return ( false );
         }
 
@@ -734,19 +734,19 @@ void NETWORK_LaunchPacket( NETBUFFER_s *pBuffer, NETADDRESS_s Address )
 		{
 		case WSAEACCES:
 
-			Printf( "NETWORK_LaunchPacket: Error #%d, WSAEACCES: Permission denied for address: %s\n", iError, NETWORK_AddressToString( Address ));
+			Printf( "NETWORK_LaunchPacket: Error #%d, WSAEACCES: Permission denied for address: %s\n", iError, Address.ToString() );
 			return;
 		case WSAEAFNOSUPPORT:
 
-			Printf( "NETWORK_LaunchPacket: Error #%d, WSAEAFNOSUPPORT: Address %s incompatible with the requested protocol\n", iError, NETWORK_AddressToString( Address ));
+			Printf( "NETWORK_LaunchPacket: Error #%d, WSAEAFNOSUPPORT: Address %s incompatible with the requested protocol\n", iError, Address.ToString() );
 			return;
 		case WSAEADDRNOTAVAIL:
 
-			Printf( "NETWORK_LaunchPacket: Error #%d, WSAEADDRENOTAVAIL: Address %s not available\n", iError, NETWORK_AddressToString( Address ));
+			Printf( "NETWORK_LaunchPacket: Error #%d, WSAEADDRENOTAVAIL: Address %s not available\n", iError, Address.ToString() );
 			return;
 		case WSAEHOSTUNREACH:
 
-			Printf( "NETWORK_LaunchPacket: Error #%d, WSAEHOSTUNREACH: Address %s unreachable\n", iError, NETWORK_AddressToString( Address ));
+			Printf( "NETWORK_LaunchPacket: Error #%d, WSAEHOSTUNREACH: Address %s unreachable\n", iError, Address.ToString() );
 			return;				
 		default:
 
@@ -761,7 +761,7 @@ return;
               return;
 
 		Printf( "NETWORK_LaunchPacket: %s\n", strerror( errno ));
-		Printf( "NETWORK_LaunchPacket: Address %s\n", NETWORK_AddressToString( Address ));
+		Printf( "NETWORK_LaunchPacket: Address %s\n", Address.ToString() );
 
 #endif
 	}
@@ -1437,7 +1437,7 @@ CCMD( ip )
 
 	LocalAddress = NETWORK_GetLocalAddress( );
 
-	Printf( PRINT_HIGH, "IP address is %s\n", NETWORK_AddressToString( LocalAddress ));
+	Printf( PRINT_HIGH, "IP address is %s\n", LocalAddress.ToString() );
 }
 
 //*****************************************************************************

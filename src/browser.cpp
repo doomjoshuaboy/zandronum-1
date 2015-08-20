@@ -881,7 +881,7 @@ CCMD( dumpserverlist )
 
 		Printf( "\nServer #%d\n----------------\n", static_cast<unsigned int> (ulIdx) );
 		Printf( "Name: %s\n", g_BrowserServerList[ulIdx].HostName.GetChars() );
-		Printf( "Address: %s\n", NETWORK_AddressToString( g_BrowserServerList[ulIdx].Address ));
+		Printf( "Address: %s\n", g_BrowserServerList[ulIdx].Address.ToString() );
 		Printf( "Gametype: %d\n", g_BrowserServerList[ulIdx].GameMode );
 		Printf( "Num PWADs: %d\n", static_cast<int> (g_BrowserServerList[ulIdx].lNumPWADs) );
 		Printf( "Players: %d/%d\n", static_cast<int> (g_BrowserServerList[ulIdx].lNumPlayers), static_cast<int> (g_BrowserServerList[ulIdx].lMaxClients) );

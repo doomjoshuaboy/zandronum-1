@@ -933,7 +933,7 @@ void CLIENT_AttemptConnection( void )
 	}
 
 	g_ulRetryTicks = CONNECTION_RESEND_TIME;
-	Printf( "Connecting to %s\n", NETWORK_AddressToString( g_AddressServer ));
+	Printf( "Connecting to %s\n", g_AddressServer.ToString() );
 
 	// Reset a bunch of stuff.
 	NETWORK_ClearBuffer( &g_LocalBuffer );
@@ -1135,7 +1135,7 @@ void CLIENT_GetPackets( void )
 				MasterAddress.usPort = NETWORK_ntohs( DEFAULT_MASTER_PORT );
 
 
-			pszAddressBuf = NETWORK_AddressToString( NETWORK_GetFromAddress( ));
+			pszAddressBuf = NETWORK_GetFromAddress().ToString();
 
 			// Skulltag is receiving a message from something on the LAN.
 			if (( strncmp( pszAddressBuf, pszPrefix1, 9 ) == 0 ) || 
@@ -1207,7 +1207,7 @@ void CLIENT_GetPackets( void )
 				else if ( lCommand == SERVER_LAUNCHER_IGNORING )
 					Printf( "WARNING! Please wait a full 10 seconds before refreshing the server list.\n" );
 				//else
-				//	Printf( "Unknown network message from %s.\n", NETWORK_AddressToString( g_AddressFrom ));
+				//	Printf( "Unknown network message from %s.\n", g_AddressFrom.ToString() );
 			}
 		}
 	}
@@ -10283,7 +10283,7 @@ static void client_MapNew( BYTESTREAM_s *pByteStream )
 	// [Dusk] We're also no longer in line at this point.
 	JOINQUEUE_SetClientPositionInLine( -1 );
 
-	Printf( "Connecting to %s\n%s\n", NETWORK_AddressToString( g_AddressServer ), pszMapName );
+	Printf( "Connecting to %s\n%s\n", g_AddressServer.ToString(), pszMapName );
 
 	// Update the connection state, and begin trying to reconnect.
 	CLIENT_SetConnectionState( CTS_ATTEMPTINGCONNECTION );

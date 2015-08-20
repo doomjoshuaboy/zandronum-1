@@ -1010,7 +1010,7 @@ void SERVER_CheckTimeouts( void )
 			if ( ( g_aClients[ulIdx].State != CLS_FREE )
 			     && ( ( gametic - g_aClients[ulIdx].ulLastCommandTic ) >= ( CLIENT_TIMEOUT * TICRATE ) ) )
 			{
-				Printf( "Unfinished connection from %s timed out.\n", NETWORK_AddressToString( g_aClients[ulIdx].Address ) );
+				Printf( "Unfinished connection from %s timed out.\n", g_aClients[ulIdx].Address.ToString() );
 				SERVER_DisconnectClient( ulIdx, false, false );
 			}
 			continue;
@@ -1702,7 +1702,7 @@ void SERVER_DetermineConnectionType( BYTESTREAM_s *pByteStream )
 
 			// Received launcher query!
 			if ( sv_showlauncherqueries )
-				Printf( "Launcher challenge from: %s\n", NETWORK_AddressToString( NETWORK_GetFromAddress( )));
+				Printf( "Launcher challenge from: %s\n", NETWORK_GetFromAddress().ToString() );
 
 			SERVER_MASTER_SendServerInfo( NETWORK_GetFromAddress( ), ulFlags, ulTime, false );
 			return;
@@ -1769,7 +1769,7 @@ void SERVER_DetermineConnectionType( BYTESTREAM_s *pByteStream )
 			// this. Since the packet is completely ignored anyway, there is no need to ban the
 			// IP for ten seconds.
 			/*
-			Printf( "CLC command (%d) from someone not in game (%s). Ignoring IP for 10 seconds.\n", static_cast<int> (lCommand), NETWORK_AddressToString( NETWORK_GetFromAddress( )));
+			Printf( "CLC command (%d) from someone not in game (%s). Ignoring IP for 10 seconds.\n", static_cast<int> (lCommand), NETWORK_GetFromAddress().ToString() );
 			// [BB] Block all further challenges of this IP for ten seconds to prevent log flooding.
 			g_floodProtectionIPQueue.addAddress ( NETWORK_GetFromAddress( ), g_lGameTime / 1000 );
 			*/
@@ -1777,7 +1777,7 @@ void SERVER_DetermineConnectionType( BYTESTREAM_s *pByteStream )
 			return;
 		// [BB] 200 was CLCC_ATTEMPTCONNECTION in 97d-beta4.3 and earlier versions.
 		case 200: 
-			Printf( "Challenge (%d) from (%s). Likely an old client (97d-beta4.3 or older) trying to connect. Informing the client and ignoring IP for 10 seconds.\n", static_cast<int> (lCommand), NETWORK_AddressToString( NETWORK_GetFromAddress( )));
+			Printf( "Challenge (%d) from (%s). Likely an old client (97d-beta4.3 or older) trying to connect. Informing the client and ignoring IP for 10 seconds.\n", static_cast<int> (lCommand), NETWORK_GetFromAddress().ToString() );
 			// [BB] Block all further challenges of this IP for ten seconds to prevent log flooding.
 			g_floodProtectionIPQueue.addAddress ( NETWORK_GetFromAddress( ), g_lGameTime / 1000 );
 			// [BB] Try to tell the client in a 97d-beta4.3 compatible way, that his version is too old.
@@ -1804,7 +1804,7 @@ void SERVER_DetermineConnectionType( BYTESTREAM_s *pByteStream )
 			return;
 		default:
 
-			Printf( "Unknown challenge (%d) from %s. Ignoring IP for 10 seconds.\n", static_cast<int> (lCommand), NETWORK_AddressToString( NETWORK_GetFromAddress( )));
+			Printf( "Unknown challenge (%d) from %s. Ignoring IP for 10 seconds.\n", static_cast<int> (lCommand), NETWORK_GetFromAddress().ToString() );
 			// [BB] Block all further challenges of this IP for ten seconds to prevent log flooding.
 			g_floodProtectionIPQueue.addAddress ( NETWORK_GetFromAddress( ), g_lGameTime / 1000 );
 
@@ -1854,7 +1854,7 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 		// [RC] Kick if necessary.
 		if ( sv_maxclientsperip > 0 && (static_cast<LONG>(ulOtherClientsFromIP) >= sv_maxclientsperip) )
 		{
-			// Printf( "Connection from %s refused: too many connections from that IP. (sv_maxclientsperip is %d.)", NETWORK_AddressToString( AddressFrom ),  sv_maxclientsperip );
+			// Printf( "Connection from %s refused: too many connections from that IP. (sv_maxclientsperip is %d.)", AddressFrom.ToString(), *sv_maxclientsperip );
 			SERVER_ConnectionError( AddressFrom, "Too many connections from this IP.", NETWORK_ERRORCODE_TOOMANYCONNECTIONSFROMIP );
 			return;
 		}
@@ -1935,7 +1935,7 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 	g_aClients[lClient].ulPacketSequence = 0;
 
 	// Who is connecting?
-	Printf( "Connect (v%s): %s\n", clientVersion.GetChars(), NETWORK_AddressToString( NETWORK_GetFromAddress( )));
+	Printf( "Connect (v%s): %s\n", clientVersion.GetChars(), NETWORK_GetFromAddress().ToString() );
 
 	// Setup the client.
 	g_aClients[lClient].State = CLS_CHALLENGE;
@@ -2262,7 +2262,7 @@ void SERVER_ConnectionError( NETADDRESS_s Address, const char *pszMessage, ULONG
 	NETWORK_ClearBuffer( &TempBuffer );
 
 	// Display error message locally in the console.
-	Printf( "Denied connection for %s: %s\n", NETWORK_AddressToString( Address ), pszMessage );
+	Printf( "Denied connection for %s: %s\n", Address.ToString(), pszMessage );
 
 	// Make sure the packet has a packet header. The client is expecting this!
 	NETWORK_WriteHeader( &TempBuffer.ByteStream, SVC_HEADER );
@@ -2343,7 +2343,7 @@ void SERVER_ClientError( ULONG ulClient, ULONG ulErrorCode )
 	// Send the packet off.
 	SERVER_SendClientPacket( ulClient, true );
 
-	Printf( "%s \\c-disconnected. Ignoring IP for 10 seconds.\n", NETWORK_AddressToString( g_aClients[ulClient].Address ));
+	Printf( "%s \\c-disconnected. Ignoring IP for 10 seconds.\n", g_aClients[ulClient].Address.ToString() );
 
 	// [BB] Block this IP for ten seconds to prevent log flooding.
 	g_floodProtectionIPQueue.addAddress ( g_aClients[ulClient].Address, g_lGameTime / 1000 );
@@ -2891,7 +2891,7 @@ void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo )
 				SERVER_Printf( PRINT_HIGH, "client %s \\c-disconnected.\n", players[ulClient].userinfo.GetName() );
 		}
 		else
-			Printf( "%s \\c-disconnected.\n", NETWORK_AddressToString( g_aClients[ulClient].Address ));
+			Printf( "%s \\c-disconnected.\n", g_aClients[ulClient].Address.ToString() );
 	}
 
 	// [BB] Morphed players need to be unmorphed before disconnecting.
@@ -4277,7 +4277,7 @@ void SERVER_ParsePacket( BYTESTREAM_s *pByteStream )
 			{
 				// [BB] Under these special, rare circumstances valid clients can send illegal commands.
 				if ( g_aClients[g_lCurrentClient].State != CLS_AUTHENTICATED_BUT_OUTDATED_MAP )
-					Printf( "Illegal command (%d) from non-authenticated client (%s).\n", static_cast<int> (lCommand), NETWORK_AddressToString( NETWORK_GetFromAddress( ) ) );
+					Printf( "Illegal command (%d) from non-authenticated client (%s).\n", static_cast<int> (lCommand), NETWORK_GetFromAddress().ToString() );
 
 				// [BB] Ignore the rest of the packet, it can't be valid.
 				while ( NETWORK_ReadByte( pByteStream ) != -1 );
@@ -4984,7 +4984,7 @@ ClientMoveCommand::ClientMoveCommand ( BYTESTREAM_s *pByteStream )
 		{
 			if ( SERVER_GetClient( g_lCurrentClient )->bSuspicious == false )
 			{
-				Printf ( "Warning: Inconsistency in packet received from client %d (IP: %s, name: %s)\n", g_lCurrentClient, NETWORK_AddressToString( SERVER_GetClient( g_lCurrentClient )->Address ), players[g_lCurrentClient].userinfo.GetName() );
+				Printf ( "Warning: Inconsistency in packet received from client %d (IP: %s, name: %s)\n", g_lCurrentClient, SERVER_GetClient( g_lCurrentClient )->Address.ToString(), players[g_lCurrentClient].userinfo.GetName() );
 				SERVER_GetClient( g_lCurrentClient )->bSuspicious = true;
 			}
 			SERVER_GetClient( g_lCurrentClient )->ulNumConsistencyWarnings++;
@@ -5516,7 +5516,7 @@ static bool server_RCONCommand( BYTESTREAM_s *pByteStream )
 	if ( !g_aClients[g_lCurrentClient].bRCONAccess )
 		return ( false );
 
-	Printf( "-> %s (RCON by %s - %s)\n", pszCommand, players[g_lCurrentClient].userinfo.GetName(), NETWORK_AddressToString( SERVER_GetClient( g_lCurrentClient )->Address ));
+	Printf( "-> %s (RCON by %s - %s)\n", pszCommand, players[g_lCurrentClient].userinfo.GetName(), SERVER_GetClient( g_lCurrentClient )->Address.ToString() );
 
 	// Set the RCON player so that output displays on his end.
 	CONSOLE_SetRCONPlayer( g_lCurrentClient );
@@ -6784,7 +6784,7 @@ static void	server_LogPacket( BYTESTREAM_s *pByteStream, NETADDRESS_s Address, c
 
 	pByteStream->bPacketAlreadyLogged = true;
 
-	Printf( "Logging packet from %s, because: %s.\n", NETWORK_AddressToString( Address ), pszReason);
+	Printf( "Logging packet from %s, because: %s.\n", Address.ToString(), pszReason);
 
 	// Log all further packets from this IP.
 	if ( !g_HackerIPList.isIPInList( Address ) )
@@ -6801,7 +6801,7 @@ static void	server_LogPacket( BYTESTREAM_s *pByteStream, NETADDRESS_s Address, c
 	}
 
 	// Write the start of the log entry.
-	logLine.Format("\nLogging packet from %s:", NETWORK_AddressToString( Address ));
+	logLine.Format("\nLogging packet from %s:", Address.ToString() );
 	FString logfilename;
 	time_t clock;
 	struct tm *lt;
