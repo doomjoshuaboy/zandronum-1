@@ -360,6 +360,14 @@ void NETWORK_WriteHeader( BYTESTREAM_s *pByteStream, int Byte )
 
 //*****************************************************************************
 //
+NETADDRESS_s::NETADDRESS_s()
+{
+	abIP[0] = abIP[1] = abIP[2] = abIP[3] = 0;
+	usPort = 0;
+}
+
+//*****************************************************************************
+//
 bool NETADDRESS_s::Compare ( const NETADDRESS_s& other, bool ignorePort ) const
 {
 	return (( abIP[0] == other.abIP[0] ) &&
@@ -371,7 +379,17 @@ bool NETADDRESS_s::Compare ( const NETADDRESS_s& other, bool ignorePort ) const
 
 //*****************************************************************************
 //
-bool NETADDRESS_s::FromString ( const char* string, NETADDRESS_s& target )
+NETADDRESS_s NETADDRESS_s::FromString ( const char* string, bool* ok )
+{
+	static bool sink;
+	NETADDRESS_s result;
+	( ok ? *ok : sink ) = result.LoadFromString( string );
+	return result;
+}
+
+//*****************************************************************************
+//
+bool NETADDRESS_s::LoadFromString ( const char* string )
 {
 	struct hostent  *h;
 	struct sockaddr_in sadr;
@@ -405,14 +423,15 @@ bool NETADDRESS_s::FromString ( const char* string, NETADDRESS_s& target )
 		{
 			// If the string cannot be resolved to a valid IP address, return false.
 			if (( h = gethostbyname( copy )) == NULL )
-				return ( false );
+				return false;
+
 			*(int *)&sadr.sin_addr = *(int *)h->h_addr_list[0];
 		}
 		else
 			*(int *)&sadr.sin_addr = ulRet;
 	}
 
-	target = NETADDRESS_s::FromSocketAddress( sadr );
+	*this = NETADDRESS_s::FromSocketAddress( sadr );
 	return true;
 }
 
@@ -501,7 +520,7 @@ bool NETWORK_CompareAddress( NETADDRESS_s Address1, NETADDRESS_s Address2, bool 
 //
 bool NETWORK_StringToAddress( const char *s, NETADDRESS_s *a )
 {
-	return NETADDRESS_s::FromString( s, *a );
+	return a->LoadFromString( s );
 }
 
 //*****************************************************************************
@@ -753,7 +772,7 @@ bool IPFileParser::parseNextLine( FILE *pFile, IPADDRESSBAN_s &IP, ULONG &BanIdx
 						return ( true );
 					}
 				}
-				else if ( NETWORK_StringToAddress( szIP, &IPAddress ))
+				else if ( IPAddress.LoadFromString( szIP ))
 				{
 					if ( BanIdx == _listLength )
 					{
@@ -1204,7 +1223,7 @@ void IPList::addEntry( const char *pszIPAddress, const char *pszPlayerName, cons
 
 	if ( NETWORK_StringToIP( pszIPAddress, szStringBan[0], szStringBan[1], szStringBan[2], szStringBan[3] ))
 		addEntry( szStringBan[0], szStringBan[1], szStringBan[2], szStringBan[3], pszPlayerName, pszComment, Message, tExpiration );
-	else if ( NETWORK_StringToAddress( pszIPAddress, &BanAddress ))
+	else if ( BanAddress.LoadFromString( pszIPAddress ))
 	{
 		itoa( BanAddress.abIP[0], szStringBan[0], 10 );
 		itoa( BanAddress.abIP[1], szStringBan[1], 10 );
