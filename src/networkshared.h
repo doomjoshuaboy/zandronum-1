@@ -194,6 +194,8 @@ struct NETADDRESS_s
 	// What's this for?
 	USHORT		usPad;
 
+	NETADDRESS_s();
+
 	bool Compare ( const NETADDRESS_s& other, bool ignorePort = false ) const;
 	bool CompareNoPort ( const NETADDRESS_s& other ) const { return Compare( other, true ); }
 	const char* ToHostName() const;
@@ -202,8 +204,9 @@ struct NETADDRESS_s
 	void SetPort ( USHORT port );
 	const char* ToString() const;
 	const char* ToStringNoPort() const;
+	bool LoadFromString( const char* string );
 
-	static bool FromString ( const char* string, NETADDRESS_s& target );
+	static NETADDRESS_s FromString ( const char* string, bool* ok = NULL );
 	static NETADDRESS_s FromSocketAddress ( const struct sockaddr_in& sockaddr );
 
 private:

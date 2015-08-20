@@ -184,7 +184,7 @@ void NETWORK_Construct( USHORT usPort, const char *pszIPAddress )
 	// [BB] We are using a specified IP, so we don't need to figure out what IP we have, but just use the specified one.
 	else
 	{
-		NETWORK_StringToAddress ( pszIPAddress, &LocalAddress );
+		LocalAddress = NETADDRESS_s::FromString( pszIPAddress );
 		LocalAddress.usPort = htons ( NETWORK_GetLocalPort() );
 	}
 
@@ -372,7 +372,6 @@ NETADDRESS_s NETWORK_GetLocalAddress( void )
 {
 	char				szBuffer[512];
 	struct sockaddr_in	SocketAddress;
-	NETADDRESS_s		Address;
 	int					iNameLength;
 
 #ifndef __WINE__
@@ -381,7 +380,7 @@ NETADDRESS_s NETWORK_GetLocalAddress( void )
 	szBuffer[512-1] = 0;
 
 	// Convert the host name to our local 
-	NETWORK_StringToAddress( szBuffer, &Address );
+	NETADDRESS_s Address = NETADDRESS_s::FromString( szBuffer );
 
 	iNameLength = sizeof( SocketAddress );
 #ifndef	WIN32

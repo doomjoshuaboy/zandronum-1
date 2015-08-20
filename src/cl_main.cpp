@@ -600,7 +600,7 @@ void CLIENT_Construct( void )
     if ( pszIPAddress )
     {
 		// Convert the given IP string into our server address.
-		NETWORK_StringToAddress( pszIPAddress, &g_AddressServer );
+		g_AddressServer = NETADDRESS_s::FromString( pszIPAddress );
 
 		// If the user didn't specify a port, use the default one.
 		if ( g_AddressServer.usPort == 0 )
@@ -1054,7 +1054,6 @@ void CLIENT_GetPackets( void )
 #endif
 	while (( lSize = NETWORK_GetPackets( )) > 0 )
 	{
-		UCVarValue		Val;
 		BYTESTREAM_s	*pByteStream;
 
 		pByteStream = &NETWORK_GetNetworkMessageBuffer( )->ByteStream;
@@ -1120,12 +1119,10 @@ void CLIENT_GetPackets( void )
 			const char		*pszAddressBuf;
 			NETADDRESS_s	AddressFrom;
 			LONG			lCommand;
-			NETADDRESS_s	MasterAddress;
 			const char		*pszMasterPort;
-			Val = masterhostname.GetGenericRep( CVAR_String );
 			// [BB] This conversion potentially does a DNS lookup.
 			// There is absolutely no reason to call this at beginning of the while loop above (like done before). 
-			NETWORK_StringToAddress( Val.String, &MasterAddress );
+			NETADDRESS_s MasterAddress = NETADDRESS_s::FromString( masterhostname );
 
 			// Allow the user to specify which port the master server is on.
 			pszMasterPort = Args->CheckValue( "-masterport" );
@@ -12622,7 +12619,7 @@ CCMD( connect )
 	R_SetVisibility( 8.0f );
 
 	// Create a server IP from the given string.
-	NETWORK_StringToAddress( argv[1], &g_AddressServer );
+	g_AddressServer = NETADDRESS_s::FromString( argv[1] );
 
 	// If the user didn't specify a port, use the default port.
 	if ( g_AddressServer.usPort == 0 )

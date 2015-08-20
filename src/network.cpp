@@ -268,7 +268,7 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 		// [BB] We are using a specified IP, so we don't need to figure out what IP we have, but just use the specified one.
 		else
 		{
-			NETWORK_StringToAddress ( pszIPAddress, &g_LocalAddress );
+			g_LocalAddress = NETADDRESS_s::FromString( pszIPAddress );
 			g_LocalAddress.usPort = htons ( NETWORK_GetLocalPort() );
 		}
 
@@ -798,7 +798,6 @@ NETADDRESS_s NETWORK_GetLocalAddress( void )
 {
 	char				szBuffer[512];
 	struct sockaddr_in	SocketAddress;
-	NETADDRESS_s		Address;
 	int					iNameLength;
 
 #ifndef __WINE__
@@ -807,7 +806,8 @@ NETADDRESS_s NETWORK_GetLocalAddress( void )
 	szBuffer[512-1] = 0;
 
 	// Convert the host name to our local 
-	bool stringToAddress = NETWORK_StringToAddress( szBuffer, &Address );
+	bool ok;
+	NETADDRESS_s Address = NETADDRESS_s::FromString( szBuffer, &ok );
 
 	iNameLength = sizeof( SocketAddress );
 #ifndef	WIN32
@@ -822,7 +822,7 @@ NETADDRESS_s NETWORK_GetLocalAddress( void )
 #ifdef unix
 	// [BB] The "gethostname -> gethostbyname" trick didn't reveal the local IP.
 	// Now we need to resort to something more complicated.
-	if ( stringToAddress == false )
+	if ( ok == false )
 	{
 #ifndef __FreeBSD__
 		unsigned char      *u;

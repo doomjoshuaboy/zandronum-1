@@ -156,8 +156,6 @@ void SERVER_MASTER_Destruct( void )
 //
 void SERVER_MASTER_Tick( void )
 {
-	UCVarValue		Val;
-
 	while (( g_lStoredQueryIPHead != g_lStoredQueryIPTail ) && ( gametic >= g_StoredQueryIPs[g_lStoredQueryIPHead].lNextAllowedGametic ))
 	{
 		g_lStoredQueryIPHead++;
@@ -174,12 +172,13 @@ void SERVER_MASTER_Tick( void )
 
 	NETWORK_ClearBuffer( &g_MasterServerBuffer );
 
-	Val = masterhostname.GetGenericRep( CVAR_String );
-
 	// [BB] If we can't find the master address, we can't tick the master.
-	if ( NETWORK_StringToAddress( Val.String, &g_AddressMasterServer ) == false )
+	bool ok;
+	g_AddressMasterServer = NETADDRESS_s::FromString( masterhostname, &ok );
+
+	if ( ok == false )
 	{
-		Printf ( "Warning: Can't find masterhostname %s! Either correct masterhostname or set sv_updatemaster to false.\n", Val.String );
+		Printf ( "Warning: Can't find masterhostname %s! Either correct masterhostname or set sv_updatemaster to false.\n", *masterhostname );
 		return;
 	}
 
