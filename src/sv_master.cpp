@@ -279,7 +279,7 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 			{
 				// Check to see if this IP exists in our stored query IP list. If it does, then
 				// ignore it, since it queried us less than 10 seconds ago.
-				if ( NETWORK_CompareAddress( Address, g_StoredQueryIPs[ulIdx].Address, true ))
+				if ( Address.CompareNoPort( g_StoredQueryIPs[ulIdx].Address ))
 				{
 					// Write our header.
 					NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, SERVER_LAUNCHER_IGNORING );

@@ -483,7 +483,7 @@ const char* NETADDRESS_s::ToString() const
 
 //*****************************************************************************
 //
-const char* NETADDRESS_s::ToStringIgnorePort() const
+const char* NETADDRESS_s::ToStringNoPort() const
 {
 	static char	buffer[64];
 	sprintf( buffer, "%i.%i.%i.%i", abIP[0], abIP[1], abIP[2], abIP[3] );
@@ -1352,7 +1352,7 @@ bool QueryIPQueue::addressInQueue( const NETADDRESS_s AddressFrom ) const
 	// Search through the queue.
 	for ( unsigned int i = _iQueueHead; i != _iQueueTail; i = ( i + 1 ) % MAX_QUERY_IPS )
 	{
-		if ( NETWORK_CompareAddress( AddressFrom, _IPQueue[i].Address, true ))
+		if ( AddressFrom.CompareNoPort( _IPQueue[i].Address ))
 			return true;
 	}
 

@@ -820,7 +820,7 @@ static LONG browser_GetListIDByAddress( NETADDRESS_s Address )
 
 	for ( ulIdx = 0; ulIdx < MAX_BROWSER_SERVERS; ulIdx++ )
 	{
-		if ( NETWORK_CompareAddress( g_BrowserServerList[ulIdx].Address, Address, false ))
+		if ( g_BrowserServerList[ulIdx].Address.Compare( Address ))
 			return ( ulIdx );
 	}
 
@@ -833,7 +833,7 @@ static void browser_QueryServer( ULONG ulServer )
 {
 	// Don't query a server that we're already connected to.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) &&
-		( NETWORK_CompareAddress( g_BrowserServerList[ulServer].Address, CLIENT_GetServerAddress( ), false )))
+		( g_BrowserServerList[ulServer].Address.Compare( CLIENT_GetServerAddress() )))
 	{
 		return;
 	}

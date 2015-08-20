@@ -485,7 +485,7 @@ static void server_rcon_CreateSalt( char *pszBuffer )
 static LONG server_rcon_FindCandidate( NETADDRESS_s Address )
 {
 	for ( unsigned int i = 0; i < g_Candidates.Size( ); i++ )
-		if ( NETWORK_CompareAddress( g_Candidates[i].Address, Address, false ))
+		if ( g_Candidates[i].Address.Compare( Address ))
 			return i;
 
 	return -1;
@@ -503,7 +503,7 @@ static LONG server_rcon_FindCandidate( NETADDRESS_s Address )
 static LONG server_rcon_FindClient( NETADDRESS_s Address )
 {
 	for ( unsigned int i = 0; i < g_AuthedClients.Size( ); i++ )
-		if ( NETWORK_CompareAddress( g_AuthedClients[i].Address, Address, false ))
+		if ( g_AuthedClients[i].Address.Compare( Address ))
 			return i;
 
 	return -1;
