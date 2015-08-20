@@ -604,7 +604,7 @@ void CLIENT_Construct( void )
 
 		// If the user didn't specify a port, use the default one.
 		if ( g_AddressServer.usPort == 0 )
-			NETWORK_SetAddressPort( g_AddressServer, DEFAULT_SERVER_PORT );
+			g_AddressServer.SetPort( DEFAULT_SERVER_PORT );
 
 		// If we try to reconnect, use this address.
 		g_AddressLastConnected = g_AddressServer;
@@ -12626,7 +12626,7 @@ CCMD( connect )
 
 	// If the user didn't specify a port, use the default port.
 	if ( g_AddressServer.usPort == 0 )
-		NETWORK_SetAddressPort( g_AddressServer, DEFAULT_SERVER_PORT );
+		g_AddressServer.SetPort( DEFAULT_SERVER_PORT );
 
 	g_AddressLastConnected = g_AddressServer;
 

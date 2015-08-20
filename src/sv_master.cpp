@@ -183,7 +183,7 @@ void SERVER_MASTER_Tick( void )
 		return;
 	}
 
-	NETWORK_SetAddressPort( g_AddressMasterServer, g_usMasterPort );
+	g_AddressMasterServer.SetPort( g_usMasterPort );
 
 	// Write to our packet a challenge to the master server.
 	NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, SERVER_MASTER_CHALLENGE );
