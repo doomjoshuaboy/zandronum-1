@@ -409,7 +409,7 @@ void SERVER_Construct( void )
 		{
 			Printf( "NAT discovery error: %s\n", nat.get_last_error() );
 		}
-		else if ( !nat.add_port_mapping("test",NETWORK_AddressToStringIgnorePort( NETWORK_GetCachedLocalAddress() ), externalPort, NETWORK_GetLocalPort(),"UDP") )
+		else if ( !nat.add_port_mapping("test", NETWORK_GetCachedLocalAddress().ToStringNoPort(), externalPort, NETWORK_GetLocalPort(),"UDP") )
 		{
 			Printf( "Error adding port mapping: %s\n",nat.get_last_error() );
 		}
@@ -1987,7 +1987,7 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 	}
 
 	// Check if this IP has been banned.
-	NETWORK_AddressToIPStringArray( g_aClients[lClient].Address, szAddress );
+	g_aClients[lClient].Address.ToIPStringArray( szAddress );
 	if ( SERVERBAN_IsIPBanned( szAddress ))
 	{
 		// Client has been banned! GET THE FUCK OUT OF HERE!

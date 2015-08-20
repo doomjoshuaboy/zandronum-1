@@ -959,7 +959,7 @@ bool NETWORK_IsGeoIPAvailable ( void )
 // [BB] 
 FString NETWORK_GetCountryCodeFromAddress( NETADDRESS_s Address )
 {
-	const char * addressString = NETWORK_AddressToStringIgnorePort( Address );
+	const char * addressString = Address.ToStringNoPort();
 	if ( ( strnicmp( "10.", addressString, 3 ) == 0 ) ||
 		 ( strnicmp( "192.168.", addressString, 8 ) == 0 ) ||
 		 ( strnicmp( "127.", addressString, 4 ) == 0 ) )
@@ -968,7 +968,7 @@ FString NETWORK_GetCountryCodeFromAddress( NETADDRESS_s Address )
 	if ( g_GeoIPDB == NULL )
 		return "";
 
-	FString country = GeoIP_country_code_by_addr ( g_GeoIPDB, NETWORK_AddressToStringIgnorePort( Address ) );
+	FString country = GeoIP_country_code_by_addr ( g_GeoIPDB, Address.ToStringNoPort() );
 	return country.IsEmpty() ? "N/A" : country;
 }
 
