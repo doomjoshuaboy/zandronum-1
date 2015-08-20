@@ -158,7 +158,7 @@ void CALLVOTE_Tick( void )
 					if ( ( strncmp( g_VoteCommand, "kick", 4 ) == 0 ) || ( strncmp( g_VoteCommand, "forcespec", 9 ) == 0 ) )
 					{
 						if ( strncmp( g_VoteCommand, "kick", 4 ) == 0 )
-							g_VoteCommand.Format( "addban %s 10min \"Vote kick", NETWORK_AddressToString( g_KickVoteVictimAddress ) );
+							g_VoteCommand.Format( "addban %s 10min \"Vote kick", g_KickVoteVictimAddress.ToString() );
 						else
 							g_VoteCommand.Format( "kickfromgame_idx %d \"Vote forcespec", static_cast<int>(SERVER_FindClientByAddress ( g_KickVoteVictimAddress )) );
 						g_VoteCommand.AppendFormat( ", %d to %d", static_cast<int>(callvote_CountPlayersWhoVotedYes( )), static_cast<int>(callvote_CountPlayersWhoVotedNo( )) );
@@ -227,7 +227,7 @@ void CALLVOTE_BeginVote( FString Command, FString Parameters, FString Reason, UL
 	{
 		FString	ReasonBlurb = ( g_VoteReason.Len( )) ? ( ", reason: \"" + g_VoteReason + "\"" ) : "";
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			Printf( "%s\\c- (%s) has called a vote (\"%s\"%s).\n", players[ulPlayer].userinfo.GetName(), NETWORK_AddressToString( SERVER_GetClient( ulPlayer )->Address ), g_VoteCommand.GetChars(), ReasonBlurb.GetChars() );
+			Printf( "%s\\c- (%s) has called a vote (\"%s\"%s).\n", players[ulPlayer].userinfo.GetName(), SERVER_GetClient( ulPlayer )->Address.ToString(), g_VoteCommand.GetChars(), ReasonBlurb.GetChars() );
 		else
 			Printf( "%s\\c- has called a vote (\"%s\"%s).\n", players[ulPlayer].userinfo.GetName(), g_VoteCommand.GetChars(), ReasonBlurb.GetChars() );
 	}
@@ -324,7 +324,7 @@ bool CALLVOTE_VoteYes( ULONG ulPlayer )
 
 	// Display the message in the console.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		Printf( "%s\\c- (%s) votes \"yes\".\n", players[ulPlayer].userinfo.GetName(), NETWORK_AddressToString( SERVER_GetClient( ulPlayer )->Address ));
+		Printf( "%s\\c- (%s) votes \"yes\".\n", players[ulPlayer].userinfo.GetName(), SERVER_GetClient( ulPlayer )->Address.ToString() );
 	else
 		Printf( "%s\\c- votes \"yes\".\n", players[ulPlayer].userinfo.GetName() );
 
@@ -424,7 +424,7 @@ bool CALLVOTE_VoteNo( ULONG ulPlayer )
 
 	// Display the message in the console.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		Printf( "%s\\c- (%s) votes \"no\".\n", players[ulPlayer].userinfo.GetName(), NETWORK_AddressToString( SERVER_GetClient( ulPlayer )->Address ));
+		Printf( "%s\\c- (%s) votes \"no\".\n", players[ulPlayer].userinfo.GetName(), SERVER_GetClient( ulPlayer )->Address.ToString() );
 	else
 		Printf( "%s\\c- votes \"no\".\n", players[ulPlayer].userinfo.GetName() );
 
