@@ -174,12 +174,16 @@ enum
 // This is the longest possible string we can pass over the network.
 #define	MAX_NETWORK_STRING			2048
 
+//*****************************************************************************
+// [BB] Allows to easily use char[4][4] references as function arguments.
+typedef char IPStringArray[4][4];
+
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 //-- STRUCTURES ------------------------------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //*****************************************************************************
-typedef struct
+struct NETADDRESS_s
 {
 	// Four digit IP address.
 	BYTE		abIP[4];
@@ -190,7 +194,14 @@ typedef struct
 	// What's this for?
 	USHORT		usPad;
 
-} NETADDRESS_s;
+	bool Compare ( const NETADDRESS_s& other, bool ignorePort ) const;
+	void ToIPStringArray ( IPStringArray& address ) const;
+	struct sockaddr_in ToSocketAddress() const;
+	const char* ToHostName() const;
+
+	static bool FromString ( const char* string, NETADDRESS_s& target );
+	static NETADDRESS_s FromSocketAddress ( const struct sockaddr_in& sockaddr );
+};
 
 //*****************************************************************************
 typedef struct
@@ -247,10 +258,6 @@ typedef struct
 	BUFFERTYPE_e	BufferType;
 
 } NETBUFFER_s;
-
-//*****************************************************************************
-// [BB] Allows to easily use char[4][4] references as function arguments.
-typedef char IPStringArray[4][4];
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 //-- PROTOTYPES ------------------------------------------------------------------------------------------------------------------------------------

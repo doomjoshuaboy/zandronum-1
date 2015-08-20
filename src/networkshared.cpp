@@ -360,18 +360,18 @@ void NETWORK_WriteHeader( BYTESTREAM_s *pByteStream, int Byte )
 
 //*****************************************************************************
 //
-bool NETWORK_CompareAddress( NETADDRESS_s Address1, NETADDRESS_s Address2, bool bIgnorePort )
+bool NETADDRESS_s::Compare ( const NETADDRESS_s& other, bool ignorePort ) const
 {
-	return (( Address1.abIP[0] == Address2.abIP[0] ) &&
-		( Address1.abIP[1] == Address2.abIP[1] ) &&
-		( Address1.abIP[2] == Address2.abIP[2] ) &&
-		( Address1.abIP[3] == Address2.abIP[3] ) &&
-		( bIgnorePort ? 1 : ( Address1.usPort == Address2.usPort )));
+	return (( abIP[0] == other.abIP[0] ) &&
+		( abIP[1] == other.abIP[1] ) &&
+		( abIP[2] == other.abIP[2] ) &&
+		( abIP[3] == other.abIP[3] ) &&
+		( ignorePort ? 1 : ( usPort == other.usPort )));
 }
 
 //*****************************************************************************
 //
-bool NETWORK_StringToAddress( const char *s, NETADDRESS_s *a )
+bool NETADDRESS_s::FromString ( const char* string, NETADDRESS_s& target )
 {
 	struct hostent  *h;
 	struct sockaddr_in sadr;
@@ -383,7 +383,7 @@ bool NETWORK_StringToAddress( const char *s, NETADDRESS_s *a )
 
 	sadr.sin_port = 0;
 
-	strncpy (copy, s, 512-1);
+	strncpy (copy, string, 512-1);
 	copy[512-1] = 0;
 
 	// strip off a trailing :port if present
@@ -412,32 +412,85 @@ bool NETWORK_StringToAddress( const char *s, NETADDRESS_s *a )
 			*(int *)&sadr.sin_addr = ulRet;
 	}
 
-	NETWORK_SocketAddressToNetAddress (&sadr, a);
-
+	target = NETADDRESS_s::FromSocketAddress( sadr );
 	return true;
+}
+
+//*****************************************************************************
+//
+NETADDRESS_s NETADDRESS_s::FromSocketAddress ( const sockaddr_in& sockaddr )
+{
+	NETADDRESS_s result;
+	*(int *)&result.abIP = *(const int *)&sockaddr.sin_addr;
+	result.usPort = sockaddr.sin_port;
+	return result;
+}
+
+//*****************************************************************************
+//
+sockaddr_in NETADDRESS_s::ToSocketAddress() const
+{
+	sockaddr_in result;
+	memset( &result, 0, sizeof result );
+	*(int *)&result.sin_addr = *(const int *)&abIP;
+	result.sin_port = usPort;
+	result.sin_family = AF_INET;
+	return result;
+}
+
+//*****************************************************************************
+//
+const char* NETADDRESS_s::ToHostName() const
+{
+	//gethostbyaddr();
+	struct hostent *hp;
+	struct sockaddr_in socketAddress = ToSocketAddress();
+	static char		s_szName[256];
+
+	hp = gethostbyaddr( (char *) &(socketAddress.sin_addr), sizeof(socketAddress.sin_addr), AF_INET );
+
+	if ( hp )
+		strncpy ( s_szName, (char *)hp->h_name, sizeof(s_szName) - 1 );
+	else
+		sprintf ( s_szName, "host_not_found" );
+
+	return s_szName;
+}
+
+//*****************************************************************************
+//
+void NETADDRESS_s::ToIPStringArray( IPStringArray& address ) const
+{
+	for ( int i = 0; i < 4; ++i )
+		itoa( abIP[i], address[i], 10 );
+}
+
+//*****************************************************************************
+//
+bool NETWORK_CompareAddress( NETADDRESS_s Address1, NETADDRESS_s Address2, bool bIgnorePort )
+{
+	return Address1.Compare( Address2, bIgnorePort );
+}
+
+//*****************************************************************************
+//
+bool NETWORK_StringToAddress( const char *s, NETADDRESS_s *a )
+{
+	return NETADDRESS_s::FromString( s, *a );
 }
 
 //*****************************************************************************
 //
 void NETWORK_SocketAddressToNetAddress( struct sockaddr_in *s, NETADDRESS_s *a )
 {
-     *(int *)&a->abIP = *(int *)&s->sin_addr;
-     a->usPort = s->sin_port;
+    *a = NETADDRESS_s::FromSocketAddress( *s );
 }
 
 //*****************************************************************************
 //
 void NETWORK_NetAddressToSocketAddress( NETADDRESS_s &Address, struct sockaddr_in &SocketAddress )
 {
-	// Initialize the socket address.
-	memset( &SocketAddress, 0, sizeof( SocketAddress ));
-
-	// Set the socket's address and port.
-	*(int *)&SocketAddress.sin_addr = *(int *)&Address.abIP;
-	SocketAddress.sin_port = Address.usPort;
-
-	// Set the socket address's family (what does this do?).
-	SocketAddress.sin_family = AF_INET;
+	SocketAddress = Address.ToSocketAddress();
 }
 
 //*****************************************************************************
@@ -537,30 +590,14 @@ bool NETWORK_StringToIP( const char *pszAddress, char *pszIP0, char *pszIP1, cha
 //
 void NETWORK_AddressToIPStringArray( const NETADDRESS_s &Address, IPStringArray &szAddress )
 {
-	for ( int i = 0; i < 4; ++i )
-		itoa( Address.abIP[i], szAddress[i], 10 );
+	Address.ToIPStringArray( szAddress );
 }
 
 //*****************************************************************************
 //
 const char *NETWORK_GetHostByIPAddress( NETADDRESS_s Address )
 {
-	//gethostbyaddr();
-	struct hostent *hp;
-	struct sockaddr_in socketAddress;// = (struct sockaddr_in *) (&sa);
-	static char		s_szName[256];
-
-	// Convert the IP address to a socket address.
-	NETWORK_NetAddressToSocketAddress ( Address, socketAddress );
-
-	hp = gethostbyaddr( (char *) &(socketAddress.sin_addr), sizeof(socketAddress.sin_addr), AF_INET );
-
-	if ( hp )
-		strncpy ( s_szName, (char *)hp->h_name, sizeof(s_szName) - 1 );
-	else
-		sprintf ( s_szName, "host_not_found" );
-
-	return s_szName;
+	return Address.ToHostName();
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------
