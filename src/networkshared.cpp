@@ -962,7 +962,7 @@ ULONG IPList::getFirstMatchingEntryIndex( const IPStringArray &szAddress ) const
 ULONG IPList::getFirstMatchingEntryIndex( const NETADDRESS_s &Address ) const
 {
 	IPStringArray szAddress;
-	NETWORK_AddressToIPStringArray( Address, szAddress );
+	Address.ToIPStringArray( szAddress );
 	return getFirstMatchingEntryIndex( szAddress );
 }
 
@@ -978,7 +978,7 @@ bool IPList::isIPInList( const IPStringArray &szAddress ) const
 bool IPList::isIPInList( const NETADDRESS_s &Address ) const
 {
 	IPStringArray szAddress;
-	NETWORK_AddressToIPStringArray( Address, szAddress );
+	Address.ToIPStringArray( szAddress );
 	return isIPInList( szAddress );
 }
 
