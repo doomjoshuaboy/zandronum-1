@@ -511,34 +511,6 @@ const char* NETADDRESS_s::ToStringNoPort() const
 
 //*****************************************************************************
 //
-bool NETWORK_CompareAddress( NETADDRESS_s Address1, NETADDRESS_s Address2, bool bIgnorePort )
-{
-	return Address1.Compare( Address2, bIgnorePort );
-}
-
-//*****************************************************************************
-//
-bool NETWORK_StringToAddress( const char *s, NETADDRESS_s *a )
-{
-	return a->LoadFromString( s );
-}
-
-//*****************************************************************************
-//
-void NETWORK_SocketAddressToNetAddress( struct sockaddr_in *s, NETADDRESS_s *a )
-{
-    *a = NETADDRESS_s::FromSocketAddress( *s );
-}
-
-//*****************************************************************************
-//
-void NETWORK_NetAddressToSocketAddress( NETADDRESS_s &Address, struct sockaddr_in &SocketAddress )
-{
-	SocketAddress = Address.ToSocketAddress();
-}
-
-//*****************************************************************************
-//
 bool NETWORK_StringToIP( const char *pszAddress, char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3 )
 {
 	char	szCopy[16];
@@ -628,20 +600,6 @@ bool NETWORK_StringToIP( const char *pszAddress, char *pszIP0, char *pszIP1, cha
 		return ( false );
 
     return ( true );
-}
-
-//*****************************************************************************
-//
-void NETWORK_AddressToIPStringArray( const NETADDRESS_s &Address, IPStringArray &szAddress )
-{
-	Address.ToIPStringArray( szAddress );
-}
-
-//*****************************************************************************
-//
-const char *NETWORK_GetHostByIPAddress( NETADDRESS_s Address )
-{
-	return Address.ToHostName();
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------

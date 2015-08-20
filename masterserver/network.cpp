@@ -339,35 +339,6 @@ return;
 
 //*****************************************************************************
 //
-char *NETWORK_AddressToString( NETADDRESS_s Address )
-{
-	static char	s_szAddress[64];
-
-	sprintf( s_szAddress, "%i.%i.%i.%i:%i", Address.abIP[0], Address.abIP[1], Address.abIP[2], Address.abIP[3], ntohs( Address.usPort ));
-
-	return ( s_szAddress );
-}
-
-//*****************************************************************************
-//
-char *NETWORK_AddressToStringIgnorePort( NETADDRESS_s Address )
-{
-	static char	s_szAddress[64];
-
-	sprintf( s_szAddress, "%i.%i.%i.%i", Address.abIP[0], Address.abIP[1], Address.abIP[2], Address.abIP[3] );
-
-	return ( s_szAddress );
-}
-
-//*****************************************************************************
-//
-void NETWORK_SetAddressPort( NETADDRESS_s &Address, USHORT usPort )
-{
-	Address.usPort = htons( usPort );
-}
-
-//*****************************************************************************
-//
 NETADDRESS_s NETWORK_GetLocalAddress( void )
 {
 	char				szBuffer[512];

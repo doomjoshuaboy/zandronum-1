@@ -467,7 +467,7 @@ BOOL CALLBACK main_ConnectDialogCallback( HWND hDlg, UINT Message, WPARAM wParam
 
 				// Read in what the user gave us.
 				GetDlgItemText( hDlg, IDC_SERVERIP, szBuffer, 128 );
-				NETADDRESS_s::FromString( szBuffer, g_ServerAddress );
+				g_ServerAddress = NETADDRESS_s::FromString( szBuffer );
 				GetDlgItemText( hDlg, IDC_PASSWORD, g_szPassword, 128 );
 
 				// If the user didn't specify a port, use the default one.
@@ -582,7 +582,7 @@ static void main_ConnectToFavorite( int iIndex )
 	SetDlgItemText( g_hDlg, IDC_PASSWORD, g_Favorites[iIndex].szPassword );
 
 	// Connect.
-	NETADDRESS_s::FromString( g_Favorites[iIndex].szAddress, g_ServerAddress );
+	g_ServerAddress = NETADDRESS_s::FromString( g_Favorites[iIndex].szAddress );
 	strncpy( g_szPassword, g_Favorites[iIndex].szPassword, 127 );
 	main_AttemptConnection( );
 }
