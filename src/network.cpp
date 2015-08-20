@@ -573,7 +573,7 @@ int NETWORK_GetPackets( void )
 		return ( 0 );
 
 	// Store the IP address of the sender.
-	NETWORK_SocketAddressToNetAddress( &SocketFrom, &g_AddressFrom );
+	g_AddressFrom = NETADDRESS_s::FromSocketAddress( SocketFrom );
 
 	// Decode the huffman-encoded message we received.
 	// [BB] Communication with the auth server is not Huffman-encoded.
@@ -662,7 +662,7 @@ int NETWORK_GetLANPackets( void )
 		return ( 0 );
 
 	// Store the IP address of the sender.
-	NETWORK_SocketAddressToNetAddress( &SocketFrom, &g_AddressFrom );
+	g_AddressFrom = NETADDRESS_s::FromSocketAddress( SocketFrom );
 
 	// Decode the huffman-encoded message we received.
 	// [BB] Communication with the auth server is not Huffman-encoded.
@@ -697,7 +697,6 @@ void NETWORK_LaunchPacket( NETBUFFER_s *pBuffer, NETADDRESS_s Address )
 {
 	LONG				lNumBytes;
 	INT					iNumBytesOut = sizeof(g_ucHuffmanBuffer);
-	struct sockaddr_in	SocketAddress;
 
 	pBuffer->ulCurrentSize = NETWORK_CalcBufferSize( pBuffer );
 
@@ -706,7 +705,7 @@ void NETWORK_LaunchPacket( NETBUFFER_s *pBuffer, NETADDRESS_s Address )
 		return;
 
 	// Convert the IP address to a socket address.
-	NETWORK_NetAddressToSocketAddress( Address, SocketAddress );
+	struct sockaddr_in SocketAddress = Address.ToSocketAddress();
 
 	// [BB] Communication with the auth server is not Huffman-encoded.
 	if ( NETWORK_CompareAddress( Address, NETWORK_AUTH_GetCachedServerAddress( ), false ) == false )

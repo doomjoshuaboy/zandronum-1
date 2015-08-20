@@ -259,7 +259,7 @@ int NETWORK_GetPackets( void )
 	g_NetworkMessage.ByteStream.pbStreamEnd = g_NetworkMessage.ByteStream.pbStream + g_NetworkMessage.ulCurrentSize;
 
 	// Store the IP address of the sender.
-    NETWORK_SocketAddressToNetAddress( &SocketFrom, &g_AddressFrom );
+	g_AddressFrom = NETADDRESS_s::FromSocketAddress( SocketFrom );
 
 	return ( g_NetworkMessage.ulCurrentSize );
 }
@@ -277,7 +277,6 @@ void NETWORK_LaunchPacket( NETBUFFER_s *pBuffer, NETADDRESS_s Address )
 {
 	LONG				lNumBytes;
 	INT					iNumBytesOut = sizeof(g_ucHuffmanBuffer);
-	struct sockaddr_in	SocketAddress;
 
 	pBuffer->ulCurrentSize = NETWORK_CalcBufferSize( pBuffer );
 
@@ -286,7 +285,7 @@ void NETWORK_LaunchPacket( NETBUFFER_s *pBuffer, NETADDRESS_s Address )
 		return;
 
 	// Convert the IP address to a socket address.
-	NETWORK_NetAddressToSocketAddress( Address, SocketAddress );
+	struct sockaddr_in SocketAddress = Address.ToSocketAddress();
 
 	HUFFMAN_Encode( (unsigned char *)pBuffer->pbData, g_ucHuffmanBuffer, pBuffer->ulCurrentSize, &iNumBytesOut );
 

@@ -203,9 +203,6 @@ void SERVER_MASTER_Tick( void )
 //
 void SERVER_MASTER_Broadcast( void )
 {
-	NETADDRESS_s	AddressBroadcast;
-	sockaddr_in		broadcast_addr;
-
 	// Send an update to the master server every second.
 	if ( gametic % TICRATE )
 		return;
@@ -216,10 +213,11 @@ void SERVER_MASTER_Broadcast( void )
 
 //	NETWORK_ClearBuffer( &g_MasterServerBuffer );
 
+	sockaddr_in broadcast_addr;
 	broadcast_addr.sin_family = AF_INET;
 	broadcast_addr.sin_addr.s_addr = INADDR_BROADCAST;
 	broadcast_addr.sin_port = htons( DEFAULT_BROADCAST_PORT );
-	NETWORK_SocketAddressToNetAddress( &broadcast_addr, &AddressBroadcast );
+	NETADDRESS_s AddressBroadcast = NETADDRESS_s::FromSocketAddress( broadcast_addr );
 
 	// [BB] Under all Windows versions broadcasts to INADDR_BROADCAST seem to work fine
 	// while class A broadcasts don't work under Vista/7. So just use INADDR_BROADCAST.
