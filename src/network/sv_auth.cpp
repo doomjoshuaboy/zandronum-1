@@ -156,7 +156,7 @@ NETADDRESS_s NETWORK_AUTH_GetServerAddress( void )
 
 	// [BB] If authhostname doesn't include the port, use the default port.
 	if ( authServerAddress.usPort == 0 )
-		NETWORK_SetAddressPort( authServerAddress, DEFAULT_AUTH_SERVER_PORT );
+		authServerAddress.SetPort( DEFAULT_AUTH_SERVER_PORT );
 
 	return ( authServerAddress );
 }

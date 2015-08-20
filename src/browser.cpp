@@ -747,7 +747,7 @@ void BROWSER_QueryMasterServer( void )
 
 	// Setup the master server IP.
 	NETWORK_StringToAddress( masterhostname.GetGenericRep( CVAR_String ).String, &g_AddressMasterServer );
-	NETWORK_SetAddressPort( g_AddressMasterServer, g_usMasterPort );
+	g_AddressMasterServer.SetPort( g_usMasterPort );
 
 	// Clear out the buffer, and write out launcher challenge.
 	NETWORK_ClearBuffer( &g_MasterServerBuffer );
