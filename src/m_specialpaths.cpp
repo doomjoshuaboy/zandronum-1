@@ -204,7 +204,7 @@ FString M_GetConfigPath(bool for_reading)
 	{
 		path += "/" GAME_DIR;
 		CreatePath(path);
-		path += "/"GAMENAMELOWERCASE".ini"; // [BB]
+		path += "/" GAMENAMELOWERCASE ".ini"; // [BB]
 	}
 	else
 	{ // construct "$PROGDIR/zdoom-$USER.ini"
