@@ -576,6 +576,7 @@ void FString::SwapCase ()
 void FString::StripLeft ()
 {
 	size_t max = Len(), i, j;
+	if (max == 0) return;
 	for (i = 0; i < max; ++i)
 	{
 		if (!isspace(Chars[i]))
@@ -606,6 +607,7 @@ void FString::StripLeft (const FString &charset)
 void FString::StripLeft (const char *charset)
 {
 	size_t max = Len(), i, j;
+	if (max == 0) return;
 	for (i = 0; i < max; ++i)
 	{
 		if (!strchr (charset, Chars[i]))
@@ -658,6 +660,7 @@ void FString::StripRight (const FString &charset)
 void FString::StripRight (const char *charset)
 {
 	size_t max = Len(), i;
+	if (max == 0) return;
 	for (i = max; i-- > 0; )
 	{
 		if (!strchr (charset, Chars[i]))
@@ -680,6 +683,7 @@ void FString::StripRight (const char *charset)
 void FString::StripLeftRight ()
 {
 	size_t max = Len(), i, j, k;
+	if (max == 0) return;
 	for (i = 0; i < max; ++i)
 	{
 		if (!isspace(Chars[i]))
@@ -716,6 +720,7 @@ void FString::StripLeftRight (const FString &charset)
 void FString::StripLeftRight (const char *charset)
 {
 	size_t max = Len(), i, j, k;
+	if (max == 0) return;
 	for (i = 0; i < max; ++i)
 	{
 		if (!strchr (charset, Chars[i]))
