@@ -232,7 +232,8 @@ public:
 FVoxelVertexBuffer::FVoxelVertexBuffer(TArray<FVoxelVertex> &verts, TArray<unsigned int> &indices)
 {
 	ibo_id = 0;
-	if (gl.flags&RFL_VBO)
+	// [BB] The voxel vertex buffer seems to require OGL 4.
+	if ( (gl.flags&RFL_VBO) && (gl.flags&RFL_GL_40) )
 	{
 		glGenBuffers(1, &ibo_id);
 
@@ -470,7 +471,8 @@ bool FVoxelModel::Load(const char * fn, int lumpnum, const char * buffer, int le
 
 void FVoxelModel::MakeGLData()
 {
-	if (gl.flags&RFL_VBO)
+	// [BB] The voxel vertex buffer seems to require OGL 4.
+	if ( (gl.flags&RFL_VBO) && (gl.flags&RFL_GL_40) )
 	{
 		mVBO = new FVoxelVertexBuffer(mVertices, mIndices);
 	}

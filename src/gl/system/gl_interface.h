@@ -22,6 +22,7 @@ enum RenderFlags
 	RFL_GL_20 = 0x10000000,
 	RFL_GL_21 = 0x20000000,
 	RFL_GL_30 = 0x40000000,
+	RFL_GL_40 = 0x80000000, // [BB]
 };
 
 enum TexMode
