@@ -676,6 +676,14 @@ OptionValue Fuzziness
 	2.0, "Shadow"
 }
 
+// [TP]
+OptionValue ZA_RespawnInvulEffects
+{
+	0.0, "None"
+	1.0, "Skulltag"
+	2.0, "ZDoom"
+}
+
 OptionMenu "VideoOptions"
 {
 	Title "DISPLAY OPTIONS"
