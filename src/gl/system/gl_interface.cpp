@@ -185,6 +185,8 @@ void gl_LoadExtensions()
 	if (strcmp(version, "2.0") >= 0) gl.flags|=RFL_GL_20;
 	if (strcmp(version, "2.1") >= 0) gl.flags|=RFL_GL_21;
 	if (strcmp(version, "3.0") >= 0) gl.flags|=RFL_GL_30;
+	// [BB]
+	if (strcmp(version, "4.0") >= 0) gl.flags|=RFL_GL_40;
 
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE,&gl.max_texturesize);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
