@@ -4519,6 +4519,24 @@ bool SERVER_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case CLC_SRP_USER_PROCESS_CHALLENGE:
 
 		return SERVER_ProcessSRPClientCommand( lCommand, pByteStream );
+	case CLC_WARPCHEAT:
+
+		{
+			fixed_t x = NETWORK_ReadLong( pByteStream );
+			fixed_t y = NETWORK_ReadLong( pByteStream );
+
+			if ( sv_cheats || players[g_lCurrentClient].bSpectating )
+			{
+				if ( players[g_lCurrentClient].mo )
+					P_TeleportMove( players[g_lCurrentClient].mo, x, y, ONFLOORZ, true );
+			}
+			else
+			{
+				SERVER_KickPlayer( g_lCurrentClient, "Attempted to cheat with sv_cheats being false!" );
+				return ( true );
+			}
+		}
+		break;
 	default:
 
 		Printf( PRINT_HIGH, "SERVER_ParseCommands: Unknown client message: %d\n", static_cast<int> (lCommand) );

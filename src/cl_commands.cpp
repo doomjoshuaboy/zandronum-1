@@ -607,3 +607,12 @@ void CLIENTCOMMANDS_InfoCheat( AActor* mobj, bool extended )
 	NETWORK_WriteShort( &CLIENT_GetLocalBuffer( )->ByteStream, mobj->lNetID );
 	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, extended );
 }
+
+//*****************************************************************************
+// [TP]
+void CLIENTCOMMANDS_WarpCheat( fixed_t x, fixed_t y )
+{
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_WARPCHEAT );
+	NETWORK_WriteLong( &CLIENT_GetLocalBuffer( )->ByteStream, x );
+	NETWORK_WriteLong( &CLIENT_GetLocalBuffer( )->ByteStream, y );
+}
