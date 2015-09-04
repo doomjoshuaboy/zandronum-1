@@ -83,6 +83,7 @@ enum ClientDemoLocalCommand
 	CLD_LCMD_CENTERVIEW,
 	CLD_LCMD_TAUNT,
 	CLD_LCMD_CHEAT,
+	CLD_LCMD_WARPCHEAT,
 };
 
 //*****************************************************************************
@@ -104,6 +105,7 @@ void		CLIENTDEMO_FinishPlaying( void );
 LONG		CLIENTDEMO_GetGameticOffset( void );
 void		CLIENTDEMO_WriteLocalCommand( ClientDemoLocalCommand command, const char *pszArg );
 void		CLIENTDEMO_WriteCheat( ECheatCommand cheat );
+void		CLIENTDEMO_WriteWarpCheat( fixed_t x, fixed_t y );
 void		CLIENTDEMO_ReadDemoWads( void );
 BYTESTREAM_s *CLIENTDEMO_GetDemoStream( void );
 
