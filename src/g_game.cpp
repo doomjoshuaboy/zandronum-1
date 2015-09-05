@@ -4014,7 +4014,7 @@ void GAME_ResetMap( bool bRunEnterScripts )
 
 //*****************************************************************************
 //
-void GAME_RequestMapRest( void )
+void GAME_RequestMapReset( void )
 {
 	g_bResetMap = true;
 }
