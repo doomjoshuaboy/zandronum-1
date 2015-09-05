@@ -2312,9 +2312,16 @@ void SERVER_ClientError( ULONG ulClient, ULONG ulErrorCode )
 			else
 				Printf( "Client banned.\n" );
 
-			// Tell the client why he was banned, and when his ban expires.
-			NETWORK_WriteString( &g_aClients[ulClient].PacketBuffer.ByteStream, banReason );
-			NETWORK_WriteLong( &g_aClients[ulClient].PacketBuffer.ByteStream, (LONG) SERVERBAN_GetBanList( )->getEntryExpiration( g_aClients[ulClient].Address ));
+			bool masterban = SERVERBAN_IsIPMasterBanned( g_aClients[ulClient].Address );
+			NETWORK_WriteByte( &g_aClients[ulClient].PacketBuffer.ByteStream, masterban );
+
+			if ( masterban == false )
+			{
+				// Tell the client why he was banned, and when his ban expires.
+				NETWORK_WriteString( &g_aClients[ulClient].PacketBuffer.ByteStream, banReason );
+				NETWORK_WriteLong( &g_aClients[ulClient].PacketBuffer.ByteStream, (LONG) SERVERBAN_GetBanList( )->getEntryExpiration( g_aClients[ulClient].Address ));
+				NETWORK_WriteString( &g_aClients[ulClient].PacketBuffer.ByteStream, sv_hostemail );
+			}
 		}
 		break;
 	case NETWORK_ERRORCODE_AUTHENTICATIONFAILED:

@@ -1498,6 +1498,13 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 				break;
 			case NETWORK_ERRORCODE_BANNED:
 
+				// [TP] Is this a master ban?
+				if ( !!NETWORK_ReadByte( pByteStream ))
+				{
+					szErrorString = "Couldn't connect. \\cgYou have been banned from " GAMENAME "'s master server!\\c-\n"
+						"If you feel this is in error, you may contact the staff at " FORUM_URL;
+				}
+				else
 				{
 					szErrorString = "Couldn't connect. \\cgYou have been banned from this server!\\c-";
 
@@ -1517,8 +1524,18 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 						strftime( szDate, 32, "%m/%d/%Y %H:%M", pTimeInfo);
 						szErrorString = szErrorString + "\nYour ban expires on: " + szDate + " (server time)";
 					}
-					break;
+
+					// [TP] Read in contact information, if any.
+					FString contact = NETWORK_ReadString( pByteStream );
+					if ( contact.IsNotEmpty() )
+					{
+						szErrorString.AppendFormat( "\nIf you feel this is in error, you may contact the server "
+							"host at: %s", contact.GetChars() );
+					}
+					else
+						szErrorString += "\nThis server has not provided any contact information.";
 				}
+				break;
 			case NETWORK_ERRORCODE_SERVERISFULL:
 
 				szErrorString = "Server is full.";
