@@ -2943,7 +2943,7 @@ void SERVERCOMMANDS_SetSectorLightLevel( ULONG ulSector, ULONG ulPlayerExtra, Se
 
 	NetCommand command( SVC_SETSECTORLIGHTLEVEL );
 	command.addShort( ulSector );
-	command.addByte( sectors[ulSector].lightlevel );
+	command.addByte( clamp<int>( sectors[ulSector].lightlevel, 0, 255 ));
 	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
