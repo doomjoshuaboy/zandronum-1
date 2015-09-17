@@ -61,6 +61,7 @@
 #include "lastmanstanding.h"
 #include "deathmatch.h"
 #include "chat.h"
+#include "network_enums.h"
 
 //*****************************************************************************
 //	VARIABLES
@@ -450,7 +451,17 @@ void CLIENTCOMMANDS_GiveCheat( char *pszItem, LONG lAmount )
 //
 void CLIENTCOMMANDS_SummonCheat( const char *pszItem, LONG lType, const bool bSetAngle, const SHORT sAngle )
 {
-	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, lType );
+	int commandtype = 0;
+
+	switch ( lType )
+	{
+	case DEM_SUMMON: commandtype = CLC_SUMMONCHEAT; break;
+	case DEM_SUMMONFRIEND: commandtype = CLC_SUMMONFRIENDCHEAT; break;
+	case DEM_SUMMONFOE: commandtype = CLC_SUMMONFOECHEAT; break;
+	default: return;
+	}
+
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, commandtype );
 	NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, pszItem );
 	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, bSetAngle );
 	if ( bSetAngle )

@@ -118,6 +118,7 @@
 #include "network/sv_auth.h"
 #include "unlagged.h" // [CK]
 #include "r_data/colormaps.h"
+#include "network_enums.h"
 
 //*****************************************************************************
 //	MISC CRAP THAT SHOULDN'T BE HERE BUT HAS TO BE BECAUSE OF SLOPPY CODING

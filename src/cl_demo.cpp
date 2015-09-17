@@ -72,6 +72,26 @@
 #include "templates.h"
 #include "r_data/r_translate.h"
 #include "m_cheat.h"
+#include "network_enums.h"
+
+//*****************************************************************************
+enum 
+{
+	// [BC] Message headers with bytes starting with 0 and going sequentially
+	// isn't very distinguishing from other formats (such as normal ZDoom demos),
+	// but does that matter?
+	CLD_DEMOLENGTH = NUM_SERVER_COMMANDS,
+	CLD_DEMOVERSION,
+	CLD_CVARS,
+	CLD_USERINFO,
+	CLD_BODYSTART,
+	CLD_TICCMD,
+	CLD_LOCALCOMMAND, // [Dusk]
+	CLD_DEMOEND,
+	CLD_DEMOWADS, // [Dusk]
+
+	NUM_DEMO_COMMANDS
+};
 
 //*****************************************************************************
 //	PROTOTYPES
