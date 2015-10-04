@@ -4117,7 +4117,15 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\gl\hqnx_asm\hq2x_asm.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\gl\hqnx\hq3x.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\hqnx_asm\hq3x_asm.cpp"
 					>
 				</File>
 				<File
@@ -4125,7 +4133,23 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\gl\hqnx_asm\hq4x_asm.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\gl\hqnx\hqnx.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\hqnx_asm\hqnx_asm.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\hqnx_asm\hqnx_asm_Image.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\hqnx_asm\hqnx_asm_Image.h"
 					>
 				</File>
 				<File
