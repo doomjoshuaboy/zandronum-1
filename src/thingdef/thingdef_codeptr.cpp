@@ -2985,6 +2985,14 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_FadeTo)
 	ACTION_PARAM_FIXED(amount, 1);
 	ACTION_PARAM_BOOL(remove, 2);
 
+	// [EP] This is handled server-side.
+	if ( NETWORK_InClientModeAndActorNotClientHandled( self ) )
+		return;
+
+	// [EP] Store the old values of alpha and renderstyle for bandwidth.
+	BYTE oldrenderstyleflags = self->RenderStyle.Flags;
+	fixed_t oldalpha = self->alpha;
+
 	self->RenderStyle.Flags &= ~STYLEF_Alpha1;
 
 	if (self->alpha > target)
@@ -3005,9 +3013,31 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_FadeTo)
 			self->alpha = target;
 		}
 	}
+
+	// [EP] Inform the clients about possible alpha and renderstyle changes.
+	if ( NETWORK_GetState() == NETSTATE_SERVER )
+	{
+		if ( self->RenderStyle.Flags != oldrenderstyleflags )
+			SERVERCOMMANDS_SetThingProperty( self, APROP_RenderStyle );
+		if ( self->alpha != oldalpha )
+			SERVERCOMMANDS_SetThingProperty( self, APROP_Alpha );
+	}
+
+	// [EP] Only destroy the actor if it's not needed for a map reset. Otherwise just hide it.
 	if (self->alpha == target && remove)
 	{
-		self->Destroy();
+		// [EP] Deleting player bodies is a very bad idea.
+		if ( self->player && ( self->player->mo == self ) )
+		{
+			Printf ( PRINT_BOLD, "Warning: A_FadeTo may not delete player bodies that are still associated to a player!\n" );
+			return;
+		}
+
+		// [EP] Tell clients to destroy the actor.
+		if ( NETWORK_GetState() == NETSTATE_SERVER )
+			SERVERCOMMANDS_DestroyThing( self );
+
+		self->HideOrDestroyIfSafe();
 	}
 }
 
