@@ -1016,7 +1016,7 @@ public:
 
 	int Draw ( FOptionMenuDescriptor*, int y, int indent, bool selected )
 	{
-		bool grayed = mGrayCheck != NULL && !( mGrayCheck->GetGenericRep( CVAR_Bool ).Bool );
+		bool grayed = ( Selectable() == false );
 		drawLabel( indent, y, selected ? OptionSettings.mFontColorSelection : OptionSettings.mFontColor, grayed );
 		int overlay = grayed? MAKEARGB( 96, 48, 0, 0 ) : 0;
 
@@ -1057,6 +1057,12 @@ public:
 	bool IsServerInfo() const
 	{
 		return mCVar && mCVar->IsServerInfo();
+	}
+
+	bool Selectable()
+	{
+		return ( mGrayCheck == NULL || mGrayCheck->GetGenericRep( CVAR_Bool ).Bool )
+			&& FOptionMenuItem::Selectable();
 	}
 
 protected:
