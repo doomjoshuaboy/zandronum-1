@@ -116,7 +116,6 @@
 #include "po_man.h"
 #include "network/cl_auth.h"
 #include "network/sv_auth.h"
-#include "unlagged.h" // [CK]
 #include "r_data/colormaps.h"
 #include "network_enums.h"
 
