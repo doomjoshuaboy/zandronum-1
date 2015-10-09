@@ -357,6 +357,9 @@ enum
 
 	// [TP] Like ZADF_UNBLOCK_PLAYERS except only for teammates.
 	ZADF_UNBLOCK_ALLIES = 1 << 14,
+
+	// [TP] No dropping allowed.
+	ZADF_NODROP = 1 << 15,
 };
 
 // [RH] Compatibility flags.
