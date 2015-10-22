@@ -593,7 +593,7 @@ void AActor::Die (AActor *source, AActor *inflictor, int dmgflags)
 			}
 
 			// Play announcer sounds for amount of frags remaining.
-			if ( ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNFRAGS ) && fraglimit )
+			if ( ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSEARNFRAGS ) && fraglimit )
 			{
 				// [RH] Implement fraglimit
 				// [BC] Betterized!
@@ -779,7 +779,7 @@ void AActor::Die (AActor *source, AActor *inflictor, int dmgflags)
 		}
 						
 		// [BC] Increment team deathcount.
-		if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) && ( player->bOnTeam ))
+		if (( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS ) && ( player->bOnTeam ))
 			TEAM_SetDeathCount( player->ulTeam, TEAM_GetDeathCount( player->ulTeam ) + 1 );
 	}
 
@@ -923,16 +923,16 @@ void AActor::Die (AActor *source, AActor *inflictor, int dmgflags)
 		Destroy();
 	}
 
-	if (( (GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_COOPERATIVE) == false ) &&
+	if (( (GAMEMODE_GetCurrentFlags() & GMF_COOPERATIVE) == false ) &&
 		( NETWORK_GetState( ) != NETSTATE_SERVER ) &&
 		( NETWORK_InClientMode() == false ) &&
 		( GAMEMODE_IsGameInProgress() ))
 	{
 		if (( player ) && ( source ) && ( source->player ) && ( player != source->player ) && ( MeansOfDeath != NAME_SpawnTelefrag ))
 		{
-			if ((( ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNFRAGS ) == false ) || (( fraglimit == 0 ) || ( source->player->fragcount < fraglimit ))) &&
-				(( ( ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNWINS ) && !( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSONTEAMS ) ) == false ) || (( winlimit == 0 ) || ( source->player->ulWins < static_cast<ULONG>(winlimit) ))) &&
-				(( ( ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNWINS ) && ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSONTEAMS ) ) == false ) || (( winlimit == 0 ) || ( TEAM_GetWinCount( source->player->ulTeam ) < winlimit ))))
+			if ((( ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSEARNFRAGS ) == false ) || (( fraglimit == 0 ) || ( source->player->fragcount < fraglimit ))) &&
+				(( ( ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSEARNWINS ) && !( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS ) ) == false ) || (( winlimit == 0 ) || ( source->player->ulWins < static_cast<ULONG>(winlimit) ))) &&
+				(( ( ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSEARNWINS ) && ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS ) ) == false ) || (( winlimit == 0 ) || ( TEAM_GetWinCount( source->player->ulTeam ) < winlimit ))))
 			{
 				// Display a large "You were fragged by <name>." message in the middle of the screen.
 				if (( player - players ) == consoleplayer )
@@ -2168,8 +2168,8 @@ void PLAYER_SetFragcount( player_t *pPlayer, LONG lFragCount, bool bAnnounce, bo
 	// Don't announce events related to frag changes during teamplay, LMS,
 	// or possession games.
 	if (( bAnnounce ) &&
-		( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNFRAGS ) &&
-		!( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ))
+		( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSEARNFRAGS ) &&
+		!( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS ))
 	{
 		ANNOUNCER_PlayFragSounds( pPlayer - players, pPlayer->fragcount, lFragCount );
 	}
@@ -2177,7 +2177,7 @@ void PLAYER_SetFragcount( player_t *pPlayer, LONG lFragCount, bool bAnnounce, bo
 	// If this is a teamplay deathmatch, update the team frags.
 	if ( bUpdateTeamFrags )
 	{
-		if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) && ( pPlayer->bOnTeam ))
+		if (( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS ) && ( pPlayer->bOnTeam ))
 			TEAM_SetFragCount( pPlayer->ulTeam, TEAM_GetFragCount( pPlayer->ulTeam ) + ( lFragCount - pPlayer->fragcount ), bAnnounce );
 	}
 
@@ -2923,7 +2923,7 @@ bool PLAYER_IsValidPlayerWithMo( const ULONG ulPlayer )
 //
 bool PLAYER_IsTrueSpectator( player_t *pPlayer )
 {
-	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_DEADSPECTATORS )
+	if ( GAMEMODE_GetCurrentFlags() & GMF_DEADSPECTATORS )
 		return (( pPlayer->bSpectating ) && ( pPlayer->bDeadSpectator == false ));
 
 	return ( pPlayer->bSpectating );
@@ -3021,8 +3021,8 @@ bool PLAYER_ShouldSpawnAsSpectator( player_t *pPlayer )
 	// Players entering a teamplay game must choose a team first before joining the fray.
 	if (( pPlayer->bOnTeam == false ) || ( playeringame[pPlayer - players] == false ))
 	{
-		if ( ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) &&
-			( !( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_TEAMGAME ) || ( TemporaryTeamStarts.Size( ) == 0 ) ) &&
+		if ( ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS ) &&
+			( !( GAMEMODE_GetCurrentFlags() & GMF_TEAMGAME ) || ( TemporaryTeamStarts.Size( ) == 0 ) ) &&
 			(( dmflags2 & DF2_NO_TEAM_SELECT ) == false ))
 		{
 			return ( true );
@@ -3105,7 +3105,7 @@ LONG PLAYER_GetRailgunColor( player_t *pPlayer )
 void PLAYER_AwardDamagePointsForAllPlayers( void )
 {
 	if ( (zadmflags & ZADF_AWARD_DAMAGE_INSTEAD_KILLS)
-		&& (GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSEARNKILLS) )
+		&& (GAMEMODE_GetCurrentFlags() & GMF_PLAYERSEARNKILLS) )
 	{
 		for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 		{
@@ -3226,9 +3226,9 @@ void PLAYER_RemoveFriends( const ULONG ulPlayer )
 			( (ULONG)( pActor->FriendPlayer - 1 ) == ulPlayer) )
 		{
 			pActor->FriendPlayer = 0;
-			if ( !(GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_COOPERATIVE)
+			if ( !(GAMEMODE_GetCurrentFlags() & GMF_COOPERATIVE)
 				// [BB] In a gamemode with teams, monsters with DesignatedTeam need to keep MF_FRIENDLY.
-				&& ( !(GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS) || !TEAM_CheckIfValid ( pActor->DesignatedTeam ) ) )
+				&& ( !(GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS) || !TEAM_CheckIfValid ( pActor->DesignatedTeam ) ) )
 				pActor->flags &= ~MF_FRIENDLY; // this is required in DM or monsters will be friendly to all players
 		}
 	}

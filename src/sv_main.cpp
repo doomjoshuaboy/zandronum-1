@@ -1383,7 +1383,7 @@ void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 	SERVERCOMMANDS_SetLMSSpectatorSettings( g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 
 	// If this is CTF or ST, tell the client whether or not we're in simple mode.
-	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_USETEAMITEM )
+	if ( GAMEMODE_GetCurrentFlags() & GMF_USETEAMITEM )
 		SERVERCOMMANDS_SetSimpleCTFSTMode( g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 /*
 	// Send the map name, and have the client load it.
@@ -1447,7 +1447,7 @@ void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 	}
 
 	// In a game mode that involves teams, potentially decide a team for him.
-	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
+	if ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS )
 	{
 		// The server will decide his team!
 		// [BB] But don't put spectators on a team!
@@ -1518,7 +1518,7 @@ void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 		g_aClients[g_lCurrentClient].bRunEnterScripts = false;
 	}
 
-	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_USETEAMITEM )
+	if ( GAMEMODE_GetCurrentFlags() & GMF_USETEAMITEM )
 	{
 		// In ST/CTF games, let the incoming player know who has flags/skulls.
 		for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -2388,7 +2388,7 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 		SERVERCOMMANDS_DestroyAllInventory( ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
 
 		// Also send this player's team.
-		if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
+		if ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS )
 			SERVERCOMMANDS_SetPlayerTeam( ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
 
 		// Check if we need to tell the incoming player about any powerups this player may have.
@@ -2478,19 +2478,19 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 	}
 
 	// Server may have already picked a team for the incoming player. If so, tell him!
-	if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) && players[ulClient].bOnTeam )
+	if (( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS ) && players[ulClient].bOnTeam )
 		SERVERCOMMANDS_SetPlayerTeam( ulClient, ulClient, SVCF_ONLYTHISCLIENT );
 
 	// [BB] This game mode uses teams, so inform the incoming player about the scores/wins/frags of the teams.
-	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
+	if ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS )
 	{
 		for ( ulIdx = 0; ulIdx < teams.Size( ); ulIdx++ )
 		{
-			if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNWINS )
+			if ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSEARNWINS )
 				SERVERCOMMANDS_SetTeamWins( ulIdx, TEAM_GetWinCount( ulIdx ), false, ulClient, SVCF_ONLYTHISCLIENT );
-			else if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNPOINTS )
+			else if ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSEARNPOINTS )
 				SERVERCOMMANDS_SetTeamScore( ulIdx, TEAM_GetScore( ulIdx ), false, ulClient, SVCF_ONLYTHISCLIENT );
-			else if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNFRAGS )
+			else if ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSEARNFRAGS )
 				SERVERCOMMANDS_SetTeamFrags( ulIdx, TEAM_GetFragCount( ulIdx ), false, ulClient, SVCF_ONLYTHISCLIENT );
 		}
 	}
@@ -2503,14 +2503,14 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 
 		// [BB] In all cooperative game modes players get kills, otherwise they get frags
 		// (even if the game mode is not won with frags).
-		if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_COOPERATIVE )
+		if ( GAMEMODE_GetCurrentFlags() & GMF_COOPERATIVE )
 			SERVERCOMMANDS_SetPlayerKillCount( ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
 		else
 			SERVERCOMMANDS_SetPlayerFrags( ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
 
-		if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNWINS )
+		if ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSEARNWINS )
 			SERVERCOMMANDS_SetPlayerWins( ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
-		else if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNPOINTS )
+		else if ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSEARNPOINTS )
 			SERVERCOMMANDS_SetPlayerPoints( ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
 	}
 
@@ -2699,7 +2699,7 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 	}
 
 	// Tell clients the found/total item/secrets count.
-	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_COOPERATIVE )
+	if ( GAMEMODE_GetCurrentFlags() & GMF_COOPERATIVE )
 	{
 		SERVERCOMMANDS_SetMapNumFoundItems( ulClient, SVCF_ONLYTHISCLIENT );
 		SERVERCOMMANDS_SetMapNumTotalItems( ulClient, SVCF_ONLYTHISCLIENT );
@@ -3007,7 +3007,7 @@ void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo )
 	}
 
 	// If nobody's left on the server, zero out the scores.
-	if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) && ( SERVER_CalcNumPlayers( ) == 0 ))
+	if (( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS ) && ( SERVER_CalcNumPlayers( ) == 0 ))
 	{
 		for ( ULONG i = 0; i < teams.Size( ); i++ )
 		{
@@ -5440,7 +5440,7 @@ static bool server_RequestJoin( BYTESTREAM_s *pByteStream )
 		return ( false );
 
 	// Player can't rejoin their LMS/survival game if they are dead.
-	if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_DEADSPECTATORS ) && ( players[g_lCurrentClient].bDeadSpectator ))
+	if (( GAMEMODE_GetCurrentFlags() & GMF_DEADSPECTATORS ) && ( players[g_lCurrentClient].bDeadSpectator ))
 		return ( false );
 
 	// If we're forcing a join password, prevent him from joining if it doesn't match.
@@ -5474,8 +5474,8 @@ static bool server_RequestJoin( BYTESTREAM_s *pByteStream )
 	// [BB] It's possible that you are watching through the eyes of someone else
 	// upon joining. Doesn't hurt to reset it.
 	g_aClients[g_lCurrentClient].ulDisplayPlayer = g_lCurrentClient;
-	if ( ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) &&
-		( !( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_TEAMGAME ) || ( TemporaryTeamStarts.Size( ) == 0 ) ) )
+	if ( ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS ) &&
+		( !( GAMEMODE_GetCurrentFlags() & GMF_TEAMGAME ) || ( TemporaryTeamStarts.Size( ) == 0 ) ) )
 	{
 		players[g_lCurrentClient].bOnTeam = true;
 		players[g_lCurrentClient].ulTeam = TEAM_ChooseBestTeamForPlayer( );
@@ -5603,7 +5603,7 @@ static bool server_ChangeTeam( BYTESTREAM_s *pByteStream )
 		return ( false );
 
 	// Not a teamgame.
-	if ( !( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) )
+	if ( !( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS ) )
 		return ( false );
 
 	// Player can't rejoin their LMS game if they are dead.
@@ -6021,7 +6021,7 @@ static bool server_AuthenticateLevel( BYTESTREAM_s *pByteStream )
 	SERVERCOMMANDS_SetLMSSpectatorSettings( g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 
 	// If this is CTF or ST, tell the client whether or not we're in simple mode.
-	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_USETEAMITEM )
+	if ( GAMEMODE_GetCurrentFlags() & GMF_USETEAMITEM )
 		SERVERCOMMANDS_SetSimpleCTFSTMode( g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 
 	// Send the map name, and have the client load it.
