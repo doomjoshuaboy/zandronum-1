@@ -3290,34 +3290,26 @@ CCMD (kill)
 	if ( gamestate != GS_LEVEL )
 		return;
 
-	// [BB] The server can't suicide, so it can ignore this checks.
-	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-	{
-		// [BC] Don't let spectators kill themselves.
-		if ( players[consoleplayer].bSpectating == true )
-			return;
-
-		// [BC] Don't allow suiciding during a duel.
-		if ( duel && ( DUEL_GetState( ) == DS_INDUEL ))
-		{
-			Printf( "You cannot suicide during a duel.\n" );
-			return;
-		}
-	}
-
 	if (argv.argc() > 1)
 	{
 		// [BB] Special handling for "kill monsters" on the server: It's allowed
 		// independent of the sv_cheats setting and bypasses the DEM_* handling.
-		if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && !stricmp (argv[1], "monsters") )
+		// [TP] Also handle the kill [class] case
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		{
-			const int killcount = P_Massacre ();
-			SERVER_Printf( PRINT_HIGH, "%d Monster%s Killed\n", killcount, killcount==1 ? "" : "s" );
+			SERVER_KillCheat( argv[1] );
 			return;
 		}
 
 		if (CheckCheatmode ())
 			return;
+
+		// [TP] If we're the client, ask the server to do this
+		if ( NETWORK_GetState() == NETSTATE_CLIENT )
+		{
+			CLIENTCOMMANDS_KillCheat( argv[1] );
+			return;
+		}
 
 		if (!stricmp (argv[1], "monsters"))
 		{
@@ -3336,6 +3328,21 @@ CCMD (kill)
 	}
 	else
 	{
+		// [BB] The server can't suicide, so it can ignore this checks.
+		if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+		{
+			// [BC] Don't let spectators kill themselves.
+			if ( players[consoleplayer].bSpectating == true )
+				return;
+
+			// [BC] Don't allow suiciding during a duel.
+			if ( duel && ( DUEL_GetState( ) == DS_INDUEL ))
+			{
+				Printf( "You cannot suicide during a duel.\n" );
+				return;
+			}
+		}
+
 		// If suiciding is disabled, then don't do it.
 		if (dmflags2 & DF2_NOSUICIDE)
 		{
