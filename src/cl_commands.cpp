@@ -546,7 +546,7 @@ void CLIENTCOMMANDS_RequestInventoryDrop( AInventory *pItem )
 
 	if ( sv_limitcommands )
 	{
-		if ( !(GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_COOPERATIVE) )
+		if ( !(GAMEMODE_GetCurrentFlags() & GMF_COOPERATIVE) )
 		{
 			Printf( "Dropping is not allowed in non-cooperative game modes.\n" );
 			return;

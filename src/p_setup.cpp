@@ -3552,7 +3552,7 @@ void P_RemoveThings( void )
 	while ( (pActor = Iterator.Next( )))
 	{
 		// No special items are spawned during instagib, shotgun battle, or LMS.
-		if ((( instagib || (buckshot && bBuckshotPossible) ) && ( deathmatch || teamgame )) || ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_DONTSPAWNMAPTHINGS ))
+		if ((( instagib || (buckshot && bBuckshotPossible) ) && ( deathmatch || teamgame )) || ( GAMEMODE_GetCurrentFlags() & GMF_DONTSPAWNMAPTHINGS ))
 		{
 			if ( pActor->flags & MF_SPECIAL )
 			{
@@ -4514,7 +4514,7 @@ void P_SetupLevel (char *lumpname, int position)
 					players[i].bSpectating = true;
 
 					// [BB] If we turned a player on a team into a spectator, remove the team affiliation.
-					if ( players[i].bOnTeam && ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) )
+					if ( players[i].bOnTeam && ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS ) )
 						PLAYER_SetTeam( &players[i], teams.Size( ), true );
 
 					// [BB] In duel the players should keep their position in line after a "changemap"
