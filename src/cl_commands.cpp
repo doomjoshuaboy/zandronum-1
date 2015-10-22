@@ -634,3 +634,11 @@ void CLIENTCOMMANDS_WarpCheat( fixed_t x, fixed_t y )
 	NETWORK_WriteLong( &CLIENT_GetLocalBuffer( )->ByteStream, x );
 	NETWORK_WriteLong( &CLIENT_GetLocalBuffer( )->ByteStream, y );
 }
+
+//*****************************************************************************
+// [TP]
+void CLIENTCOMMANDS_KillCheat( const char* what )
+{
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_KILLCHEAT );
+	NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, what );
+}

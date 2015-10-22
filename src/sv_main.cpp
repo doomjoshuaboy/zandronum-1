@@ -118,6 +118,8 @@
 #include "network/sv_auth.h"
 #include "r_data/colormaps.h"
 #include "network_enums.h"
+#include "d_protocol.h"
+#include "p_enemy.h"
 
 //*****************************************************************************
 //	MISC CRAP THAT SHOULDN'T BE HERE BUT HAS TO BE BECAUSE OF SLOPPY CODING
@@ -4143,6 +4145,30 @@ void SERVER_IgnoreIP( NETADDRESS_s Address )
 }
 
 //*****************************************************************************
+//
+void SERVER_KillCheat( const char* what )
+{
+	if ( stricmp( what, "monsters" ) == 0 )
+	{
+		const int killcount = P_Massacre ();
+		SERVER_Printf( PRINT_HIGH, "%d Monster%s Killed\n", killcount, killcount==1 ? "" : "s" );
+	}
+	else
+	{
+		// [TP] Handle kill [class] cheats. This is not a generic cheat so we can't just use
+		// cht_DoCheat. Instead we build a DEM message and run that. Maybe we can use this
+		// technique elsewhere to reduce delta?
+		BYTE data[1024];
+		BYTE* stream = &data[0];
+		WriteString( what, &stream );
+		stream = &data[0]; // Reset the bytestream for reading
+		C_StartCapture(); // Capture the output so we can print it to clients
+		Net_DoCommand( DEM_KILLCLASSCHEAT, &stream, 0 );
+		SERVER_Printf( PRINT_HIGH, "%s", C_EndCapture() );
+	}
+}
+
+//*****************************************************************************
 //*****************************************************************************
 //
 LONG SERVER_STATISTIC_GetTotalSecondsElapsed( void )
@@ -4540,6 +4566,24 @@ bool SERVER_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 			{
 				SERVER_KickPlayer( g_lCurrentClient, "Attempted to cheat with sv_cheats being false!" );
 				return ( true );
+			}
+		}
+		break;
+	case CLC_KILLCHEAT:
+
+		// [TP] Client wishes to KILL
+		{
+			FString what = NETWORK_ReadString( pByteStream );
+
+			if ( sv_cheats )
+			{
+				SERVER_KillCheat( what );
+			}
+			else
+			{
+				// [TP] Client screwed up and kills itself instead
+				SERVER_KickPlayer( g_lCurrentClient, "Attempted to cheat with sv_cheats being false!" );
+				return true;
 			}
 		}
 		break;
@@ -6479,7 +6523,7 @@ static bool server_InfoCheat( BYTESTREAM_s *pByteStream )
 	{
 		C_StartCapture();
 		PrintMiscActorInfo( linetarget );
-		SERVER_PrintfPlayer( PRINT_HIGH, g_lCurrentClient, "%s", C_EndCapture().GetChars() );
+		SERVER_PrintfPlayer( PRINT_HIGH, g_lCurrentClient, "%s", C_EndCapture() );
 	}
 
 	return false;
