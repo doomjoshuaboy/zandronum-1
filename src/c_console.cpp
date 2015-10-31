@@ -951,8 +951,9 @@ int PrintString (int printlevel, const char *outline)
 	if (Logfile)
 	{
 		// Strip out any color escape sequences before writing to the log file
-		char * copy = new char[strlen(outlinecopy)+1];
 /* [BB] ST handles color codes a little differently (not all of them are converted to TEXTCOLOR_ESCAPE yet), so we strip them differently.
+ * [TP] I need this to be an FString
+		char * copy = new char[strlen(outlinecopy)+1];
 		const char * srcp = outlinecopy;
 		char * dstp = copy;
 
@@ -969,8 +970,9 @@ int PrintString (int printlevel, const char *outline)
 			}
 		}
 		*dstp=0;
-*/
 		strcpy (copy,outlinecopy);
+*/
+		FString copy = outlinecopy;
 		V_ColorizeString( copy );
 		V_RemoveColorCodes( copy );
 
@@ -986,11 +988,29 @@ int PrintString (int printlevel, const char *outline)
 				sprintf( time, "[%02d:%02d:%02d;%02d:%02d:%02d] ", lt->tm_year - 100, lt->tm_mon + 1, lt->tm_mday, lt->tm_hour, lt->tm_min, lt->tm_sec);
 			else
 				sprintf( time, "[%02d:%02d:%02d] ", lt->tm_hour, lt->tm_min, lt->tm_sec);
-			fputs (time, Logfile);
+
+			// [TP] We want timestamps at the end of newlines but cannot assume that all Printf() calls end on one.
+			// And there can be more than one in a single Printf() call. So we edit the copy so that there's a timestamp
+			// after every newline in the string.
+			size_t timelength = strlen( time );
+			for ( int i = 0; ( i = copy.IndexOf( "\n", i )) != -1; i += timelength + 1 )
+			{
+				// [TP] Don't add a timestamp after the final newline, that is taken care of later
+				if ( copy[i + 1] != '\0' )
+					copy.Insert( i + 1, time );
+			}
+
+			// [TP] If the previous call ended on a newline, we add one at the beginning of the string too.
+			static bool needPrependedTimestamp = true;
+			if ( needPrependedTimestamp )
+				copy.Insert( 0, time );
+
+			needPrependedTimestamp = ( copy[copy.Len() - 1] == '\n' );
 		}
 
 		fputs (copy, Logfile);
-		delete [] copy;
+		// [TP] copy is now an FString.
+//		delete [] copy;
 //#ifdef _DEBUG
 		fflush (Logfile);
 //#endif
