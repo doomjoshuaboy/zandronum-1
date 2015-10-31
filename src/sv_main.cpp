@@ -5502,11 +5502,7 @@ static bool server_RequestJoin( BYTESTREAM_s *pByteStream )
 	// If there aren't currently any slots available, just put the person in line.
 	if ( GAMEMODE_PreventPlayersFromJoining() )
 	{
-		JOINSLOT_t	JoinSlot;
-
-		JoinSlot.player = g_lCurrentClient;
-		JoinSlot.team = teams.Size( );
-		JOINQUEUE_AddPlayer( JoinSlot );
+		JOINQUEUE_AddPlayer( g_lCurrentClient, teams.Size() );
 
 		// Tell the client what his position in line is.
 		SERVERCOMMANDS_SetQueuePosition( g_lCurrentClient, SVCF_ONLYTHISCLIENT );
@@ -5705,14 +5701,8 @@ static bool server_ChangeTeam( BYTESTREAM_s *pByteStream )
 	// [BB] If this is a spectator and players are not allowed to join at the moment, put him in line.
 	if ( PLAYER_IsTrueSpectator ( &players[g_lCurrentClient] ) && GAMEMODE_PreventPlayersFromJoining ( g_lCurrentClient ) )
 	{
-		JOINSLOT_t	JoinSlot;
-
-		JoinSlot.player = g_lCurrentClient;
-		if ( bAutoSelectTeam ) // [RC] If the player chose to autoselect his team, postpone that until he actually joins.
-			JoinSlot.team = teams.Size( );
-		else
-			JoinSlot.team = lDesiredTeam;
-		JOINQUEUE_AddPlayer( JoinSlot );
+		// [RC] If the player chose to autoselect his team, postpone that until he actually joins.
+		JOINQUEUE_AddPlayer( g_lCurrentClient, bAutoSelectTeam ? teams.Size() : lDesiredTeam );
 
 		// Tell the client what his position in line is.
 		SERVERCOMMANDS_SetQueuePosition( g_lCurrentClient, SVCF_ONLYTHISCLIENT );
