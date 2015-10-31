@@ -5504,8 +5504,8 @@ static bool server_RequestJoin( BYTESTREAM_s *pByteStream )
 	{
 		JOINSLOT_t	JoinSlot;
 
-		JoinSlot.ulPlayer = g_lCurrentClient;
-		JoinSlot.ulTeam = teams.Size( );
+		JoinSlot.player = g_lCurrentClient;
+		JoinSlot.team = teams.Size( );
 		JOINQUEUE_AddPlayer( JoinSlot );
 
 		// Tell the client what his position in line is.
@@ -5707,11 +5707,11 @@ static bool server_ChangeTeam( BYTESTREAM_s *pByteStream )
 	{
 		JOINSLOT_t	JoinSlot;
 
-		JoinSlot.ulPlayer = g_lCurrentClient;
+		JoinSlot.player = g_lCurrentClient;
 		if ( bAutoSelectTeam ) // [RC] If the player chose to autoselect his team, postpone that until he actually joins.
-			JoinSlot.ulTeam = teams.Size( );
+			JoinSlot.team = teams.Size( );
 		else
-			JoinSlot.ulTeam = lDesiredTeam;
+			JoinSlot.team = lDesiredTeam;
 		JOINQUEUE_AddPlayer( JoinSlot );
 
 		// Tell the client what his position in line is.

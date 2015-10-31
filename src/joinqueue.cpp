@@ -71,15 +71,15 @@
 //*****************************************************************************
 //	VARIABLES
 
-static	TArray<JOINSLOT_t> g_JoinQueue;
-static	LONG		g_lClientQueuePosition;
+static	TArray<JOINSLOT_t> JoinQueue;
+static	int		ClientQueuePosition;
 
 //*****************************************************************************
 //	FUNCTIONS
 
 void JOINQUEUE_Construct( void )
 {
-	g_lClientQueuePosition = -1;
+	ClientQueuePosition = -1;
 
 	// Initialize the join queue.
 	JOINQUEUE_ClearList( );
@@ -87,38 +87,37 @@ void JOINQUEUE_Construct( void )
 
 //*****************************************************************************
 //
-void JOINQUEUE_RemovePlayerAtPosition ( ULONG ulPosition )
+void JOINQUEUE_RemovePlayerAtPosition ( unsigned int position )
 {
-	if ( ulPosition < g_JoinQueue.Size() )
-		g_JoinQueue.Delete( ulPosition );
+	if ( position < JoinQueue.Size() )
+		JoinQueue.Delete( position );
 }
 
 //*****************************************************************************
 //
-void JOINQUEUE_RemovePlayerFromQueue ( ULONG ulPlayer, bool bBroadcast )
+void JOINQUEUE_RemovePlayerFromQueue ( unsigned int player, bool broadcast )
 {
 	// [BB] Invalid player.
-	if ( ulPlayer >= MAXPLAYERS )
+	if ( player >= MAXPLAYERS )
 		return;
 
-	LONG lJoinqueuePosition = JOINQUEUE_GetPositionInLine ( ulPlayer );
-	if ( lJoinqueuePosition != -1 )
+	int position = JOINQUEUE_GetPositionInLine ( player );
+
+	if ( position != -1 )
 	{
-		JOINQUEUE_RemovePlayerAtPosition ( lJoinqueuePosition );
+		JOINQUEUE_RemovePlayerAtPosition ( position );
 
 		// If we're the server, tell everyone their new position in line
 		// (but only if we are supposed to broadcast).
-		if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && bBroadcast )
+		if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && broadcast )
 			SERVERCOMMANDS_SetQueuePosition( );
 	}
 }
 
 //*****************************************************************************
 //
-void JOINQUEUE_PlayerLeftGame( bool bWantPop )
+void JOINQUEUE_PlayerLeftGame( bool pop )
 {
-	bool	bPop = true;
-
 	// If we're in a duel, revert to the "waiting for players" state.
 	// [BB] But only do so if there are less then two duelers left (probably JOINQUEUE_PlayerLeftGame was called mistakenly).
 	if ( duel && ( DUEL_CountActiveDuelers( ) < 2 ) )
@@ -153,7 +152,7 @@ void JOINQUEUE_PlayerLeftGame( bool bWantPop )
 			}
 
 			// Join queue will be popped upon state change.
-			bPop = false;
+			pop = false;
 
 			GAME_SetEndLevelDelay( 5 * TICRATE );
 		}
@@ -189,7 +188,7 @@ void JOINQUEUE_PlayerLeftGame( bool bWantPop )
 			}
 
 			// Join queue will be popped upon state change.
-			bPop = false;
+			pop = false;
 
 			GAME_SetEndLevelDelay( 5 * TICRATE );
 		}
@@ -214,18 +213,18 @@ void JOINQUEUE_PlayerLeftGame( bool bWantPop )
 		SURVIVAL_SetState( SURVS_WAITINGFORPLAYERS );
 
 	// Potentially let one person join the game.
-	if ( bPop && bWantPop )
+	if ( pop )
 		JOINQUEUE_PopQueue( 1 );
 }
 
 //*****************************************************************************
 //
-void JOINQUEUE_SpectatorLeftGame( ULONG ulPlayer )
+void JOINQUEUE_SpectatorLeftGame( unsigned int player )
 {
 	// [BB] The only things we have to do if a spectator leaves the game are
 	// to remove him from the queue and to notify the others about their updated
 	// queue positions.
-	JOINQUEUE_RemovePlayerFromQueue ( ulPlayer, true );
+	JOINQUEUE_RemovePlayerFromQueue ( player, true );
 }
 
 //*****************************************************************************
@@ -233,13 +232,13 @@ void JOINQUEUE_SpectatorLeftGame( ULONG ulPlayer )
 static void JOINQUEUE_CheckSanity()
 {
 	// [TP] This routine should never have to clean up anything but it's here to preserve data sanity in case.
-	for ( unsigned int i = 0; i < g_JoinQueue.Size(); )
+	for ( unsigned int i = 0; i < JoinQueue.Size(); )
 	{
-		const JOINSLOT_t& slot = g_JoinQueue[i];
-		if ( slot.ulPlayer >= MAXPLAYERS || playeringame[slot.ulPlayer] == false )
+		const JOINSLOT_t& slot = JoinQueue[i];
+		if ( slot.player >= MAXPLAYERS || playeringame[slot.player] == false )
 		{
-			Printf( "Warning: Invalid join queue entry detected at position %d. Player idx: %lu\n", i, slot.ulPlayer );
-			g_JoinQueue.Delete( i );
+			Printf( "Warning: Invalid join queue entry detected at position %d. Player idx: %d\n", i, slot.player );
+			JoinQueue.Delete( i );
 		}
 		else
 			++i;
@@ -248,7 +247,7 @@ static void JOINQUEUE_CheckSanity()
 
 //*****************************************************************************
 //
-void JOINQUEUE_PopQueue( LONG lNumSlots )
+void JOINQUEUE_PopQueue( int slotCount )
 {
 	// [BB] Players are not allowed to join.
 	if ( GAMEMODE_PreventPlayersFromJoining() )
@@ -257,23 +256,23 @@ void JOINQUEUE_PopQueue( LONG lNumSlots )
 	JOINQUEUE_CheckSanity();
 
 	// Try to find the next person in line.
-	for ( ULONG ulIdx = 0; ulIdx < g_JoinQueue.Size(); )
+	for ( unsigned int i = 0; i < JoinQueue.Size(); )
 	{
-		if ( lNumSlots == 0 )
+		if ( slotCount == 0 )
 			break;
 
 		// [BB] Since we possibly just let somebody waiting in line join, check if more persons are allowed to join now.
 		if ( GAMEMODE_PreventPlayersFromJoining() )
 			break;
 
-		const JOINSLOT_t& slot = g_JoinQueue[ulIdx];
+		const JOINSLOT_t& slot = JoinQueue[i];
 
 		// Found a player waiting in line. They will now join the game!
-		if ( playeringame[slot.ulPlayer] )
+		if ( playeringame[slot.player] )
 		{
 			// [K6] Reset their AFK timer now - they may have been waiting in the queue silently and we don't want to kick them.
-			player_t* player = &players[slot.ulPlayer];
-			CLIENT_s* client = SERVER_GetClient( slot.ulPlayer );
+			player_t* player = &players[slot.player];
+			CLIENT_s* client = SERVER_GetClient( slot.player );
 			client->lLastActionTic = gametic;
 			PLAYER_SpectatorJoinsGame ( player );
 
@@ -283,8 +282,8 @@ void JOINQUEUE_PopQueue( LONG lNumSlots )
 
 			if ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS )
 			{
-				if ( TEAM_CheckIfValid ( slot.ulTeam ) )
-					PLAYER_SetTeam( player, slot.ulTeam, true );
+				if ( TEAM_CheckIfValid ( slot.team ) )
+					PLAYER_SetTeam( player, slot.team, true );
 				else
 					PLAYER_SetTeam( player, TEAM_ChooseBestTeamForPlayer( ), true );
 			}
@@ -316,13 +315,13 @@ void JOINQUEUE_PopQueue( LONG lNumSlots )
 					Printf( "%s \\c-joined the game.\n", player->userinfo.GetName() );
 			}
 
-			JOINQUEUE_RemovePlayerAtPosition ( ulIdx );
+			JOINQUEUE_RemovePlayerAtPosition ( i );
 
-			if ( lNumSlots > 0 )
-				lNumSlots--;
+			if ( slotCount > 0 )
+				slotCount--;
 		}
 		else
-			ulIdx++;
+			++i;
 	}
 
 	// If we're the server, tell everyone their new position in line.
@@ -332,9 +331,9 @@ void JOINQUEUE_PopQueue( LONG lNumSlots )
 
 //*****************************************************************************
 //
-ULONG JOINQUEUE_AddPlayer( JOINSLOT_t JoinSlot )
+unsigned int JOINQUEUE_AddPlayer( JOINSLOT_t JoinSlot )
 {
-	LONG idx = JOINQUEUE_GetPositionInLine( JoinSlot.ulPlayer );
+	int idx = JOINQUEUE_GetPositionInLine( JoinSlot.player );
 
 	if ( idx >= 0 )
 	{
@@ -342,28 +341,28 @@ ULONG JOINQUEUE_AddPlayer( JOINSLOT_t JoinSlot )
 		return idx;
 	}
 
-	return g_JoinQueue.Push( JoinSlot );
+	return JoinQueue.Push( JoinSlot );
 }
 
 //*****************************************************************************
 //
 void JOINQUEUE_ClearList( void )
 {
-	g_JoinQueue.Clear();
+	JoinQueue.Clear();
 }
 
 //*****************************************************************************
 //
-LONG JOINQUEUE_GetPositionInLine( ULONG ulPlayer )
+int JOINQUEUE_GetPositionInLine( unsigned int player )
 {
 	if ( NETWORK_InClientMode() )
 	{
-		return ( g_lClientQueuePosition );
+		return ( ClientQueuePosition );
 	}
 
-	for ( unsigned int i = 0; i < g_JoinQueue.Size(); i++ )
+	for ( unsigned int i = 0; i < JoinQueue.Size(); i++ )
 	{
-		if ( g_JoinQueue[i].ulPlayer == ulPlayer )
+		if ( JoinQueue[i].player == player )
 			return ( i );
 	}
 
@@ -372,23 +371,20 @@ LONG JOINQUEUE_GetPositionInLine( ULONG ulPlayer )
 
 //*****************************************************************************
 //
-void JOINQUEUE_SetClientPositionInLine( LONG lPosition )
+void JOINQUEUE_SetClientPositionInLine( int position )
 {
-	g_lClientQueuePosition = lPosition;
+	ClientQueuePosition = position;
 }
 
 //*****************************************************************************
 //
-void JOINQUEUE_AddConsolePlayer( ULONG ulDesiredTeam )
+void JOINQUEUE_AddConsolePlayer( unsigned int desiredTeam )
 {
-	JOINSLOT_t	JoinSlot;
-	JoinSlot.ulPlayer = consoleplayer;
-	JoinSlot.ulTeam = ulDesiredTeam;
-	const ULONG ulResult = JOINQUEUE_AddPlayer( JoinSlot );
-	if ( ulResult == MAXPLAYERS )
-		Printf( "Join queue full!\n" );
-	else
-		Printf( "Your position in line is: %d\n", static_cast<unsigned int> (ulResult + 1) );
+	JOINSLOT_t slot;
+	slot.player = consoleplayer;
+	slot.team = desiredTeam;
+	unsigned int position = JOINQUEUE_AddPlayer( slot );
+	Printf( "Your position in line is: %d\n", position + 1 );
 }
 //*****************************************************************************
 //
@@ -402,20 +398,21 @@ void JOINQUEUE_PrintQueue( void )
 
 	JOINQUEUE_CheckSanity();
 
-	bool bQueueEmpty = true;
-	for ( ULONG ulIdx = 0; ulIdx < g_JoinQueue.Size(); ulIdx++ )
+	if ( JoinQueue.Size() == 0 )
 	{
-		const JOINSLOT_t& slot = g_JoinQueue[ulIdx];
-		player_t* pPlayer = &players[slot.ulPlayer];
-		bQueueEmpty = false;
-		Printf ( "%02lu - %s", ulIdx + 1, pPlayer->userinfo.GetName() );
-		if ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS )
-			Printf ( " - %s", TEAM_CheckIfValid ( slot.ulTeam ) ? TEAM_GetName ( slot.ulTeam ) : "auto team selection" );
-		Printf ( "\n" );
-	}
-
-	if ( bQueueEmpty )
 		Printf ( "The join queue is empty\n" );
+	}
+	else
+	{
+		for ( unsigned int ulIdx = 0; ulIdx < JoinQueue.Size(); ulIdx++ )
+		{
+			const JOINSLOT_t& slot = JoinQueue[ulIdx];
+			Printf ( "%02d - %s", ulIdx + 1, players[slot.player].userinfo.GetName() );
+			if ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS )
+				Printf ( " - %s", TEAM_CheckIfValid ( slot.team ) ? TEAM_GetName ( slot.team ) : "auto team selection" );
+			Printf ( "\n" );
+		}
+	}
 }
 
 //*****************************************************************************
