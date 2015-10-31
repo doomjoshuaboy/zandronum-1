@@ -69,9 +69,21 @@
 #include "team.h"
 
 //*****************************************************************************
+//	STRUCTURES
+
+struct JoinSlot
+{
+	// Player ID of the incoming player.
+	unsigned int player;
+
+	// Team the incoming player will be on.
+	unsigned int team;
+};
+
+//*****************************************************************************
 //	VARIABLES
 
-static	TArray<JOINSLOT_t> JoinQueue;
+static	TArray<JoinSlot> JoinQueue;
 static	int		ClientQueuePosition;
 
 //*****************************************************************************
@@ -234,7 +246,7 @@ static void JOINQUEUE_CheckSanity()
 	// [TP] This routine should never have to clean up anything but it's here to preserve data sanity in case.
 	for ( unsigned int i = 0; i < JoinQueue.Size(); )
 	{
-		const JOINSLOT_t& slot = JoinQueue[i];
+		const JoinSlot& slot = JoinQueue[i];
 		if ( slot.player >= MAXPLAYERS || playeringame[slot.player] == false )
 		{
 			Printf( "Warning: Invalid join queue entry detected at position %d. Player idx: %d\n", i, slot.player );
@@ -265,7 +277,7 @@ void JOINQUEUE_PopQueue( int slotCount )
 		if ( GAMEMODE_PreventPlayersFromJoining() )
 			break;
 
-		const JOINSLOT_t& slot = JoinQueue[i];
+		const JoinSlot& slot = JoinQueue[i];
 
 		// Found a player waiting in line. They will now join the game!
 		if ( playeringame[slot.player] )
@@ -331,9 +343,9 @@ void JOINQUEUE_PopQueue( int slotCount )
 
 //*****************************************************************************
 //
-unsigned int JOINQUEUE_AddPlayer( JOINSLOT_t JoinSlot )
+unsigned int JOINQUEUE_AddPlayer( unsigned int player, unsigned int team )
 {
-	int idx = JOINQUEUE_GetPositionInLine( JoinSlot.player );
+	int idx = JOINQUEUE_GetPositionInLine( player );
 
 	if ( idx >= 0 )
 	{
@@ -341,7 +353,10 @@ unsigned int JOINQUEUE_AddPlayer( JOINSLOT_t JoinSlot )
 		return idx;
 	}
 
-	return JoinQueue.Push( JoinSlot );
+	JoinSlot slot;
+	slot.player = player;
+	slot.team = team;
+	return JoinQueue.Push( slot );
 }
 
 //*****************************************************************************
@@ -380,10 +395,7 @@ void JOINQUEUE_SetClientPositionInLine( int position )
 //
 void JOINQUEUE_AddConsolePlayer( unsigned int desiredTeam )
 {
-	JOINSLOT_t slot;
-	slot.player = consoleplayer;
-	slot.team = desiredTeam;
-	unsigned int position = JOINQUEUE_AddPlayer( slot );
+	unsigned int position = JOINQUEUE_AddPlayer( consoleplayer, desiredTeam );
 	Printf( "Your position in line is: %d\n", position + 1 );
 }
 //*****************************************************************************
@@ -406,7 +418,7 @@ void JOINQUEUE_PrintQueue( void )
 	{
 		for ( unsigned int ulIdx = 0; ulIdx < JoinQueue.Size(); ulIdx++ )
 		{
-			const JOINSLOT_t& slot = JoinQueue[ulIdx];
+			const JoinSlot& slot = JoinQueue[ulIdx];
 			Printf ( "%02d - %s", ulIdx + 1, players[slot.player].userinfo.GetName() );
 			if ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS )
 				Printf ( " - %s", TEAM_CheckIfValid ( slot.team ) ? TEAM_GetName ( slot.team ) : "auto team selection" );
