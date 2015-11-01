@@ -71,8 +71,8 @@
 //*****************************************************************************
 //	VARIABLES
 
-static TArray<JoinSlot> JoinQueue;
-int ConsolePlayerPosition = -1;
+static TArray<JoinSlot> g_JoinQueue;
+int g_ConsolePlayerPosition = -1;
 
 //*****************************************************************************
 //	FUNCTIONS
@@ -93,10 +93,10 @@ static void JOINQUEUE_QueueChanged()
 	{
 		int position = JOINQUEUE_GetPositionInLine( consoleplayer );
 
-		if (( position != ConsolePlayerPosition ) && ( position != -1 ))
+		if (( position != g_ConsolePlayerPosition ) && ( position != -1 ))
 			Printf( "Your position in line is: %d\n", position + 1 );
 
-		ConsolePlayerPosition = position;
+		g_ConsolePlayerPosition = position;
 	}
 }
 
@@ -104,9 +104,9 @@ static void JOINQUEUE_QueueChanged()
 //
 void JOINQUEUE_RemovePlayerAtPosition ( unsigned int position )
 {
-	if ( position < JoinQueue.Size() )
+	if ( position < g_JoinQueue.Size() )
 	{
-		JoinQueue.Delete( position );
+		g_JoinQueue.Delete( position );
 
 		if ( NETWORK_GetState() == NETSTATE_SERVER )
 			SERVERCOMMANDS_RemoveFromJoinQueue( position );
@@ -134,13 +134,13 @@ void JOINQUEUE_RemovePlayerFromQueue ( unsigned int player )
 static void JOINQUEUE_CheckSanity()
 {
 	// [TP] This routine should never have to clean up anything but it's here to preserve data sanity in case.
-	for ( unsigned int i = 0; i < JoinQueue.Size(); )
+	for ( unsigned int i = 0; i < g_JoinQueue.Size(); )
 	{
-		const JoinSlot& slot = JoinQueue[i];
+		const JoinSlot& slot = g_JoinQueue[i];
 		if ( slot.player >= MAXPLAYERS || playeringame[slot.player] == false )
 		{
 			Printf( "Invalid join queue entry detected at position %d. Player idx: %d\n", i, slot.player );
-			JoinQueue.Delete( i );
+			g_JoinQueue.Delete( i );
 		}
 		else
 			++i;
@@ -269,7 +269,7 @@ void JOINQUEUE_PopQueue( int slotCount )
 	JOINQUEUE_CheckSanity();
 
 	// Try to find the next person in line.
-	for ( unsigned int i = 0; i < JoinQueue.Size(); )
+	for ( unsigned int i = 0; i < g_JoinQueue.Size(); )
 	{
 		if ( slotCount == 0 )
 			break;
@@ -278,7 +278,7 @@ void JOINQUEUE_PopQueue( int slotCount )
 		if ( GAMEMODE_PreventPlayersFromJoining() )
 			break;
 
-		const JoinSlot& slot = JoinQueue[i];
+		const JoinSlot& slot = g_JoinQueue[i];
 
 		// Found a player waiting in line. They will now join the game!
 		if ( playeringame[slot.player] )
@@ -353,7 +353,7 @@ unsigned int JOINQUEUE_AddPlayer( unsigned int player, unsigned int team )
 	JoinSlot slot;
 	slot.player = player;
 	slot.team = team;
-	unsigned int result = JoinQueue.Push( slot );
+	unsigned int result = g_JoinQueue.Push( slot );
 
 	// [TP] Tell clients of the join queue's most recent addition
 	if ( NETWORK_GetState() == NETSTATE_SERVER )
@@ -369,8 +369,8 @@ void JOINQUEUE_ClearList( void )
 {
 	// [TP] Reset the client's memory of its position in the join queue because the queue is only really cleared in
 	// situations where it's obvious the client's out of the queue anyway and printing a message would be redundant.
-	ConsolePlayerPosition = -1;
-	JoinQueue.Clear();
+	g_ConsolePlayerPosition = -1;
+	g_JoinQueue.Clear();
 	JOINQUEUE_QueueChanged();
 }
 
@@ -378,9 +378,9 @@ void JOINQUEUE_ClearList( void )
 //
 int JOINQUEUE_GetPositionInLine( unsigned int player )
 {
-	for ( unsigned int i = 0; i < JoinQueue.Size(); i++ )
+	for ( unsigned int i = 0; i < g_JoinQueue.Size(); i++ )
 	{
-		if ( JoinQueue[i].player == player )
+		if ( g_JoinQueue[i].player == player )
 			return ( i );
 	}
 
@@ -398,9 +398,9 @@ void JOINQUEUE_AddConsolePlayer( unsigned int desiredTeam )
 //
 const JoinSlot& JOINQUEUE_GetSlotAt( unsigned int index )
 {
-	if ( index < JoinQueue.Size() )
+	if ( index < g_JoinQueue.Size() )
 	{
-		return JoinQueue[index];
+		return g_JoinQueue[index];
 	}
 	else
 	{
@@ -416,7 +416,7 @@ const JoinSlot& JOINQUEUE_GetSlotAt( unsigned int index )
 //
 unsigned int JOINQUEUE_GetSize()
 {
-	return JoinQueue.Size();
+	return g_JoinQueue.Size();
 }
 
 //*****************************************************************************
@@ -425,15 +425,15 @@ void JOINQUEUE_PrintQueue( void )
 {
 	JOINQUEUE_CheckSanity();
 
-	if ( JoinQueue.Size() == 0 )
+	if ( g_JoinQueue.Size() == 0 )
 	{
 		Printf ( "The join queue is empty\n" );
 	}
 	else
 	{
-		for ( unsigned int ulIdx = 0; ulIdx < JoinQueue.Size(); ulIdx++ )
+		for ( unsigned int ulIdx = 0; ulIdx < g_JoinQueue.Size(); ulIdx++ )
 		{
-			const JoinSlot& slot = JoinQueue[ulIdx];
+			const JoinSlot& slot = g_JoinQueue[ulIdx];
 			Printf ( "%02d - %s", ulIdx + 1, players[slot.player].userinfo.GetName() );
 			if ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS )
 				Printf ( " - %s", TEAM_CheckIfValid ( slot.team ) ? TEAM_GetName ( slot.team ) : "auto team selection" );
