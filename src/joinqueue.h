@@ -54,18 +54,31 @@
 #include "doomtype.h"
 
 //*****************************************************************************
+//	STRUCTURES
+
+struct JoinSlot
+{
+	// Player ID of the incoming player.
+	unsigned int player;
+
+	// Team the incoming player will be on.
+	unsigned int team;
+};
+
+//*****************************************************************************
 //	PROTOTYPES
 
 void JOINQUEUE_Construct( void );
 
-void JOINQUEUE_RemovePlayerFromQueue ( unsigned int player, bool broadcast );
-void JOINQUEUE_PlayerLeftGame( bool pop );
-void JOINQUEUE_SpectatorLeftGame( unsigned int player );
+void JOINQUEUE_RemovePlayerFromQueue ( unsigned int player );
+void JOINQUEUE_RemovePlayerAtPosition ( unsigned int position );
+void JOINQUEUE_PlayerLeftGame( int player, bool pop );
 void JOINQUEUE_PopQueue( int slotCount );
 unsigned int JOINQUEUE_AddPlayer( unsigned int player, unsigned int team );
 void JOINQUEUE_ClearList( void );
 int JOINQUEUE_GetPositionInLine( unsigned int player );
-void JOINQUEUE_SetClientPositionInLine( int position );
 void JOINQUEUE_AddConsolePlayer( unsigned int desiredTeam );
+const JoinSlot& JOINQUEUE_GetSlotAt( unsigned int index );
+unsigned int JOINQUEUE_GetSize();
 
 #endif	// __JOINQUEUE_H__

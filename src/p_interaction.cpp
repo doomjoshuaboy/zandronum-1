@@ -2531,7 +2531,7 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 				if ( NETWORK_InClientMode() == false )
 				{
 					// Tell the join queue module that a player is leaving the game.
-					JOINQUEUE_PlayerLeftGame( true );
+					JOINQUEUE_PlayerLeftGame( pPlayer - players, true );
 				}
 
 				pPlayer->health = deh.StartHealth;
@@ -2674,7 +2674,7 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 		if ( NETWORK_InClientMode() == false )
 		{
 			// Tell the join queue module that a player is leaving the game.
-			JOINQUEUE_PlayerLeftGame( true );
+			JOINQUEUE_PlayerLeftGame( pPlayer - players, true );
 		}
 
 		if ( pPlayer->pSkullBot )
