@@ -2735,6 +2735,9 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 	// [BB] Inform the client about the values of server mod cvars.
 	SERVER_SyncServerModCVars ( ulClient );
 
+	// [TP] Inform the client of the state of the join queue
+	SERVERCOMMANDS_SyncJoinQueue( ulClient, SVCF_ONLYTHISCLIENT );
+
 	// [BB] Let the client know that the full update is completed.
 	SERVERCOMMANDS_FullUpdateCompleted( ulClient );
 	// [BB] The client will let us know that it received the update.
@@ -2992,10 +2995,7 @@ void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo )
 	NETWORK_ClearBuffer( &g_aClients[ulClient].SavedPacketBuffer );
 
 	// Tell the join queue module that a player has left the game.
-	if ( PLAYER_IsTrueSpectator( &players[ulClient] ) == false )
-		JOINQUEUE_PlayerLeftGame( true );
-	else
-		JOINQUEUE_SpectatorLeftGame( ulClient );
+	JOINQUEUE_PlayerLeftGame( ulClient, true );
 
 	// [BB] Zero out all the player information (like information about being in console).
 	PLAYER_ResetPlayerData( &players[ulClient] );
@@ -5444,7 +5444,7 @@ static bool server_Spectate( BYTESTREAM_s *pByteStream )
 		if ( JOINQUEUE_GetPositionInLine ( g_lCurrentClient ) != -1 )
 		{
 			SERVER_PrintfPlayer( PRINT_HIGH, g_lCurrentClient, "You have been removed from the join queue.\n" );
-			JOINQUEUE_RemovePlayerFromQueue ( g_lCurrentClient, true );
+			JOINQUEUE_RemovePlayerFromQueue ( g_lCurrentClient );
 		}
 		return ( false );
 	}
@@ -5503,9 +5503,6 @@ static bool server_RequestJoin( BYTESTREAM_s *pByteStream )
 	if ( GAMEMODE_PreventPlayersFromJoining() )
 	{
 		JOINQUEUE_AddPlayer( g_lCurrentClient, teams.Size() );
-
-		// Tell the client what his position in line is.
-		SERVERCOMMANDS_SetQueuePosition( g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 		return ( false );
 	}
 
@@ -5703,9 +5700,6 @@ static bool server_ChangeTeam( BYTESTREAM_s *pByteStream )
 	{
 		// [RC] If the player chose to autoselect his team, postpone that until he actually joins.
 		JOINQUEUE_AddPlayer( g_lCurrentClient, bAutoSelectTeam ? teams.Size() : lDesiredTeam );
-
-		// Tell the client what his position in line is.
-		SERVERCOMMANDS_SetQueuePosition( g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 		return ( false );
 	}
 
@@ -5764,7 +5758,7 @@ static bool server_ChangeTeam( BYTESTREAM_s *pByteStream )
 		G_DeathMatchSpawnPlayer( g_lCurrentClient, true );
 
 	// Tell the join queue that a player "sort of" left the game.
-	JOINQUEUE_PlayerLeftGame( false );
+	JOINQUEUE_PlayerLeftGame( g_lCurrentClient, false );
 
 	// Update this player's info on the scoreboard.
 	SERVERCONSOLE_UpdatePlayerInfo( g_lCurrentClient, UDF_FRAGS );

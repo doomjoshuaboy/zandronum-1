@@ -69,30 +69,15 @@
 #include "team.h"
 
 //*****************************************************************************
-//	STRUCTURES
-
-struct JoinSlot
-{
-	// Player ID of the incoming player.
-	unsigned int player;
-
-	// Team the incoming player will be on.
-	unsigned int team;
-};
-
-//*****************************************************************************
 //	VARIABLES
 
-static	TArray<JoinSlot> JoinQueue;
-static	int		ClientQueuePosition;
+static TArray<JoinSlot> JoinQueue;
 
 //*****************************************************************************
 //	FUNCTIONS
 
 void JOINQUEUE_Construct( void )
 {
-	ClientQueuePosition = -1;
-
 	// Initialize the join queue.
 	JOINQUEUE_ClearList( );
 }
@@ -102,12 +87,17 @@ void JOINQUEUE_Construct( void )
 void JOINQUEUE_RemovePlayerAtPosition ( unsigned int position )
 {
 	if ( position < JoinQueue.Size() )
+	{
 		JoinQueue.Delete( position );
+
+		if ( NETWORK_GetState() == NETSTATE_SERVER )
+			SERVERCOMMANDS_RemoveFromJoinQueue( position );
+	}
 }
 
 //*****************************************************************************
 //
-void JOINQUEUE_RemovePlayerFromQueue ( unsigned int player, bool broadcast )
+void JOINQUEUE_RemovePlayerFromQueue ( unsigned int player )
 {
 	// [BB] Invalid player.
 	if ( player >= MAXPLAYERS )
@@ -116,20 +106,39 @@ void JOINQUEUE_RemovePlayerFromQueue ( unsigned int player, bool broadcast )
 	int position = JOINQUEUE_GetPositionInLine ( player );
 
 	if ( position != -1 )
-	{
 		JOINQUEUE_RemovePlayerAtPosition ( position );
+}
 
-		// If we're the server, tell everyone their new position in line
-		// (but only if we are supposed to broadcast).
-		if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && broadcast )
-			SERVERCOMMANDS_SetQueuePosition( );
+//*****************************************************************************
+//
+static void JOINQUEUE_CheckSanity()
+{
+	// [TP] This routine should never have to clean up anything but it's here to preserve data sanity in case.
+	for ( unsigned int i = 0; i < JoinQueue.Size(); )
+	{
+		const JoinSlot& slot = JoinQueue[i];
+		if ( slot.player >= MAXPLAYERS || playeringame[slot.player] == false )
+		{
+			Printf( "Invalid join queue entry detected at position %d. Player idx: %d\n", i, slot.player );
+			JoinQueue.Delete( i );
+		}
+		else
+			++i;
 	}
 }
 
 //*****************************************************************************
 //
-void JOINQUEUE_PlayerLeftGame( bool pop )
+void JOINQUEUE_PlayerLeftGame( int player, bool pop )
 {
+	if ( player >= MAXPLAYERS )
+		return;
+
+	JOINQUEUE_RemovePlayerFromQueue( player );
+
+	if ( PLAYER_IsTrueSpectator( &players[player] ) == false )
+		return;
+
 	// If we're in a duel, revert to the "waiting for players" state.
 	// [BB] But only do so if there are less then two duelers left (probably JOINQUEUE_PlayerLeftGame was called mistakenly).
 	if ( duel && ( DUEL_CountActiveDuelers( ) < 2 ) )
@@ -231,34 +240,6 @@ void JOINQUEUE_PlayerLeftGame( bool pop )
 
 //*****************************************************************************
 //
-void JOINQUEUE_SpectatorLeftGame( unsigned int player )
-{
-	// [BB] The only things we have to do if a spectator leaves the game are
-	// to remove him from the queue and to notify the others about their updated
-	// queue positions.
-	JOINQUEUE_RemovePlayerFromQueue ( player, true );
-}
-
-//*****************************************************************************
-//
-static void JOINQUEUE_CheckSanity()
-{
-	// [TP] This routine should never have to clean up anything but it's here to preserve data sanity in case.
-	for ( unsigned int i = 0; i < JoinQueue.Size(); )
-	{
-		const JoinSlot& slot = JoinQueue[i];
-		if ( slot.player >= MAXPLAYERS || playeringame[slot.player] == false )
-		{
-			Printf( "Warning: Invalid join queue entry detected at position %d. Player idx: %d\n", i, slot.player );
-			JoinQueue.Delete( i );
-		}
-		else
-			++i;
-	}
-}
-
-//*****************************************************************************
-//
 void JOINQUEUE_PopQueue( int slotCount )
 {
 	// [BB] Players are not allowed to join.
@@ -335,10 +316,6 @@ void JOINQUEUE_PopQueue( int slotCount )
 		else
 			++i;
 	}
-
-	// If we're the server, tell everyone their new position in line.
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SetQueuePosition( );
 }
 
 //*****************************************************************************
@@ -356,7 +333,13 @@ unsigned int JOINQUEUE_AddPlayer( unsigned int player, unsigned int team )
 	JoinSlot slot;
 	slot.player = player;
 	slot.team = team;
-	return JoinQueue.Push( slot );
+	unsigned int result = JoinQueue.Push( slot );
+
+	// [TP] Tell clients of the join queue's most recent addition
+	if ( NETWORK_GetState() == NETSTATE_SERVER )
+		SERVERCOMMANDS_PushToJoinQueue();
+
+	return result;
 }
 
 //*****************************************************************************
@@ -370,11 +353,6 @@ void JOINQUEUE_ClearList( void )
 //
 int JOINQUEUE_GetPositionInLine( unsigned int player )
 {
-	if ( NETWORK_InClientMode() )
-	{
-		return ( ClientQueuePosition );
-	}
-
 	for ( unsigned int i = 0; i < JoinQueue.Size(); i++ )
 	{
 		if ( JoinQueue[i].player == player )
@@ -386,28 +364,41 @@ int JOINQUEUE_GetPositionInLine( unsigned int player )
 
 //*****************************************************************************
 //
-void JOINQUEUE_SetClientPositionInLine( int position )
-{
-	ClientQueuePosition = position;
-}
-
-//*****************************************************************************
-//
 void JOINQUEUE_AddConsolePlayer( unsigned int desiredTeam )
 {
 	unsigned int position = JOINQUEUE_AddPlayer( consoleplayer, desiredTeam );
 	Printf( "Your position in line is: %d\n", position + 1 );
 }
+
+//*****************************************************************************
+//
+const JoinSlot& JOINQUEUE_GetSlotAt( unsigned int index )
+{
+	if ( index < JoinQueue.Size() )
+	{
+		return JoinQueue[index];
+	}
+	else
+	{
+		Printf( "Attempted to access the join queue at invalid index %u\n", index );
+		static JoinSlot defvalue;
+		defvalue.player = MAXPLAYERS;
+		defvalue.team = 0;
+		return defvalue;
+	}
+}
+
+//*****************************************************************************
+//
+unsigned int JOINQUEUE_GetSize()
+{
+	return JoinQueue.Size();
+}
+
 //*****************************************************************************
 //
 void JOINQUEUE_PrintQueue( void )
 {
-	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-	{
-		Printf ( "Only the server can print the join queue\n" );
-		return;
-	}
-
 	JOINQUEUE_CheckSanity();
 
 	if ( JoinQueue.Size() == 0 )
