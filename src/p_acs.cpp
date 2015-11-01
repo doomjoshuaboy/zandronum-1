@@ -4306,7 +4306,13 @@ void DLevelScript::DoSetActorProperty (AActor *actor, int property, int value)
 
 	case APROP_ViewHeight:
 		if (actor->IsKindOf (RUNTIME_CLASS (APlayerPawn)))
+		{
 			static_cast<APlayerPawn *>(actor)->ViewHeight = value;
+
+			// [BB] Tell the clients about the changed view height.
+			if( NETWORK_GetState() == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetPlayerViewHeight ( actor->player - players );
+		}
 		break;
 
 	case APROP_AttackZOffset:

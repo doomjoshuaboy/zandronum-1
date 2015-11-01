@@ -2827,6 +2827,18 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 				}
 				break;
 
+			case SVC2_SETPLAYERVIEWHEIGHT:
+				{
+					const ULONG ulPlayer = NETWORK_ReadByte( pByteStream );
+					const int viewHeight = NETWORK_ReadLong( pByteStream );
+
+					if ( PLAYER_IsValidPlayerWithMo( ulPlayer ) == false ) 
+						break;
+
+					players[ulPlayer].mo->ViewHeight = viewHeight;
+				}
+				break;
+
 			case SVC2_SRP_USER_START_AUTHENTICATION:
 			case SVC2_SRP_USER_PROCESS_CHALLENGE:
 			case SVC2_SRP_USER_VERIFY_SESSION:
