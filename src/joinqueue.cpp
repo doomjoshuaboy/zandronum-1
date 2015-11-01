@@ -72,6 +72,7 @@
 //	VARIABLES
 
 static TArray<JoinSlot> JoinQueue;
+int ConsolePlayerPosition = -1;
 
 //*****************************************************************************
 //	FUNCTIONS
@@ -84,6 +85,23 @@ void JOINQUEUE_Construct( void )
 
 //*****************************************************************************
 //
+static void JOINQUEUE_QueueChanged()
+{
+	// [TP] Display a message when the consoleplayer's position in line changes. However, if we're removed from it, it
+	// will either be obvious that we were removed from it (i.e. we joined the game), or the server will tell us why.
+	if ( NETWORK_GetState() != NETSTATE_SERVER )
+	{
+		int position = JOINQUEUE_GetPositionInLine( consoleplayer );
+
+		if (( position != ConsolePlayerPosition ) && ( position != -1 ))
+			Printf( "Your position in line is: %d\n", position + 1 );
+
+		ConsolePlayerPosition = position;
+	}
+}
+
+//*****************************************************************************
+//
 void JOINQUEUE_RemovePlayerAtPosition ( unsigned int position )
 {
 	if ( position < JoinQueue.Size() )
@@ -92,6 +110,8 @@ void JOINQUEUE_RemovePlayerAtPosition ( unsigned int position )
 
 		if ( NETWORK_GetState() == NETSTATE_SERVER )
 			SERVERCOMMANDS_RemoveFromJoinQueue( position );
+
+		JOINQUEUE_QueueChanged();
 	}
 }
 
@@ -339,6 +359,7 @@ unsigned int JOINQUEUE_AddPlayer( unsigned int player, unsigned int team )
 	if ( NETWORK_GetState() == NETSTATE_SERVER )
 		SERVERCOMMANDS_PushToJoinQueue();
 
+	JOINQUEUE_QueueChanged();
 	return result;
 }
 
@@ -346,7 +367,11 @@ unsigned int JOINQUEUE_AddPlayer( unsigned int player, unsigned int team )
 //
 void JOINQUEUE_ClearList( void )
 {
+	// [TP] Reset the client's memory of its position in the join queue because the queue is only really cleared in
+	// situations where it's obvious the client's out of the queue anyway and printing a message would be redundant.
+	ConsolePlayerPosition = -1;
 	JoinQueue.Clear();
+	JOINQUEUE_QueueChanged();
 }
 
 //*****************************************************************************
@@ -366,8 +391,7 @@ int JOINQUEUE_GetPositionInLine( unsigned int player )
 //
 void JOINQUEUE_AddConsolePlayer( unsigned int desiredTeam )
 {
-	unsigned int position = JOINQUEUE_AddPlayer( consoleplayer, desiredTeam );
-	Printf( "Your position in line is: %d\n", position + 1 );
+	JOINQUEUE_AddPlayer( consoleplayer, desiredTeam );
 }
 
 //*****************************************************************************
