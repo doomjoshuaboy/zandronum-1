@@ -1149,6 +1149,19 @@ void SERVERCOMMANDS_SetPlayerLivesLeft( ULONG ulPlayer, ULONG ulPlayerExtra, Ser
 
 //*****************************************************************************
 //
+void SERVERCOMMANDS_SetPlayerViewHeight( ULONG ulPlayer, ULONG ulPlayerExtra, ServerCommandFlags flags )
+{
+	if ( PLAYER_IsValidPlayerWithMo( ulPlayer ) == false )
+		return;
+
+	NetCommand command( SVC2_SETPLAYERVIEWHEIGHT );
+	command.addByte( ulPlayer );
+	command.addLong( players[ulPlayer].mo->ViewHeight );
+	command.sendCommandToClients( ulPlayerExtra, flags );
+}
+
+//*****************************************************************************
+//
 void SERVERCOMMANDS_SyncPlayerAmmoAmount( ULONG ulPlayer, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( PLAYER_IsValidPlayerWithMo( ulPlayer ) == false )
