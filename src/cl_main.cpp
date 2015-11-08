@@ -2836,6 +2836,7 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 						break;
 
 					players[ulPlayer].mo->ViewHeight = viewHeight;
+					players[ulPlayer].viewheight = viewHeight;
 				}
 				break;
 
