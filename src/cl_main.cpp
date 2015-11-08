@@ -2912,11 +2912,19 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 				JOINQUEUE_ClearList();
 
 				for ( int i = NETWORK_ReadByte( pByteStream ); i > 0; --i )
-					JOINQUEUE_AddPlayer( NETWORK_ReadByte( pByteStream ), NETWORK_ReadByte( pByteStream ));
+				{
+					int player = NETWORK_ReadByte( pByteStream );
+					int team = NETWORK_ReadByte( pByteStream );
+					JOINQUEUE_AddPlayer( player, team );
+				}
 				break;
 
 			case SVC2_PUSHTOJOINQUEUE:
-				JOINQUEUE_AddPlayer( NETWORK_ReadByte( pByteStream ), NETWORK_ReadByte( pByteStream ));
+				{
+					int player = NETWORK_ReadByte( pByteStream );
+					int team = NETWORK_ReadByte( pByteStream );
+					JOINQUEUE_AddPlayer( player, team );
+				}
 				break;
 
 			case SVC2_REMOVEFROMJOINQUEUE:
