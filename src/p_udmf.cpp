@@ -1749,6 +1749,10 @@ public:
 				side_t si;
 				mapsidedef_t st;
 				ParseSidedef(&si, &st, ParsedSides.Size());
+
+				// [BB] Save values that are necessary for a map reset.
+				si.SavedFlags = si.Flags;
+
 				ParsedSides.Push(si);
 				ParsedSideTextures.Push(st);
 			}
