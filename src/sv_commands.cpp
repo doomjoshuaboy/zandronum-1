@@ -3433,7 +3433,7 @@ void SERVERCOMMANDS_SetSideFlags( ULONG ulSide, ULONG ulPlayerExtra, ULONG ulFla
 		return;
 
 	NetCommand command ( SVC_SETSIDEFLAGS );
-	command.addShort ( ulSide );
+	command.addLong ( ulSide );
 	command.addByte ( sides[ulSide].Flags );
 	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
@@ -4588,7 +4588,7 @@ void SERVERCOMMANDS_DoScroller( LONG lType, LONG lXSpeed, LONG lYSpeed, LONG lAf
 	command.addByte ( lType );
 	command.addLong ( lXSpeed );
 	command.addLong ( lYSpeed );
-	command.addShort ( lAffectee );
+	command.addLong ( lAffectee );
 	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
