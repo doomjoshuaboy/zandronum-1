@@ -2412,6 +2412,9 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 				// [BB] If it's a rune, we need to explicitly set its icon since it was set by the RuneGiver.
 				if ( pInventory->IsKindOf( RUNTIME_CLASS( ARune )) )
 					SERVERCOMMANDS_SetInventoryIcon( ulIdx, pInventory, ulClient, SVCF_ONLYTHISCLIENT );
+				// [BB] Ammo max amount needs to be handled explicitly.
+				if ( pInventory->IsKindOf( RUNTIME_CLASS( AAmmo ) ) )
+					SERVERCOMMANDS_SetPlayerAmmoCapacity( ulIdx, pInventory, ulClient, SVCF_ONLYTHISCLIENT );
 			}
 			else if ( pInventory->IsKindOf( RUNTIME_CLASS( AKey )) )
 				keys.Push ( pInventory );
@@ -3910,6 +3913,8 @@ void SERVER_ResetInventory( ULONG ulClient, const bool bChangeClientWeapon )
 			continue;
 
 		SERVERCOMMANDS_GiveInventory( ulClient, pInventory, ulClient, SVCF_ONLYTHISCLIENT );
+		// [BB] Clients also need to know the max amount.
+		SERVERCOMMANDS_SetPlayerAmmoCapacity( ulClient, pInventory, ulClient, SVCF_ONLYTHISCLIENT );
 	}
 	// [BB]: After giving back the inventory, inform the player about which weapon he is using.
 	// This at least partly fixes the "Using unknown weapon type" bug.
