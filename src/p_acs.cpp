@@ -93,7 +93,6 @@
 
 // [BB] A std::pair inside TArray inside TArray didn't seem to work.
 std::vector<TArray<std::pair<FString, FString> > > g_dbQueries;
-static int g_IsLoadingLibraries = false; // [TP]
 
 //
 // [TP] Overridable system time property
@@ -1717,8 +1716,6 @@ void FBehavior::StaticLoadDefaultModules ()
 		StaticLoadModule (Wads.CheckNumForName ("STRFHELP", ns_acslibrary));
 	}
 
-	g_IsLoadingLibraries = true; // [TP]
-
 	// Scan each LOADACS lump and load the specified modules in order
 	int lump, lastlump = 0;
 
@@ -1738,8 +1735,6 @@ void FBehavior::StaticLoadDefaultModules ()
 			}
 		}
 	}
-
-	g_IsLoadingLibraries = false; // [TP]
 }
 
 FBehavior *FBehavior::StaticLoadModule (int lumpnum, FileReader *fr, int len)
@@ -2632,14 +2627,6 @@ void FBehavior::LoadScriptsDirectory ()
 		// do not match the order they were originally in.
 		qsort (Scripts, NumScripts, sizeof(ScriptPtr), SortScripts);
 	}
-
-	// [TP] Index all scripts so that we can address named scripts over the network. However, only do this for
-	// library ACS. Map ACS is not loaded at startup and thus can differ between server and client.
-	if ( g_IsLoadingLibraries )
-	{
-		for ( i = 0; i < NumScripts; ++i )
-			NETWORK_IndexACSScript( Scripts[i].Number );
-	}
 }
 
 int STACK_ARGS FBehavior::SortScripts (const void *a, const void *b)
@@ -3057,6 +3044,27 @@ int FBehavior::CountTypedScripts( WORD type )
 	}
 
 	return ( iCount );
+}
+
+// [TP]
+TArray<FName> FBehavior::StaticGetAllScriptNames()
+{
+	TArray<FName> result;
+
+	for ( unsigned int i = 0; i < StaticModules.Size(); ++i )
+	{
+		FBehavior* module = StaticModules[i];
+		
+		for ( int i = 0; i < module->NumScripts; ++i )
+		{
+			const ScriptPtr& ptr = module->Scripts[i];
+
+			if ( ptr.Number < 0 )
+				result.Push( FName( (ENamedName) -ptr.Number ));
+		}
+	}
+
+	return result;
 }
 // [BC] End of new functions.
 

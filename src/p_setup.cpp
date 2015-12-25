@@ -4426,6 +4426,9 @@ void P_SetupLevel (char *lumpname, int position)
 		delete[] oldvertextable;
 	}
 
+	// [TP] Set up a script name index for online script handling
+	NETWORK_MakeScriptNameIndex();
+
 	// set up world state
 	P_SpawnSpecials ();
 

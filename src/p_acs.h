@@ -352,6 +352,7 @@ public:
 
 	// [TP]
 	static FString RepresentScript ( int script );
+	static TArray<FName> StaticGetAllScriptNames();
 
 private:
 	struct ArrayInfo;
