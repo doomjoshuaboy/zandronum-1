@@ -4386,6 +4386,10 @@
 			Name="Menu"
 			>
 			<File
+				RelativePath=".\src\menu\browsermenu.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\menu\colorpickermenu.cpp"
 				>
 			</File>
