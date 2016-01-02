@@ -334,14 +334,28 @@ class DBrowserMenu : public DOptionMenu
 {
 	DECLARE_CLASS( DBrowserMenu, DOptionMenu )
 
+	int refreshTicker;
 public:
-	DBrowserMenu(){}
+	DBrowserMenu() : refreshTicker ( 0 ) {}
 
 	void Init ( DMenu* parent = NULL, FOptionMenuDescriptor* desc = NULL )
 	{
 		M_RefreshServers();
 		M_BuildServerList();
 		Super::Init( parent, desc );
+	}
+
+	void Ticker ()
+	{
+		Super::Ticker();
+
+		// [BB] Query the servers that didn't respond yet a couple of times.
+
+		if ( refreshTicker >= 10 * TICRATE )
+			return;
+
+		if ( ( ++refreshTicker % TICRATE ) == 0 )
+			BROWSER_QueryAllServers();
 	}
 
 	void Drawer()
