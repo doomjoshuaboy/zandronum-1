@@ -1242,6 +1242,7 @@ add_executable( zdoom WIN32
 	g_shared/st_hud.cpp #ST
 	intermission/intermission.cpp
 	intermission/intermission_parse.cpp
+	menu/browsermenu.cpp #ZA
 	menu/colorpickermenu.cpp
 	menu/joystickmenu.cpp
 	menu/listmenu.cpp
