@@ -41,6 +41,7 @@
 !	- sv_nodrop is now a dmflag. [Dusk]
 !	- Merged sv_nokill and sv_disallowsuicide into one dmflag with two names. [Dusk]
 !	- The CVARINFO error message triggered when an existing CVAR in the ini conflicts with CVARINFO now instructs the user to clean the ini. [Torr Samaho]
+!	- The server now displays the IP address of a disconnecting client in the log message. [Dusk]
 
 
 2.2
