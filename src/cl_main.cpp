@@ -2866,6 +2866,17 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 				client_BuildStair( pByteStream );
 				break;
 
+			// [EP]
+			case SVC2_SETMUGSHOTSTATE:
+				{
+					const char *statename = NETWORK_ReadString( pByteStream );
+					if ( StatusBar != NULL)
+					{
+						StatusBar->SetMugShotState( statename );
+					}
+				}
+				break;
+
 			default:
 				sprintf( szString, "CLIENT_ParsePacket: Illegible server message: %d\nLast command: %d\n", static_cast<int> (lExtCommand), static_cast<int> (g_lLastCmd) );
 				CLIENT_QuitNetworkGame( szString );

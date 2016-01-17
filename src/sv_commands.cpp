@@ -4768,6 +4768,15 @@ void SERVERCOMMANDS_SetPlayerHazardCount ( ULONG ulPlayer, ULONG ulPlayerExtra, 
 	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
+//*****************************************************************************
+// [EP] All the clients must change their own mugshot state.
+void SERVERCOMMANDS_SetMugShotState ( const char *statename )
+{
+	NetCommand command( SVC_EXTENDEDCOMMAND );
+	command.addByte( SVC2_SETMUGSHOTSTATE );
+	command.addString( statename );
+	command.sendCommandToClients();
+}
 
 //*****************************************************************************
 // [Dusk] Used in map resets to move a 3d midtexture moves without sector it's attached to.
