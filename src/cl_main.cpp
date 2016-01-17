@@ -4193,6 +4193,7 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 
 	pPlayer->attacker = NULL;
 	pPlayer->BlendR = pPlayer->BlendG = pPlayer->BlendB = pPlayer->BlendA = 0.f;
+	pPlayer->mo->ResetAirSupply(false);
 	pPlayer->cheats = 0;
 	pPlayer->Uncrouch( );
 
