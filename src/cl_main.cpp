@@ -5175,7 +5175,7 @@ static void client_SetPlayerAmmoCapacity( BYTESTREAM_s *pByteStream )
 	usActorNetworkIndex = NETWORK_ReadShort( pByteStream );
 
 	// Read in the amount of this inventory type the player has.
-	lMaxAmount = NETWORK_ReadShort( pByteStream );
+	lMaxAmount = NETWORK_ReadLong( pByteStream );
 
 	// Check to make sure everything is valid. If not, break out.
 	if (( PLAYER_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
