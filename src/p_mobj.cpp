@@ -4964,7 +4964,7 @@ AActor *AActor::StaticSpawn (const PClass *type, fixed_t ix, fixed_t iy, fixed_t
 	}
 	else
 	{
-		actor->SpawnPoint[2] = (actor->z - actor->floorz);
+		actor->SpawnPoint[2] = (actor->z - actor->Sector->floorplane.ZatPoint(actor->x,actor->y));
 	}
 
 	if (actor->FloatBobPhase == (BYTE)-1) actor->FloatBobPhase = rng();	// Don't make everything bob in sync (unless deliberately told to do)
