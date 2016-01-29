@@ -9893,7 +9893,7 @@ static void client_ACSScriptExecute( BYTESTREAM_s *pByteStream )
 	{
 		switch (( argheader >> ( 2 * i )) & 3 )
 		{
-			case 1: args[i] = NETWORK_ReadByte( pByteStream ); break;
+			case 1: args[i] = static_cast<SBYTE>( NETWORK_ReadByte( pByteStream )); break;
 			case 2: args[i] = NETWORK_ReadShort( pByteStream ); break;
 			case 3: args[i] = NETWORK_ReadLong( pByteStream ); break;
 			default: break;
