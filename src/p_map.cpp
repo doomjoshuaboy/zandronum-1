@@ -403,6 +403,12 @@ bool P_TeleportMove (AActor *thing, fixed_t x, fixed_t y, fixed_t z, bool telefr
 		if ( abs(th->x - tmf.x) >= blockdist || abs(th->y - tmf.y) >= blockdist)
 			continue;
 
+		if ((th->flags2 | tmf.thing->flags2) & MF2_THRUACTORS)
+			continue;
+
+		if (tmf.thing->flags6 & MF6_THRUSPECIES && tmf.thing->GetSpecies() == th->GetSpecies())
+			continue;
+
 		// [RH] Z-Check
 		// But not if not MF2_PASSMOBJ or MF3_DONTOVERLAP are set!
 		// Otherwise those things would get stuck inside each other.
