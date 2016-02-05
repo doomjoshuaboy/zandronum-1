@@ -672,12 +672,27 @@ static void M_ExecuteIgnore()
 
 void M_JoinMenu()
 {
+	if ( GAMEMODE_GetCurrentFlags() & GMF_DEADSPECTATORS
+		&& players[consoleplayer].bDeadSpectator )
+	{
+		Printf( "You cannot rejoin the game until the round is over!\n" );
+		return;
+	}
+
 	M_StartControlPanel( true );
 
-	if ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS )
+	// ST/CTF/domination without a selection room, or another team game.
+	if ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS
+		&& (( GAMEMODE_GetCurrentFlags() & GMF_TEAMGAME ) == 0
+			|| TemporaryTeamStarts.Size() == 0 )
+		&& ( dmflags2 & DF2_NO_TEAM_SELECT ) == false )
+	{
 		M_SetMenu( "ZA_JoinTeamMenu", -1 );
+	}
 	else
+	{
 		M_SetMenu( "ZA_JoinMenu", -1 );
+	}
 }
 
 //==================================================================================================
