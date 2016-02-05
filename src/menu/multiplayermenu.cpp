@@ -447,7 +447,6 @@ public:
 		bool letterBox;
 		int numModes = 0;
 
-		// [TP] Ported here from the old m_options.cpp
 		Video->StartModeIterator( 8, true );
 		while ( Video->NextMode( &width, &height, &letterBox ))
 		{
@@ -457,8 +456,10 @@ public:
 			numModes++;
 		}
 
-		// [TP] TODO: the max size of the slider of menu_textsizescalar depends on numModes
-		// Should figure out how to update it.
+		// [TP] Update the maximum of the menu_textsizescalar slider.
+		FOptionMenuItem* it = desc->GetItem( "menu_textsizescalar" );
+		if ( it )
+			it->SetValue( FOptionMenuSliderBase::SLIDER_MAXIMUM, numModes - 1);
 	}
 
 	void Drawer()
