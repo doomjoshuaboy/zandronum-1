@@ -2829,7 +2829,7 @@ void SERVER_WriteCommands( void )
 				{
 					FString specReason;
 					specReason.Format ( "AFK for %d minute%s.", sv_afk2spec.GetGenericRep( CVAR_Int ).Int, sv_afk2spec == 1 ? "" : "s" );
-					SERVER_KickPlayerFromGame( ulIdx, specReason.GetChars() );
+					SERVER_ForceToSpectate( ulIdx, specReason.GetChars() );
 				}
 				// [BB] Warn the player before forcing him to spectate, if that's going to happen in no more than 30 seconds.
 				else if ( afkKickTick - 30 * TICRATE <= gametic )
@@ -3523,7 +3523,7 @@ void SERVER_KickPlayer( ULONG ulPlayer, const char *pszReason )
 
 //*****************************************************************************
 //
-void SERVER_KickPlayerFromGame( ULONG ulPlayer, const char *pszReason )
+void SERVER_ForceToSpectate( ULONG ulPlayer, const char *pszReason )
 {
 	ULONG	ulIdx;
 	char	szKickString[512];
@@ -6271,7 +6271,7 @@ static bool server_CallVote( BYTESTREAM_s *pByteStream )
 		sprintf( szCommand, "kick" );
 		break;
 
-	case VOTECMD_KICKFROMGAME:
+	case VOTECMD_FORCETOSPECTATE:
 
 		bVoteAllowed = !sv_noforcespecvote;
 		sprintf( szCommand, "forcespec" );
@@ -6639,7 +6639,7 @@ CCMD( kick )
 
 //*****************************************************************************
 //
-CCMD( kickfromgame_idx )
+CCMD( forcespec_idx )
 {
 	// Only the server can boot players!
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
@@ -6647,7 +6647,7 @@ CCMD( kickfromgame_idx )
 
 	if ( argv.argc( ) < 2 )
 	{
-		Printf( "Usage: kickfromgame_idx <player index> [reason]\nYou can get the list of players and indexes with the ccmd playerinfo.\n" );
+		Printf( "Usage: forcespec_idx <player index> [reason]\nYou can get the list of players and indexes with the ccmd playerinfo.\n" );
 		return;
 	}
 
@@ -6656,15 +6656,15 @@ CCMD( kickfromgame_idx )
 	// [BB] Validity checks are done in SERVER_KickPlayerFromGame.
 	// If we provided a reason, give it.
 	if ( argv.argc( ) >= 3 )
-		SERVER_KickPlayerFromGame( ulIdx, argv[2] );
+		SERVER_ForceToSpectate( ulIdx, argv[2] );
 	else
-		SERVER_KickPlayerFromGame( ulIdx, "None given." );
+		SERVER_ForceToSpectate( ulIdx, "None given." );
 	return;
 }
 
 //*****************************************************************************
 //
-CCMD( kickfromgame )
+CCMD( forcespec )
 {
 	char	szPlayerName[64];
 
@@ -6674,7 +6674,7 @@ CCMD( kickfromgame )
 
 	if ( argv.argc( ) < 2 )
 	{
-		Printf( "Usage: kickfromgame <playername> [reason]\n" );
+		Printf( "Usage: forcespec <playername> [reason]\n" );
 		return;
 	}
 
@@ -6706,9 +6706,9 @@ CCMD( kickfromgame )
 		// By now the player is known and valid - kick him from
 		// game. If we provided a reason, give it.
 		if ( argv.argc( ) >= 3 )
-			SERVER_KickPlayerFromGame( ulIdx, argv[2] );
+			SERVER_ForceToSpectate( ulIdx, argv[2] );
 		else
-			SERVER_KickPlayerFromGame( ulIdx, "None given" );
+			SERVER_ForceToSpectate( ulIdx, "None given" );
 
 		return;
 	}
@@ -6721,6 +6721,21 @@ CCMD( kickfromgame )
 		Printf( "Unknown player: %s\n", argv[1] );
 	}
 	return;
+}
+
+//*****************************************************************************
+// [TP] These can't simply be aliases in keyconf.txt because then reasons would be restricted to one word only.
+//
+CCMD( kickfromgame )
+{
+	Cmd_forcespec( argv, who, key );
+}
+
+//*****************************************************************************
+//
+CCMD( kickfromgame_idx )
+{
+	Cmd_forcespec_idx( argv, who, key );
 }
 
 //*****************************************************************************
