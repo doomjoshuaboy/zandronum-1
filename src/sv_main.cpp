@@ -3525,47 +3525,29 @@ void SERVER_KickPlayer( ULONG ulPlayer, const char *pszReason )
 //
 void SERVER_ForceToSpectate( ULONG ulPlayer, const char *pszReason )
 {
-	ULONG	ulIdx;
-	char	szKickString[512];
-	char	szName[64];
-
 	// Make sure the target is valid and applicable.
-	if ( PLAYER_IsValidPlayer ( ulPlayer ) == false ) {
+	if ( PLAYER_IsValidPlayer ( ulPlayer ) == false )
+	{
 		Printf( "No such player!\n" );
 		return;
 	}
 
-	sprintf( szName, "%s", players[ulPlayer].userinfo.GetName() );
-	V_RemoveColorCodes( szName );
-
 	// Already a spectator! This should not happen.
-	if ( PLAYER_IsTrueSpectator( &players[ulPlayer] )) {
-		Printf( "%s is already a spectator!\n", szName );
+	if ( PLAYER_IsTrueSpectator( &players[ulPlayer] ))
+	{
+		Printf( "%s is already a spectator!\n", players[ulPlayer].userinfo.GetName() );
 		return;
 	}
 
-	// Build the full kick string.
-	sprintf( szKickString, "\\ci%s\\ci has been forced to spectate! Reason: %s\n", szName, pszReason );
-	Printf( "%s", szKickString );
+	SERVER_Printf( PRINT_HIGH, "\\ci%s\\ci has been forced to spectate! Reason: %s\n",
+		players[ulPlayer].userinfo.GetName(), pszReason );
 
 	// Make this player a spectator.
 	PLAYER_SetSpectator( &players[ulPlayer], true, false );
 
 	// Send the message out to all clients.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-	{
-		// Rebuild the string that will be displayed to clients. This time, color codes are allowed.
-		sprintf( szKickString, "\\ci%s\\ci has been forced to spectate! Reason: %s\n", players[ulPlayer].userinfo.GetName(), pszReason );
-
 		SERVERCOMMANDS_PlayerIsSpectator( ulPlayer );
-		for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-		{
-			if ( SERVER_IsValidClient( ulIdx ) == false )
-				continue;
-
-			SERVER_PrintfPlayer( PRINT_HIGH, ulIdx, "%s", szKickString );
-		}
-	}
 }
 
 //*****************************************************************************
@@ -6666,8 +6648,6 @@ CCMD( forcespec_idx )
 //
 CCMD( forcespec )
 {
-	char	szPlayerName[64];
-
 	// Only the server can boot players!
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 		return;
@@ -6678,45 +6658,41 @@ CCMD( forcespec )
 		return;
 	}
 
-	bool bAlreadySpectating = false;
+	bool foundSpectators = false;
 
 	// Loop through all the players, and try to find one that matches the given name.
-	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	for ( int i = 0; i < MAXPLAYERS; i++ )
 	{
-		if ( playeringame[ulIdx] == false )
+		if ( playeringame[i] == false )
 			continue;
 
 		// Removes the color codes from the player name so it appears as the server sees it in the window.
-		sprintf( szPlayerName, "%s", players[ulIdx].userinfo.GetName() );
-		V_RemoveColorCodes( szPlayerName );
+		FString playerName = players[i].userinfo.GetName();
+		V_RemoveColorCodes( playerName );
 
-		if ( stricmp( szPlayerName, argv[1] ) != 0 )
+		if ( playerName.CompareNoCase( argv[1] ) != 0 )
 			continue;
 
 		// Already a spectator!
-		if ( PLAYER_IsTrueSpectator( &players[ulIdx] )) {
-			// [Dusk] Note down that we found a player but he's
-			// already spectating. If we find no valid player,
-			// display that the player is already a spectator.
-
-			bAlreadySpectating = true;
+		if ( PLAYER_IsTrueSpectator( &players[i] ))
+		{
+			foundSpectators = true;
 			continue;
 		}
 
 		// By now the player is known and valid - kick him from
 		// game. If we provided a reason, give it.
-		if ( argv.argc( ) >= 3 )
-			SERVER_ForceToSpectate( ulIdx, argv[2] );
-		else
-			SERVER_ForceToSpectate( ulIdx, "None given" );
-
+		SERVER_ForceToSpectate( i, ( argv.argc( ) >= 3 ) ? argv[2] : "None given" );
 		return;
 	}
 
-	if (bAlreadySpectating) {
-		// [Dusk] Only matched player(s) were spectators.
+	if ( foundSpectators )
+	{
+		// [TP] Only matched player(s) were spectators.
 		Printf( "%s is already a spectator!\n", argv[1]);
-	} else {
+	}
+	else
+	{
 		// Didn't find a player that matches the name.
 		Printf( "Unknown player: %s\n", argv[1] );
 	}
