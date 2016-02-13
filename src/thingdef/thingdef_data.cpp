@@ -55,8 +55,8 @@ static TArray<FVariableInfo*> variables;
 //==========================================================================
 
 // [RH] Keep GCC quiet by not using offsetof on Actor types.
-#define DEFINE_FLAG(prefix, name, type, variable) { prefix##_##name, #name, (int)(size_t)&((type*)1)->variable - 1, sizeof(((type *)0)->variable) }
-#define DEFINE_FLAG2(symbol, name, type, variable) { symbol, #name, (int)(size_t)&((type*)1)->variable - 1, sizeof(((type *)0)->variable) }
+#define DEFINE_FLAG(prefix, name, type, variable) { (unsigned int)prefix##_##name, #name, (int)(size_t)&((type*)1)->variable - 1, sizeof(((type *)0)->variable) }
+#define DEFINE_FLAG2(symbol, name, type, variable) { (unsigned int)symbol, #name, (int)(size_t)&((type*)1)->variable - 1, sizeof(((type *)0)->variable) }
 #define DEFINE_DEPRECATED_FLAG(name) { DEPF_##name, #name, -1, 0 }
 #define DEFINE_DUMMY_FLAG(name) { DEPF_UNUSED, #name, -1, 0 }
 
