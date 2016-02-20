@@ -811,27 +811,24 @@ void FMapInfoParser::ParseNextMap(char *mapname)
 		// beginning.
 		else if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		{
-			if (strnicmp (sc.String, "EndGame", 7) == 0)
+			if ( strnicmp( mapname, "EndGame", 7 ) == 0 )
 			{
-				switch (sc.String[7])
+				switch ( mapname[7] )
 				{
-				case '1':	sprintf (sc.String, "E1M1");	break;
-				case '2':	sprintf (sc.String, "E2M1");	break;
-				case '3':	sprintf (sc.String, "E3M1");	break;
-				case '4':	sprintf (sc.String, "E4M1");	break;
-				case 'C':	sprintf (sc.String, "MAP01");	break;
+				case '1':	strcpy( mapname, "E1M1" );	break;
+				case '2':	strcpy( mapname, "E2M1" );	break;
+				case '3':	strcpy( mapname, "E3M1" );	break;
+				case '4':	strcpy( mapname, "E4M1" );	break;
+				case 'C':	strcpy( mapname, "MAP01" );	break;
 //				case 'W':	type = END_Underwater;	break;
 //				case 'S':	type = END_Strife;		break;
-				default:	sprintf (sc.String, "MAP01");	break;
+				default:	strcpy( mapname, "MAP01" );	break;
 				}
-				strncpy (mapname, sc.String, 8);
 			}
+
 			// [BB] In a multiplayer game, we can't go to the title either.
-			if ( ( stricmp (sc.String, "EndTitle") == 0 ) && ( AllEpisodes.Size() > 0 ) )
-			{
-				sprintf (sc.String, AllEpisodes[0].mEpisodeMap.GetChars());
-				strncpy (mapname, sc.String, 8);
-			}
+			if ( ( stricmp (mapname, "EndTitle") == 0 ) && ( AllEpisodes.Size() > 0 ) )
+				strncpy( mapname, AllEpisodes[0].mEpisodeMap.GetChars(), 8 );
 		}
 	}
 }
