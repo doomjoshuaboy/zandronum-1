@@ -6542,14 +6542,16 @@ CCMD( kick_idx )
 		return;
 	}
 
-	ULONG ulIdx =  atoi(argv[1]);
+	int playerIndex;
+	if ( argv.SafeGetNumber( 1, playerIndex ) == false )
+		return;
 
 	// [BB] Validity checks are done in SERVER_KickPlayer.
 	// If we provided a reason, give it.
 	if ( argv.argc( ) >= 3 )
-		SERVER_KickPlayer( ulIdx, argv[2] );
+		SERVER_KickPlayer( playerIndex, argv[2] );
 	else
-		SERVER_KickPlayer( ulIdx, "None given." );
+		SERVER_KickPlayer( playerIndex, "None given." );
 	return;
 }
 
@@ -6633,14 +6635,16 @@ CCMD( forcespec_idx )
 		return;
 	}
 
-	ULONG ulIdx =  atoi(argv[1]);
+	int playerIndex;
+	if ( argv.SafeGetNumber( 1, playerIndex ) == false )
+		return;
 
 	// [BB] Validity checks are done in SERVER_KickPlayerFromGame.
 	// If we provided a reason, give it.
 	if ( argv.argc( ) >= 3 )
-		SERVER_ForceToSpectate( ulIdx, argv[2] );
+		SERVER_ForceToSpectate( playerIndex, argv[2] );
 	else
-		SERVER_ForceToSpectate( ulIdx, "None given." );
+		SERVER_ForceToSpectate( playerIndex, "None given." );
 	return;
 }
 
