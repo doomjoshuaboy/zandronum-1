@@ -115,6 +115,7 @@
 #include "r_data/colormaps.h"
 #include "r_main.h"
 #include "network_enums.h"
+#include "decallib.h"
 
 //*****************************************************************************
 //	MISC CRAP THAT SHOULDN'T BE HERE BUT HAS TO BE BECAUSE OF SLOPPY CODING
@@ -2949,6 +2950,21 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 						mobj->alpha = OPAQUE;
 						mobj->visdir = -1;
 					}
+				}
+				break;
+
+			case SVC2_SHOOTDECAL:
+				{
+					FName decalName = NETWORK_ReadName( pByteStream );
+					AActor* actor = CLIENT_FindThingByNetID( NETWORK_ReadShort( pByteStream ));
+					fixed_t z = NETWORK_ReadShort( pByteStream ) << FRACBITS;
+					angle_t angle = NETWORK_ReadShort( pByteStream ) << FRACBITS;
+					fixed_t tracedist = NETWORK_ReadLong( pByteStream );
+					bool permanent = !!NETWORK_ReadByte( pByteStream );
+					const FDecalTemplate* tpl = DecalLibrary.GetDecalByName( decalName );
+
+					if ( actor && tpl )
+						ShootDecal( tpl, actor, actor->Sector, actor->x, actor->y, z, angle, tracedist, permanent );
 				}
 				break;
 
