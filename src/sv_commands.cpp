@@ -729,15 +729,13 @@ void SERVERCOMMANDS_SetPlayerArmor( ULONG ulPlayer, ULONG ulPlayerExtra, ServerC
 		return;
 
 	AInventory *pArmor = players[ulPlayer].mo->FindInventory< ABasicArmor >( );
-	ULONG ulArmorPoints = ( pArmor != NULL ) ? pArmor->Amount : 0;
 
-	// [BB] This check ensures ( pArmor != NULL ) below.
-	if ( ulArmorPoints == 0 )
+	if ( pArmor == NULL )
 		return;
 
 	NetCommand command ( SVC_SETPLAYERARMOR );
 	command.addByte( ulPlayer );
-	command.addShort( ulArmorPoints );
+	command.addShort( pArmor->Amount );
 	command.addString( pArmor->Icon.isValid() ? TexMan( pArmor->Icon )->Name : "" );
 
 	for ( ClientIterator it ( ulPlayerExtra, flags ); it.notAtEnd(); ++it )

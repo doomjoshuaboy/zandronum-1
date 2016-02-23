@@ -966,6 +966,10 @@ void cht_Take (player_t *player, const char *name, int amount)
 			{
 				player->health -= amount;
 			}
+
+			// [TP]
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetPlayerHealth( player - players );
 		}
 
 		if (!takeall)
@@ -982,6 +986,10 @@ void cht_Take (player_t *player, const char *name, int amount)
 			if (type->IsDescendantOf(RUNTIME_CLASS (ABackpackItem)))
 			{
 				AInventory *pack = player->mo->FindInventory (type);
+
+				// [TP]
+				if ( pack && ( NETWORK_GetState( ) == NETSTATE_SERVER ))
+					SERVERCOMMANDS_TakeInventory( player - players, type->TypeName, 0 );
 
 				if (pack) pack->Destroy();
 			}
@@ -1000,6 +1008,10 @@ void cht_Take (player_t *player, const char *name, int amount)
 			if (type->ParentClass == RUNTIME_CLASS (AAmmo))
 			{
 				AInventory *ammo = player->mo->FindInventory (type);
+
+				// [TP]
+				if ( ammo && ( NETWORK_GetState( ) == NETSTATE_SERVER ))
+					SERVERCOMMANDS_TakeInventory( player - players, type->TypeName, 0 );
 
 				if (ammo)
 					ammo->Amount = 0;
@@ -1025,6 +1037,13 @@ void cht_Take (player_t *player, const char *name, int amount)
 			}
 		}
 
+		// [TP]
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		{
+			SERVERCOMMANDS_SetPlayerArmor( player - players );
+			SERVERCOMMANDS_SyncHexenArmorSlots( player - players );
+		}
+
 		if (!takeall)
 			return;
 	}
@@ -1038,6 +1057,10 @@ void cht_Take (player_t *player, const char *name, int amount)
 			if (type->IsDescendantOf (RUNTIME_CLASS (AKey)))
 			{
 				AActor *key = player->mo->FindInventory (type);
+
+				// [TP]
+				if ( key && ( NETWORK_GetState( ) == NETSTATE_SERVER ))
+					SERVERCOMMANDS_TakeInventory( player - players, type->TypeName, 0 );
 
 				if (key)
 					key->Destroy ();
@@ -1058,6 +1081,10 @@ void cht_Take (player_t *player, const char *name, int amount)
 				type->IsDescendantOf (RUNTIME_CLASS (AWeapon)))
 			{
 				AActor *weapon = player->mo->FindInventory (type);
+
+				// [TP]
+				if ( weapon && ( NETWORK_GetState( ) == NETSTATE_SERVER ))
+					SERVERCOMMANDS_TakeInventory( player - players, type->TypeName, 0 );
 
 				if (weapon)
 					weapon->Destroy ();
@@ -1089,6 +1116,10 @@ void cht_Take (player_t *player, const char *name, int amount)
 				{
 					AActor *artifact = player->mo->FindInventory (type);
 
+					// [TP]
+					if ( artifact && ( NETWORK_GetState( ) == NETSTATE_SERVER ))
+						SERVERCOMMANDS_TakeInventory( player - players, type->TypeName, 0 );
+
 					if (artifact)
 						artifact->Destroy ();
 				}
@@ -1108,6 +1139,10 @@ void cht_Take (player_t *player, const char *name, int amount)
 			if (type->IsDescendantOf (RUNTIME_CLASS (APuzzleItem)))
 			{
 				AActor *puzzlepiece = player->mo->FindInventory (type);
+
+				// [TP]
+				if ( puzzlepiece && ( NETWORK_GetState( ) == NETSTATE_SERVER ))
+					SERVERCOMMANDS_TakeInventory( player - players, type->TypeName, 0 );
 
 				if (puzzlepiece)
 					puzzlepiece->Destroy ();
@@ -1134,6 +1169,10 @@ void cht_Take (player_t *player, const char *name, int amount)
 		if (inventory != NULL)
 		{
 			inventory->Amount -= amount ? amount : 1;
+
+			// [TP]
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_TakeInventory( player - players, type->TypeName, inventory->Amount );
 
 			if (inventory->Amount <= 0)
 			{

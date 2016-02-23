@@ -31,6 +31,7 @@
 -	- Fixed: Kill [class] cheat didn't work online. The kill monsters cheat can also be used by clients if sv_cheats is true. The server can use the kill [class] cheat anytime, like with kill monsters. [Dusk]
 -	- Fixed: Logfiles would sometimes contain timestamps in the middle of lines. [Dusk]
 -	- sv_shotgunstart is now respected in non-cooperative gamemodes. [Dusk]
+-	- Fixed: Take cheat didn't work online. [Dusk]
 -	- Fixed: An invalid "winlimit hit" message would be displayed on map change in possession. [Dusk]
 -	- Fixed: The internal server browser didn't list all of the compatible, available servers. [Torr Samaho]
 -	- Fixed: A_CheckSight would not jump if a spectator was in the line of sight of the calling actor. [Dusk]
