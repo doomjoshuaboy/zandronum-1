@@ -209,11 +209,7 @@ bool CheckIfExitIsGood (AActor *self, level_info_t *info)
 				if ( bSolidFlag )
 					players[ulPlayer].mo->flags |=  MF_SOLID;
 				P_Teleport (self, pSpot->x, pSpot->y, ONFLOORZ, ANG45 * (pSpot->angle/45), true, true, false);
-
-				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVER_PrintfPlayer( PRINT_HIGH, ulPlayer, "You need to kill %d percent of the monsters before exiting the level.\n", sv_killallmonsters_percentage.GetGenericRep( CVAR_Int ).Int );
-				else
-					Printf( "You need to kill %d percent of the monsters before exiting the level.\n", sv_killallmonsters_percentage.GetGenericRep( CVAR_Int ).Int );
+				NETWORK_Printf( "You need to kill %d percent of the monsters before exiting the level.\n", *sv_killallmonsters_percentage );
 
 			}
 			return false;
@@ -251,10 +247,7 @@ bool CheckIfExitIsGood (AActor *self, level_info_t *info)
 		if (( self->player != NULL ) && ( self->player->mo == self ))
 		{
 			// [K6/BB] The server should let the clients know who exited the level.
-			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVER_Printf( PRINT_HIGH, "%s \\c-exited the level.\n", self->player->userinfo.GetName());
-			else
-				Printf ("%s \\c-exited the level.\n", self->player->userinfo.GetName());
+			NETWORK_Printf ("%s \\c-exited the level.\n", self->player->userinfo.GetName());
 		}
 	}
 	return true;
@@ -921,11 +914,7 @@ void P_UpdateSpecials ()
 					TEAM_TimeExpired( );
 				else if ( cooperative )
 				{
-					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-						SERVER_Printf( PRINT_HIGH, "%s\n", GStrings( "TXT_TIMELIMIT" ));
-					else
-						Printf( "%s\n", GStrings( "TXT_TIMELIMIT" ));
-
+					NETWORK_Printf( "%s\n", GStrings( "TXT_TIMELIMIT" ));
 					GAME_SetEndLevelDelay( 1 * TICRATE );
 				}
 				// End the level after one second.
@@ -937,11 +926,7 @@ void P_UpdateSpecials ()
 					bool				bTied;
 					char				szString[64];
 
-					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-						SERVER_Printf( PRINT_HIGH, "%s\n", GStrings( "TXT_TIMELIMIT" ));
-					else
-						Printf( "%s\n", GStrings( "TXT_TIMELIMIT" ));
-
+					NETWORK_Printf( "%s\n", GStrings( "TXT_TIMELIMIT" ));
 					GAME_SetEndLevelDelay( 1 * TICRATE );
 
 					// Determine the winner.
