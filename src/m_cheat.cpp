@@ -534,7 +534,7 @@ void cht_DoCheat (player_t *player, int cheat)
 		|| ( !( GAMEMODE_GetCurrentFlags() & GMF_COOPERATIVE )
 			&& ( player->bSpectating == false ) && !(dmflags2 & DF2_CHASECAM))){
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVER_Printf( PRINT_HIGH, "%s is a cheater: %s\n", player->userinfo.GetName(), msg );
+			SERVER_Printf( "%s is a cheater: %s\n", player->userinfo.GetName(), msg );
 		else if ( player == &players[consoleplayer] || CLIENTDEMO_IsFreeSpectatorPlayer( player ) )
 			Printf ("%s\n", msg);
 		// [BB] The server already ensures that all clients see the cheater message.
@@ -632,7 +632,7 @@ void cht_Give (player_t *player, const char *name, int amount)
 	const PClass *type;
 
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVER_Printf( PRINT_HIGH, "%s is a cheater: give %s\n", player->userinfo.GetName(), name );
+		SERVER_Printf( "%s is a cheater: give %s\n", player->userinfo.GetName(), name );
 	else if (player != &players[consoleplayer])
 		Printf ("%s is a cheater: give %s\n", player->userinfo.GetName(), name);
 
