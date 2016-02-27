@@ -504,7 +504,7 @@ if( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STRE
 		set( CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -pg" )
 		set( CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -pg" )
 	endif( PROFILE )
-	
+
 	set( REL_CXX_FLAGS "-fno-rtti" )
 	if( NOT PROFILE )
 		set( REL_CXX_FLAGS "${REL_CXX_FLAGS} -fomit-frame-pointer" )
@@ -514,6 +514,30 @@ if( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STRE
 	set( CMAKE_CXX_FLAGS_RELWITHDEBINFO "${REL_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}" )
 
 	set( CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused -Wno-unused-parameter -Wno-missing-field-initializers ${CMAKE_CXX_FLAGS}" )
+
+	# Use the highest C++ standard available since VS2015 compiles with C++14
+	# but we only require C++11.  The recommended way to do this in CMake is to
+	# probably to use target_compile_features, but I don't feel like maintaining
+	# a list of features we use.
+	CHECK_CXX_COMPILER_FLAG( "-std=c++14" CAN_DO_CPP14 )
+	if ( CAN_DO_CPP14 )
+		set ( CMAKE_CXX_FLAGS "-std=c++14 ${CMAKE_CXX_FLAGS}" )
+	else ()
+		CHECK_CXX_COMPILER_FLAG( "-std=c++1y" CAN_DO_CPP1Y )
+		if ( CAN_DO_CPP1Y )
+			set ( CMAKE_CXX_FLAGS "-std=c++1y ${CMAKE_CXX_FLAGS}" )
+		else ()
+			CHECK_CXX_COMPILER_FLAG( "-std=c++11" CAN_DO_CPP11 )
+			if ( CAN_DO_CPP11 )
+				set ( CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}" )
+			else ()
+				CHECK_CXX_COMPILER_FLAG( "-std=c++0x" CAN_DO_CPP0X )
+				if ( CAN_DO_CPP0X )
+					set ( CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}" )
+				endif ()
+			endif ()
+		endif ()
+	endif ()
 
 	# Remove extra warnings when using the official DirectX headers.
 	# Also, TDM-GCC 4.4.0 no longer accepts glibc-style printf formats as valid,
