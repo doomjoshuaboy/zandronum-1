@@ -1297,7 +1297,7 @@ static void DoTakeInv (AActor *actor, const PClass *info, int amount)
 		// [BB] We may not pass a negative amount to SERVERCOMMANDS_TakeInventory.
 		// [BB] Also only inform the client if it had actually had something that could be taken.
 		if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( actor->player ) && ( ( oldAmount > 0 ) || ( amount < 0 ) ) )
-			SERVERCOMMANDS_TakeInventory( actor->player - players, item->GetClass( )->TypeName.GetChars( ), MAX ( 0, item->Amount ) );
+			SERVERCOMMANDS_TakeInventory( actor->player - players, item->GetClass(), MAX( 0, item->Amount ) );
 		if (item->Amount <= 0)
 		{
 			// If it's not ammo or an internal armor, destroy it.
