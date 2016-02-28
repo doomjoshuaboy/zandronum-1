@@ -322,11 +322,11 @@ void RemoveUnnecessaryPositionUpdateFlags( AActor *pActor, ULONG &ulBits )
 	if ( (pActor->lastNetZUpdateTic == gametic) && (pActor->lastZ == pActor->z) )
 		ulBits  &= ~CM_Z;
 	if ( (pActor->lastNetMomXUpdateTic == gametic) && (pActor->lastMomx == pActor->velx) )
-		ulBits  &= ~CM_MOMX;
+		ulBits  &= ~CM_VELX;
 	if ( (pActor->lastNetMomYUpdateTic == gametic) && (pActor->lastMomy == pActor->vely) )
-		ulBits  &= ~CM_MOMY;
+		ulBits  &= ~CM_VELY;
 	if ( (pActor->lastNetMomZUpdateTic == gametic) && (pActor->lastMomz == pActor->velz) )
-		ulBits  &= ~CM_MOMZ;
+		ulBits  &= ~CM_VELZ;
 	if ( (pActor->lastNetMovedirUpdateTic == gametic) && (pActor->lastMovedir == pActor->movedir) )
 		ulBits  &= ~CM_MOVEDIR;
 }
@@ -452,17 +452,17 @@ void ActorNetPositionUpdated( AActor *pActor, ULONG &ulBits )
 		pActor->lastNetZUpdateTic = gametic;
 		pActor->lastZ = pActor->z;
 	}
-	if ( ulBits & CM_MOMX )
+	if ( ulBits & CM_VELX )
 	{
 		pActor->lastNetMomXUpdateTic = gametic;
 		pActor->lastMomx = pActor->velx;
 	}
-	if ( ulBits & CM_MOMY )
+	if ( ulBits & CM_VELY )
 	{
 		pActor->lastNetMomYUpdateTic = gametic;
 		pActor->lastMomy = pActor->vely;
 	}
-	if ( ulBits & CM_MOMZ )
+	if ( ulBits & CM_VELZ )
 	{
 		pActor->lastNetMomZUpdateTic = gametic;
 		pActor->lastMomz = pActor->velz;
@@ -1601,11 +1601,11 @@ void SERVERCOMMANDS_MoveThing( AActor *pActor, ULONG ulBits, ULONG ulPlayerExtra
 		command.addLong( pActor->angle );
 
 	// Write velocity.
-	if ( ulBits & CM_MOMX )
+	if ( ulBits & CM_VELX )
 		command.addShort( pActor->velx >> FRACBITS );
-	if ( ulBits & CM_MOMY )
+	if ( ulBits & CM_VELY )
 		command.addShort( pActor->vely >> FRACBITS );
-	if ( ulBits & CM_MOMZ )
+	if ( ulBits & CM_VELZ )
 		command.addShort( pActor->velz >> FRACBITS );
 
 	// Write pitch.
@@ -1668,11 +1668,11 @@ void SERVERCOMMANDS_MoveThingExact( AActor *pActor, ULONG ulBits, ULONG ulPlayer
 		command.addLong( pActor->angle );
 
 	// Write velocity.
-	if ( ulBits & CM_MOMX )
+	if ( ulBits & CM_VELX )
 		command.addLong( pActor->velx );
-	if ( ulBits & CM_MOMY )
+	if ( ulBits & CM_VELY )
 		command.addLong( pActor->vely );
-	if ( ulBits & CM_MOMZ )
+	if ( ulBits & CM_VELZ )
 		command.addLong( pActor->velz );
 
 	// Write pitch.

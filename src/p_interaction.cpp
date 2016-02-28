@@ -1214,7 +1214,7 @@ int P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage,
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			{
 				SERVERCOMMANDS_SetThingTics( target );
-				SERVERCOMMANDS_MoveThing( target, CM_MOMX|CM_MOMY|CM_MOMZ );
+				SERVERCOMMANDS_MoveThing( target, CM_VELX|CM_VELY|CM_VELZ );
 			}
 		}
 		return -1;
@@ -1264,7 +1264,7 @@ int P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage,
 
 		// [BC] If we're the server, tell clients to update this thing's momentum
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_MoveThing( target, CM_MOMX|CM_MOMY|CM_MOMZ );
+			SERVERCOMMANDS_MoveThing( target, CM_VELX|CM_VELY|CM_VELZ );
 	}
 	if (!(flags & DMG_FORCED))	// DMG_FORCED skips all special damage checks
 	{

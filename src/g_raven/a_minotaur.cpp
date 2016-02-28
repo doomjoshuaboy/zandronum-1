@@ -271,7 +271,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_MinotaurDecide)
 		// [BB] If we're the server, update the thing's momentum and set the MF_SKULLFLY flag.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		{
-			SERVERCOMMANDS_MoveThingExact( self, CM_MOMX|CM_MOMY );
+			SERVERCOMMANDS_MoveThingExact( self, CM_VELX|CM_VELY );
 			SERVERCOMMANDS_SetThingFlags( self, FLAGSET_FLAGS );
 		}
 	}
@@ -332,7 +332,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_MinotaurCharge)
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		{
 			SERVERCOMMANDS_SpawnThing( puff );
-			SERVERCOMMANDS_MoveThing( puff, CM_MOMZ );
+			SERVERCOMMANDS_MoveThing( puff, CM_VELZ );
 		}
 	}
 	else

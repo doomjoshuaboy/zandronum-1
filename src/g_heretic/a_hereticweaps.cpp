@@ -736,7 +736,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_MacePL1Check)
 	{
 		SERVERCOMMANDS_SetThingFlags( self, FLAGSET_FLAGS );
 		SERVERCOMMANDS_SetThingFlags( self, FLAGSET_FLAGS2 );
-		SERVERCOMMANDS_MoveThingExact( self, CM_X|CM_Y|CM_Z|CM_MOMX|CM_MOMY|CM_MOMZ );
+		SERVERCOMMANDS_MoveThingExact( self, CM_X|CM_Y|CM_Z|CM_VELX|CM_VELY|CM_VELZ );
 		SERVERCOMMANDS_SetThingGravity( self );
 	}
 }
@@ -770,7 +770,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_MaceBallImpact)
 		{
 			SERVERCOMMANDS_SetThingFlags( self, FLAGSET_FLAGS2 );
 			SERVERCOMMANDS_SetThingState( self, STATE_SPAWN );
-			SERVERCOMMANDS_MoveThingExact( self, CM_X|CM_Y|CM_Z|CM_MOMX|CM_MOMY|CM_MOMZ );
+			SERVERCOMMANDS_MoveThingExact( self, CM_X|CM_Y|CM_Z|CM_VELX|CM_VELY|CM_VELZ );
 			SERVERCOMMANDS_SoundActor( self, CHAN_BODY, "weapons/macebounce", 1, ATTN_NORM );
 		}
 
@@ -789,7 +789,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_MaceBallImpact)
 		{
 			SERVERCOMMANDS_SetThingFlags( self, FLAGSET_FLAGS );
 			SERVERCOMMANDS_SetThingFlags( self, FLAGSET_FLAGS2 );
-			SERVERCOMMANDS_MoveThingExact( self, CM_X|CM_Y|CM_Z|CM_MOMX|CM_MOMY|CM_MOMZ );
+			SERVERCOMMANDS_MoveThingExact( self, CM_X|CM_Y|CM_Z|CM_VELX|CM_VELY|CM_VELZ );
 			SERVERCOMMANDS_SetThingGravity( self );
 			SERVERCOMMANDS_SoundActor( self, CHAN_BODY, "weapons/macebounce", 1, ATTN_NORM );
 		}
@@ -857,7 +857,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_MaceBallImpact2)
 
 		// [BC] If we're the server, send the state change and move it.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_MoveThingExact( self, CM_X|CM_Y|CM_Z|CM_MOMX|CM_MOMY|CM_MOMZ );
+			SERVERCOMMANDS_MoveThingExact( self, CM_X|CM_Y|CM_Z|CM_VELX|CM_VELY|CM_VELZ );
 
 		tiny = Spawn("MaceFX3", self->x, self->y, self->z, ALLOW_REPLACE);
 		angle = self->angle+ANG90;
@@ -901,7 +901,7 @@ boom:
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		{
 			SERVERCOMMANDS_SetThingState( self, STATE_DEATH );
-			SERVERCOMMANDS_MoveThingExact( self, CM_X|CM_Y|CM_Z|CM_MOMX|CM_MOMY|CM_MOMZ );
+			SERVERCOMMANDS_MoveThingExact( self, CM_X|CM_Y|CM_Z|CM_VELX|CM_VELY|CM_VELZ );
 			SERVERCOMMANDS_SetThingFlags( self, FLAGSET_FLAGS );
 			SERVERCOMMANDS_SetThingFlags( self, FLAGSET_FLAGS2 );
 			SERVERCOMMANDS_SetThingGravity( self );
@@ -957,7 +957,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireMacePL2)
 	// [BC] If we're the server, play the sound.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
-		SERVERCOMMANDS_MoveThingExact( mo, CM_X|CM_Y|CM_Z|CM_MOMX|CM_MOMY|CM_MOMZ );
+		SERVERCOMMANDS_MoveThingExact( mo, CM_X|CM_Y|CM_Z|CM_VELX|CM_VELY|CM_VELZ );
 		SERVERCOMMANDS_WeaponSound( ULONG( player - players ), "weapons/maceshoot", ULONG( player - players ), SVCF_SKIPTHISCLIENT );
 	}
 
@@ -977,7 +977,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireMacePL2)
 
 			// [BC] If we're the server, play the sound.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_MoveThingExact( mo, CM_X|CM_Y|CM_Z|CM_MOMX|CM_MOMY|CM_MOMZ );
+				SERVERCOMMANDS_MoveThingExact( mo, CM_X|CM_Y|CM_Z|CM_VELX|CM_VELY|CM_VELZ );
 		}
 
 		mo = P_SpawnPlayerMissile (self, 0,0,0, RUNTIME_CLASS(AMaceFX4), self->angle - ( ANGLE_45 / 3 ), &linetarget);
@@ -994,7 +994,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireMacePL2)
 
 			// [BC] If we're the server, play the sound.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_MoveThingExact( mo, CM_X|CM_Y|CM_Z|CM_MOMX|CM_MOMY|CM_MOMZ );
+				SERVERCOMMANDS_MoveThingExact( mo, CM_X|CM_Y|CM_Z|CM_VELX|CM_VELY|CM_VELZ );
 		}
 	}
 }
@@ -1108,7 +1108,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_DeathBallImpact)
 		// [BC] If we're the server, send the state change and move it.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		{
-			SERVERCOMMANDS_MoveThingExact( self, CM_X|CM_Y|CM_Z|CM_MOMX|CM_MOMY|CM_MOMZ );
+			SERVERCOMMANDS_MoveThingExact( self, CM_X|CM_Y|CM_Z|CM_VELX|CM_VELY|CM_VELZ );
 			SERVERCOMMANDS_SoundActor( self, CHAN_BODY, "weapons/macestop", 1, ATTN_NORM );
 		}
 	}
@@ -1124,7 +1124,7 @@ boom:
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		{
 			SERVERCOMMANDS_SetThingState( self, STATE_DEATH );
-			SERVERCOMMANDS_MoveThing( self, CM_X|CM_Y|CM_Z|CM_MOMX|CM_MOMY|CM_MOMZ );
+			SERVERCOMMANDS_MoveThing( self, CM_X|CM_Y|CM_Z|CM_VELX|CM_VELY|CM_VELZ );
 			SERVERCOMMANDS_SetThingFlags( self, FLAGSET_FLAGS );
 			SERVERCOMMANDS_SetThingFlags( self, FLAGSET_FLAGS2 );
 			SERVERCOMMANDS_SetThingGravity( self );

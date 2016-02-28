@@ -67,7 +67,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_SpectralLightning)
 
 	// [CW] Tell clients to spawn the actor.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_MoveThingExact( self, CM_MOMX|CM_MOMY );
+		SERVERCOMMANDS_MoveThingExact( self, CM_VELX|CM_VELY );
 
 	x = self->x + pr_zap5.Random2(3) * FRACUNIT * 50;
 	y = self->y + pr_zap5.Random2(3) * FRACUNIT * 50;
@@ -169,5 +169,5 @@ DEFINE_ACTION_FUNCTION(AActor, A_Tracer2)
 
 	// [BC] Update the thing's position, angle and momentum.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_MoveThingExact( self, CM_X|CM_Y|CM_Z|CM_ANGLE|CM_MOMX|CM_MOMY|CM_MOMZ );
+		SERVERCOMMANDS_MoveThingExact( self, CM_X|CM_Y|CM_Z|CM_ANGLE|CM_VELX|CM_VELY|CM_VELZ );
 }

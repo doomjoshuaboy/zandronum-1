@@ -2709,7 +2709,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Recoil)
 
 	// [BB] Set the thing's momentum, also resync the position.
 	if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( self->player == NULL ) )
-		SERVERCOMMANDS_MoveThingExact( self, CM_X|CM_Y|CM_Z|CM_MOMX|CM_MOMY );
+		SERVERCOMMANDS_MoveThingExact( self, CM_X|CM_Y|CM_Z|CM_VELX|CM_VELY );
 }
 
 

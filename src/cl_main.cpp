@@ -6106,9 +6106,9 @@ static void client_MoveThing( BYTESTREAM_s *pByteStream )
 		if ( lBits & CM_LAST_Y ) NETWORK_ReadShort( pByteStream );
 		if ( lBits & CM_LAST_Z ) NETWORK_ReadShort( pByteStream );
 		if ( lBits & CM_ANGLE ) NETWORK_ReadLong( pByteStream );
-		if ( lBits & CM_MOMX ) NETWORK_ReadShort( pByteStream );
-		if ( lBits & CM_MOMY ) NETWORK_ReadShort( pByteStream );
-		if ( lBits & CM_MOMZ ) NETWORK_ReadShort( pByteStream );
+		if ( lBits & CM_VELX ) NETWORK_ReadShort( pByteStream );
+		if ( lBits & CM_VELY ) NETWORK_ReadShort( pByteStream );
+		if ( lBits & CM_VELZ ) NETWORK_ReadShort( pByteStream );
 		if ( lBits & CM_PITCH ) NETWORK_ReadLong( pByteStream );
 		if ( lBits & CM_MOVEDIR ) NETWORK_ReadByte( pByteStream );
 
@@ -6164,11 +6164,11 @@ static void client_MoveThing( BYTESTREAM_s *pByteStream )
 		pActor->angle = NETWORK_ReadLong( pByteStream );
 
 	// Read in the momentum data.
-	if ( lBits & CM_MOMX )
+	if ( lBits & CM_VELX )
 		pActor->velx = NETWORK_ReadShort( pByteStream ) << FRACBITS;
-	if ( lBits & CM_MOMY )
+	if ( lBits & CM_VELY )
 		pActor->vely = NETWORK_ReadShort( pByteStream ) << FRACBITS;
-	if ( lBits & CM_MOMZ )
+	if ( lBits & CM_VELZ )
 		pActor->velz = NETWORK_ReadShort( pByteStream ) << FRACBITS;
 
 	// [Dusk] if the actor that's being moved is a player and his momentum
@@ -6227,9 +6227,9 @@ static void client_MoveThingExact( BYTESTREAM_s *pByteStream )
 		if ( lBits & CM_LAST_Y ) NETWORK_ReadLong( pByteStream );
 		if ( lBits & CM_LAST_Z ) NETWORK_ReadLong( pByteStream );
 		if ( lBits & CM_ANGLE ) NETWORK_ReadLong( pByteStream );
-		if ( lBits & CM_MOMX ) NETWORK_ReadLong( pByteStream );
-		if ( lBits & CM_MOMY ) NETWORK_ReadLong( pByteStream );
-		if ( lBits & CM_MOMZ ) NETWORK_ReadLong( pByteStream );
+		if ( lBits & CM_VELX ) NETWORK_ReadLong( pByteStream );
+		if ( lBits & CM_VELY ) NETWORK_ReadLong( pByteStream );
+		if ( lBits & CM_VELZ ) NETWORK_ReadLong( pByteStream );
 		if ( lBits & CM_PITCH ) NETWORK_ReadLong( pByteStream );
 		if ( lBits & CM_MOVEDIR ) NETWORK_ReadByte( pByteStream );
 
@@ -6285,11 +6285,11 @@ static void client_MoveThingExact( BYTESTREAM_s *pByteStream )
 		pActor->angle = NETWORK_ReadLong( pByteStream );
 
 	// Read in the momentum data.
-	if ( lBits & CM_MOMX )
+	if ( lBits & CM_VELX )
 		pActor->velx = NETWORK_ReadLong( pByteStream );
-	if ( lBits & CM_MOMY )
+	if ( lBits & CM_VELY )
 		pActor->vely = NETWORK_ReadLong( pByteStream );
-	if ( lBits & CM_MOMZ )
+	if ( lBits & CM_VELZ )
 		pActor->velz = NETWORK_ReadLong( pByteStream );
 
 	// [Dusk] if the actor that's being moved is a player and his momentum
