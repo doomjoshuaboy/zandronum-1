@@ -2581,13 +2581,13 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 				ULONG ulBits = CM_LAST_X|CM_LAST_Y|CM_LAST_Z;
 
 				if ( pActor->velx != 0 )
-					ulBits |= CM_MOMX;
+					ulBits |= CM_VELX;
 
 				if ( pActor->vely != 0 )
-					ulBits |= CM_MOMY;
+					ulBits |= CM_VELY;
 
 				if ( pActor->velz != 0 )
-					ulBits |= CM_MOMZ;
+					ulBits |= CM_VELZ;
 
 				if ( pActor->movedir != 0 )
 					ulBits |= CM_MOVEDIR;
@@ -4712,11 +4712,11 @@ void SERVER_SetThingNonZeroAngleAndMomentum( AActor *pActor )
 	if ( pActor->angle != 0 )
 		ulBits |= CM_ANGLE;
 	if ( pActor->velx != 0 )
-		ulBits |= CM_MOMX;
+		ulBits |= CM_VELX;
 	if ( pActor->vely != 0 )
-		ulBits |= CM_MOMY;
+		ulBits |= CM_VELY;
 	if ( pActor->velz != 0 )
-		ulBits |= CM_MOMZ;
+		ulBits |= CM_VELZ;
 
 	if ( ulBits )
 		SERVERCOMMANDS_MoveThingExact( pActor, ulBits );
@@ -4735,9 +4735,9 @@ void SERVER_UpdateThingMomentum( AActor *pActor, bool updateZ, bool updateXY )
 	// is called regularly. Furthermore, changing the position of a client's local player
 	// messes up the player prediction and shouldn't be done.
 
-	ULONG ulBits = updateXY ? (CM_MOMX|CM_MOMY) : 0;
+	ULONG ulBits = updateXY ? (CM_VELX|CM_VELY) : 0;
 	if ( updateZ )
-		ulBits |= CM_MOMZ;
+		ulBits |= CM_VELZ;
 
 	if ( !pActor->player ) {
 		if ( updateXY )

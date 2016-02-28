@@ -163,7 +163,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_BishopDoBlur)
 	// [BB] If we're the server, update the thing's momentum and play the sound.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
-		SERVERCOMMANDS_MoveThingExact( self, CM_MOMX|CM_MOMY );
+		SERVERCOMMANDS_MoveThingExact( self, CM_VELX|CM_VELY );
 		SERVERCOMMANDS_SoundActor( self, CHAN_BODY, "BishopBlur", 1, ATTN_NORM );
 	}
 }
@@ -191,7 +191,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_BishopSpawnBlur)
 
 		// [BB] If we're the server, update the thing's momentum.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_MoveThingExact( self, CM_MOMX|CM_MOMY );
+			SERVERCOMMANDS_MoveThingExact( self, CM_VELX|CM_VELY );
 
 		if (pr_sblur() > 96)
 		{

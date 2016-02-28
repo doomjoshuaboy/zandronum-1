@@ -60,7 +60,7 @@ void A_SkullAttack(AActor *self, fixed_t speed)
 
 	// [BC] Update the lost soul's momentum.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_MoveThingExact( self, CM_X|CM_Y|CM_Z|CM_MOMX|CM_MOMY|CM_MOMZ );
+		SERVERCOMMANDS_MoveThingExact( self, CM_X|CM_Y|CM_Z|CM_VELX|CM_VELY|CM_VELZ );
 }
 
 DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_SkullAttack)

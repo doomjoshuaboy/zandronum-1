@@ -1436,7 +1436,7 @@ bool AActor::Grind(bool items)
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			{
 				SERVERCOMMANDS_SetThingTics( this );
-				SERVERCOMMANDS_MoveThing( this, CM_MOMX|CM_MOMY|CM_MOMZ );
+				SERVERCOMMANDS_MoveThing( this, CM_VELX|CM_VELY|CM_VELZ );
 			}
 		}
 		else if (player)
@@ -2017,7 +2017,7 @@ bool P_SeekerMissile (AActor *actor, angle_t thresh, angle_t turnMax, bool preci
 
 	// [BC] Update the thing's angle and momentum.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_MoveThingExact( actor, CM_X|CM_Y|CM_Z|CM_ANGLE|CM_MOMX|CM_MOMY|CM_MOMZ );
+		SERVERCOMMANDS_MoveThingExact( actor, CM_X|CM_Y|CM_Z|CM_ANGLE|CM_VELX|CM_VELY|CM_VELZ );
 
 	return true;
 }
@@ -2132,7 +2132,7 @@ fixed_t P_XYMovement (AActor *mo, fixed_t scrollx, fixed_t scrolly)
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				{
 					SERVERCOMMANDS_SetThingState( mo, mo->SeeState != NULL ? STATE_SEE : STATE_SPAWN );
-					SERVERCOMMANDS_MoveThing( mo, CM_MOMX|CM_MOMY|CM_MOMZ );
+					SERVERCOMMANDS_MoveThing( mo, CM_VELX|CM_VELY|CM_VELZ );
 				}
 
 				if (mo->SeeState != NULL) mo->SetState (mo->SeeState);
@@ -2145,7 +2145,7 @@ fixed_t P_XYMovement (AActor *mo, fixed_t scrollx, fixed_t scrolly)
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				{
 					SERVERCOMMANDS_SetThingState( mo, STATE_SPAWN );
-					SERVERCOMMANDS_MoveThing( mo, CM_MOMX|CM_MOMY|CM_MOMZ );
+					SERVERCOMMANDS_MoveThing( mo, CM_VELX|CM_VELY|CM_VELZ );
 				}
 
 				mo->SetIdle();
@@ -2990,7 +2990,7 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 				// [BC] If we're the server, tell clients to update the thing's Z position.
 				// [WS] Inform clients of the momentum.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_MoveThingExact( mo, CM_Z|CM_MOMZ );
+					SERVERCOMMANDS_MoveThingExact( mo, CM_Z|CM_VELZ );
 			}
 			else if (delta > 0 && dist < (delta*3))
 			{
@@ -2999,7 +2999,7 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 				// [BC] If we're the server, tell clients to update the thing's Z position.
 				// [WS] Inform clients of the momentum.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_MoveThingExact( mo, CM_Z|CM_MOMZ );
+					SERVERCOMMANDS_MoveThingExact( mo, CM_Z|CM_VELZ );
 			}
 		}
 	}
@@ -3071,7 +3071,7 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 
 					// [TP] Tell clients the missile stopped moving vertically
 					if ( NETWORK_GetState() == NETSTATE_SERVER )
-						SERVERCOMMANDS_MoveThing( mo, CM_MOMZ );
+						SERVERCOMMANDS_MoveThing( mo, CM_VELZ );
 
 					return;
 				}
@@ -3252,7 +3252,7 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 	// [TIHan/BB] If it's a missile that is bounceable and it bounced, send info to the client
 	if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( mo->ulNetworkFlags & NETFL_BOUNCED_OFF_ACTOR ) )
 	{
-		SERVERCOMMANDS_MoveThingExact( mo, CM_X|CM_Y|CM_Z|CM_MOMX|CM_MOMY|CM_MOMZ|CM_ANGLE );
+		SERVERCOMMANDS_MoveThingExact( mo, CM_X|CM_Y|CM_Z|CM_VELX|CM_VELY|CM_VELZ|CM_ANGLE );
 		// [BB] Remove the mark, the syncing is done now.
 		mo->ulNetworkFlags &= ~NETFL_BOUNCED_OFF_ACTOR;
 	}
@@ -3731,7 +3731,7 @@ bool AActor::Slam (AActor *thing)
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
 		SERVERCOMMANDS_SetThingFlags( this, FLAGSET_FLAGS );
-		SERVERCOMMANDS_MoveThing( this, CM_MOMX|CM_MOMY|CM_MOMZ );
+		SERVERCOMMANDS_MoveThing( this, CM_VELX|CM_VELY|CM_VELZ );
 	}
 
 	if (health > 0)
