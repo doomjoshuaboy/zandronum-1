@@ -2229,7 +2229,7 @@ void DoTakeInventory(AActor * receiver, DECLARE_PARAMINFO)
 				( inv->Owner ) &&
 				( inv->Owner->player ))
 			{
-				SERVERCOMMANDS_TakeInventory( inv->Owner->player - players, inv->GetClass( )->TypeName.GetChars( ), 0 );
+				SERVERCOMMANDS_TakeInventory( inv->Owner->player - players, inv->GetClass(), 0 );
 			}
 			if (inv->ItemFlags&IF_KEEPDEPLETED) inv->Amount=0;
 			else inv->Destroy();
@@ -2244,7 +2244,7 @@ void DoTakeInventory(AActor * receiver, DECLARE_PARAMINFO)
 				( inv->Owner ) &&
 				( inv->Owner->player ))
 			{
-				SERVERCOMMANDS_TakeInventory( inv->Owner->player - players, inv->GetClass( )->TypeName.GetChars( ), inv->Amount );
+				SERVERCOMMANDS_TakeInventory( inv->Owner->player - players, inv->GetClass(), inv->Amount );
 			}
 		}
 	}
