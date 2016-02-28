@@ -275,9 +275,7 @@ CVAR( Bool, sv_pure, true, CVAR_SERVERINFO | CVAR_LATCH )
 CVAR( Int, sv_maxclientsperip, 2, CVAR_ARCHIVE )
 CVAR( Int, sv_afk2spec, 0, CVAR_ARCHIVE ) // [K6]
 CVAR( Bool, sv_forcelogintojoin, false, CVAR_ARCHIVE|CVAR_NOSETBYACS )
-#if (BUILD_ID != BUILD_RELEASE)
-CVAR( Bool, sv_useticbuffer, true, CVAR_ARCHIVE|CVAR_NOSETBYACS )
-#endif
+CVAR( Bool, sv_useticbuffer, true, CVAR_ARCHIVE|CVAR_NOSETBYACS|CVAR_DEBUGONLY )
 
 CUSTOM_CVAR( String, sv_adminlistfile, "adminlist.txt", CVAR_ARCHIVE|CVAR_NOSETBYACS )
 {
@@ -370,7 +368,7 @@ CUSTOM_CVAR( Int, sv_maxpacketsize, 1024, CVAR_ARCHIVE )
 // [TP] Whether to enforce command limits. Set this false to disable
 // flood protection.
 //
-CUSTOM_CVAR( Bool, sv_limitcommands, true, CVAR_ARCHIVE | CVAR_NOSETBYACS | CVAR_SERVERINFO )
+CUSTOM_CVAR( Bool, sv_limitcommands, true, CVAR_ARCHIVE | CVAR_NOSETBYACS | CVAR_SERVERINFO | CVAR_DEBUGONLY )
 {
 	// [TP] The client also enforces command limits so this cvar must be synced.
 	if ( NETWORK_GetState() == NETSTATE_SERVER )
@@ -4758,9 +4756,7 @@ static bool server_ParseBufferedCommand ( BYTESTREAM_s *pByteStream )
 {
 	CommandType *cmd = new CommandType ( pByteStream );
 
-#if (BUILD_ID != BUILD_RELEASE)
 	if ( sv_useticbuffer )
-#endif
 	{
 		g_aClients[g_lCurrentClient].MoveCMDs.Push ( cmd );
 		return false;
