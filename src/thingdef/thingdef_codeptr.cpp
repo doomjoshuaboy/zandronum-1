@@ -2583,7 +2583,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_SpawnItemEx)
 			SERVERCOMMANDS_SpawnThing( mo );
 
 			// [BB] Set the angle and momentum if necessary.
-			SERVER_SetThingNonZeroAngleAndMomentum( mo );
+			SERVER_SetThingNonZeroAngleAndVelocity( mo );
 
 			if ( mo->Translation )
 				SERVERCOMMANDS_SetThingTranslation( mo );

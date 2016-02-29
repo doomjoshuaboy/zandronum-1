@@ -988,8 +988,8 @@ static void ThrustThingHelper (AActor *it, angle_t angle, int force, INTBOOL nol
 	}
 
 	// [BC] If we're the server, update the thing's momentum.
-	// [Dusk] Use SERVER_UpdateThingMomentum
-	SERVER_UpdateThingMomentum( it, false );
+	// [Dusk] Use SERVER_UpdateThingVelocity
+	SERVER_UpdateThingVelocity( it, false );
 }
 
 FUNC(LS_ThrustThingZ)	// [BC]
@@ -1038,7 +1038,7 @@ FUNC(LS_ThrustThingZ)	// [BC]
 
 		// [BC] If we're the server, update the thing's momentum.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVER_UpdateThingMomentum ( it, true, false );
+			SERVER_UpdateThingVelocity ( it, true, false );
 
 		return true;
 	}

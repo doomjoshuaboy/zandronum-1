@@ -4705,7 +4705,7 @@ void SERVER_HandleWeaponStateJump( ULONG ulPlayer, FState *pState, LONG lPositio
 
 //*****************************************************************************
 // [BB]
-void SERVER_SetThingNonZeroAngleAndMomentum( AActor *pActor )
+void SERVER_SetThingNonZeroAngleAndVelocity( AActor *pActor )
 {
 	ULONG ulBits = 0;
 
@@ -4724,7 +4724,7 @@ void SERVER_SetThingNonZeroAngleAndMomentum( AActor *pActor )
 
 //*****************************************************************************
 // [Dusk] Updates a thing's momentum
-void SERVER_UpdateThingMomentum( AActor *pActor, bool updateZ, bool updateXY )
+void SERVER_UpdateThingVelocity( AActor *pActor, bool updateZ, bool updateXY )
 {
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 		return;
