@@ -1432,7 +1432,7 @@ bool AActor::Grind(bool items)
 			velx = vely = velz = 0;
 
 			// [BC] If we're the server, tell clients to update this thing's tics and
-			// momentum.
+			// velocity.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			{
 				SERVERCOMMANDS_SetThingTics( this );
@@ -2015,7 +2015,7 @@ bool P_SeekerMissile (AActor *actor, angle_t thresh, angle_t turnMax, bool preci
 	}
 
 
-	// [BC] Update the thing's angle and momentum.
+	// [BC] Update the thing's angle and velocity.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCOMMANDS_MoveThingExact( actor, CM_X|CM_Y|CM_Z|CM_ANGLE|CM_VELX|CM_VELY|CM_VELZ );
 
@@ -2128,7 +2128,7 @@ fixed_t P_XYMovement (AActor *mo, fixed_t scrollx, fixed_t scrolly)
 			if (!(mo->flags2 & MF2_DORMANT))
 			{
 				// [BC] If we are the server, tell clients about the state change and the
-				// momentum change.
+				// velocity change.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				{
 					SERVERCOMMANDS_SetThingState( mo, mo->SeeState != NULL ? STATE_SEE : STATE_SPAWN );
@@ -2141,7 +2141,7 @@ fixed_t P_XYMovement (AActor *mo, fixed_t scrollx, fixed_t scrolly)
 			else
 			{
 				// [BB] If we are the server, tell clients about the state change and the
-				// momentum change.
+				// velocity change.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				{
 					SERVERCOMMANDS_SetThingState( mo, STATE_SPAWN );
@@ -2619,7 +2619,7 @@ fixed_t P_OldXYMovement( AActor *mo )
 	xmove = clamp( mo->velx, -maxmove, maxmove );
 	ymove = clamp( mo->vely, -maxmove, maxmove );
 
-	if (!(mo->velx | mo->vely)) // Any momentum?
+	if (!(mo->velx | mo->vely)) // Any velocity?
 	{
 		if (mo->flags & MF_SKULLFLY)
 		{
@@ -2988,7 +2988,7 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 				mo->z -= mo->FloatSpeed;
 
 				// [BC] If we're the server, tell clients to update the thing's Z position.
-				// [WS] Inform clients of the momentum.
+				// [WS] Inform clients of the velocity.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 					SERVERCOMMANDS_MoveThingExact( mo, CM_Z|CM_VELZ );
 			}
@@ -2997,7 +2997,7 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 				mo->z += mo->FloatSpeed;
 
 				// [BC] If we're the server, tell clients to update the thing's Z position.
-				// [WS] Inform clients of the momentum.
+				// [WS] Inform clients of the velocity.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 					SERVERCOMMANDS_MoveThingExact( mo, CM_Z|CM_VELZ );
 			}
@@ -3727,7 +3727,7 @@ bool AActor::Slam (AActor *thing)
 	flags &= ~MF_SKULLFLY;
 	velx = vely = velz = 0;
 
-	// [BB] If we are the server, tell clients about MF_SKULLFLY and the momentum change.
+	// [BB] If we are the server, tell clients about MF_SKULLFLY and the velocity change.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
 		SERVERCOMMANDS_SetThingFlags( this, FLAGSET_FLAGS );

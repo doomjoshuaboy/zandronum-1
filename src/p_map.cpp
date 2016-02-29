@@ -1321,7 +1321,7 @@ bool PIT_CheckThing(AActor *thing, FCheckPosition &tm)
 		}
 
 		// [BC] If we're the server, tell clients to update the thing's position and
-		// momentum.
+		// velocity.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			SERVERCOMMANDS_MoveThingExact( thing, CM_X|CM_Y|CM_Z|CM_VELX|CM_VELY|CM_VELZ );
 	}
@@ -3585,7 +3585,7 @@ bool P_BounceActor(AActor *mo, AActor *BlockingMobj, bool ontop)
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		{
 			SERVERCOMMANDS_PlayBounceSound( mo, true );
-			// [BB] We need to inform the clients about the new momentum and sync the position,
+			// [BB] We need to inform the clients about the new velocity and sync the position,
 			// but can only do this after calling P_ZMovement. Mark the actor accordingly.
 			mo->ulNetworkFlags |= NETFL_BOUNCED_OFF_ACTOR;
 		}
@@ -5715,7 +5715,7 @@ void P_RadiusAttack(AActor *bombspot, AActor *bombsource, int bombdamage, int bo
 								thing->vely += fixed_t(finesine[ang] * thrust);
 							}
 
-							// [BB] If ZADF_NO_ROCKET_JUMPING is on, don't give players any z-momentum if the attack was made by a player.
+							// [BB] If ZADF_NO_ROCKET_JUMPING is on, don't give players any z-velocity if the attack was made by a player.
 							if ( ( (zadmflags & ZADF_NO_ROCKET_JUMPING) == false ) ||
 								( bombsource == NULL ) || ( bombsource->player == NULL ) || ( thing->player == NULL ) )
 							{
@@ -5724,7 +5724,7 @@ void P_RadiusAttack(AActor *bombspot, AActor *bombsource, int bombdamage, int bo
 							}
 						}
 
-						// [BC] If we're the server, update the thing's momentum.
+						// [BC] If we're the server, update the thing's velocity.
 						// [BB] Use SERVER_UpdateThingVelocity to prevent sync problems.
 						if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 							SERVER_UpdateThingVelocity( thing, true );
