@@ -684,7 +684,7 @@ public:
 	// True XYZ position as told to us by the server.
 	fixed_t		ServerXYZ[3];
 
-	// True XYZ momentum as told to us by the server.
+	// True XYZ velocity as told to us by the server.
 	fixed_t		ServerXYZVel[3];
 
 	// Ping of the player to the server he's playing on.

@@ -1155,7 +1155,7 @@ public:
 	// [BB] Last xyz-position that was sent to the client.
 	fixed_t lastX, lastY, lastZ;
 
-	// [BB] Last xyz-momentum that was sent to the client.
+	// [BB] Last xyz-velocity that was sent to the client.
 	fixed_t lastVelx, lastVely, lastVelz;
 
 	// [BB] Last movedir that was sent to the client.
