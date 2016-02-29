@@ -346,7 +346,7 @@ static void client_predict_DoPrediction( player_t *pPlayer, ULONG ulTicks )
 		&& pPlayer->mo->Sector && !pPlayer->mo->Sector->floordata )
 		g_bSavedOnFloor[lTick % CLIENT_PREDICTION_TICS] = false;
 
-	// [BB] The server gave us z-momentum, so don't glue us to a floor or an actor for this tic.
+	// [BB] The server gave us z-velocity, so don't glue us to a floor or an actor for this tic.
 	if ( pPlayer->mo->velz > 0 )
 	{
 		g_bSavedOnFloor[lTick % CLIENT_PREDICTION_TICS] = false;

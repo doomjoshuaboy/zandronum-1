@@ -3331,12 +3331,12 @@ void CLIENT_SpawnMissile( const PClass *pType, fixed_t X, fixed_t Y, fixed_t Z, 
 		return;
 	}
 
-	// Set the thing's momentum.
+	// Set the thing's velocity.
 	pActor->velx = VelX;
 	pActor->vely = VelY;
 	pActor->velz = VelZ;
 
-	// Derive the thing's angle from its momentum.
+	// Derive the thing's angle from its velocity.
 	pActor->angle = R_PointToAngle2( 0, 0, VelX, VelY );
 
 	pActor->lNetID = lNetID;
@@ -4399,7 +4399,7 @@ static void client_MovePlayer( BYTESTREAM_s *pByteStream )
 		// Read in the player's angle.
 		Angle = NETWORK_ReadLong( pByteStream );
 
-		// Read in the player's XYZ momentum.
+		// Read in the player's XYZ velocity.
 		VelX = NETWORK_ReadShort( pByteStream ) << FRACBITS;
 		VelY = NETWORK_ReadShort( pByteStream ) << FRACBITS;
 		VelZ = NETWORK_ReadShort( pByteStream ) << FRACBITS;
@@ -4430,7 +4430,7 @@ static void client_MovePlayer( BYTESTREAM_s *pByteStream )
 	// Set the player's angle.
 	players[ulPlayer].mo->angle = Angle;
 
-	// Set the player's XYZ momentum.
+	// Set the player's XYZ velocity.
 	players[ulPlayer].mo->velx = VelX;
 	players[ulPlayer].mo->vely = VelY;
 	players[ulPlayer].mo->velz = VelZ;
@@ -5578,7 +5578,7 @@ static void client_MoveLocalPlayer( BYTESTREAM_s *pByteStream )
 	Y = NETWORK_ReadLong( pByteStream );
 	Z = NETWORK_ReadLong( pByteStream );
 
-	// Get XYZ momentum.
+	// Get XYZ velocity.
 	VelX = NETWORK_ReadLong( pByteStream );
 	VelY = NETWORK_ReadLong( pByteStream );
 	VelZ = NETWORK_ReadLong( pByteStream );
@@ -6163,7 +6163,7 @@ static void client_MoveThing( BYTESTREAM_s *pByteStream )
 	if ( lBits & CM_ANGLE )
 		pActor->angle = NETWORK_ReadLong( pByteStream );
 
-	// Read in the momentum data.
+	// Read in the velocity data.
 	if ( lBits & CM_VELX )
 		pActor->velx = NETWORK_ReadShort( pByteStream ) << FRACBITS;
 	if ( lBits & CM_VELY )
@@ -6171,7 +6171,7 @@ static void client_MoveThing( BYTESTREAM_s *pByteStream )
 	if ( lBits & CM_VELZ )
 		pActor->velz = NETWORK_ReadShort( pByteStream ) << FRACBITS;
 
-	// [Dusk] if the actor that's being moved is a player and his momentum
+	// [Dusk] if the actor that's being moved is a player and his velocity
 	// is being zeroed (i.e. we're stopping him), we need to stop his bobbing
 	// as well.
 	if ((pActor->player != NULL) && (pActor->velx == 0) && (pActor->vely == 0)) {
@@ -6284,7 +6284,7 @@ static void client_MoveThingExact( BYTESTREAM_s *pByteStream )
 	if ( lBits & CM_ANGLE )
 		pActor->angle = NETWORK_ReadLong( pByteStream );
 
-	// Read in the momentum data.
+	// Read in the velocity data.
 	if ( lBits & CM_VELX )
 		pActor->velx = NETWORK_ReadLong( pByteStream );
 	if ( lBits & CM_VELY )
@@ -6292,7 +6292,7 @@ static void client_MoveThingExact( BYTESTREAM_s *pByteStream )
 	if ( lBits & CM_VELZ )
 		pActor->velz = NETWORK_ReadLong( pByteStream );
 
-	// [Dusk] if the actor that's being moved is a player and his momentum
+	// [Dusk] if the actor that's being moved is a player and his velocity
 	// is being zeroed (i.e. we're stopping him), we need to stop his bobbing
 	// as well.
 	if ((pActor->player != NULL) && (pActor->velx == 0) && (pActor->vely == 0)) {
@@ -7330,7 +7330,7 @@ static void client_TeleportThing( BYTESTREAM_s *pByteStream )
 	NewY = NETWORK_ReadShort( pByteStream ) << FRACBITS;
 	NewZ = NETWORK_ReadShort( pByteStream ) << FRACBITS;
 
-	// Read in the thing's new momentum.
+	// Read in the thing's new velocity.
 	NewVelX = NETWORK_ReadShort( pByteStream ) << FRACBITS;
 	NewVelY = NETWORK_ReadShort( pByteStream ) << FRACBITS;
 	NewVelZ = NETWORK_ReadShort( pByteStream ) << FRACBITS;
@@ -7375,7 +7375,7 @@ static void client_TeleportThing( BYTESTREAM_s *pByteStream )
 			ALLOW_REPLACE );
 	}
 
-	// Set the thing's new momentum.
+	// Set the thing's new velocity.
 	pActor->velx = NewVelX;
 	pActor->vely = NewVelY;
 	pActor->velz = NewVelZ;
@@ -8540,7 +8540,7 @@ static void client_SpawnMissile( BYTESTREAM_s *pByteStream )
 	Y = NETWORK_ReadShort( pByteStream ) << FRACBITS;
 	Z = NETWORK_ReadShort( pByteStream ) << FRACBITS;
 
-	// Read in the XYZ momentum of the missile.
+	// Read in the XYZ velocity of the missile.
 	VelX = NETWORK_ReadLong( pByteStream );
 	VelY = NETWORK_ReadLong( pByteStream );
 	VelZ = NETWORK_ReadLong( pByteStream );
@@ -8575,7 +8575,7 @@ static void client_SpawnMissileExact( BYTESTREAM_s *pByteStream )
 	Y = NETWORK_ReadLong( pByteStream );
 	Z = NETWORK_ReadLong( pByteStream );
 
-	// Read in the XYZ momentum of the missile.
+	// Read in the XYZ velocity of the missile.
 	VelX = NETWORK_ReadLong( pByteStream );
 	VelY = NETWORK_ReadLong( pByteStream );
 	VelZ = NETWORK_ReadLong( pByteStream );
