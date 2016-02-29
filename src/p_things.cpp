@@ -630,7 +630,7 @@ void P_Thing_SetVelocity(AActor *actor, fixed_t vx, fixed_t vy, fixed_t vz, bool
 			actor->player->velx += vx;
 			actor->player->vely += vy;
 		}
-		// [Dusk] Update momentum
+		// [Dusk] Update velocity
 		SERVER_UpdateThingVelocity( actor, true );
 	}
 }
