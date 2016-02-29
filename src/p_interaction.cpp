@@ -1407,7 +1407,7 @@ int P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage,
 		if (kickback)
 		{
 			// [BB] Safe the original z-momentum of the target. This way we can check if we need to update it.
-			const fixed_t oldTargetMomz = target->velz;
+			const fixed_t oldTargetVelz = target->velz;
 
 			AActor *origin = (source && (flags & DMG_INFLICTOR_IS_PUFF))? source : inflictor;
 
@@ -1474,7 +1474,7 @@ int P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage,
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			{
 				// [BB] Only update z-momentum if it has changed.
-				SERVER_UpdateThingMomentum ( target, oldTargetMomz != target->velz );
+				SERVER_UpdateThingVelocity ( target, oldTargetVelz != target->velz );
 			}
 		}
 	}

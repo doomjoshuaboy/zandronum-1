@@ -5725,9 +5725,9 @@ void P_RadiusAttack(AActor *bombspot, AActor *bombsource, int bombdamage, int bo
 						}
 
 						// [BC] If we're the server, update the thing's momentum.
-						// [BB] Use SERVER_UpdateThingMomentum to prevent sync problems.
+						// [BB] Use SERVER_UpdateThingVelocity to prevent sync problems.
 						if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-							SERVER_UpdateThingMomentum( thing, true );
+							SERVER_UpdateThingVelocity( thing, true );
 					}
 				}
 			}
