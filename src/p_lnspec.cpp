@@ -987,7 +987,7 @@ static void ThrustThingHelper (AActor *it, angle_t angle, int force, INTBOOL nol
 		it->vely = clamp<fixed_t> (it->vely, -MAXMOVE, MAXMOVE);
 	}
 
-	// [BC] If we're the server, update the thing's momentum.
+	// [BC] If we're the server, update the thing's velocity.
 	// [Dusk] Use SERVER_UpdateThingVelocity
 	SERVER_UpdateThingVelocity( it, false );
 }
@@ -1017,7 +1017,7 @@ FUNC(LS_ThrustThingZ)	// [BC]
 					victim->velz += thrust;
 			}
 
-			// [BC] If we're the server, update the thing's momentum.
+			// [BC] If we're the server, update the thing's velocity.
 			// [BB] Unfortunately there are sync issues, if we don't also update the actual position.
 			// Is there a way to fix this without sending the position?
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -1036,7 +1036,7 @@ FUNC(LS_ThrustThingZ)	// [BC]
 				it->velz += thrust;
 		}
 
-		// [BC] If we're the server, update the thing's momentum.
+		// [BC] If we're the server, update the thing's velocity.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			SERVER_UpdateThingVelocity ( it, true, false );
 
