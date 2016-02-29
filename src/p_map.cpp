@@ -5646,8 +5646,8 @@ void P_RadiusAttack(AActor *bombspot, AActor *bombsource, int bombdamage, int bo
 				double velz;
 				double thrust;
 				// [BB] We need to store these values for ZACOMPATF_OLD_EXPLOSION_THRUST.
-				const fixed_t origmomx = thing->velx;
-				const fixed_t origmomy = thing->vely;
+				const fixed_t origvelx = thing->velx;
+				const fixed_t origvely = thing->vely;
 				int damage = abs((int)points);
 				int newdam = damage;
 
@@ -5705,8 +5705,8 @@ void P_RadiusAttack(AActor *bombspot, AActor *bombsource, int bombdamage, int bo
 							// [BB] Potentially use the horizontal thrust of old ZDoom versions.
 							if ( zacompatflags & ZACOMPATF_OLD_EXPLOSION_THRUST )
 							{
-								thing->velx = origmomx + static_cast<fixed_t>((thing->x - bombspot->x) * thrust);
-								thing->vely = origmomy + static_cast<fixed_t>((thing->y - bombspot->y) * thrust);
+								thing->velx = origvelx + static_cast<fixed_t>((thing->x - bombspot->x) * thrust);
+								thing->vely = origvely + static_cast<fixed_t>((thing->y - bombspot->y) * thrust);
 							}
 							else
 							{
