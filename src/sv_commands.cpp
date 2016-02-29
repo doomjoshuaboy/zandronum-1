@@ -2782,7 +2782,7 @@ void SERVERCOMMANDS_SpawnMissile( AActor *pMissile, ULONG ulPlayerExtra, ServerC
 
 	command.sendCommandToClients( ulPlayerExtra, flags );
 
-	// [BB] It's possible that the angle can't be derived from the momentum
+	// [BB] It's possible that the angle can't be derived from the velocity
 	// of the missle. In this case the correct angle has to be told to the clients.
  	if( pMissile->angle != R_PointToAngle2( 0, 0, pMissile->velx, pMissile->vely ))
 		SERVERCOMMANDS_SetThingAngle( pMissile, ulPlayerExtra, flags );
@@ -2812,7 +2812,7 @@ void SERVERCOMMANDS_SpawnMissileExact( AActor *pMissile, ULONG ulPlayerExtra, Se
 
 	command.sendCommandToClients( ulPlayerExtra, flags );
 
-	// [BB] It's possible that the angle can't be derived from the momentum
+	// [BB] It's possible that the angle can't be derived from the velocity
 	// of the missle. In this case the correct angle has to be told to the clients.
  	if( pMissile->angle != R_PointToAngle2( 0, 0, pMissile->velx, pMissile->vely ) )
 		SERVERCOMMANDS_SetThingAngleExact( pMissile, ulPlayerExtra, flags );

@@ -2566,7 +2566,7 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 			}
 
 			// [BB] Since the monster movement is client side, the client needs to be
-			// informed about the momentum and the current state. If the frame is not
+			// informed about the velocity and the current state. If the frame is not
 			// set, the client thinks the actor is in its spawn state.
 			{
 
@@ -4723,7 +4723,7 @@ void SERVER_SetThingNonZeroAngleAndVelocity( AActor *pActor )
 }
 
 //*****************************************************************************
-// [Dusk] Updates a thing's momentum
+// [Dusk] Updates a thing's velocity
 void SERVER_UpdateThingVelocity( AActor *pActor, bool updateZ, bool updateXY )
 {
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
