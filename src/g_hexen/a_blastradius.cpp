@@ -88,7 +88,7 @@ void BlastActor (AActor *victim, fixed_t strength, fixed_t speed, AActor * Owner
 		if ( mo )
 		{
 			SERVERCOMMANDS_SpawnThing( mo );
-			// [BB] Possibly set mo's momentum.
+			// [BB] Possibly set mo's velocity.
 			SERVER_SetThingNonZeroAngleAndVelocity( mo );
 		}
 	}

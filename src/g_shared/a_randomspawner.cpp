@@ -204,7 +204,7 @@ class ARandomSpawner : public AActor
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			{
 				SERVERCOMMANDS_SpawnThing( newmobj );
-				// [BB] Also set the angle and momentum if necessary.
+				// [BB] Also set the angle and velocity if necessary.
 				SERVER_SetThingNonZeroAngleAndVelocity( newmobj );
 			}
 			// [BB] The client did the spawning, so this has to be a client side only actor.

@@ -81,7 +81,7 @@ static void DragonSeek (AActor *actor, angle_t thresh, angle_t turnMax)
 		dist = P_AproxDistance (target->x-actor->x, target->y-actor->y);
 		dist = dist/actor->Speed;
 	}
-	// [BB] If we're the server, update the thing's momentum and angle.
+	// [BB] If we're the server, update the thing's velocity and angle.
 	// Unfortunately there are sync issues, if we don't also update the actual position.
 	// Is there a way to fix this without sending the position?
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )

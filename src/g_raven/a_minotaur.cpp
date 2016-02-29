@@ -268,7 +268,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_MinotaurDecide)
 		self->vely = FixedMul (MNTR_CHARGE_SPEED, finesine[angle]);
 		self->special1 = TICRATE/2; // Charge duration
 
-		// [BB] If we're the server, update the thing's momentum and set the MF_SKULLFLY flag.
+		// [BB] If we're the server, update the thing's velocity and set the MF_SKULLFLY flag.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		{
 			SERVERCOMMANDS_MoveThingExact( self, CM_VELX|CM_VELY );

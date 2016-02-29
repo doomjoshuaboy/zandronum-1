@@ -143,7 +143,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_Tracer)
 			self->velz += FRACUNIT/8;
 	}
 
-	// [BC] Update the thing's position, angle and momentum.
+	// [BC] Update the thing's position, angle and velocity.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCOMMANDS_MoveThingExact( self, CM_X|CM_Y|CM_Z|CM_ANGLE|CM_VELX|CM_VELY|CM_VELZ );
 }
