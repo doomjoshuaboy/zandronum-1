@@ -321,11 +321,11 @@ void RemoveUnnecessaryPositionUpdateFlags( AActor *pActor, ULONG &ulBits )
 		ulBits  &= ~CM_Y;
 	if ( (pActor->lastNetZUpdateTic == gametic) && (pActor->lastZ == pActor->z) )
 		ulBits  &= ~CM_Z;
-	if ( (pActor->lastNetMomXUpdateTic == gametic) && (pActor->lastMomx == pActor->velx) )
+	if ( (pActor->lastNetVelXUpdateTic == gametic) && (pActor->lastVelx == pActor->velx) )
 		ulBits  &= ~CM_VELX;
-	if ( (pActor->lastNetMomYUpdateTic == gametic) && (pActor->lastMomy == pActor->vely) )
+	if ( (pActor->lastNetVelYUpdateTic == gametic) && (pActor->lastVely == pActor->vely) )
 		ulBits  &= ~CM_VELY;
-	if ( (pActor->lastNetMomZUpdateTic == gametic) && (pActor->lastMomz == pActor->velz) )
+	if ( (pActor->lastNetVelZUpdateTic == gametic) && (pActor->lastVelz == pActor->velz) )
 		ulBits  &= ~CM_VELZ;
 	if ( (pActor->lastNetMovedirUpdateTic == gametic) && (pActor->lastMovedir == pActor->movedir) )
 		ulBits  &= ~CM_MOVEDIR;
@@ -454,18 +454,18 @@ void ActorNetPositionUpdated( AActor *pActor, ULONG &ulBits )
 	}
 	if ( ulBits & CM_VELX )
 	{
-		pActor->lastNetMomXUpdateTic = gametic;
-		pActor->lastMomx = pActor->velx;
+		pActor->lastNetVelXUpdateTic = gametic;
+		pActor->lastVelx = pActor->velx;
 	}
 	if ( ulBits & CM_VELY )
 	{
-		pActor->lastNetMomYUpdateTic = gametic;
-		pActor->lastMomy = pActor->vely;
+		pActor->lastNetVelYUpdateTic = gametic;
+		pActor->lastVely = pActor->vely;
 	}
 	if ( ulBits & CM_VELZ )
 	{
-		pActor->lastNetMomZUpdateTic = gametic;
-		pActor->lastMomz = pActor->velz;
+		pActor->lastNetVelZUpdateTic = gametic;
+		pActor->lastVelz = pActor->velz;
 	}
 	if ( ulBits & CM_MOVEDIR )
 	{
