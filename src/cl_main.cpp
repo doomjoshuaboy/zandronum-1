@@ -3693,7 +3693,7 @@ void PLAYER_ResetPlayerData( player_t *pPlayer )
 
 	memset( &pPlayer->ulMedalCount, 0, sizeof( ULONG ) * NUM_MEDALS );
 	memset( &pPlayer->ServerXYZ, 0, sizeof( fixed_t ) * 3 );
-	memset( &pPlayer->ServerXYZMom, 0, sizeof( fixed_t ) * 3 );
+	memset( &pPlayer->ServerXYZVel, 0, sizeof( fixed_t ) * 3 );
 }
 
 //*****************************************************************************
@@ -4324,14 +4324,14 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 	}
 
 
-	// If this is the consoleplayer, set the realorigin and ServerXYZMom.
+	// If this is the consoleplayer, set the realorigin and ServerXYZVel.
 	if ( ulPlayer == static_cast<ULONG>(consoleplayer) )
 	{
 		CLIENT_AdjustPredictionToServerSideConsolePlayerMove( pPlayer->mo->x, pPlayer->mo->y, pPlayer->mo->z );
 
-		pPlayer->ServerXYZMom[0] = 0;
-		pPlayer->ServerXYZMom[1] = 0;
-		pPlayer->ServerXYZMom[2] = 0;
+		pPlayer->ServerXYZVel[0] = 0;
+		pPlayer->ServerXYZVel[1] = 0;
+		pPlayer->ServerXYZVel[2] = 0;
 	}
 
 	// [BB] Now that we have our inventory, tell the server the weapon we selected from it.
@@ -5618,9 +5618,9 @@ static void client_MoveLocalPlayer( BYTESTREAM_s *pByteStream )
 		pPlayer->ServerXYZ[1] = Y;
 		pPlayer->ServerXYZ[2] = Z;
 
-		pPlayer->ServerXYZMom[0] = VelX;
-		pPlayer->ServerXYZMom[1] = VelY;
-		pPlayer->ServerXYZMom[2] = VelZ;
+		pPlayer->ServerXYZVel[0] = VelX;
+		pPlayer->ServerXYZVel[1] = VelY;
+		pPlayer->ServerXYZVel[2] = VelZ;
 	}
 	else
 	{
