@@ -160,7 +160,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_BishopDoBlur)
 	}
 	S_Sound (self, CHAN_BODY, "BishopBlur", 1, ATTN_NORM);
 
-	// [BB] If we're the server, update the thing's momentum and play the sound.
+	// [BB] If we're the server, update the thing's velocity and play the sound.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
 		SERVERCOMMANDS_MoveThingExact( self, CM_VELX|CM_VELY );
@@ -189,7 +189,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_BishopSpawnBlur)
 		self->velx = 0;
 		self->vely = 0;
 
-		// [BB] If we're the server, update the thing's momentum.
+		// [BB] If we're the server, update the thing's velocity.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			SERVERCOMMANDS_MoveThingExact( self, CM_VELX|CM_VELY );
 

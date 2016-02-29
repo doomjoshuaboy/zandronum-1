@@ -508,7 +508,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireFlamer)
 	{
 		self->velz += 5*FRACUNIT;
 
-		// [BC] If we're the server, update the thing's momentum.
+		// [BC] If we're the server, update the thing's velocity.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			SERVERCOMMANDS_MoveThingExact( self, CM_VELZ );
 	}
@@ -752,14 +752,14 @@ DEFINE_ACTION_FUNCTION(AActor, A_BurnArea)
 
 DEFINE_ACTION_FUNCTION(AActor, A_Burnination)
 {
-	// [Dusk] The server manages the momentum
+	// [Dusk] The server manages the velocity
 	if ( NETWORK_InClientMode() == false )
 	{
 		self->velz -= 8*FRACUNIT;
 		self->velx += (pr_phburn.Random2 (3)) << FRACBITS;
 		self->vely += (pr_phburn.Random2 (3)) << FRACBITS;
 
-		// [Dusk] Update momentum to clients
+		// [Dusk] Update velocity to clients
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			SERVERCOMMANDS_MoveThingExact( self, CM_VELX | CM_VELY | CM_VELZ );
 	}

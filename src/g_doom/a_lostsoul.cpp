@@ -58,7 +58,7 @@ void A_SkullAttack(AActor *self, fixed_t speed)
 		dist = 1;
 	self->velz = (dest->z + (dest->height>>1) - self->z) / dist;
 
-	// [BC] Update the lost soul's momentum.
+	// [BC] Update the lost soul's velocity.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCOMMANDS_MoveThingExact( self, CM_X|CM_Y|CM_Z|CM_VELX|CM_VELY|CM_VELZ );
 }
