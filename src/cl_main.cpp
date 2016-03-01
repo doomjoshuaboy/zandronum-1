@@ -3989,7 +3989,7 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 	Y = NETWORK_ReadLong( pByteStream );
 	Z = NETWORK_ReadLong( pByteStream );
 
-	lPlayerClass = NETWORK_ReadShort( pByteStream );
+	lPlayerClass = NETWORK_ReadByte( pByteStream );
 
 	if ( bMorph )
 	{
