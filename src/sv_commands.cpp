@@ -564,7 +564,7 @@ void SERVERCOMMANDS_SpawnPlayer( ULONG ulPlayer, LONG lPlayerState, ULONG ulPlay
 	command.addLong( players[ulPlayer].mo->x );
 	command.addLong( players[ulPlayer].mo->y );
 	command.addLong( players[ulPlayer].mo->z );
-	command.addShort( players[ulPlayer].CurrentPlayerClass );
+	command.addByte( players[ulPlayer].CurrentPlayerClass );
 	// command.addByte( players[ulPlayer].userinfo.GetPlayerClassNum() );
 
 	if ( bMorph )
