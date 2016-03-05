@@ -449,8 +449,6 @@ static	void	client_CreateTranslation( BYTESTREAM_s *pByteStream, bool bIsTypeTwo
 static	void	client_DoPusher( BYTESTREAM_s *pByteStream );
 static	void	client_AdjustPusher( BYTESTREAM_s *pByteStream );
 
-static void STACK_ARGS client_PrintWarning( const char* format, ... ) GCCPRINTF( 1, 2 );
-
 class STClient {
 public:
 	// [BB] Needs to be encapsulated in STClient, because STClient is friend of DLevelScript.
@@ -2658,7 +2656,7 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 					if (!holder)
 					{
-						client_PrintWarning( "GIVEWEAPONHOLDER: Failed to give AWeaponHolder!\n");
+						CLIENT_PrintWarning( "GIVEWEAPONHOLDER: Failed to give AWeaponHolder!\n");
 						break;
 					}
 
@@ -2695,7 +2693,7 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 					if ( pActor == NULL )
 					{
-						client_PrintWarning( "SETTHINGREACTIONTIME: Couldn't find thing: %ld\n", lID );
+						CLIENT_PrintWarning( "SETTHINGREACTIONTIME: Couldn't find thing: %ld\n", lID );
 						break;
 					}
 					pActor->reactiontime = lReactionTime;
@@ -2711,7 +2709,7 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 					if ( pActor == NULL )
 					{
-						client_PrintWarning( "SETFASTCHASESTRAFECOUNT: Couldn't find thing: %ld\n", lID );
+						CLIENT_PrintWarning( "SETFASTCHASESTRAFECOUNT: Couldn't find thing: %ld\n", lID );
 						break;
 					}
 					pActor->FastChaseStrafeCount = lStrafeCount;
@@ -2800,7 +2798,7 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 					if ( pActor == NULL )
 					{
-						client_PrintWarning( "SVC2_SETTHINGSPECIAL: Couldn't find thing: %ld\n", lID );
+						CLIENT_PrintWarning( "SVC2_SETTHINGSPECIAL: Couldn't find thing: %ld\n", lID );
 						break;
 					}
 					pActor->special = lSpecial;
@@ -2840,7 +2838,7 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 					if ( mo == NULL )
 					{
-						client_PrintWarning( "SVC2_SETTHINGSPECIAL: Couldn't find thing: %ld\n", lID );
+						CLIENT_PrintWarning( "SVC2_SETTHINGSPECIAL: Couldn't find thing: %ld\n", lID );
 						break;
 					}
 
@@ -2858,7 +2856,7 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 					if (( cvar == NULL ) || (( cvar->GetFlags() & CVAR_MOD ) == 0 ))
 					{
-						client_PrintWarning( "SVC2_SETCVAR: The server attempted to set the value of "
+						CLIENT_PrintWarning( "SVC2_SETCVAR: The server attempted to set the value of "
 							"%s to \"%s\"\n", cvarName.GetChars(), cvarValue.GetChars() );
 						break;
 					}
@@ -3331,7 +3329,7 @@ void CLIENT_SpawnMissile( const PClass *pType, fixed_t X, fixed_t Y, fixed_t Z, 
 	pActor = Spawn( pType, X, Y, Z, NO_REPLACE );
 	if ( pActor == NULL )
 	{
-		client_PrintWarning( "CLIENT_SpawnMissile: Failed to spawn missile: %ld\n", lNetID );
+		CLIENT_PrintWarning( "CLIENT_SpawnMissile: Failed to spawn missile: %ld\n", lNetID );
 		return;
 	}
 
@@ -3524,7 +3522,7 @@ AInventory *CLIENT_FindPlayerInventory( ULONG ulPlayer, const PClass *pType )
 
 	// If he still doesn't have the object after trying to give it to him... then YIKES!
 	if ( pInventory == NULL )
-		client_PrintWarning( "CLIENT_FindPlayerInventory: Failed to give inventory type, %s!\n", pType->TypeName.GetChars( ));
+		CLIENT_PrintWarning( "CLIENT_FindPlayerInventory: Failed to give inventory type, %s!\n", pType->TypeName.GetChars( ));
 
 	return ( pInventory );
 }
@@ -4752,7 +4750,7 @@ static void client_SetPlayerState( BYTESTREAM_s *pByteStream )
 	// If this isn't a valid player, break out.
 	if (( PLAYER_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
 	{
-		client_PrintWarning( "client_SetPlayerState: No player object for player: %lu\n", ulPlayer );
+		CLIENT_PrintWarning( "client_SetPlayerState: No player object for player: %lu\n", ulPlayer );
 		return;
 	}
 
@@ -4805,7 +4803,7 @@ static void client_SetPlayerState( BYTESTREAM_s *pByteStream )
 		break;
 	default:
 
-		client_PrintWarning( "client_SetPlayerState: Unknown state: %d\n", ulState );
+		CLIENT_PrintWarning( "client_SetPlayerState: Unknown state: %d\n", ulState );
 		break;
 	}
 }
@@ -5295,7 +5293,7 @@ static void client_SetPlayerPendingWeapon( BYTESTREAM_s *pByteStream )
 		// If he still doesn't have the object after trying to give it to him... then YIKES!
 		if ( pWeapon == NULL )
 		{
-			client_PrintWarning( "client_SetPlayerPendingWeapon: Failed to give inventory type, %s!\n", NETWORK_GetClassNameFromIdentification( usActorNetworkIndex ));
+			CLIENT_PrintWarning( "client_SetPlayerPendingWeapon: Failed to give inventory type, %s!\n", NETWORK_GetClassNameFromIdentification( usActorNetworkIndex ));
 			return;
 		}
 
@@ -5402,12 +5400,12 @@ static void client_SetPlayerPSprite( BYTESTREAM_s *pByteStream )
 		{
 			if ( ActorOwnsState ( players[ulPlayer].ReadyWeapon, pNewState ) == false )
 			{
-				client_PrintWarning( "client_SetPlayerPSprite: %s doesn't own %s\n", players[ulPlayer].ReadyWeapon->GetClass()->TypeName.GetChars(), pszState );
+				CLIENT_PrintWarning( "client_SetPlayerPSprite: %s doesn't own %s\n", players[ulPlayer].ReadyWeapon->GetClass()->TypeName.GetChars(), pszState );
 				return;
 			}
 			if ( ActorOwnsState ( players[ulPlayer].ReadyWeapon, pNewState + lOffset ) == false )
 			{
-				client_PrintWarning( "client_SetPlayerPSprite: %s doesn't own %s + %ld\n", players[ulPlayer].ReadyWeapon->GetClass()->TypeName.GetChars(), pszState, lOffset );
+				CLIENT_PrintWarning( "client_SetPlayerPSprite: %s doesn't own %s + %ld\n", players[ulPlayer].ReadyWeapon->GetClass()->TypeName.GetChars(), pszState, lOffset );
 				return;
 			}
 		}
@@ -5934,7 +5932,7 @@ static void client_PlayerUseInventory( BYTESTREAM_s *pByteStream )
 	// If he still doesn't have the object after trying to give it to him... then YIKES!
 	if ( pInventory == NULL )
 	{
-		client_PrintWarning( "client_PlayerUseInventory: Failed to give inventory type, %s!\n", NETWORK_GetClassNameFromIdentification( usActorNetworkIndex ));
+		CLIENT_PrintWarning( "client_PlayerUseInventory: Failed to give inventory type, %s!\n", NETWORK_GetClassNameFromIdentification( usActorNetworkIndex ));
 		return;
 	}
 
@@ -5990,7 +5988,7 @@ static void client_PlayerDropInventory( BYTESTREAM_s *pByteStream )
 	// If he still doesn't have the object after trying to give it to him... then YIKES!
 	if ( pInventory == NULL )
 	{
-		client_PrintWarning( "client_PlayerDropInventory: Failed to give inventory type, %s!\n", NETWORK_GetClassNameFromIdentification( usActorNetworkIndex ));
+		CLIENT_PrintWarning( "client_PlayerDropInventory: Failed to give inventory type, %s!\n", NETWORK_GetClassNameFromIdentification( usActorNetworkIndex ));
 		return;
 	}
 
@@ -6359,7 +6357,7 @@ static void client_KillThing( BYTESTREAM_s *pByteStream )
 	pActor = CLIENT_FindThingByNetID( lID );
 	if ( pActor == NULL )
 	{
-		client_PrintWarning( "client_KillThing: Couldn't find thing: %ld\n", lID );
+		CLIENT_PrintWarning( "client_KillThing: Couldn't find thing: %ld\n", lID );
 		return;
 	}
 
@@ -6408,7 +6406,7 @@ static void client_SetThingState( BYTESTREAM_s *pByteStream )
 	pActor = CLIENT_FindThingByNetID( lID );
 	if ( pActor == NULL )
 	{
-		client_PrintWarning( "client_SetThingState: Unknown thing, %ld!\n", lID );
+		CLIENT_PrintWarning( "client_SetThingState: Unknown thing, %ld!\n", lID );
 		return;
 	}
 
@@ -6482,7 +6480,7 @@ static void client_SetThingState( BYTESTREAM_s *pByteStream )
 		break;
 	default:
 
-		client_PrintWarning( "client_SetThingState: Unknown state: %ld\n", lState );
+		CLIENT_PrintWarning( "client_SetThingState: Unknown state: %ld\n", lState );
 		return; 
 	}
 
@@ -6544,7 +6542,7 @@ static void client_DestroyThing( BYTESTREAM_s *pByteStream )
 	pActor = CLIENT_FindThingByNetID( lID );
 	if ( pActor == NULL )
 	{
-		client_PrintWarning( "client_DestroyThing: Couldn't find thing: %ld\n", lID );
+		CLIENT_PrintWarning( "client_DestroyThing: Couldn't find thing: %ld\n", lID );
 		return;
 	}
 
@@ -6585,7 +6583,7 @@ static void client_SetThingAngle( BYTESTREAM_s *pByteStream )
 	pActor = CLIENT_FindThingByNetID( lID );
 	if ( pActor == NULL )
 	{
-		client_PrintWarning( "client_SetThingAngle: Couldn't find thing: %ld\n", lID );
+		CLIENT_PrintWarning( "client_SetThingAngle: Couldn't find thing: %ld\n", lID );
 		return;
 	}
 
@@ -6611,7 +6609,7 @@ static void client_SetThingAngleExact( BYTESTREAM_s *pByteStream )
 	pActor = CLIENT_FindThingByNetID( lID );
 	if ( pActor == NULL )
 	{
-		client_PrintWarning( "client_SetThingAngleExact: Couldn't find thing: %ld\n", lID );
+		CLIENT_PrintWarning( "client_SetThingAngleExact: Couldn't find thing: %ld\n", lID );
 		return;
 	}
 
@@ -6637,7 +6635,7 @@ static void client_SetThingWaterLevel( BYTESTREAM_s *pByteStream )
 	pActor = CLIENT_FindThingByNetID( lID );
 	if ( pActor == NULL )
 	{
-		client_PrintWarning( "client_SetThingWaterLevel: Couldn't find thing: %ld\n", lID );
+		CLIENT_PrintWarning( "client_SetThingWaterLevel: Couldn't find thing: %ld\n", lID );
 		return;
 	}
 
@@ -6666,7 +6664,7 @@ static void client_SetThingFlags( BYTESTREAM_s *pByteStream )
 	pActor = CLIENT_FindThingByNetID( lID );
 	if ( pActor == NULL )
 	{
-		client_PrintWarning( "client_SetThingFlags: Couldn't find thing: %ld\n", lID );
+		CLIENT_PrintWarning( "client_SetThingFlags: Couldn't find thing: %ld\n", lID );
 		return;
 	}
 
@@ -6716,7 +6714,7 @@ static void client_SetThingFlags( BYTESTREAM_s *pByteStream )
 		pActor->ulSTFlags = ulFlags;
 		break;
 	default:
-		client_PrintWarning( "client_SetThingFlags: Received an unknown flagset value: %d\n", static_cast<int>( flagset ) );
+		CLIENT_PrintWarning( "client_SetThingFlags: Received an unknown flagset value: %d\n", static_cast<int>( flagset ) );
 		break;
 	}
 }
@@ -6734,7 +6732,7 @@ static void client_SetThingArguments( BYTESTREAM_s *pByteStream )
 
 	if ( pActor == NULL )
 	{
-		client_PrintWarning( "client_SetThingArguments: Couldn't find thing: %ld\n", lID );
+		CLIENT_PrintWarning( "client_SetThingArguments: Couldn't find thing: %ld\n", lID );
 		return;
 	}
 
@@ -6770,7 +6768,7 @@ static void client_SetThingTranslation( BYTESTREAM_s *pByteStream )
 	pActor = CLIENT_FindThingByNetID( lID );
 	if ( pActor == NULL )
 	{
-		client_PrintWarning( "client_SetThingTranslation: Couldn't find thing: %ld\n", lID );
+		CLIENT_PrintWarning( "client_SetThingTranslation: Couldn't find thing: %ld\n", lID );
 		return;
 	}
 
@@ -6800,7 +6798,7 @@ static void client_SetThingProperty( BYTESTREAM_s *pByteStream )
 	pActor = CLIENT_FindThingByNetID( lID );
 	if ( pActor == NULL )
 	{
-		client_PrintWarning( "client_SetThingProperty: Couldn't find thing: %ld\n", lID );
+		CLIENT_PrintWarning( "client_SetThingProperty: Couldn't find thing: %ld\n", lID );
 		return;
 	}
 
@@ -6826,7 +6824,7 @@ static void client_SetThingProperty( BYTESTREAM_s *pByteStream )
 		break;
 	default:
 
-		client_PrintWarning( "client_SetThingProperty: Unknown property, %d!\n", static_cast<unsigned int> (ulProperty) );
+		CLIENT_PrintWarning( "client_SetThingProperty: Unknown property, %d!\n", static_cast<unsigned int> (ulProperty) );
 		return;
 	}
 }
@@ -6853,7 +6851,7 @@ static void client_SetThingSound( BYTESTREAM_s *pByteStream )
 	pActor = CLIENT_FindThingByNetID( lID );
 	if ( pActor == NULL )
 	{
-		client_PrintWarning( "client_SetThingSound: Couldn't find thing: %ld\n", lID );
+		CLIENT_PrintWarning( "client_SetThingSound: Couldn't find thing: %ld\n", lID );
 		return;
 	}
 
@@ -6882,7 +6880,7 @@ static void client_SetThingSound( BYTESTREAM_s *pByteStream )
 		break;
 	default:
 
-		client_PrintWarning( "client_SetThingSound: Unknown sound, %d!\n", static_cast<unsigned int> (ulSound) );
+		CLIENT_PrintWarning( "client_SetThingSound: Unknown sound, %d!\n", static_cast<unsigned int> (ulSound) );
 		return;
 	}
 }
@@ -6903,7 +6901,7 @@ static void client_SetThingSpawnPoint( BYTESTREAM_s *pByteStream )
 	AActor *pActor = CLIENT_FindThingByNetID( lID );
 	if ( pActor == NULL )
 	{
-		client_PrintWarning( "client_SetThingSpawnPoint: Couldn't find thing: %ld\n", lID );
+		CLIENT_PrintWarning( "client_SetThingSpawnPoint: Couldn't find thing: %ld\n", lID );
 		return;
 	}
 
@@ -6931,7 +6929,7 @@ static void client_SetThingSpecial1( BYTESTREAM_s *pByteStream )
 	pActor = CLIENT_FindThingByNetID( lID );
 	if ( pActor == NULL )
 	{
-		client_PrintWarning( "client_SetThingSpecial1: Couldn't find thing: %ld\n", lID );
+		CLIENT_PrintWarning( "client_SetThingSpecial1: Couldn't find thing: %ld\n", lID );
 		return;
 	}
 
@@ -6957,7 +6955,7 @@ static void client_SetThingSpecial2( BYTESTREAM_s *pByteStream )
 	pActor = CLIENT_FindThingByNetID( lID );
 	if ( pActor == NULL )
 	{
-		client_PrintWarning( "client_SetThingSpecial2: Couldn't find thing: %ld\n", lID );
+		CLIENT_PrintWarning( "client_SetThingSpecial2: Couldn't find thing: %ld\n", lID );
 		return;
 	}
 
@@ -6983,7 +6981,7 @@ static void client_SetThingTics( BYTESTREAM_s *pByteStream )
 	pActor = CLIENT_FindThingByNetID( lID );
 	if ( pActor == NULL )
 	{
-		client_PrintWarning( "client_SetThingTics: Couldn't find thing: %ld\n", lID );
+		CLIENT_PrintWarning( "client_SetThingTics: Couldn't find thing: %ld\n", lID );
 		return;
 	}
 
@@ -7009,7 +7007,7 @@ static void client_SetThingTID( BYTESTREAM_s *pByteStream )
 	pActor = CLIENT_FindThingByNetID( lID );
 	if ( pActor == NULL )
 	{
-		client_PrintWarning( "client_SetThingTID: Couldn't find thing: %ld\n", lID );
+		CLIENT_PrintWarning( "client_SetThingTID: Couldn't find thing: %ld\n", lID );
 		return;
 	}
 
@@ -7040,7 +7038,7 @@ static void client_SetThingGravity( BYTESTREAM_s *pByteStream )
 	pActor = CLIENT_FindThingByNetID( lID );
 	if ( pActor == NULL )
 	{
-		client_PrintWarning( "client_SetThingGravity: Couldn't find thing: %ld\n", lID );
+		CLIENT_PrintWarning( "client_SetThingGravity: Couldn't find thing: %ld\n", lID );
 		return;
 	}
 
@@ -7115,9 +7113,9 @@ static void client_SetThingFrame( BYTESTREAM_s *pByteStream, bool bCallStateFunc
 				if ( cl_showwarnings )
 				{
 					if ( ActorOwnsState ( pActor, pBaseState ) == false )
-						client_PrintWarning( "client_SetThingFrame: %s doesn't own %s\n", pActor->GetClass()->TypeName.GetChars(), pszState );
+						CLIENT_PrintWarning( "client_SetThingFrame: %s doesn't own %s\n", pActor->GetClass()->TypeName.GetChars(), pszState );
 					if ( ActorOwnsState ( pActor, pBaseState + lOffset ) == false )
-						client_PrintWarning( "client_SetThingFrame: %s doesn't own %s + %ld\n", pActor->GetClass()->TypeName.GetChars(), pszState, lOffset );
+						CLIENT_PrintWarning( "client_SetThingFrame: %s doesn't own %s + %ld\n", pActor->GetClass()->TypeName.GetChars(), pszState, lOffset );
 				}
 				return;
 			}
@@ -7136,7 +7134,7 @@ static void client_SetThingFrame( BYTESTREAM_s *pByteStream, bool bCallStateFunc
 				// Note: Looks like one can't call GetClass() on an actor pointer obtained by GetDefaultByType.
 				if ( ( lOffset != 0 ) && ( ( ClassOwnsState ( pStateOwnerClass, pBaseState ) == false ) || ( ClassOwnsState ( pStateOwnerClass, pBaseState + lOffset ) == false ) ) )
 				{
-					client_PrintWarning( "client_SetThingFrame: %s doesn't own %s + %ld\n", pStateOwnerClass->TypeName.GetChars(), pszState, lOffset );
+					CLIENT_PrintWarning( "client_SetThingFrame: %s doesn't own %s + %ld\n", pStateOwnerClass->TypeName.GetChars(), pszState, lOffset );
 					return;
 				}
 			}
@@ -7203,7 +7201,7 @@ static void client_SetThingScale( BYTESTREAM_s *pByteStream )
 	AActor *mo = CLIENT_FindThingByNetID( mobjNetID );
 	if ( mo == NULL )
 	{
-		client_PrintWarning( "client_SetThingScale: Couldn't find thing: %d\n", mobjNetID );
+		CLIENT_PrintWarning( "client_SetThingScale: Couldn't find thing: %d\n", mobjNetID );
 		return;
 	}
 
@@ -7236,7 +7234,7 @@ static void client_SetWeaponAmmoGive( BYTESTREAM_s *pByteStream )
 	pActor = CLIENT_FindThingByNetID( lID );
 	if ( pActor == NULL )
 	{
-		client_PrintWarning( "client_SetWeaponAmmoGive: Couldn't find thing: %ld\n", lID );
+		CLIENT_PrintWarning( "client_SetWeaponAmmoGive: Couldn't find thing: %ld\n", lID );
 		return;
 	}
 
@@ -7266,7 +7264,7 @@ static void client_ThingIsCorpse( BYTESTREAM_s *pByteStream )
 	pActor = CLIENT_FindThingByNetID( lID );
 	if ( pActor == NULL )
 	{
-		client_PrintWarning( "client_ThingIsCorpse: Couldn't find thing: %ld\n", lID );
+		CLIENT_PrintWarning( "client_ThingIsCorpse: Couldn't find thing: %ld\n", lID );
 		return;
 	}
 
@@ -7306,7 +7304,7 @@ static void client_HideThing( BYTESTREAM_s *pByteStream )
 	pActor = CLIENT_FindThingByNetID( lID );
 	if ( pActor == NULL )
 	{
-		client_PrintWarning( "client_HideThing: Couldn't find thing: %ld\n", lID );
+		CLIENT_PrintWarning( "client_HideThing: Couldn't find thing: %ld\n", lID );
 		return;
 	}
 
@@ -7439,7 +7437,7 @@ static void client_ThingActivate( BYTESTREAM_s *pByteStream )
 
 	if ( pActor == NULL )
 	{
-		client_PrintWarning( "client_ThingActivate: Couldn't find thing: %ld\n", lID );
+		CLIENT_PrintWarning( "client_ThingActivate: Couldn't find thing: %ld\n", lID );
 		return;
 	}
 
@@ -7470,7 +7468,7 @@ static void client_ThingDeactivate( BYTESTREAM_s *pByteStream )
 
 	if ( pActor == NULL )
 	{
-		client_PrintWarning( "client_ThingDeactivate: Couldn't find thing: %ld\n", lID );
+		CLIENT_PrintWarning( "client_ThingDeactivate: Couldn't find thing: %ld\n", lID );
 		return;
 	}
 
@@ -7501,7 +7499,7 @@ static void client_RespawnDoomThing( BYTESTREAM_s *pByteStream )
 	// Couldn't find a matching actor. Ignore...
 	if ( pActor == NULL )
 	{
-		client_PrintWarning( "client_RespawnDoomThing: Couldn't find thing: %ld\n", lID );
+		CLIENT_PrintWarning( "client_RespawnDoomThing: Couldn't find thing: %ld\n", lID );
 		return; 
 	}
 
@@ -7529,7 +7527,7 @@ static void client_RespawnRavenThing( BYTESTREAM_s *pByteStream )
 	// Couldn't find a matching actor. Ignore...
 	if ( pActor == NULL )
 	{
-		client_PrintWarning( "client_RespawnSpecialThing1: Couldn't find thing: %ld\n", lID );
+		CLIENT_PrintWarning( "client_RespawnSpecialThing1: Couldn't find thing: %ld\n", lID );
 		return; 
 	}
 
@@ -8636,7 +8634,7 @@ static void client_MissileExplode( BYTESTREAM_s *pByteStream )
 	pActor = CLIENT_FindThingByNetID( lID );
 	if ( pActor == NULL )
 	{
-		client_PrintWarning( "client_MissileExplode: Couldn't find thing: %ld\n", lID );
+		CLIENT_PrintWarning( "client_MissileExplode: Couldn't find thing: %ld\n", lID );
 		return;
 	}
 
@@ -8707,7 +8705,7 @@ static void client_WeaponChange( BYTESTREAM_s *pByteStream )
 	// If he still doesn't have the object after trying to give it to him... then YIKES!
 	if ( pWeapon == NULL )
 	{
-		client_PrintWarning( "client_WeaponChange: Failed to give inventory type, %s!\n", NETWORK_GetClassNameFromIdentification( usActorNetworkIndex ));
+		CLIENT_PrintWarning( "client_WeaponChange: Failed to give inventory type, %s!\n", NETWORK_GetClassNameFromIdentification( usActorNetworkIndex ));
 		return;
 	}
 
@@ -8771,7 +8769,7 @@ static void client_WeaponRailgun( BYTESTREAM_s *pByteStream )
 
 	if ( source == NULL )
 	{
-		client_PrintWarning( "client_WeaponRailgun: Couldn't find thing: %d\n", id );
+		CLIENT_PrintWarning( "client_WeaponRailgun: Couldn't find thing: %d\n", id );
 		return;
 	}
 
@@ -8798,7 +8796,7 @@ static void client_SetSectorFloorPlane( BYTESTREAM_s *pByteStream )
 	pSector = CLIENT_FindSectorByID( lSectorID );
 	if ( pSector == NULL )
 	{
-		client_PrintWarning( "client_SetSectorFloorPlane: Couldn't find sector: %ld\n", lSectorID );
+		CLIENT_PrintWarning( "client_SetSectorFloorPlane: Couldn't find sector: %ld\n", lSectorID );
 		return;
 	}
 
@@ -8841,7 +8839,7 @@ static void client_SetSectorCeilingPlane( BYTESTREAM_s *pByteStream )
 	pSector = CLIENT_FindSectorByID( lSectorID );
 	if ( pSector == NULL )
 	{
-		client_PrintWarning( "client_SetSectorCeilingPlane: Couldn't find sector: %ld\n", lSectorID );
+		CLIENT_PrintWarning( "client_SetSectorCeilingPlane: Couldn't find sector: %ld\n", lSectorID );
 		return;
 	}
 
@@ -8883,7 +8881,7 @@ static void client_SetSectorFloorPlaneSlope( BYTESTREAM_s *pByteStream )
 	pSector = CLIENT_FindSectorByID( lSectorID );
 	if ( pSector == NULL )
 	{
-		client_PrintWarning( "client_SetSectorFloorPlaneSlope: Couldn't find sector: %ld\n", lSectorID );
+		CLIENT_PrintWarning( "client_SetSectorFloorPlaneSlope: Couldn't find sector: %ld\n", lSectorID );
 		return;
 	}
 
@@ -8915,7 +8913,7 @@ static void client_SetSectorCeilingPlaneSlope( BYTESTREAM_s *pByteStream )
 	pSector = CLIENT_FindSectorByID( lSectorID );
 	if ( pSector == NULL )
 	{
-		client_PrintWarning( "client_SetSectorCeilingPlaneSlope: Couldn't find sector: %ld\n", lSectorID );
+		CLIENT_PrintWarning( "client_SetSectorCeilingPlaneSlope: Couldn't find sector: %ld\n", lSectorID );
 		return;
 	}
 
@@ -8943,7 +8941,7 @@ static void client_SetSectorLightLevel( BYTESTREAM_s *pByteStream )
 	pSector = CLIENT_FindSectorByID( lSectorID );
 	if ( pSector == NULL )
 	{
-		client_PrintWarning( "client_SetSectorLightLevel: Cannot find sector: %ld\n", lSectorID );
+		CLIENT_PrintWarning( "client_SetSectorLightLevel: Cannot find sector: %ld\n", lSectorID );
 		return; 
 	}
 
@@ -8985,7 +8983,7 @@ static void client_SetSectorColor( BYTESTREAM_s *pByteStream, bool bIdentifySect
 		pSector = CLIENT_FindSectorByID( lSectorIDOrTag );
 		if ( pSector == NULL )
 		{
-			client_PrintWarning( "client_SetSectorColor: Cannot find sector: %ld\n", lSectorIDOrTag );
+			CLIENT_PrintWarning( "client_SetSectorColor: Cannot find sector: %ld\n", lSectorIDOrTag );
 			return; 
 		}
 
@@ -9026,7 +9024,7 @@ static void client_SetSectorFade( BYTESTREAM_s *pByteStream, bool bIdentifySecto
 		pSector = CLIENT_FindSectorByID( lSectorIDOrTag );
 		if ( pSector == NULL )
 		{
-			client_PrintWarning( "client_SetSectorFade: Cannot find sector: %ld\n", lSectorIDOrTag );
+			CLIENT_PrintWarning( "client_SetSectorFade: Cannot find sector: %ld\n", lSectorIDOrTag );
 			return; 
 		}
 
@@ -9062,7 +9060,7 @@ static void client_SetSectorFlat( BYTESTREAM_s *pByteStream )
 	pSector = CLIENT_FindSectorByID( lSectorID );
 	if ( pSector == NULL )
 	{
-		client_PrintWarning( "client_SetSectorFlat: Couldn't find sector: %ld\n", lSectorID );
+		CLIENT_PrintWarning( "client_SetSectorFlat: Couldn't find sector: %ld\n", lSectorID );
 		return; 
 	}
 
@@ -9103,7 +9101,7 @@ static void client_SetSectorPanning( BYTESTREAM_s *pByteStream )
 	pSector = CLIENT_FindSectorByID( lSectorID );
 	if ( pSector == NULL )
 	{
-		client_PrintWarning( "client_SetSectorPanning: Cannot find sector: %ld\n", lSectorID );
+		CLIENT_PrintWarning( "client_SetSectorPanning: Cannot find sector: %ld\n", lSectorID );
 		return; 
 	}
 
@@ -9142,7 +9140,7 @@ static void client_SetSectorRotation( BYTESTREAM_s *pByteStream, bool bIdentifyS
 		sector_t *pSector = CLIENT_FindSectorByID( lSectorIDOrTag );
 		if ( pSector == NULL )
 		{
-			client_PrintWarning( "client_SetSectorRotation: Cannot find sector: %ld\n", lSectorIDOrTag );
+			CLIENT_PrintWarning( "client_SetSectorRotation: Cannot find sector: %ld\n", lSectorIDOrTag );
 			return; 
 		}
 
@@ -9176,7 +9174,7 @@ static void client_SetSectorScale( BYTESTREAM_s *pByteStream )
 	pSector = CLIENT_FindSectorByID( lSectorID );
 	if ( pSector == NULL )
 	{
-		client_PrintWarning( "client_SetSectorScale: Cannot find sector: %ld\n", lSectorID );
+		CLIENT_PrintWarning( "client_SetSectorScale: Cannot find sector: %ld\n", lSectorID );
 		return; 
 	}
 
@@ -9205,7 +9203,7 @@ static void client_SetSectorSpecial( BYTESTREAM_s *pByteStream )
 	pSector = CLIENT_FindSectorByID( lSectorID );
 	if ( pSector == NULL )
 	{
-		client_PrintWarning( "client_SetSectorSpecial: Cannot find sector: %ld\n", lSectorID );
+		CLIENT_PrintWarning( "client_SetSectorSpecial: Cannot find sector: %ld\n", lSectorID );
 		return; 
 	}
 
@@ -9233,7 +9231,7 @@ static void client_SetSectorFriction( BYTESTREAM_s *pByteStream )
 	pSector = CLIENT_FindSectorByID( lSectorID );
 	if ( pSector == NULL )
 	{
-		client_PrintWarning( "client_SetSectorScale: Cannot find sector: %ld\n", lSectorID );
+		CLIENT_PrintWarning( "client_SetSectorScale: Cannot find sector: %ld\n", lSectorID );
 		return; 
 	}
 
@@ -9272,7 +9270,7 @@ static void client_SetSectorAngleYOffset( BYTESTREAM_s *pByteStream )
 	pSector = CLIENT_FindSectorByID( lSectorID );
 	if ( pSector == NULL )
 	{
-		client_PrintWarning( "client_SetSectorScale: Cannot find sector: %ld\n", lSectorID );
+		CLIENT_PrintWarning( "client_SetSectorScale: Cannot find sector: %ld\n", lSectorID );
 		return; 
 	}
 
@@ -9301,7 +9299,7 @@ static void client_SetSectorGravity( BYTESTREAM_s *pByteStream )
 	pSector = CLIENT_FindSectorByID( lSectorID );
 	if ( pSector == NULL )
 	{
-		client_PrintWarning( "client_SetSectorScale: Cannot find sector: %ld\n", lSectorID );
+		CLIENT_PrintWarning( "client_SetSectorScale: Cannot find sector: %ld\n", lSectorID );
 		return; 
 	}
 
@@ -9329,7 +9327,7 @@ static void client_SetSectorReflection( BYTESTREAM_s *pByteStream )
 	pSector = CLIENT_FindSectorByID( lSectorID );
 	if ( pSector == NULL )
 	{
-		client_PrintWarning( "client_SetSectorScale: Cannot find sector: %ld\n", lSectorID );
+		CLIENT_PrintWarning( "client_SetSectorScale: Cannot find sector: %ld\n", lSectorID );
 		return; 
 	}
 
@@ -9354,7 +9352,7 @@ static void client_StopSectorLightEffect( BYTESTREAM_s *pByteStream )
 	pSector = CLIENT_FindSectorByID( lSectorID );
 	if ( pSector == NULL )
 	{
-		client_PrintWarning( "client_StopSectorLightEffect: Cannot find sector: %ld\n", lSectorID );
+		CLIENT_PrintWarning( "client_StopSectorLightEffect: Cannot find sector: %ld\n", lSectorID );
 		return; 
 	}
 
@@ -9411,7 +9409,7 @@ static void client_SetSectorLink( BYTESTREAM_s *pByteStream )
 	sector_t *pSector = CLIENT_FindSectorByID( ulSector );
 	if ( pSector == NULL )
 	{
-		client_PrintWarning( "client_SetSectorLink: Couldn't find sector: %lu\n", ulSector );
+		CLIENT_PrintWarning( "client_SetSectorLink: Couldn't find sector: %lu\n", ulSector );
 		return;
 	}
 
@@ -9441,7 +9439,7 @@ static void client_DoSectorLightFireFlicker( BYTESTREAM_s *pByteStream )
 	pSector = CLIENT_FindSectorByID( lSectorID );
 	if ( pSector == NULL )
 	{
-		client_PrintWarning( "client_DoSectorLightFireFlicker: Cannot find sector: %ld\n", lSectorID );
+		CLIENT_PrintWarning( "client_DoSectorLightFireFlicker: Cannot find sector: %ld\n", lSectorID );
 		return; 
 	}
 
@@ -9472,7 +9470,7 @@ static void client_DoSectorLightFlicker( BYTESTREAM_s *pByteStream )
 	pSector = CLIENT_FindSectorByID( lSectorID );
 	if ( pSector == NULL )
 	{
-		client_PrintWarning( "client_DoSectorLightFireFlicker: Cannot find sector: %ld\n", lSectorID );
+		CLIENT_PrintWarning( "client_DoSectorLightFireFlicker: Cannot find sector: %ld\n", lSectorID );
 		return; 
 	}
 
@@ -9503,7 +9501,7 @@ static void client_DoSectorLightLightFlash( BYTESTREAM_s *pByteStream )
 	pSector = CLIENT_FindSectorByID( lSectorID );
 	if ( pSector == NULL )
 	{
-		client_PrintWarning( "client_DoSectorLightLightFlash: Cannot find sector: %ld\n", lSectorID );
+		CLIENT_PrintWarning( "client_DoSectorLightLightFlash: Cannot find sector: %ld\n", lSectorID );
 		return; 
 	}
 
@@ -9547,7 +9545,7 @@ static void client_DoSectorLightStrobe( BYTESTREAM_s *pByteStream )
 	pSector = CLIENT_FindSectorByID( lSectorID );
 	if ( pSector == NULL )
 	{
-		client_PrintWarning( "client_DoSectorLightStrobe: Cannot find sector: %ld\n", lSectorID );
+		CLIENT_PrintWarning( "client_DoSectorLightStrobe: Cannot find sector: %ld\n", lSectorID );
 		return; 
 	}
 
@@ -9571,7 +9569,7 @@ static void client_DoSectorLightGlow( BYTESTREAM_s *pByteStream )
 	pSector = CLIENT_FindSectorByID( lSectorID );
 	if ( pSector == NULL )
 	{
-		client_PrintWarning( "client_DoSectorLightGlow: Cannot find sector: %ld\n", lSectorID );
+		CLIENT_PrintWarning( "client_DoSectorLightGlow: Cannot find sector: %ld\n", lSectorID );
 		return; 
 	}
 
@@ -9614,7 +9612,7 @@ static void client_DoSectorLightGlow2( BYTESTREAM_s *pByteStream )
 	pSector = CLIENT_FindSectorByID( lSectorID );
 	if ( pSector == NULL )
 	{
-		client_PrintWarning( "client_DoSectorLightStrobe: Cannot find sector: %ld\n", lSectorID );
+		CLIENT_PrintWarning( "client_DoSectorLightStrobe: Cannot find sector: %ld\n", lSectorID );
 		return; 
 	}
 
@@ -9646,7 +9644,7 @@ static void client_DoSectorLightPhased( BYTESTREAM_s *pByteStream )
 	pSector = CLIENT_FindSectorByID( lSectorID );
 	if ( pSector == NULL )
 	{
-		client_PrintWarning( "client_DoSectorLightFireFlicker: Cannot find sector: %ld\n", lSectorID );
+		CLIENT_PrintWarning( "client_DoSectorLightFireFlicker: Cannot find sector: %ld\n", lSectorID );
 		return; 
 	}
 
@@ -9671,7 +9669,7 @@ static void client_SetLineAlpha( BYTESTREAM_s *pByteStream )
 	pLine = &lines[ulLineIdx];
 	if (( pLine == NULL ) || ( ulLineIdx >= static_cast<ULONG>(numlines) ))
 	{
-		client_PrintWarning( "client_SetLineAlpha: Couldn't find line: %lu\n", ulLineIdx );
+		CLIENT_PrintWarning( "client_SetLineAlpha: Couldn't find line: %lu\n", ulLineIdx );
 		return;
 	}
 
@@ -9690,7 +9688,7 @@ static void client_SetLineTextureHelper ( ULONG ulLineIdx, ULONG ulSide, ULONG u
 
 	if ( pLine == NULL )
 	{
-		client_PrintWarning( "client_SetLineTexture: Couldn't find line: %lu\n", ulLineIdx );
+		CLIENT_PrintWarning( "client_SetLineTexture: Couldn't find line: %lu\n", ulLineIdx );
 		return;
 	}
 
@@ -9857,7 +9855,7 @@ static void client_ACSScriptExecute( BYTESTREAM_s *pByteStream )
 	}
 	else
 	{
-		client_PrintWarning( "client_ACSScriptExecute: Couldn't find map by levelnum: %d\n", levelnum );
+		CLIENT_PrintWarning( "client_ACSScriptExecute: Couldn't find map by levelnum: %d\n", levelnum );
 		return;
 	}
 
@@ -9870,7 +9868,7 @@ static void client_ACSScriptExecute( BYTESTREAM_s *pByteStream )
 		pActor = CLIENT_FindThingByNetID( lID );
 		if ( pActor == NULL )
 		{
-			client_PrintWarning( "client_ACSScriptExecute: Couldn't find thing: %ld\n", lID );
+			CLIENT_PrintWarning( "client_ACSScriptExecute: Couldn't find thing: %ld\n", lID );
 			return;
 		}
 	}
@@ -9942,7 +9940,7 @@ static void client_SoundActor( BYTESTREAM_s *pByteStream, bool bRespectActorPlay
 	pActor = CLIENT_FindThingByNetID( lID );
 	if ( pActor == NULL )
 	{
-		client_PrintWarning( "client_SoundActor: Couldn't find thing: %ld\n", lID );
+		CLIENT_PrintWarning( "client_SoundActor: Couldn't find thing: %ld\n", lID );
 		return;
 	}
 
@@ -10165,7 +10163,7 @@ static void client_MapLoad( BYTESTREAM_s *pByteStream )
 		C_HideConsole( );
 	}
 	else
-		client_PrintWarning( "client_MapLoad: Unknown map: %s\n", pszMap );
+		CLIENT_PrintWarning( "client_MapLoad: Unknown map: %s\n", pszMap );
 }
 
 //*****************************************************************************
@@ -10396,7 +10394,7 @@ static void client_GiveInventory( BYTESTREAM_s *pByteStream )
 	// If he still doesn't have the object after trying to give it to him... then YIKES!
 	if ( pInventory == NULL )
 	{
-		client_PrintWarning( "client_GiveInventory: Failed to give inventory type, %s!\n", NETWORK_GetClassNameFromIdentification( usActorNetworkIndex ));
+		CLIENT_PrintWarning( "client_GiveInventory: Failed to give inventory type, %s!\n", NETWORK_GetClassNameFromIdentification( usActorNetworkIndex ));
 		return;
 	}
 
@@ -10494,7 +10492,7 @@ static void client_TakeInventory( BYTESTREAM_s *pByteStream )
 		// If he still doesn't have the object after trying to give it to him... then YIKES!
 		if ( pInventory == NULL )
 		{
-			client_PrintWarning( "client_TakeInventory: Failed to give inventory type, %s!\n", pType->TypeName.GetChars());
+			CLIENT_PrintWarning( "client_TakeInventory: Failed to give inventory type, %s!\n", pType->TypeName.GetChars());
 			return;
 		}
 
@@ -10554,7 +10552,7 @@ static void client_GivePowerup( BYTESTREAM_s *pByteStream )
 	// If he still doesn't have the object after trying to give it to him... then YIKES!
 	if ( pInventory == NULL )
 	{
-		client_PrintWarning( "client_TakeInventory: Failed to give inventory type, %s!\n", NETWORK_GetClassNameFromIdentification( usActorNetworkIndex ));
+		CLIENT_PrintWarning( "client_TakeInventory: Failed to give inventory type, %s!\n", NETWORK_GetClassNameFromIdentification( usActorNetworkIndex ));
 		return;
 	}
 
@@ -10738,7 +10736,7 @@ static void client_DoDoor( BYTESTREAM_s *pByteStream )
 	// If door already has a thinker, we can't spawn a new door on it.
 	if ( pSector->ceilingdata )
 	{
-		client_PrintWarning( "client_DoDoor: WARNING! Door's sector already has a ceiling mover attached to it!" );
+		CLIENT_PrintWarning( "client_DoDoor: WARNING! Door's sector already has a ceiling mover attached to it!" );
 		return;
 	}
 
@@ -10763,7 +10761,7 @@ static void client_DestroyDoor( BYTESTREAM_s *pByteStream )
 	pDoor = P_GetDoorByID( lDoorID );
 	if ( pDoor == NULL )
 	{
-		client_PrintWarning( "client_DestroyDoor: Couldn't find door with ID: %ld!\n", lDoorID );
+		CLIENT_PrintWarning( "client_DestroyDoor: Couldn't find door with ID: %ld!\n", lDoorID );
 		return;
 	}
 
@@ -10793,7 +10791,7 @@ static void client_ChangeDoorDirection( BYTESTREAM_s *pByteStream )
 	pDoor = P_GetDoorByID( lDoorID );
 	if ( pDoor == NULL )
 	{
-		client_PrintWarning( "client_ChangeDoorDirection: Couldn't find door with ID: %ld!\n", lDoorID );
+		CLIENT_PrintWarning( "client_ChangeDoorDirection: Couldn't find door with ID: %ld!\n", lDoorID );
 		return;
 	}
 
@@ -10882,7 +10880,7 @@ static void client_DestroyFloor( BYTESTREAM_s *pByteStream )
 	pFloor = P_GetFloorByID( lFloorID );
 	if ( pFloor == NULL )
 	{
-		client_PrintWarning( "client_ChangeFloorType: Couldn't find floor with ID: %ld!\n", lFloorID );
+		CLIENT_PrintWarning( "client_ChangeFloorType: Couldn't find floor with ID: %ld!\n", lFloorID );
 		return;
 	}
 
@@ -10913,7 +10911,7 @@ static void client_ChangeFloorDirection( BYTESTREAM_s *pByteStream )
 	pFloor = P_GetFloorByID( lFloorID );
 	if ( pFloor == NULL )
 	{
-		client_PrintWarning( "client_ChangeFloorType: Couldn't find floor with ID: %ld!\n", lFloorID );
+		CLIENT_PrintWarning( "client_ChangeFloorType: Couldn't find floor with ID: %ld!\n", lFloorID );
 		return;
 	}
 
@@ -10937,7 +10935,7 @@ static void client_ChangeFloorType( BYTESTREAM_s *pByteStream )
 	pFloor = P_GetFloorByID( lFloorID );
 	if ( pFloor == NULL )
 	{
-		client_PrintWarning( "client_ChangeFloorType: Couldn't find ceiling with ID: %ld!\n", lFloorID );
+		CLIENT_PrintWarning( "client_ChangeFloorType: Couldn't find ceiling with ID: %ld!\n", lFloorID );
 		return;
 	}
 
@@ -10961,7 +10959,7 @@ static void client_ChangeFloorDestDist( BYTESTREAM_s *pByteStream )
 	pFloor = P_GetFloorByID( lFloorID );
 	if ( pFloor == NULL )
 	{
-		client_PrintWarning( "client_ChangeFloorType: Couldn't find floor with ID: %ld!\n", lFloorID );
+		CLIENT_PrintWarning( "client_ChangeFloorType: Couldn't find floor with ID: %ld!\n", lFloorID );
 		return;
 	}
 
@@ -10981,7 +10979,7 @@ static void client_StartFloorSound( BYTESTREAM_s *pByteStream )
 	pFloor = P_GetFloorByID( lFloorID );
 	if ( pFloor == NULL )
 	{
-		client_PrintWarning( "client_StartFloorSound: Couldn't find floor with ID: %ld!\n", lFloorID );
+		CLIENT_PrintWarning( "client_StartFloorSound: Couldn't find floor with ID: %ld!\n", lFloorID );
 		return;
 	}
 
@@ -11138,7 +11136,7 @@ static void client_DestroyCeiling( BYTESTREAM_s *pByteStream )
 	pCeiling = P_GetCeilingByID( lCeilingID );
 	if ( pCeiling == NULL )
 	{
-		client_PrintWarning( "client_DestroyCeiling: Couldn't find ceiling with ID: %ld!\n", lCeilingID );
+		CLIENT_PrintWarning( "client_DestroyCeiling: Couldn't find ceiling with ID: %ld!\n", lCeilingID );
 		return;
 	}
 
@@ -11169,7 +11167,7 @@ static void client_ChangeCeilingDirection( BYTESTREAM_s *pByteStream )
 	pCeiling = P_GetCeilingByID( lCeilingID );
 	if ( pCeiling == NULL )
 	{
-		client_PrintWarning( "client_ChangeCeilingDirection: Couldn't find ceiling with ID: %ld!\n", lCeilingID );
+		CLIENT_PrintWarning( "client_ChangeCeilingDirection: Couldn't find ceiling with ID: %ld!\n", lCeilingID );
 		return;
 	}
 
@@ -11194,7 +11192,7 @@ static void client_ChangeCeilingSpeed( BYTESTREAM_s *pByteStream )
 	pCeiling = P_GetCeilingByID( lCeilingID );
 	if ( pCeiling == NULL )
 	{
-		client_PrintWarning( "client_ChangeCeilingSpeed: Couldn't find ceiling with ID: %ld!\n", lCeilingID );
+		CLIENT_PrintWarning( "client_ChangeCeilingSpeed: Couldn't find ceiling with ID: %ld!\n", lCeilingID );
 		return;
 	}
 
@@ -11214,7 +11212,7 @@ static void client_PlayCeilingSound( BYTESTREAM_s *pByteStream )
 	pCeiling = P_GetCeilingByID( lCeilingID );
 	if ( pCeiling == NULL )
 	{
-		client_PrintWarning( "client_PlayCeilingSound: Couldn't find ceiling with ID: %ld!\n", lCeilingID );
+		CLIENT_PrintWarning( "client_PlayCeilingSound: Couldn't find ceiling with ID: %ld!\n", lCeilingID );
 		return;
 	}
 
@@ -11292,7 +11290,7 @@ static void client_DestroyPlat( BYTESTREAM_s *pByteStream )
 	pPlat = P_GetPlatByID( lPlatID );
 	if ( pPlat == NULL )
 	{
-		client_PrintWarning( "client_DestroyPlat: Couldn't find plat with ID: %ld!\n", lPlatID );
+		CLIENT_PrintWarning( "client_DestroyPlat: Couldn't find plat with ID: %ld!\n", lPlatID );
 		return;
 	}
 
@@ -11316,7 +11314,7 @@ static void client_ChangePlatStatus( BYTESTREAM_s *pByteStream )
 	pPlat = P_GetPlatByID( lPlatID );
 	if ( pPlat == NULL )
 	{
-		client_PrintWarning( "client_ChangePlatStatus: Couldn't find plat with ID: %ld!\n", lPlatID );
+		CLIENT_PrintWarning( "client_ChangePlatStatus: Couldn't find plat with ID: %ld!\n", lPlatID );
 		return;
 	}
 
@@ -11340,7 +11338,7 @@ static void client_PlayPlatSound( BYTESTREAM_s *pByteStream )
 	pPlat = P_GetPlatByID( lPlatID );
 	if ( pPlat == NULL )
 	{
-		client_PrintWarning( "client_PlayPlatSound: Couldn't find plat with ID: %ld!\n", lPlatID );
+		CLIENT_PrintWarning( "client_PlayPlatSound: Couldn't find plat with ID: %ld!\n", lPlatID );
 		return;
 	}
 
@@ -11435,7 +11433,7 @@ static void client_DestroyElevator( BYTESTREAM_s *pByteStream )
 	pElevator = P_GetElevatorByID( lElevatorID );
 	if ( pElevator == NULL )
 	{
-		client_PrintWarning( "client_DestroyElevator: Couldn't find elevator with ID: %ld!\n", lElevatorID );
+		CLIENT_PrintWarning( "client_DestroyElevator: Couldn't find elevator with ID: %ld!\n", lElevatorID );
 		return;
 	}
 
@@ -11463,7 +11461,7 @@ static void client_StartElevatorSound( BYTESTREAM_s *pByteStream )
 	pElevator = P_GetElevatorByID( lElevatorID );
 	if ( pElevator == NULL )
 	{
-		client_PrintWarning( "client_StartElevatorSound: Couldn't find elevator with ID: %ld!\n", lElevatorID );
+		CLIENT_PrintWarning( "client_StartElevatorSound: Couldn't find elevator with ID: %ld!\n", lElevatorID );
 		return;
 	}
 
@@ -11545,7 +11543,7 @@ static void client_DestroyPillar( BYTESTREAM_s *pByteStream )
 	pPillar = P_GetPillarByID( lPillarID );
 	if ( pPillar == NULL )
 	{
-		client_PrintWarning( "client_DestroyPillar: Couldn't find pillar with ID: %ld!\n", lPillarID );
+		CLIENT_PrintWarning( "client_DestroyPillar: Couldn't find pillar with ID: %ld!\n", lPillarID );
 		return;
 	}
 
@@ -11627,7 +11625,7 @@ static void client_DestroyWaggle( BYTESTREAM_s *pByteStream )
 	pWaggle = P_GetWaggleByID( lWaggleID );
 	if ( pWaggle == NULL )
 	{
-		client_PrintWarning( "client_DestroyWaggle: Couldn't find waggle with ID: %ld!\n", lWaggleID );
+		CLIENT_PrintWarning( "client_DestroyWaggle: Couldn't find waggle with ID: %ld!\n", lWaggleID );
 		return;
 	}
 
@@ -11652,7 +11650,7 @@ static void client_UpdateWaggle( BYTESTREAM_s *pByteStream )
 	pWaggle = P_GetWaggleByID( lWaggleID );
 	if ( pWaggle == NULL )
 	{
-		client_PrintWarning( "client_DestroyWaggle: Couldn't find waggle with ID: %ld!\n", lWaggleID );
+		CLIENT_PrintWarning( "client_DestroyWaggle: Couldn't find waggle with ID: %ld!\n", lWaggleID );
 		return;
 	}
 
@@ -11679,7 +11677,7 @@ static void client_DoRotatePoly( BYTESTREAM_s *pByteStream )
 	pPoly = PO_GetPolyobj( lPolyNum );
 	if ( pPoly == NULL )
 	{
-		client_PrintWarning( "client_DoRotatePoly: Invalid polyobj number: %ld\n", lPolyNum );
+		CLIENT_PrintWarning( "client_DoRotatePoly: Invalid polyobj number: %ld\n", lPolyNum );
 		return;
 	}
 
@@ -11742,7 +11740,7 @@ static void client_DoMovePoly( BYTESTREAM_s *pByteStream )
 	pPoly = PO_GetPolyobj( lPolyNum );
 	if ( pPoly == NULL )
 	{
-		client_PrintWarning( "client_DoRotatePoly: Invalid polyobj number: %ld\n", lPolyNum );
+		CLIENT_PrintWarning( "client_DoRotatePoly: Invalid polyobj number: %ld\n", lPolyNum );
 		return;
 	}
 
@@ -11812,7 +11810,7 @@ static void client_DoPolyDoor( BYTESTREAM_s *pByteStream )
 	pPoly = PO_GetPolyobj( lPolyNum );
 	if ( pPoly == NULL )
 	{
-		client_PrintWarning( "client_DoPolyDoor: Invalid polyobj number: %ld\n", lPolyNum );
+		CLIENT_PrintWarning( "client_DoPolyDoor: Invalid polyobj number: %ld\n", lPolyNum );
 		return;
 	}
 
@@ -11986,7 +11984,7 @@ static void client_SetPolyobjPosition( BYTESTREAM_s *pByteStream )
 	pPoly = PO_GetPolyobj( lPolyNum );
 	if ( pPoly == NULL )
 	{
-		client_PrintWarning( "client_SetPolyobjPosition: Invalid polyobj number: %ld\n", lPolyNum );
+		CLIENT_PrintWarning( "client_SetPolyobjPosition: Invalid polyobj number: %ld\n", lPolyNum );
 		return;
 	}
 
@@ -12018,7 +12016,7 @@ static void client_SetPolyobjRotation( BYTESTREAM_s *pByteStream )
 	pPoly = PO_GetPolyobj( lPolyNum );
 	if ( pPoly == NULL )
 	{
-		client_PrintWarning( "client_SetPolyobjRotation: Invalid polyobj number: %ld\n", lPolyNum );
+		CLIENT_PrintWarning( "client_SetPolyobjRotation: Invalid polyobj number: %ld\n", lPolyNum );
 		return;
 	}
 
@@ -12089,7 +12087,7 @@ static void client_DoScroller( BYTESTREAM_s *pByteStream )
 	if (( Type != DScroller::sc_floor ) && ( Type != DScroller::sc_ceiling ) &&
 		( Type != DScroller::sc_carry ) && ( Type != DScroller::sc_carry_ceiling ) && ( Type != DScroller::sc_side ) )
 	{
-		client_PrintWarning( "client_DoScroller: Unknown type: %d!\n", static_cast<int> (Type) );
+		CLIENT_PrintWarning( "client_DoScroller: Unknown type: %d!\n", static_cast<int> (Type) );
 		return;
 	}
 
@@ -12097,13 +12095,13 @@ static void client_DoScroller( BYTESTREAM_s *pByteStream )
 	{
 		if (( lAffectee < 0 ) || ( lAffectee >= numsides ))
 		{
-			client_PrintWarning( "client_DoScroller: Invalid side ID: %ld!\n", lAffectee );
+			CLIENT_PrintWarning( "client_DoScroller: Invalid side ID: %ld!\n", lAffectee );
 			return;
 		}
 	}
 	else if (( lAffectee < 0 ) || ( lAffectee >= numsectors ))
 	{
-		client_PrintWarning( "client_DoScroller: Invalid sector ID: %ld!\n", lAffectee );
+		CLIENT_PrintWarning( "client_DoScroller: Invalid sector ID: %ld!\n", lAffectee );
 		return;
 	}
 
@@ -12139,7 +12137,7 @@ static void client_SetScroller( BYTESTREAM_s *pByteStream )
 	if (( Type != DScroller::sc_floor ) && ( Type != DScroller::sc_ceiling ) &&
 		( Type != DScroller::sc_carry ) && ( Type != DScroller::sc_carry_ceiling ))
 	{
-		client_PrintWarning( "client_SetScroller: Unknown type: %d!\n", static_cast<int> (Type) );
+		CLIENT_PrintWarning( "client_SetScroller: Unknown type: %d!\n", static_cast<int> (Type) );
 		return;
 	}
 
@@ -12266,7 +12264,7 @@ static void client_SetCameraToTexture( BYTESTREAM_s *pByteStream )
 	picNum = TexMan.CheckForTexture( pszTexture, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable );
 	if ( !picNum.Exists() )
 	{
-		client_PrintWarning( "client_SetCameraToTexture: %s is not a texture\n", pszTexture );
+		CLIENT_PrintWarning( "client_SetCameraToTexture: %s is not a texture\n", pszTexture );
 		return;
 	}
 
@@ -12405,14 +12403,14 @@ void APathFollower::InitFromStream ( BYTESTREAM_s *pByteStream )
 	}
 	else
 	{
-		client_PrintWarning( "APathFollower::InitFromStream: Couldn't find actor.\n" );
+		CLIENT_PrintWarning( "APathFollower::InitFromStream: Couldn't find actor.\n" );
 		return;
 	}
 }
 
 //*****************************************************************************
 //
-static void STACK_ARGS client_PrintWarning( const char* format, ... )
+void STACK_ARGS CLIENT_PrintWarning( const char* format, ... )
 {
 	if ( cl_showwarnings )
 	{
