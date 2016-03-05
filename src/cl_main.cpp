@@ -178,21 +178,6 @@ static	void	client_PlayerUseInventory( BYTESTREAM_s *pByteStream );
 static	void	client_PlayerDropInventory( BYTESTREAM_s *pByteStream );
 static	void	client_IgnorePlayer( BYTESTREAM_s *pByteStream );
 
-// Thing functions.
-static	void	client_SetThingFrame( BYTESTREAM_s *pByteStream, bool bCallStateFunction );
-static	void	client_SetThingScale( BYTESTREAM_s *pByteStream );
-static	void	client_SetWeaponAmmoGive( BYTESTREAM_s *pByteStream );
-static	void	client_ThingIsCorpse( BYTESTREAM_s *pByteStream );
-static	void	client_HideThing( BYTESTREAM_s *pByteStream );
-static	void	client_TeleportThing( BYTESTREAM_s *pByteStream );
-static	void	client_ThingActivate( BYTESTREAM_s *pByteStream );
-static	void	client_ThingDeactivate( BYTESTREAM_s *pByteStream );
-static	void	client_RespawnDoomThing( BYTESTREAM_s *pByteStream );
-static	void	client_RespawnRavenThing( BYTESTREAM_s *pByteStream );
-static	void	client_SpawnBlood( BYTESTREAM_s *pByteStream );
-static	void	client_SpawnBloodSplatter( BYTESTREAM_s *pByteStream, bool bIsBloodSplatter2 );
-static	void	client_SpawnPuff( BYTESTREAM_s *pByteStream );
-
 // Print commands.
 static	void	client_Print( BYTESTREAM_s *pByteStream );
 static	void	client_PrintMid( BYTESTREAM_s *pByteStream );
@@ -1593,62 +1578,6 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 		client_PlayerDropInventory( pByteStream );
 		break;
-	case SVC_SETTHINGFRAME:
-
-		client_SetThingFrame( pByteStream, true );
-		break;
-	case SVC_SETTHINGFRAMENF:
-
-		client_SetThingFrame( pByteStream, false );
-		break;
-	case SVC_SETWEAPONAMMOGIVE:
-
-		client_SetWeaponAmmoGive( pByteStream );
-		break;
-	case SVC_THINGISCORPSE:
-
-		client_ThingIsCorpse( pByteStream );
-		break;
-	case SVC_HIDETHING:
-
-		client_HideThing( pByteStream );
-		break;
-	case SVC_TELEPORTTHING:
-
-		client_TeleportThing( pByteStream );
-		break;
-	case SVC_THINGACTIVATE:
-
-		client_ThingActivate( pByteStream );
-		break;
-	case SVC_THINGDEACTIVATE:
-
-		client_ThingDeactivate( pByteStream );
-		break;
-	case SVC_RESPAWNDOOMTHING:
-
-		client_RespawnDoomThing( pByteStream );
-		break;
-	case SVC_RESPAWNRAVENTHING:
-
-		client_RespawnRavenThing( pByteStream );
-		break;
-	case SVC_SPAWNBLOOD:
-
-		client_SpawnBlood( pByteStream );
-		break;
-	case SVC_SPAWNBLOODSPLATTER:
-
-		client_SpawnBloodSplatter( pByteStream, false );
-		break;
-	case SVC_SPAWNBLOODSPLATTER2:
-
-		client_SpawnBloodSplatter( pByteStream, true );
-		break;
-	case SVC_SPAWNPUFF:
-
-		client_SpawnPuff( pByteStream );
-		break;
 	case SVC_PRINT:
 
 		client_Print( pByteStream );
@@ -2610,10 +2539,6 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 						StatusBar->SetMugShotState( statename );
 					}
 				}
-				break;
-
-			case SVC2_SETTHINGSCALE:
-				client_SetThingScale( pByteStream );
 				break;
 
 			case SVC2_SOUNDSECTOR:
@@ -5672,34 +5597,13 @@ void ServerCommands::SetThingGravity::Execute()
 
 //*****************************************************************************
 //
-static void client_SetThingFrame( BYTESTREAM_s *pByteStream, bool bCallStateFunction )
+static void client_SetThingFrame( AActor* pActor, const char *pszState, int lOffset, bool bCallStateFunction )
 {
-	LONG			lID;
-	const char		*pszState;
-	LONG			lOffset;
-	AActor			*pActor;
-	FState			*pNewState = NULL;
-
-	// Read in the network ID for the object to have its state changed.
-	lID = NETWORK_ReadShort( pByteStream );
-
-	// Read in the state.
-	pszState = NETWORK_ReadString( pByteStream );
-
-	// Offset into the state label.
-	lOffset = NETWORK_ReadByte( pByteStream );
-
 	// Not in a level; nothing to do (shouldn't happen!)
 	if ( gamestate != GS_LEVEL )
 		return;
 
-	// Find the actor associated with the ID.
-	pActor = CLIENT_FindThingByNetID( lID );
-	if ( pActor == NULL )
-	{
-		// There should probably be the potential for a warning message here.
-		return;
-	}
+	FState *pNewState = NULL;
 
 	// [BB] In this case lOffset is just the offset from one of the default states of the actor or the state owner.
 	// Handle this accordingly.
@@ -5739,7 +5643,7 @@ static void client_SetThingFrame( BYTESTREAM_s *pByteStream, bool bCallStateFunc
 					if ( ActorOwnsState ( pActor, pBaseState ) == false )
 						CLIENT_PrintWarning( "client_SetThingFrame: %s doesn't own %s\n", pActor->GetClass()->TypeName.GetChars(), pszState );
 					if ( ActorOwnsState ( pActor, pBaseState + lOffset ) == false )
-						CLIENT_PrintWarning( "client_SetThingFrame: %s doesn't own %s + %ld\n", pActor->GetClass()->TypeName.GetChars(), pszState, lOffset );
+						CLIENT_PrintWarning( "client_SetThingFrame: %s doesn't own %s + %d\n", pActor->GetClass()->TypeName.GetChars(), pszState, lOffset );
 				}
 				return;
 			}
@@ -5758,7 +5662,7 @@ static void client_SetThingFrame( BYTESTREAM_s *pByteStream, bool bCallStateFunc
 				// Note: Looks like one can't call GetClass() on an actor pointer obtained by GetDefaultByType.
 				if ( ( lOffset != 0 ) && ( ( ClassOwnsState ( pStateOwnerClass, pBaseState ) == false ) || ( ClassOwnsState ( pStateOwnerClass, pBaseState + lOffset ) == false ) ) )
 				{
-					CLIENT_PrintWarning( "client_SetThingFrame: %s doesn't own %s + %ld\n", pStateOwnerClass->TypeName.GetChars(), pszState, lOffset );
+					CLIENT_PrintWarning( "client_SetThingFrame: %s doesn't own %s + %d\n", pStateOwnerClass->TypeName.GetChars(), pszState, lOffset );
 					return;
 				}
 			}
@@ -5803,477 +5707,211 @@ static void client_SetThingFrame( BYTESTREAM_s *pByteStream, bool bCallStateFunc
 
 //*****************************************************************************
 //
-static void client_SetThingScale( BYTESTREAM_s *pByteStream )
+void ServerCommands::SetThingFrame::Execute()
 {
-	fixed_t scaleX = 0, scaleY = 0;
-
-	// Get the ID of the actor whose scale is being updated.
-	int mobjNetID = NETWORK_ReadShort( pByteStream );
-
-	// Get which side of the scale is being updated.
-	unsigned ActorScaleFlags = NETWORK_ReadByte( pByteStream );
-
-	// Get the new scaleX if needed.
-	if ( ActorScaleFlags & ACTORSCALE_X )
-		scaleX = NETWORK_ReadLong( pByteStream );
-
-	// Get the new scaleY if needed.
-	if ( ActorScaleFlags & ACTORSCALE_Y )
-		scaleY = NETWORK_ReadLong( pByteStream );
-
-	// Now try to find the corresponding actor.
-	AActor *mo = CLIENT_FindThingByNetID( mobjNetID );
-	if ( mo == NULL )
-	{
-		CLIENT_PrintWarning( "client_SetThingScale: Couldn't find thing: %d\n", mobjNetID );
-		return;
-	}
-
-	// Finally, set the actor's scale.
-	if ( ActorScaleFlags & ACTORSCALE_X )
-		mo->scaleX = scaleX;
-	if ( ActorScaleFlags & ACTORSCALE_Y )
-		mo->scaleY = scaleY;
+	client_SetThingFrame( actor, statename, offset, true );
 }
 
 //*****************************************************************************
 //
-static void client_SetWeaponAmmoGive( BYTESTREAM_s *pByteStream )
+void ServerCommands::SetThingFrameNF::Execute()
 {
-	LONG	lID;
-	AActor	*pActor;
-	ULONG	ulAmmoGive1;
-	ULONG	ulAmmoGive2;
-
-	// Get the ID of the actor whose water level is being updated.
-	lID = NETWORK_ReadShort( pByteStream );
-
-	// Read in the amount of ammo type 1 this weapon gives.
-	ulAmmoGive1 = NETWORK_ReadShort( pByteStream );
-
-	// Read in the amount of ammo type 2 this weapon gives.
-	ulAmmoGive2 = NETWORK_ReadShort( pByteStream );
-
-	// Now try to find the corresponding actor.
-	pActor = CLIENT_FindThingByNetID( lID );
-	if ( pActor == NULL )
-	{
-		CLIENT_PrintWarning( "client_SetWeaponAmmoGive: Couldn't find thing: %ld\n", lID );
-		return;
-	}
-
-	// If this actor isn't a weapon, break out.
-	if ( pActor->IsKindOf( RUNTIME_CLASS( AWeapon )) == false )
-		return;
-
-	// Finally, actually set the amount of ammo this weapon gives us.
-	static_cast<AWeapon *>( pActor )->AmmoGive1 = ulAmmoGive1;
-	static_cast<AWeapon *>( pActor )->AmmoGive2 = ulAmmoGive2;
+	client_SetThingFrame( actor, statename, offset, true );
 }
 
 //*****************************************************************************
 //
-static void client_ThingIsCorpse( BYTESTREAM_s *pByteStream )
+void ServerCommands::SetThingScale::Execute()
 {
-	AActor	*pActor;
-	LONG	lID;
-	bool	bIsMonster;
+	if ( ContainsScaleX() )
+		actor->scaleX = scaleX;
 
-	// Read in the network ID of the thing to make dead.
-	lID = NETWORK_ReadShort( pByteStream );
+	if ( ContainsScaleY() )
+		actor->scaleY = scaleY;
+}
 
-	// Is this thing a monster?
-	bIsMonster = !!NETWORK_ReadByte( pByteStream );
+//*****************************************************************************
+//
+void ServerCommands::SetWeaponAmmoGive::Execute()
+{
+	weapon->AmmoGive1 = ammoGive1;
+	weapon->AmmoGive2 = ammoGive2;
+}
 
-	pActor = CLIENT_FindThingByNetID( lID );
-	if ( pActor == NULL )
-	{
-		CLIENT_PrintWarning( "client_ThingIsCorpse: Couldn't find thing: %ld\n", lID );
-		return;
-	}
-
-	A_Unblock( pActor, true, true );
+//*****************************************************************************
+//
+void ServerCommands::ThingIsCorpse::Execute()
+{
+	A_Unblock( actor, true, true );
 
 	// Do some other stuff done in AActor::Die.
-	pActor->flags &= ~(MF_SHOOTABLE|MF_FLOAT|MF_SKULLFLY|MF_NOGRAVITY);
-	pActor->flags |= MF_CORPSE|MF_DROPOFF;
-	pActor->height >>= 2;
+	actor->flags &= ~(MF_SHOOTABLE|MF_FLOAT|MF_SKULLFLY|MF_NOGRAVITY);
+	actor->flags |= MF_CORPSE|MF_DROPOFF;
+	actor->height >>= 2;
 
 	// Set the thing to the last frame of its death state.
-	CLIENT_SetActorToLastDeathStateFrame ( pActor );
+	CLIENT_SetActorToLastDeathStateFrame ( actor );
 
-	if ( bIsMonster )
+	if ( isMonster )
 		level.killed_monsters++;
 
 	// If this is a player, put the player in his dead state.
-	if ( pActor->player )
+	if ( actor->player )
 	{
-		pActor->player->playerstate = PST_DEAD;
+		actor->player->playerstate = PST_DEAD;
 		// [BB] Also set the health to 0.
-		pActor->player->health = pActor->health = 0;
+		actor->player->health = actor->health = 0;
 	}
 }
 
 //*****************************************************************************
 //
-static void client_HideThing( BYTESTREAM_s *pByteStream )
+void ServerCommands::HideThing::Execute()
 {
-	AActor	*pActor;
-	LONG	lID;
-
-	// Read in the network ID of the thing to hide.
-	lID = NETWORK_ReadShort( pByteStream );
-
-	// Didn't find it.
-	pActor = CLIENT_FindThingByNetID( lID );
-	if ( pActor == NULL )
-	{
-		CLIENT_PrintWarning( "client_HideThing: Couldn't find thing: %ld\n", lID );
-		return;
-	}
-
-	// Put the item in a hidden state.
-	// [BB] You can call HideIndefinitely only on AInventory and descendants.
-	if ( !(pActor->IsKindOf( RUNTIME_CLASS( AInventory ))) )
-		return;
-	static_cast<AInventory *>( pActor )->HideIndefinitely( );
+	item->HideIndefinitely( );
 }
 
 //*****************************************************************************
 //
-static void client_TeleportThing( BYTESTREAM_s *pByteStream )
+void ServerCommands::TeleportThing::Execute()
 {
-	LONG		lID;
-	fixed_t		NewX;
-	fixed_t		NewY;
-	fixed_t		NewZ;
-	fixed_t		NewVelX;
-	fixed_t		NewVelY;
-	fixed_t		NewVelZ;
-	LONG		lNewReactionTime;
-	angle_t		NewAngle;
-	bool		bSourceFog;
-	bool		bDestFog;
-	bool		bTeleZoom;
-	angle_t		Angle;
-	AActor		*pActor;
-
-	// Read in the network ID of the thing being teleported.
-	lID = NETWORK_ReadShort( pByteStream );
-
-	// Read in the thing's new position.
-	NewX = NETWORK_ReadShort( pByteStream ) << FRACBITS;
-	NewY = NETWORK_ReadShort( pByteStream ) << FRACBITS;
-	NewZ = NETWORK_ReadShort( pByteStream ) << FRACBITS;
-
-	// Read in the thing's new velocity.
-	NewVelX = NETWORK_ReadShort( pByteStream ) << FRACBITS;
-	NewVelY = NETWORK_ReadShort( pByteStream ) << FRACBITS;
-	NewVelZ = NETWORK_ReadShort( pByteStream ) << FRACBITS;
-
-	// Read in the thing's new reaction time.
-	lNewReactionTime = NETWORK_ReadShort( pByteStream );
-
-	// Read in the thing's new angle.
-	NewAngle = NETWORK_ReadLong( pByteStream );
-
-	// Should we spawn a teleport fog at the spot the thing is teleporting from?
-	// What about the spot the thing is teleporting to?
-	bSourceFog = !!NETWORK_ReadByte( pByteStream );
-	bDestFog = !!NETWORK_ReadByte( pByteStream );
-
-	// Should be do the teleport zoom?
-	bTeleZoom = !!NETWORK_ReadByte( pByteStream );
-
-	pActor = CLIENT_FindThingByNetID( lID );
-	if ( pActor == NULL )
-		return;
-
-	// Move the player to his new position.
-//	P_TeleportMove( pActor, NewX, NewY, NewZ, false );
-
 	// Spawn teleport fog at the source.
-	if ( bSourceFog )
-		Spawn<ATeleportFog>( pActor->x, pActor->y, pActor->z + (( pActor->flags & MF_MISSILE ) ? 0 : TELEFOGHEIGHT ), ALLOW_REPLACE );
+	if ( sourcefog )
+		Spawn<ATeleportFog>( actor->x, actor->y, actor->z + (( actor->flags & MF_MISSILE ) ? 0 : TELEFOGHEIGHT ), ALLOW_REPLACE );
 
 	// Set the thing's new position.
-	CLIENT_MoveThing( pActor, NewX, NewY, NewZ );
+	CLIENT_MoveThing( actor, x, y, z );
 
 	// Spawn a teleport fog at the destination.
-	if ( bDestFog )
+	if ( destfog )
 	{
 		// Spawn the fog slightly in front of the thing's destination.
-		Angle = NewAngle >> ANGLETOFINESHIFT;
+		angle_t fineangle = angle >> ANGLETOFINESHIFT;
 
-		Spawn<ATeleportFog>( pActor->x + ( 20 * finecosine[Angle] ),
-			pActor->y + ( 20 * finesine[Angle] ),
-			pActor->z + (( pActor->flags & MF_MISSILE ) ? 0 : TELEFOGHEIGHT ),
+		Spawn<ATeleportFog>( actor->x + ( 20 * finecosine[fineangle] ),
+			actor->y + ( 20 * finesine[fineangle] ),
+			actor->z + (( actor->flags & MF_MISSILE ) ? 0 : TELEFOGHEIGHT ),
 			ALLOW_REPLACE );
 	}
 
-	// Set the thing's new velocity.
-	pActor->velx = NewVelX;
-	pActor->vely = NewVelY;
-	pActor->velz = NewVelZ;
+	// Set the thing's new momentum.
+	actor->velx = momx;
+	actor->vely = momy;
+	actor->velz = momz;
 
 	// Also, if this is a player, set his bobbing appropriately.
-	if ( pActor->player )
+	if ( actor->player )
 	{
-		pActor->player->velx = NewVelX;
-		pActor->player->vely = NewVelY;
+		actor->player->velx = momx;
+		actor->player->vely = momy;
 
 		// [BB] If the server is teleporting us, don't let our prediction get messed up.
-		if ( pActor == players[consoleplayer].mo )
-			CLIENT_AdjustPredictionToServerSideConsolePlayerMove( NewX, NewY, NewZ );
+		if ( actor == players[consoleplayer].mo )
+			CLIENT_AdjustPredictionToServerSideConsolePlayerMove( x, y, z );
 	}
 
 	// Reset the thing's new reaction time.
-	pActor->reactiontime = lNewReactionTime;
+	actor->reactiontime = reactiontime;
 
 	// Set the thing's new angle.
-	pActor->angle = NewAngle;
+	actor->angle = angle;
 
 	// User variable to do a weird zoom thingy when you teleport.
-	if (( bTeleZoom ) && ( telezoom ) && ( pActor->player ))
-		pActor->player->FOV = MIN( 175.f, pActor->player->DesiredFOV + 45.f );
+	if (( telezoom ) && ( telezoom ) && ( actor->player ))
+		actor->player->FOV = MIN( 175.f, actor->player->DesiredFOV + 45.f );
 }
 
 //*****************************************************************************
 //
-static void client_ThingActivate( BYTESTREAM_s *pByteStream )
+void ServerCommands::ThingActivate::Execute()
 {
-	LONG	lID;
-	AActor	*pActor;
-	AActor	*pActivator;
-
-	// Get the ID of the actor to activate.
-	lID = NETWORK_ReadShort( pByteStream );
-
-	// Now try to find the corresponding actor.
-	pActor = CLIENT_FindThingByNetID( lID );
-
-	// Get the ID of the activator.
-	lID = NETWORK_ReadShort( pByteStream );
-	if ( lID == -1 )
-		pActivator = NULL;
-	else
-		pActivator = CLIENT_FindThingByNetID( lID );
-
-	if ( pActor == NULL )
-	{
-		CLIENT_PrintWarning( "client_ThingActivate: Couldn't find thing: %ld\n", lID );
-		return;
-	}
-
-	// Finally, activate the actor.
-	pActor->Activate( pActivator );
+	actor->Activate( activator );
 }
 
 //*****************************************************************************
 //
-static void client_ThingDeactivate( BYTESTREAM_s *pByteStream )
+void ServerCommands::ThingDeactivate::Execute()
 {
-	LONG	lID;
-	AActor	*pActor;
-	AActor	*pActivator;
-
-	// Get the ID of the actor to deactivate.
-	lID = NETWORK_ReadShort( pByteStream );
-
-	// Now try to find the corresponding actor.
-	pActor = CLIENT_FindThingByNetID( lID );
-
-	// Get the ID of the activator.
-	lID = NETWORK_ReadShort( pByteStream );
-	if ( lID == -1 )
-		pActivator = NULL;
-	else
-		pActivator = CLIENT_FindThingByNetID( lID );
-
-	if ( pActor == NULL )
-	{
-		CLIENT_PrintWarning( "client_ThingDeactivate: Couldn't find thing: %ld\n", lID );
-		return;
-	}
-
-	// Finally, deactivate the actor.
-	pActor->Deactivate( pActivator );
+	actor->Deactivate( activator );
 }
 
 //*****************************************************************************
 //
-static void client_RespawnDoomThing( BYTESTREAM_s *pByteStream )
+void ServerCommands::RespawnDoomThing::Execute()
 {
-	LONG	lID;
-	bool	bFog;
-	AActor	*pActor;
-
-	// Read in the thing's network ID.
-	lID = NETWORK_ReadShort( pByteStream );
-
-	// Should a fog be spawned when the item respawns?
-	bFog = !!NETWORK_ReadByte( pByteStream );
-
 	// Nothing to do if the level isn't loaded!
 	if ( gamestate != GS_LEVEL )
 		return;
 
-	pActor = CLIENT_FindThingByNetID( lID );
-
-	// Couldn't find a matching actor. Ignore...
-	if ( pActor == NULL )
-	{
-		CLIENT_PrintWarning( "client_RespawnDoomThing: Couldn't find thing: %ld\n", lID );
-		return; 
-	}
-
-	// Finally, respawn the item.
-	CLIENT_RestoreSpecialPosition( pActor );
-	CLIENT_RestoreSpecialDoomThing( pActor, bFog );
+	CLIENT_RestoreSpecialPosition( actor );
+	CLIENT_RestoreSpecialDoomThing( actor, fog );
 }
 
 //*****************************************************************************
 //
-static void client_RespawnRavenThing( BYTESTREAM_s *pByteStream )
+void ServerCommands::RespawnRavenThing::Execute()
 {
-	LONG	lID;
-	AActor	*pActor;
-
-	// Read in the thing's network ID.
-	lID = NETWORK_ReadShort( pByteStream );
-
 	// Nothing to do if the level isn't loaded!
 	if ( gamestate != GS_LEVEL )
 		return;
 
-	pActor = CLIENT_FindThingByNetID( lID );
+	actor->renderflags &= ~RF_INVISIBLE;
+	S_Sound( actor, CHAN_VOICE, "misc/spawn", 1, ATTN_IDLE );
 
-	// Couldn't find a matching actor. Ignore...
-	if ( pActor == NULL )
-	{
-		CLIENT_PrintWarning( "client_RespawnSpecialThing1: Couldn't find thing: %ld\n", lID );
-		return; 
-	}
-
-	pActor->renderflags &= ~RF_INVISIBLE;
-	S_Sound( pActor, CHAN_VOICE, "misc/spawn", 1, ATTN_IDLE );
-
-	pActor->SetState( RUNTIME_CLASS ( AInventory )->ActorInfo->FindState("HideSpecial") + 3 );
+	actor->SetState( RUNTIME_CLASS ( AInventory )->ActorInfo->FindState("HideSpecial") + 3 );
 }
 
 //*****************************************************************************
 //
-static void client_SpawnBlood( BYTESTREAM_s *pByteStream )
+void ServerCommands::SpawnBlood::Execute()
 {
-	fixed_t			X;
-	fixed_t			Y;
-	fixed_t			Z;
-	angle_t			Dir;
-	int				Damage;
-	LONG			lID;
-	AActor			*pOriginator;
-
-	// Read in the XYZ location of the blood.
-	X = NETWORK_ReadShort( pByteStream ) << FRACBITS;
-	Y = NETWORK_ReadShort( pByteStream ) << FRACBITS;
-	Z = NETWORK_ReadShort( pByteStream ) << FRACBITS;
-
-	// Read in the direction.
-	Dir = NETWORK_ReadShort( pByteStream ) << FRACBITS;
-
-	// Read in the damage.
-	Damage = NETWORK_ReadByte( pByteStream );
-
-	// Read in the NetID of the originator.
-	lID = NETWORK_ReadShort( pByteStream );
-
-	// Find the originator by its NetID.
-	pOriginator = CLIENT_FindThingByNetID( lID );
-
-	// [BB] P_SpawnBlood crashes if pOriginator is a NULL pointer.
-	if ( pOriginator )
-		P_SpawnBlood (X, Y, Z, Dir, Damage, pOriginator);
+	P_SpawnBlood( x, y, z, dir, damage, originator );
 }
 
 //*****************************************************************************
 //
-static void client_SpawnBloodSplatter( BYTESTREAM_s *pByteStream, bool bIsBloodSplatter2 )
+void ServerCommands::SpawnBloodSplatter::Execute()
 {
-	// Read in the XYZ location of the blood.
-	fixed_t X = NETWORK_ReadShort( pByteStream ) << FRACBITS;
-	fixed_t Y = NETWORK_ReadShort( pByteStream ) << FRACBITS;
-	fixed_t Z = NETWORK_ReadShort( pByteStream ) << FRACBITS;
-
-	// Read in the NetID of the originator.
-	LONG lID = NETWORK_ReadShort( pByteStream );
-
-	// Find the originator by its NetID.
-	AActor *pOriginator = CLIENT_FindThingByNetID( lID );
-
-	if ( pOriginator )
-	{
-		if ( bIsBloodSplatter2 )
-			P_BloodSplatter2 (X, Y, Z, pOriginator);
-		else
-			P_BloodSplatter (X, Y, Z, pOriginator);
-	}
+	P_BloodSplatter( x, y, z, originator );
 }
 
 //*****************************************************************************
 //
-static void client_SpawnPuff( BYTESTREAM_s *pByteStream )
+void ServerCommands::SpawnBloodSplatter2::Execute()
 {
-	fixed_t			X;
-	fixed_t			Y;
-	fixed_t			Z;
-	USHORT			usActorNetworkIndex;
-	ULONG			ulState;
-	bool			bReceiveTranslation;
-	AActor			*pActor;
-	FState			*pState;
+	P_BloodSplatter2( x, y, z, originator );
+}
 
-	// Read in the XYZ location of the item.
-	X = NETWORK_ReadShort( pByteStream ) << FRACBITS;
-	Y = NETWORK_ReadShort( pByteStream ) << FRACBITS;
-	Z = NETWORK_ReadShort( pByteStream ) << FRACBITS;
+//*****************************************************************************
+//
+void ServerCommands::SpawnPuff::Execute()
+{
+	AActor *puff = CLIENT_SpawnThing( pufftype, x, y, z, -1 );
 
-	// Read in the identification of the item.
-	usActorNetworkIndex = NETWORK_ReadShort( pByteStream );
-
-	// Read in the state of the puff.
-	ulState = NETWORK_ReadByte( pByteStream );
-
-	// Read in whether or not the translation will be sent.
-	bReceiveTranslation = !!NETWORK_ReadByte( pByteStream );
-
-	// Finally, spawn the thing.
-	pActor = CLIENT_SpawnThing( NETWORK_GetClassFromIdentification( usActorNetworkIndex ), X, Y, Z, -1 );
-	if ( pActor == NULL )
+	if ( puff == NULL )
 		return;
 
-	// [BB] If we are supposed to set the translation, read in the translation
-	// and set it, if we sucessfully spawned the actor.
-	if( bReceiveTranslation )
+	// [BB] If we are supposed to set the translation, set it, if we sucessfully spawned the actor.
+	if ( ContainsTranslation() )
 	{
-		LONG lTranslation = NETWORK_ReadLong( pByteStream );
-		if( pActor )
-			pActor->Translation = lTranslation;
+		puff->Translation = translation;
 	}
 
 	// Put the puff in the proper state.
-	switch ( ulState )
+	FState *state;
+	switch ( stateid )
 	{
 	case STATE_CRASH:
 
-		pState = pActor->FindState( NAME_Crash );
-		if ( pState )
-			pActor->SetState( pState );
+		state = puff->FindState( NAME_Crash );
+		if ( state )
+			puff->SetState( state );
 		break;
 	case STATE_MELEE:
 
-		pState = pActor->MeleeState;
-		if ( pState )
-			pActor->SetState( pState );
+		state = puff->MeleeState;
+		if ( state )
+			puff->SetState( state );
 		break;
 	}
 }
