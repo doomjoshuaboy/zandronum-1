@@ -852,11 +852,11 @@ void SERVERCOMMANDS_SetPlayerPSprite( ULONG ulPlayer, FState *pState, LONG lPosi
 			stateLabel = ":R";
 	}
 
-	NetCommand command( SVC_SETPLAYERPSPRITE );
-	command.addByte( ulPlayer );
-	command.addString( stateLabel.GetChars() );
-	command.addByte( lOffset );
-	command.addByte( lPosition );
+	ServerCommands::SetPlayerPSprite command;
+	command.SetPlayer( &players[ulPlayer] );
+	command.SetState( stateLabel );
+	command.SetOffset( lOffset );
+	command.SetPosition( lPosition );
 	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
@@ -867,12 +867,12 @@ void SERVERCOMMANDS_SetPlayerBlend( ULONG ulPlayer, ULONG ulPlayerExtra, ServerC
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
-	NetCommand command( SVC_SETPLAYERBLEND );
-	command.addByte( ulPlayer );
-	command.addFloat( players[ulPlayer].BlendR );
-	command.addFloat( players[ulPlayer].BlendG );
-	command.addFloat( players[ulPlayer].BlendB );
-	command.addFloat( players[ulPlayer].BlendA );
+	ServerCommands::SetPlayerBlend command;
+	command.SetPlayer( &players[ulPlayer] );
+	command.SetBlendR( players[ulPlayer].BlendR );
+	command.SetBlendG( players[ulPlayer].BlendG );
+	command.SetBlendB( players[ulPlayer].BlendB );
+	command.SetBlendA( players[ulPlayer].BlendA );
 	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
@@ -883,9 +883,9 @@ void SERVERCOMMANDS_SetPlayerMaxHealth( ULONG ulPlayer, ULONG ulPlayerExtra, Ser
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false || players[ulPlayer].mo == NULL )
 		return;
 
-	NetCommand command( SVC_SETPLAYERMAXHEALTH );
-	command.addByte( ulPlayer );
-	command.addLong( players[ulPlayer].mo->MaxHealth );
+	ServerCommands::SetPlayerMaxHealth command;
+	command.SetPlayer( &players[ulPlayer] );
+	command.SetMaxHealth( players[ulPlayer].mo->MaxHealth );
 	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
@@ -896,9 +896,9 @@ void SERVERCOMMANDS_SetPlayerLivesLeft( ULONG ulPlayer, ULONG ulPlayerExtra, Ser
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
-	NetCommand command( SVC_SETPLAYERLIVESLEFT );
-	command.addByte( ulPlayer );
-	command.addByte( players[ulPlayer].ulLivesLeft );
+	ServerCommands::SetPlayerLivesLeft command;
+	command.SetPlayer( &players[ulPlayer] );
+	command.SetLivesLeft( players[ulPlayer].ulLivesLeft );
 	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
@@ -940,10 +940,9 @@ void SERVERCOMMANDS_UpdatePlayerPing( ULONG ulPlayer, ULONG ulPlayerExtra, Serve
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
-	NetCommand command( SVC_UPDATEPLAYERPING );
-	command.setUnreliable( true );
-	command.addByte( ulPlayer );
-	command.addShort( players[ulPlayer].ulPing );
+	ServerCommands::UpdatePlayerPing command;
+	command.SetPlayer( &players[ulPlayer] );
+	command.SetPing( players[ulPlayer].ulPing );
 	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
@@ -954,17 +953,14 @@ void SERVERCOMMANDS_UpdatePlayerExtraData( ULONG ulPlayer, ULONG ulDisplayPlayer
 	if (( SERVER_IsValidClient( ulPlayer ) == false ) || ( PLAYER_IsValidPlayer( ulDisplayPlayer ) == false ))
 		return;
 
-	NetCommand command( SVC_UPDATEPLAYEREXTRADATA );
-	command.setUnreliable( true );
-	command.addByte( ulDisplayPlayer );
-//	command.addByte( players[ulDisplayPlayer].pendingweapon );
-//	command.addByte( players[ulDisplayPlayer].readyweapon );
-	command.addLong( players[ulDisplayPlayer].mo->pitch );
-	command.addByte( players[ulDisplayPlayer].mo->waterlevel );
-	command.addByte( players[ulDisplayPlayer].cmd.ucmd.buttons );
-	command.addLong( players[ulDisplayPlayer].viewz );
-	command.addLong( players[ulDisplayPlayer].bob );
-	command.sendCommandToOneClient( ulPlayer );
+	ServerCommands::UpdatePlayerExtraData command;
+	command.SetPlayer( &players[ulDisplayPlayer] );
+	command.SetPitch( players[ulDisplayPlayer].mo->pitch );
+	command.SetWaterLevel( players[ulDisplayPlayer].mo->waterlevel );
+	command.SetButtons( players[ulDisplayPlayer].cmd.ucmd.buttons );
+	command.SetViewZ( players[ulDisplayPlayer].viewz );
+	command.SetBob( players[ulDisplayPlayer].bob );
+	command.sendCommandToClients( ulPlayer, SVCF_ONLYTHISCLIENT );
 }
 
 //*****************************************************************************
@@ -974,10 +970,9 @@ void SERVERCOMMANDS_UpdatePlayerTime( ULONG ulPlayer, ULONG ulPlayerExtra, Serve
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
-	NetCommand command( SVC_UPDATEPLAYERTIME );
-	command.setUnreliable( true );
-	command.addByte( ulPlayer );
-	command.addShort(( players[ulPlayer].ulTime / ( TICRATE * 60 )));
+	ServerCommands::UpdatePlayerTime command;
+	command.SetPlayer( &players[ulPlayer] );
+	command.SetTime(( players[ulPlayer].ulTime / ( TICRATE * 60 )));
 	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
@@ -988,23 +983,16 @@ void SERVERCOMMANDS_MoveLocalPlayer( ULONG ulPlayer )
 	if ( SERVER_IsValidClient( ulPlayer ) == false || players[ulPlayer].mo == NULL )
 		return;
 
-	NetCommand command( SVC_MOVELOCALPLAYER );
-	command.setUnreliable( true );
-	command.addLong( SERVER_GetClient( ulPlayer )->ulClientGameTic );
-
-	// [CK] Also send them the current server gametic
-	command.addLong( gametic );
-
-	// Write position.
-	command.addLong( players[ulPlayer].mo->x );
-	command.addLong( players[ulPlayer].mo->y );
-	command.addLong( players[ulPlayer].mo->z );
-
-	// Write velocity.
-	command.addLong( players[ulPlayer].mo->velx );
-	command.addLong( players[ulPlayer].mo->vely );
-	command.addLong( players[ulPlayer].mo->velz );
-	command.sendCommandToOneClient( ulPlayer );
+	ServerCommands::MoveLocalPlayer command;
+	command.SetClientTicOnServerEnd( SERVER_GetClient( ulPlayer )->ulClientGameTic );
+	command.SetLatestServerGametic( gametic );
+	command.SetX( players[ulPlayer].mo->x );
+	command.SetY( players[ulPlayer].mo->y );
+	command.SetZ( players[ulPlayer].mo->z );
+	command.SetVelx( players[ulPlayer].mo->velx );
+	command.SetVely( players[ulPlayer].mo->vely );
+	command.SetVelz( players[ulPlayer].mo->velz );
+	command.sendCommandToClients( ulPlayer, SVCF_ONLYTHISCLIENT );
 }
 
 //*****************************************************************************
@@ -1014,8 +1002,8 @@ void SERVERCOMMANDS_DisconnectPlayer( ULONG ulPlayer, ULONG ulPlayerExtra, Serve
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
-	NetCommand command( SVC_DISCONNECTPLAYER );
-	command.addByte( ulPlayer );
+	ServerCommands::DisconnectPlayer command;
+	command.SetPlayer( &players[ulPlayer] );
 	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
@@ -1026,9 +1014,9 @@ void SERVERCOMMANDS_SetConsolePlayer( ULONG ulPlayer )
 	if ( SERVER_IsValidClient( ulPlayer ) == false )
 		return;
 
-	NetCommand command( SVC_SETCONSOLEPLAYER );
-	command.addByte( ulPlayer );
-	command.sendCommandToOneClient( ulPlayer );
+	ServerCommands::SetConsolePlayer command;
+	command.SetPlayerNumber( ulPlayer );
+	command.sendCommandToClients( ulPlayer, SVCF_ONLYTHISCLIENT );
 }
 
 //*****************************************************************************
@@ -1038,8 +1026,8 @@ void SERVERCOMMANDS_ConsolePlayerKicked( ULONG ulPlayer )
 	if ( SERVER_IsValidClient( ulPlayer ) == false )
 		return;
 
-	NetCommand command( SVC_CONSOLEPLAYERKICKED );
-	command.sendCommandToOneClient( ulPlayer );
+	ServerCommands::ConsolePlayerKicked command;
+	command.sendCommandToClients( ulPlayer, SVCF_ONLYTHISCLIENT );
 }
 
 //*****************************************************************************
