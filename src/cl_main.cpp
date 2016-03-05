@@ -116,6 +116,7 @@
 #include "r_main.h"
 #include "network_enums.h"
 #include "decallib.h"
+#include "network/servercommands.h"
 
 //*****************************************************************************
 //	MISC CRAP THAT SHOULDN'T BE HERE BUT HAS TO BE BECAUSE OF SLOPPY CODING
@@ -1400,6 +1401,9 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 {
 	char	szString[128];
 
+	if ( CLIENT_ParseServerCommand( static_cast<SVC>( lCommand ), pByteStream ))
+		return;
+
 	switch ( lCommand )
 	{
 	case SVCC_AUTHENTICATE:
@@ -2558,6 +2562,9 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_EXTENDEDCOMMAND:
 		{
 			const LONG lExtCommand = NETWORK_ReadByte( pByteStream );
+
+			if ( CLIENT_ParseExtendedServerCommand( static_cast<SVC2>( lExtCommand ), pByteStream ))
+				break;
 
 #ifdef _DEBUG
 			if ( cl_showcommands )
@@ -3822,6 +3829,42 @@ void CLIENT_SetActorToLastDeathStateFrame ( AActor *pActor )
 	} while (( pDeadState != NULL ) && ( pDeadState == pBaseState + 1 ) && ( pBaseState->GetTics() != -1 ) );
 	// [BB] The "pBaseState->GetTics() != -1" check prevents jumping over frames with ininite duration.
 	// This matters if the death state is not ended by "Stop".
+}
+
+//*****************************************************************************
+//
+// [TP] For the code generator -- turns an actor net ID into an actor class
+// - subclass is the subclass the actor must be an instance of (AActor * if no specific specialization)
+// - allowNull is true of the result value is allowed to be NULL
+// - commandName is the name of the command, used in warnings
+// - parameterName is the name of the parameter, used in warnings
+// - actor is a reference to the desired actor pointer.
+//
+// 'actor' MUST be either NULL or an instance of the provided subclass!
+//
+bool CLIENT_ReadActorFromNetID( int netid, const PClass *subclass, bool allowNull, AActor *&actor,
+								const char *commandName, const char *parameterName )
+{
+	actor = CLIENT_FindThingByNetID( netid );
+
+	if ( actor && ( actor->IsKindOf( subclass ) == false ))
+	{
+		if ( allowNull == false )
+		{
+			CLIENT_PrintWarning( "%s: %s (%s) does not derive from %s\n",
+				commandName, parameterName, actor->GetClass()->TypeName.GetChars(), subclass->TypeName.GetChars() );
+			return false;
+		}
+		actor = NULL;
+	}
+
+	if (( actor == NULL ) && ( allowNull == false ))
+	{
+		CLIENT_PrintWarning( "%s: couldn't find %s: %d\n", commandName, parameterName, netid );
+		return false;
+	}
+
+	return true;
 }
 
 //*****************************************************************************

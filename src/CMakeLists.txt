@@ -11,6 +11,8 @@ include( FindPkgConfig )
 include( FindOpenGL )
 # [BL] I can't seem to find where ZDoom gets this
 include( CheckLibraryExists )
+# [TP] For the code generator
+find_package( PythonInterp 3 REQUIRED )
 
 if( NOT APPLE )
 	option( NO_ASM "Disable assembly code" OFF )
@@ -969,6 +971,13 @@ set( NOT_COMPILED_SOURCE_FILES
 	xlat_parser.c
 	xlat_parser.h
 
+	# [TP] Make the protocol specification and the code generator show up in IDEs
+	${CMAKE_SOURCE_DIR}/protocolspec/spec.txt
+	${CMAKE_SOURCE_DIR}/protocolspec/generator/codegenerator.py
+	${CMAKE_SOURCE_DIR}/protocolspec/generator/outputfile.py
+	${CMAKE_SOURCE_DIR}/protocolspec/generator/parametertypes.py
+	${CMAKE_SOURCE_DIR}/protocolspec/generator/spec.py
+
 	# We could have the ASM macro add these files, but it wouldn't add all
 	# platforms.
 	asm_ia32/a.asm
@@ -979,6 +988,10 @@ set( NOT_COMPILED_SOURCE_FILES
 	asm_x86_64/tmap3.asm
 	asm_x86_64/tmap3.s
 )
+
+# [TP] servercommands.cpp is generated from the protocol specification. CMake needs to know this or it raises an error
+# if it doesn't exist yet.
+set_source_files_properties( ${CMAKE_CURRENT_SOURCE_DIR}/network/servercommands.cpp PROPERTIES GENERATED TRUE )
 
 add_executable( zdoom WIN32
 	${HEADER_FILES}
@@ -1084,6 +1097,7 @@ add_executable( zdoom WIN32
 	network/netcommand.cpp #ZA
 	network/nettraffic.cpp #ST
 	network/packetarchive.cpp #ZA
+	network/servercommands.cpp #ZA
 	network/srp.cpp #ZA
 	network/sv_auth.cpp #ZA
 	nodebuild.cpp
@@ -1395,6 +1409,8 @@ include_directories( .
 	${SYSTEM_SOURCES_DIR} )
 
 add_dependencies( zdoom revision_check )
+# [TP]
+add_dependencies( zdoom protocolspec )
 
 # Due to some quirks, we need to do this in this order
 if( NOT ZDOOM_OUTPUT_OLDSTYLE OR NO_GENERATOR_EXPRESSIONS )
@@ -1471,6 +1487,16 @@ if ( RELEASE_WITH_DEBUG_FILE )
 		)
 	endif ( MSVC )
 endif ( RELEASE_WITH_DEBUG_FILE )
+
+# [TP] Generate the servercommands.cpp and servercommands.h files.
+include_directories(${CMAKE_BINARY_DIR})
+add_custom_target( protocolspec ALL
+	COMMAND ${PYTHON_EXECUTABLE}
+		"${CMAKE_SOURCE_DIR}/protocolspec/generator/codegenerator.py"
+		--spec "${CMAKE_SOURCE_DIR}/protocolspec/spec.txt"
+		--source "network/servercommands.cpp"
+		--header "network/servercommands.h"
+	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
 
 source_group("Assembly Files\\ia32" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/asm_ia32/.+")
 source_group("Assembly Files\\x86_64" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/asm_x86_64/.+")
