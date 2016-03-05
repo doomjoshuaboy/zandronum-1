@@ -1196,8 +1196,6 @@ void SERVERCOMMANDS_PotentiallyIgnorePlayer( ULONG ulPlayer )
 //
 void SERVERCOMMANDS_SpawnThing( AActor *pActor, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
-	USHORT		usActorNetworkIndex = 0;
-
 	if ( pActor == NULL )
 		return;
 
@@ -1208,14 +1206,12 @@ void SERVERCOMMANDS_SpawnThing( AActor *pActor, ULONG ulPlayerExtra, ServerComma
 		return;
 	}
 
-	usActorNetworkIndex = pActor->GetClass( )->getActorNetworkIndex();
-
-	NetCommand command ( SVC_SPAWNTHING );
-	command.addShort( pActor->x >> FRACBITS );
-	command.addShort( pActor->y >> FRACBITS );
-	command.addShort( pActor->z >> FRACBITS );
-	command.addShort( usActorNetworkIndex );
-	command.addShort( pActor->lNetID );
+	ServerCommands::SpawnThing command;
+	command.SetType( pActor->GetClass() );
+	command.SetX( pActor->x );
+	command.SetY( pActor->y );
+	command.SetZ( pActor->z );
+	command.SetId( pActor->lNetID );
 	command.sendCommandToClients( ulPlayerExtra, flags );
 
 	if ( pActor->ulSTFlags & STFL_LEVELSPAWNED )
@@ -1228,21 +1224,17 @@ void SERVERCOMMANDS_SpawnThing( AActor *pActor, ULONG ulPlayerExtra, ServerComma
 //
 void SERVERCOMMANDS_SpawnThingNoNetID( AActor *pActor, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
-	USHORT		usActorNetworkIndex = 0;
-
 	if ( pActor == NULL )
 		return;
 
 	if ( pActor->ulNetworkFlags & NETFL_SERVERSIDEONLY )
 		return;
 
-	usActorNetworkIndex = pActor->GetClass( )->getActorNetworkIndex();
-
-	NetCommand command ( SVC_SPAWNTHINGNONETID );
-	command.addShort( pActor->x >> FRACBITS );
-	command.addShort( pActor->y >> FRACBITS );
-	command.addShort( pActor->z >> FRACBITS );
-	command.addShort( usActorNetworkIndex );
+	ServerCommands::SpawnThingNoNetID command;
+	command.SetType( pActor->GetClass() );
+	command.SetX( pActor->x );
+	command.SetY( pActor->y );
+	command.SetZ( pActor->z );
 	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
@@ -1250,8 +1242,6 @@ void SERVERCOMMANDS_SpawnThingNoNetID( AActor *pActor, ULONG ulPlayerExtra, Serv
 //
 void SERVERCOMMANDS_SpawnThingExact( AActor *pActor, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
-	USHORT		usActorNetworkIndex = 0;
-
 	if ( pActor == NULL )
 		return;
 
@@ -1262,14 +1252,12 @@ void SERVERCOMMANDS_SpawnThingExact( AActor *pActor, ULONG ulPlayerExtra, Server
 		return;
 	}
 
-	usActorNetworkIndex = pActor->GetClass( )->getActorNetworkIndex();
-
-	NetCommand command ( SVC_SPAWNTHINGEXACT );
-	command.addLong( pActor->x );
-	command.addLong( pActor->y );
-	command.addLong( pActor->z );
-	command.addShort( usActorNetworkIndex );
-	command.addShort( pActor->lNetID );
+	ServerCommands::SpawnThingExact command;
+	command.SetType( pActor->GetClass() );
+	command.SetX( pActor->x );
+	command.SetY( pActor->y );
+	command.SetZ( pActor->z );
+	command.SetId( pActor->lNetID );
 	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
@@ -1277,153 +1265,99 @@ void SERVERCOMMANDS_SpawnThingExact( AActor *pActor, ULONG ulPlayerExtra, Server
 //
 void SERVERCOMMANDS_SpawnThingExactNoNetID( AActor *pActor, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
-	USHORT		usActorNetworkIndex = 0;
-
 	if ( pActor == NULL )
 		return;
 
-	usActorNetworkIndex = pActor->GetClass( )->getActorNetworkIndex();
-
-	NetCommand command ( SVC_SPAWNTHINGEXACTNONETID );
-	command.addLong( pActor->x );
-	command.addLong( pActor->y );
-	command.addLong( pActor->z );
-	command.addShort( usActorNetworkIndex );
+	ServerCommands::SpawnThingExactNoNetID command;
+	command.SetType( pActor->GetClass() );
+	command.SetX( pActor->x );
+	command.SetY( pActor->y );
+	command.SetZ( pActor->z );
 	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_MoveThing( AActor *pActor, ULONG ulBits, ULONG ulPlayerExtra, ServerCommandFlags flags )
+void SERVERCOMMANDS_MoveThing( AActor *actor, ULONG bits, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
-	if ( !EnsureActorHasNetID (pActor) )
+	if ( !EnsureActorHasNetID (actor) )
 		return;
 
 	// [BB] Only skip updates, if sent to all players.
 	if ( flags == 0 )
-		RemoveUnnecessaryPositionUpdateFlags ( pActor, ulBits );
+		RemoveUnnecessaryPositionUpdateFlags ( actor, bits );
 	else // [WS] This will inform clients not to set their lastX/Y/Z with the new position.
-		ulBits |= CM_NOLAST;
+		bits |= CM_NOLAST;
 
 	// [WS] Check to see if the position can be re-used by the client.
-	CheckPositionReuse( pActor, ulBits );
+	CheckPositionReuse( actor, bits );
 
 	// Nothing to update.
-	if ( ulBits == 0 )
+	if ( bits == 0 )
 		return;
 
-	NetCommand command ( SVC_MOVETHING );
-	command.addShort( pActor->lNetID );
-	command.addShort( ulBits );
-
-	// Write position.
-	if ( ulBits & CM_X )
-		command.addShort( pActor->x >> FRACBITS );
-	if ( ulBits & CM_Y )
-		command.addShort( pActor->y >> FRACBITS );
-	if ( ulBits & CM_Z )
-		command.addShort( pActor->z >> FRACBITS );
-
-	// Write last position.
-	if ( ulBits & CM_LAST_X )
-		command.addShort( pActor->lastX >> FRACBITS );
-	if ( ulBits & CM_LAST_Y )
-		command.addShort( pActor->lastY >> FRACBITS );
-	if ( ulBits & CM_LAST_Z )
-		command.addShort( pActor->lastZ >> FRACBITS );
-
-	// Write angle.
-	if ( ulBits & CM_ANGLE )
-		command.addLong( pActor->angle );
-
-	// Write velocity.
-	if ( ulBits & CM_VELX )
-		command.addShort( pActor->velx >> FRACBITS );
-	if ( ulBits & CM_VELY )
-		command.addShort( pActor->vely >> FRACBITS );
-	if ( ulBits & CM_VELZ )
-		command.addShort( pActor->velz >> FRACBITS );
-
-	// Write pitch.
-	if ( ulBits & CM_PITCH )
-		command.addLong( pActor->pitch );
-
-	// Write movedir.
-	if ( ulBits & CM_MOVEDIR )
-		command.addByte( pActor->movedir );
-
+	ServerCommands::MoveThing command;
+	command.SetActor( actor );
+	command.SetBits( bits );
+	command.SetNewX( actor->x );
+	command.SetNewY( actor->y );
+	command.SetNewZ( actor->z );
+	command.SetLastX( actor->lastX );
+	command.SetLastY( actor->lastY );
+	command.SetLastZ( actor->lastZ );
+	command.SetAngle( actor->angle );
+	command.SetVelX( actor->velx );
+	command.SetVelY( actor->vely );
+	command.SetVelZ( actor->velz );
+	command.SetPitch( actor->pitch );
+	command.SetMovedir( actor->movedir );
 	command.sendCommandToClients( ulPlayerExtra, flags );
 
 	// [BB] Only mark something as updated, if it the update was sent to all players.
 	if ( flags == 0 )
-		ActorNetPositionUpdated ( pActor, ulBits );
+		ActorNetPositionUpdated ( actor, bits );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_MoveThingExact( AActor *pActor, ULONG ulBits, ULONG ulPlayerExtra, ServerCommandFlags flags )
+void SERVERCOMMANDS_MoveThingExact( AActor *actor, ULONG bits, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
-	if ( !EnsureActorHasNetID (pActor) )
+	if ( !EnsureActorHasNetID (actor) )
 		return;
 
 	// [BB] Only skip updates, if sent to all players.
 	if ( flags == 0 )
-		RemoveUnnecessaryPositionUpdateFlags ( pActor, ulBits );
+		RemoveUnnecessaryPositionUpdateFlags ( actor, bits );
 	else // [WS] This will inform clients not to set their lastX/Y/Z with the new position.
-		ulBits |= CM_NOLAST;
+		bits |= CM_NOLAST;
 
 	// [WS] Check to see if the position can be re-used by the client.
-	CheckPositionReuse( pActor, ulBits );
+	CheckPositionReuse( actor, bits );
 
 	// Nothing to update.
-	if ( ulBits == 0 )
+	if ( bits == 0 )
 		return;
 
-	NetCommand command ( SVC_MOVETHINGEXACT );
-	command.addShort( pActor->lNetID );
-	command.addShort( ulBits );
-
-	// Write position.
-	if ( ulBits & CM_X )
-		command.addLong( pActor->x );
-	if ( ulBits & CM_Y )
-		command.addLong( pActor->y );
-	if ( ulBits & CM_Z )
-		command.addLong( pActor->z );
-
-	// Write last position.
-	if ( ulBits & CM_LAST_X )
-		command.addLong( pActor->lastX );
-	if ( ulBits & CM_LAST_Y )
-		command.addLong( pActor->lastY );
-	if ( ulBits & CM_LAST_Z )
-		command.addLong( pActor->lastZ );
-
-	// Write angle.
-	if ( ulBits & CM_ANGLE )
-		command.addLong( pActor->angle );
-
-	// Write velocity.
-	if ( ulBits & CM_VELX )
-		command.addLong( pActor->velx );
-	if ( ulBits & CM_VELY )
-		command.addLong( pActor->vely );
-	if ( ulBits & CM_VELZ )
-		command.addLong( pActor->velz );
-
-	// Write pitch.
-	if ( ulBits & CM_PITCH )
-		command.addLong( pActor->pitch );
-
-	// Write movedir.
-	if ( ulBits & CM_MOVEDIR )
-		command.addByte( pActor->movedir );
-
+	ServerCommands::MoveThingExact command;
+	command.SetActor( actor );
+	command.SetBits( bits );
+	command.SetNewX( actor->x );
+	command.SetNewY( actor->y );
+	command.SetNewZ( actor->z );
+	command.SetLastX( actor->lastX );
+	command.SetLastY( actor->lastY );
+	command.SetLastZ( actor->lastZ );
+	command.SetAngle( actor->angle );
+	command.SetVelX( actor->velx );
+	command.SetVelY( actor->vely );
+	command.SetVelZ( actor->velz );
+	command.SetPitch( actor->pitch );
+	command.SetMovedir( actor->movedir );
 	command.sendCommandToClients( ulPlayerExtra, flags );
 
 	// [BB] Only mark something as updated, if it the update was sent to all players.
 	if ( flags == 0 )
-		ActorNetPositionUpdated ( pActor, ulBits );
+		ActorNetPositionUpdated ( actor, bits );
 }
 
 //*****************************************************************************
