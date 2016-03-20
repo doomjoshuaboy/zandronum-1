@@ -2034,7 +2034,7 @@ void SERVERCOMMANDS_SetThingTID( AActor *pActor, ULONG ulPlayerExtra, ServerComm
 
 	NetCommand command( SVC_SETTHINGTID );
 	command.addShort( pActor->lNetID );
-	command.addShort( pActor->tid );
+	command.addLong( pActor->tid );
 	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 

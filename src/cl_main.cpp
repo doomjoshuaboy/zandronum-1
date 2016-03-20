@@ -6988,8 +6988,8 @@ static void client_SetThingTID( BYTESTREAM_s *pByteStream )
 	// Read in the thing's network ID.
 	lID = NETWORK_ReadShort( pByteStream );
 
-	// Read in the thing's new angle.
-	lTid = NETWORK_ReadShort( pByteStream );
+	// Read in the thing's new TID.
+	lTid = NETWORK_ReadLong( pByteStream );
 
 	// Now try to find the thing.
 	pActor = CLIENT_FindThingByNetID( lID );
