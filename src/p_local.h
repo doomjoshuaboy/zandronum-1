@@ -159,6 +159,19 @@ AActor *P_SpawnPlayerMissile (AActor *source, const PClass *type, angle_t angle,
 AActor *P_SpawnPlayerMissile (AActor *source, fixed_t x, fixed_t y, fixed_t z, const PClass *type, angle_t angle, 
 							  AActor **pLineTarget = NULL, AActor **MissileActor = NULL, bool nofreeaim = false, bool bSpawnSound = true, bool bSpawnOnClient = true);
 
+// [BB]
+inline void P_SpawnPlayerMissileWithPossibleSpread (AActor* source, const PClass *type)
+{
+	P_SpawnPlayerMissile ( source, type );
+
+	// [BB] Apply spread.
+	if ( source && source->player && source->player->cheats2 & CF2_SPREAD )
+	{
+		P_SpawnPlayerMissile( source, type, source->angle + ( ANGLE_45 / 3 ), false );
+		P_SpawnPlayerMissile( source, type, source->angle - ( ANGLE_45 / 3 ), false );
+	}
+}
+
 void P_CheckFakeFloorTriggers (AActor *mo, fixed_t oldz, bool oldz_has_viewheight=false);
 
 //
