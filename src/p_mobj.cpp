@@ -7240,7 +7240,7 @@ AActor *P_SpawnMissileAngleZ (AActor *source, fixed_t z,
 		GetDefaultSpeed (type));
 }
 
-AActor *P_SpawnMissileZAimed (AActor *source, fixed_t z, AActor *dest, const PClass *type)
+AActor *P_SpawnMissileZAimed (AActor *source, fixed_t z, AActor *dest, const PClass *type, bool bSpawnOnClient ) // [BB] Added bSpawnOnClient.
 {
 	angle_t an;
 	fixed_t dist;
@@ -7257,7 +7257,7 @@ AActor *P_SpawnMissileZAimed (AActor *source, fixed_t z, AActor *dest, const PCl
 	speed = GetDefaultSpeed (type);
 	dist /= speed;
 	velz = dist != 0 ? (dest->z - source->z)/dist : speed;
-	return P_SpawnMissileAngleZSpeed (source, z, type, an, velz, speed);
+	return P_SpawnMissileAngleZSpeed (source, z, type, an, velz, speed, NULL, true, bSpawnOnClient ); // [BB] Added bSpawnOnClient.
 }
 
 //---------------------------------------------------------------------------
@@ -7277,7 +7277,7 @@ AActor *P_SpawnMissileAngleSpeed (AActor *source, const PClass *type,
 }
 
 AActor *P_SpawnMissileAngleZSpeed (AActor *source, fixed_t z,
-	const PClass *type, angle_t angle, fixed_t velz, fixed_t speed, AActor *owner, bool checkspawn)
+	const PClass *type, angle_t angle, fixed_t velz, fixed_t speed, AActor *owner, bool checkspawn, const bool bSpawnOnClient ) // [BB] Added bSpawnOnClient.
 {
 	AActor *mo;
 
@@ -7302,7 +7302,14 @@ AActor *P_SpawnMissileAngleZSpeed (AActor *source, fixed_t z,
 		mo->SetFriendPlayer(owner->player);
 	}
 
-	return (!checkspawn || P_CheckMissileSpawn(mo, source->radius)) ? mo : NULL;
+	// [BB]
+	AActor *pMissile = (!checkspawn || P_CheckMissileSpawn(mo, source->radius)) ? mo : NULL;
+
+	// [BB] If we're the server, tell clients to spawn the missile.
+	if ( bSpawnOnClient && ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( pMissile ))
+		SERVERCOMMANDS_SpawnMissile( pMissile );
+
+	return pMissile;
 }
 
 /*
