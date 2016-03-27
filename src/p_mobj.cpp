@@ -7104,9 +7104,10 @@ AActor *P_SpawnMissile (AActor *source, AActor *dest, const PClass *type, AActor
 		source, dest, type, true, owner, bSpawnOnClient); // [BB] Added bSpawnOnClient.
 }
 
-AActor *P_SpawnMissileZ (AActor *source, fixed_t z, AActor *dest, const PClass *type)
+AActor *P_SpawnMissileZ (AActor *source, fixed_t z, AActor *dest, const PClass *type, const bool bSpawnOnClient) // [BB] Added bSpawnOnClient.
 {
-	return P_SpawnMissileXYZ (source->x, source->y, z, source, dest, type);
+	return P_SpawnMissileXYZ (source->x, source->y, z, source, dest, type,
+		true, NULL, bSpawnOnClient ); // [BB] Added bSpawnOnClient.
 }
 
 AActor *P_SpawnMissileXYZ (fixed_t x, fixed_t y, fixed_t z,
