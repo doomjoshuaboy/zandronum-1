@@ -5872,11 +5872,11 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 						{
 							if (!looping)
 							{
-								S_Sound(spot, chan, sid, vol, atten);
+								S_Sound(spot, chan, sid, vol, atten, true);	// [EP] Inform the clients.
 							}
 							else if (!S_IsActorPlayingSomething(spot, chan & 7, sid))
 							{
-								S_Sound(spot, chan | CHAN_LOOP, sid, vol, atten);
+								S_Sound(spot, chan | CHAN_LOOP, sid, vol, atten, true);	// [EP] Inform the clients.
 							}
 						}
 					}
