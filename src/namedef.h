@@ -607,6 +607,9 @@ xx(CL_TicsPerUpdate)
 xx(CL_ConnectionType)
 // [CK] Client flags for various booleans masked in a bitfield.
 xx(CL_ClientFlags)
+// [BB] For the bot skill menu
+xx(BotSkillMenu)
+xx(ChooseBotSkill)
 
 // [TP] Doom decal names, so we can send these over the network easier
 xx(BulletChip)
