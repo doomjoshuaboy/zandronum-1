@@ -54,6 +54,7 @@
 #include "gl/textures/gl_material.h"
 
 // [EP] New #includes.
+#include "gl/data/gl_data.h"
 #include "gl/gl_functions.h"
 
 // these will only have an effect on SM3 cards.
@@ -78,7 +79,7 @@ bool FShader::Load(const char * name, const char * vert_prog_lump, const char * 
 	// [BB/EP] Take care of gl_fogmode and ZADF_FORCE_GL_DEFAULTS.
 	OVERRIDE_FOGMODE_IF_NECESSARY
 	// [BB/EP] Take care of gl_lightmode and ZADF_FORCE_GL_DEFAULTS.
-	OVERRIDE_INT_GL_CVAR_IF_NECESSARY( gl_lightmode );
+	OVERRIDE_LIGHTMODE_IF_NECESSARY
 
 	static char buffer[10000];
 	FString error;
