@@ -142,8 +142,10 @@ CUSTOM_CVAR(Int, gl_lightmode, 3 ,CVAR_ARCHIVE|CVAR_NOINITCALL)
 	if (self == 2 && gl.shadermodel == 2) self = 3;
 
 	// [BB] Enforce Doom lighting if requested by the dmflags.
+	// [EP] Honor the MAPINFO lightmode option if present.
 	if ( zadmflags & ZADF_FORCE_GL_DEFAULTS )
-		glset.lightmode = 3;
+		glset.lightmode = (( glset.map_lightmode < 0 ) || ( glset.map_lightmode > 4 ) ||
+			( glset.map_lightmode == 2 && gl.shadermodel == 2 )) ? 3 : glset.map_lightmode;
 	else
 		glset.lightmode = self;
 	if (gl.shadermodel == 3) GLRenderer->mShaderManager->Recompile();

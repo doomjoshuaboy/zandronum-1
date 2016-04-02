@@ -336,9 +336,6 @@ DEFINE_MAP_OPTION(skyrotate2, false)
 
 void InitGLRMapinfoData()
 {
-	// [BB/EP] Take care of gl_lightmode and ZADF_FORCE_GL_DEFAULTS.
-	OVERRIDE_INT_GL_CVAR_IF_NECESSARY( gl_lightmode );
-
 	FGLROptions *opt = level.info->GetOptData<FGLROptions>("gl_renderer", false);
 
 	if (opt != NULL)
@@ -361,6 +358,9 @@ void InitGLRMapinfoData()
 		glset.skyrotatevector2 = FVector3(0,0,1);
 	}
 
+	// [BB/EP] Take care of gl_lightmode and ZADF_FORCE_GL_DEFAULTS.
+	OVERRIDE_LIGHTMODE_IF_NECESSARY
+
 	if (glset.map_lightmode < 0 || glset.map_lightmode > 4) glset.lightmode = gl_lightmode;
 	else glset.lightmode = glset.map_lightmode;
 	if (glset.map_nocoloredspritelighting == -1) glset.nocoloredspritelighting = gl_nocoloredspritelighting;
@@ -371,8 +371,8 @@ void InitGLRMapinfoData()
 
 CCMD(gl_resetmap)
 {
-	// [BB/EP] Take care of gl_light_ambient and ZADF_FORCE_GL_DEFAULTS.
-	OVERRIDE_INT_GL_CVAR_IF_NECESSARY( gl_lightmode );
+	// [BB/EP] Take care of gl_lightmode and ZADF_FORCE_GL_DEFAULTS.
+	OVERRIDE_LIGHTMODE_IF_NECESSARY
 
 	if (glset.map_lightmode < 0 || glset.map_lightmode > 4) glset.lightmode = gl_lightmode;
 	else glset.lightmode = glset.map_lightmode;
