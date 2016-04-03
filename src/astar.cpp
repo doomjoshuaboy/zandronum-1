@@ -628,14 +628,14 @@ void ASTAR_SelectRandomMapLocation( POS_t *pPos, fixed_t X, fixed_t Y )
 	{
 		do
 		{
-			lXIdx = g_RandomRoamSeed.Random( ) % g_lNumHorizontalNodes;
+			lXIdx = g_RandomRoamSeed ( g_lNumHorizontalNodes );
 		} while ( labs( lXNode - lXIdx ) > 8 );
 	}
 	else
 	{
 		do
 		{
-			lXIdx = g_RandomRoamSeed.Random( ) % g_lNumHorizontalNodes;
+			lXIdx = g_RandomRoamSeed ( g_lNumHorizontalNodes );
 		} while (( labs( lXNode - lXIdx ) > 8 ) || ( labs( lXNode - lXIdx ) < 2 ));
 	}
 
@@ -643,14 +643,14 @@ void ASTAR_SelectRandomMapLocation( POS_t *pPos, fixed_t X, fixed_t Y )
 	{
 		do
 		{
-			lYIdx = g_RandomRoamSeed.Random( ) % g_lNumVerticalNodes;
+			lYIdx = g_RandomRoamSeed ( g_lNumVerticalNodes );
 		} while ( labs( lYNode - lYIdx ) > 8 );
 	}
 	else
 	{
 		do
 		{
-			lYIdx = g_RandomRoamSeed.Random( ) % g_lNumVerticalNodes;
+			lYIdx = g_RandomRoamSeed ( g_lNumVerticalNodes );
 		} while (( labs( lYNode - lYIdx ) > 8 ) || ( labs( lYNode - lYIdx ) < 2 ));
 	}
 
