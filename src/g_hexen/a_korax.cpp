@@ -177,7 +177,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_KoraxBonePop)
 	for (i = 0; i < 6; ++i)
 	{
 		mo = P_SpawnMissileAngle (self, PClass::FindClass("KoraxSpirit"), ANGLE_60*i, 5*FRACUNIT, true); // [BB] Inform clients
-		if (mo) KSpiritInit(mo, self);
+		if (mo) KSpiritInit (mo, self);
 	}
 
 	P_StartScript (self, NULL, 255, NULL, NULL, 0, 0);		// Death script
