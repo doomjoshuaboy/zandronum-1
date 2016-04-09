@@ -478,8 +478,8 @@ void M_SetMenu(FName menu, int param)
 	FMenuDescriptor **desc = MenuDescriptors.CheckKey(menu);
 	if (desc != NULL)
 	{
-		// [BB] netgame -> ( NETWORK_GetState( ) != NETSTATE_SINGLE )
-		if ((*desc)->mNetgameMessage.IsNotEmpty() && ( NETWORK_GetState( ) != NETSTATE_SINGLE ) && !demoplayback)
+		// [BB] netgame -> ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		if ((*desc)->mNetgameMessage.IsNotEmpty() && ( NETWORK_GetState( ) == NETSTATE_CLIENT ) && !demoplayback)
 		{
 			M_StartMessage((*desc)->mNetgameMessage, 1);
 			return;
