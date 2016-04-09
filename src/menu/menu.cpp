@@ -58,6 +58,10 @@
 // [BB] New #includes.
 #include "chat.h"
 #include "d_netinf.h"
+#include "campaign.h"
+#include "team.h"
+#include "cooperative.h"
+#include "deathmatch.h"
 
 //
 // Todo: Move these elsewhere
@@ -429,6 +433,26 @@ void M_SetMenu(FName menu, int param)
 			}
 		}
 	case NAME_StartgameConfirmed:
+
+		// [BC/BB] Put us back in single player mode, and reset our dmflags.
+		{
+			UCVarValue	Val;
+			NETWORK_SetState( NETSTATE_SINGLE );
+			Val.Int = 0;
+			dmflags.ForceSet( Val, CVAR_Int );
+			dmflags2.ForceSet( Val, CVAR_Int );
+
+			// Assume normal mode for going through the menu.
+			Val.Bool = false;
+
+			deathmatch.ForceSet( Val, CVAR_Bool );
+			teamgame.ForceSet( Val, CVAR_Bool );
+			survival.ForceSet( Val, CVAR_Bool );
+			invasion.ForceSet( Val, CVAR_Bool );
+
+			// Turn campaign mode back on.
+			CAMPAIGN_EnableCampaign( );
+		}
 
 		G_DeferedInitNew (&GameStartupInfo);
 		if (gamestate == GS_FULLCONSOLE)
