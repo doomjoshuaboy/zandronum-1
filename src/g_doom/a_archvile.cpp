@@ -152,7 +152,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_VileAttack)
 	if (!P_CheckSight (self, target, 0) )
 		return;
 
-	S_Sound (self, CHAN_WEAPON, snd, 1, ATTN_NORM);
+	S_Sound (self, CHAN_WEAPON, snd, 1, ATTN_NORM, true);	// [BC] Inform the clients.
 
 	int newdam;
 
@@ -163,10 +163,6 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_VileAttack)
 		newdam = P_DamageMobj (target, self, self, dmg, NAME_None);
 
 	P_TraceBleed (newdam > 0 ? newdam : dmg, target);
-		
-	// [BC] Tell clients to play the arch-vile sound on their end.
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, S_GetName( snd ), 1, ATTN_NORM );
 
 	an = self->angle >> ANGLETOFINESHIFT;
 	fire = self->tracer;
