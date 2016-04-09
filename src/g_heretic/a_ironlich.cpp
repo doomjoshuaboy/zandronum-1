@@ -99,11 +99,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_LichAttack)
 	if (randAttack < atkResolve1[dist])
 	{ // Ice ball
 		P_SpawnMissile (self, target, PClass::FindClass("HeadFX1"), NULL, true); // [BB] Inform clients
-		S_Sound (self, CHAN_BODY, "ironlich/attack2", 1, ATTN_NORM);
-
-		// [BB] If we're the server, tell the clients to play the sound.
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SoundActor( self, CHAN_BODY, "ironlich/attack2", 1, ATTN_NORM );
+		S_Sound (self, CHAN_BODY, "ironlich/attack2", 1, ATTN_NORM, true);	// [BB] Inform the clients.
 	}
 	else if (randAttack < atkResolve2[dist])
 	{ // Fire column
@@ -124,11 +120,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_LichAttack)
 					baseFire->z, ALLOW_REPLACE);
 				if (i == 0)
 				{
-					S_Sound (self, CHAN_BODY, "ironlich/attack1", 1, ATTN_NORM);
-
-					// [BB] If we're the server, tell the clients to play the sound.
-					if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) )
-						SERVERCOMMANDS_SoundActor( self, CHAN_BODY, "ironlich/attack1", 1, ATTN_NORM );
+					S_Sound (self, CHAN_BODY, "ironlich/attack1", 1, ATTN_NORM, true);	// [BB] Inform the clients.
 				}
 				fire->target = baseFire->target;
 				fire->angle = baseFire->angle;
@@ -157,13 +149,12 @@ DEFINE_ACTION_FUNCTION(AActor, A_LichAttack)
 			mo->special1 = 60;
 			mo->special2 = 50; // Timer for active sound
 			mo->health = 20*TICRATE; // Duration
-			S_Sound (self, CHAN_BODY, "ironlich/attack3", 1, ATTN_NORM);
+			S_Sound (self, CHAN_BODY, "ironlich/attack3", 1, ATTN_NORM, true);	// [BB] Inform the clients.
 
-			// [BB] If we're the server, the tell clients to spawn this missile and play the sound.
+			// [BB] If we're the server, the tell clients to spawn this missile.
 			if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) )
 			{
 				SERVERCOMMANDS_SpawnMissile( mo );
-				SERVERCOMMANDS_SoundActor( self, CHAN_BODY, "ironlich/attack3", 1, ATTN_NORM );
  			}
 		}
 	}
