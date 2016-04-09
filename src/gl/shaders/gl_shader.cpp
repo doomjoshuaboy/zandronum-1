@@ -57,6 +57,7 @@
 #include "gl/shaders/gl_shader.h"
 #include "gl/textures/gl_material.h"
 
+#include "gl/data/gl_data.h"
 // these will only have an effect on SM3 cards.
 // For SM4 they are always on and for SM2 always off
 CVAR(Bool, gl_warp_shader, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOINITCALL)
