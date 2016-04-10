@@ -359,15 +359,7 @@ static void DoAttack (AActor *self, bool domelee, bool domissile,
 	if (domelee && MeleeDamage>0 && self->CheckMeleeRange ())
 	{
 		int damage = pr_camelee.HitDice(MeleeDamage);
-		if (MeleeSound)
-		{
-			S_Sound (self, CHAN_WEAPON, MeleeSound, 1, ATTN_NORM);
-
-			// [BC] If we're the server, make the sound on the client end.
-			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, S_GetName( MeleeSound ), 1, ATTN_NORM );
-		}
-
+		if (MeleeSound) S_Sound (self, CHAN_WEAPON, MeleeSound, 1, ATTN_NORM, true );	// [BC] Inform the clients.
 		int newdam = P_DamageMobj (self->target, self, self, damage, NAME_Melee);
 		P_TraceBleed (newdam > 0 ? newdam : damage, self->target, self);
 	}
@@ -453,11 +445,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_PlaySound)
 
 	if (!looping)
 	{
-		S_Sound (self, channel, soundid, volume, attenuation);
-
-		// [BC] If we're the server, tell clients to play the sound.
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SoundActor( self, channel, S_GetName( soundid ), volume, attenuation );
+		S_Sound (self, channel, soundid, volume, attenuation, true );	// [BC] Inform the clients.
 	}
 	else
 	{
@@ -530,11 +518,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_PlaySoundEx)
 
 	if (!looping)
 	{
-		S_Sound (self, int(channel) - NAME_Auto, soundid, 1, attenuation);
-
-		// [BB] If we're the server, tell clients to play the sound.
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SoundActor( self, int(channel) - NAME_Auto, S_GetName( soundid ), 1, attenuation );
+		S_Sound (self, int(channel) - NAME_Auto, soundid, 1, attenuation, true );	// [BB] Inform the clients.
 	}
 	else
 	{
@@ -612,12 +596,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_BulletAttack)
 
 	slope = P_AimLineAttack (self, bangle, MISSILERANGE);
 
-	S_Sound (self, CHAN_WEAPON, self->AttackSound, 1, ATTN_NORM);
-
-	// [BC] If we're the server, tell clients to play the sound.
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, S_GetName( self->AttackSound ), 1, ATTN_NORM );
-
+	S_Sound (self, CHAN_WEAPON, self->AttackSound, 1, ATTN_NORM, true );	// [BC] Inform the clients.
 	for (i = self->GetMissileDamage (0, 1); i > 0; --i)
     {
 		int angle = bangle + (pr_cabullet.Random2() << 20);
@@ -1287,12 +1266,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomBulletAttack)
 
 		if (!(Flags & CBAF_NOPITCH)) bslope = P_AimLineAttack (self, bangle, MISSILERANGE);
 
-		S_Sound (self, CHAN_WEAPON, self->AttackSound, 1, ATTN_NORM);
-
-		// [BB] If we're the server, make the sound on the client end.
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, S_GetName( self->AttackSound ), 1, ATTN_NORM );
-
+		S_Sound (self, CHAN_WEAPON, self->AttackSound, 1, ATTN_NORM, true );	// [BB] Inform the clients.
 		for (i=0 ; i<NumBullets ; i++)
 		{
 			int angle = bangle;
@@ -1345,29 +1319,13 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomMeleeAttack)
 	A_FaceTarget (self);
 	if (self->CheckMeleeRange ())
 	{
-		// [BB] Added brackets to add server code.
-		if (MeleeSound)
-		{
-			S_Sound (self, CHAN_WEAPON, MeleeSound, 1, ATTN_NORM);
-
-			// [BB] If we're the server, make the sound on the client end.
-			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, S_GetName( MeleeSound ), 1, ATTN_NORM );
-		}
+		if (MeleeSound) S_Sound (self, CHAN_WEAPON, MeleeSound, 1, ATTN_NORM, true );	// [BB] Inform the clients.
 		int newdam = P_DamageMobj (self->target, self, self, damage, DamageType);
 		if (bleed) P_TraceBleed (newdam > 0 ? newdam : damage, self->target, self);
 	}
 	else
 	{
-		// [BB] Added brackets to add server code.
-		if (MissSound)
-		{
-			S_Sound (self, CHAN_WEAPON, MissSound, 1, ATTN_NORM);
-
-			// [BB] If we're the server, make the sound on the client end.
-			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, S_GetName( MissSound ), 1, ATTN_NORM );
-		}
+		if (MissSound) S_Sound (self, CHAN_WEAPON, MissSound, 1, ATTN_NORM, true );	// [BB] Inform the clients.
 	}
 }
 
@@ -1400,14 +1358,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomComboAttack)
 	if (self->CheckMeleeRange ())
 	{
 		if (DamageType==NAME_None) DamageType = NAME_Melee;	// Melee is the default type
-		if (MeleeSound)
-		{
-			S_Sound (self, CHAN_WEAPON, MeleeSound, 1, ATTN_NORM);
-
-			// [BB] If we're the server, make the sound on the client end.
-			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, S_GetName( MeleeSound ), 1, ATTN_NORM );
-		}
+		if (MeleeSound) S_Sound (self, CHAN_WEAPON, MeleeSound, 1, ATTN_NORM, true );	// [BB] Inform the clients.
 		int newdam = P_DamageMobj (self->target, self, self, damage, DamageType);
 		if (bleed) P_TraceBleed (newdam > 0 ? newdam : damage, self->target, self);
 	}
@@ -1870,7 +1821,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomPunch)
 
 		if (weapon != NULL)
 		{
-			S_Sound (self, CHAN_WEAPON, weapon->AttackSound, 1, ATTN_NORM);
+			S_Sound (self, CHAN_WEAPON, weapon->AttackSound, 1, ATTN_NORM, true );	// [BC] Inform the clients.
 		}
 
 		self->angle = R_PointToAngle2 (self->x,
@@ -1880,10 +1831,9 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomPunch)
 
 		if (flags & CPF_PULLIN) self->flags |= MF_JUSTATTACKED;
 		if (flags & CPF_DAGGER) P_DaggerAlert (self, linetarget);
-		// [BC] Play the hit sound to clients.
+		// [BC] Inform the clients about the correct angle and the updated health.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		{
-			SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, S_GetName( weapon->AttackSound ), 1, ATTN_NORM );
 			SERVERCOMMANDS_SetThingAngleExact( self );
 			if ( self->player && prevhealth != self->health )
 				SERVERCOMMANDS_SetPlayerHealth( self->player - players );
