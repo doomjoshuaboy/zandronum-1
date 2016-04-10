@@ -106,15 +106,14 @@ DEFINE_ACTION_FUNCTION(AActor, A_Summon)
 		// [BC]
 		AActor	*pSmoke;
 		pSmoke = Spawn ("MinotaurSmoke", self->x, self->y, self->z, ALLOW_REPLACE);
-		S_Sound (self, CHAN_VOICE, mo->ActiveSound, 1, ATTN_NORM);
 
-				
-		// [BC] If we're the server, spawn the smoke, and play the active sound.
+		// [BC] If we're the server, spawn the smoke.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		{
 			if ( pSmoke )
 				SERVERCOMMANDS_SpawnThing( pSmoke );
-			SERVERCOMMANDS_SoundActor( self, CHAN_VOICE, S_GetName( mo->ActiveSound ), 1, ATTN_NORM );
 		}
+
+		S_Sound (self, CHAN_VOICE, mo->ActiveSound, 1, ATTN_NORM, true);	// [BC] Inform the clients.
 	}
 }

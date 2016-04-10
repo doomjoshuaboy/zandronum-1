@@ -184,12 +184,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_MinotaurAtk1)
 	{
 		return;
 	}
-	S_Sound (self, CHAN_WEAPON, "minotaur/melee", 1, ATTN_NORM);
-
-	// [BC] If we're the server, tell clients to play this sound.
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, "minotaur/melee", 1, ATTN_NORM );
-
+	S_Sound (self, CHAN_WEAPON, "minotaur/melee", 1, ATTN_NORM, true);	// [BC] Inform the clients.
 	if (self->CheckMeleeRange())
 	{
 		int damage = pr_minotauratk1.HitDice (4);
@@ -233,11 +228,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_MinotaurDecide)
 	}
 	if (!friendly)
 	{
-		S_Sound (self, CHAN_WEAPON, "minotaur/sight", 1, ATTN_NORM);
-
-		// [BC] If we're the server, tell clients to play this sound.
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, "minotaur/sight", 1, ATTN_NORM );
+		S_Sound (self, CHAN_WEAPON, "minotaur/sight", 1, ATTN_NORM, true);	// [BC] Inform the clients.
 	}
 	dist = P_AproxDistance (self->x-target->x, self->y-target->y);
 	if (target->z+target->height > self->z
@@ -378,12 +369,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_MinotaurAtk2)
 	{
 		return;
 	}
-	S_Sound (self, CHAN_WEAPON, "minotaur/attack2", 1, ATTN_NORM);
-
-	// [BC] If we're the server, tell clients to play this sound.
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, "minotaur/attack2", 1, ATTN_NORM );
-
+	S_Sound (self, CHAN_WEAPON, "minotaur/attack2", 1, ATTN_NORM, true);	// [BC] Inform the clients.
 	if (self->CheckMeleeRange())
 	{
 		int damage;
@@ -434,12 +420,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_MinotaurAtk3)
 	{
 		return;
 	}
-	S_Sound (self, CHAN_VOICE, "minotaur/attack3", 1, ATTN_NORM);
-
-	// [BC] If we're the server, tell clients to play this sound.
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, "minotaur/attack3", 1, ATTN_NORM );
-
+	S_Sound (self, CHAN_VOICE, "minotaur/attack3", 1, ATTN_NORM, true);	// [BC] Inform the clients.
 	if (self->CheckMeleeRange())
 	{
 		int damage;
@@ -458,25 +439,20 @@ DEFINE_ACTION_FUNCTION(AActor, A_MinotaurAtk3)
 		if (self->floorclip > 0 && (i_compatflags & COMPATF_MINOTAUR))
 		{
 			// only play the sound. 
-			S_Sound (self, CHAN_WEAPON, "minotaur/fx2hit", 1, ATTN_NORM);
-
-			// [BB] If we're the server, tell clients to play this sound.
-			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, "minotaur/fx2hit", 1, ATTN_NORM );
+			S_Sound (self, CHAN_WEAPON, "minotaur/fx2hit", 1, ATTN_NORM, true);	// [BC] Inform the clients.
 		}
 		else
 		{
 			mo = P_SpawnMissile (self, self->target, PClass::FindClass("MinotaurFX2"));
 			if (mo != NULL)
 			{
-				S_Sound (mo, CHAN_WEAPON, "minotaur/attack1", 1, ATTN_NORM);
-
-				// [BC] If we're the server, tell clients to spawn the missile and play this sound.
+				// [BC] If we're the server, tell clients to spawn the missile.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				{
 					SERVERCOMMANDS_SpawnMissile( mo );
-					SERVERCOMMANDS_SoundActor( mo, CHAN_WEAPON, "minotaur/attack1", 1, ATTN_NORM );
 				}
+
+				S_Sound (mo, CHAN_WEAPON, "minotaur/attack1", 1, ATTN_NORM, true);	// [BC] Inform the clients.
 			}
 		}
 	}
@@ -758,13 +734,12 @@ DEFINE_ACTION_FUNCTION(AActor, A_MinotaurChase)
 	{
 		if (self1->AttackSound)
 		{
-			S_Sound (self1, CHAN_WEAPON, self1->AttackSound, 1, ATTN_NORM);
+			S_Sound (self1, CHAN_WEAPON, self1->AttackSound, 1, ATTN_NORM, true);	// [BC] Inform the clients.
 		}
-		// [BC] If we're the server, play the attack sound and update the thing's state.
+
+		// [BC] If we're the server, update the thing's state.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		{
-			if ( self1->AttackSound )
-				SERVERCOMMANDS_SoundActor( self1, CHAN_WEAPON, S_GetName( self1->AttackSound ), 1, ATTN_NORM );
 			SERVERCOMMANDS_SetThingState( self1, STATE_MELEE );
 		}
 
