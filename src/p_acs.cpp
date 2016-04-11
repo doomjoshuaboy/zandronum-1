@@ -9443,8 +9443,11 @@ scriptwait:
 					else
 					{
 						item = activator->GiveInventoryType (type);
-						item->MaxAmount = STACK(1);
-						item->Amount = 0;
+						if (item != NULL)
+						{
+							item->MaxAmount = STACK(1);
+							item->Amount = 0;
+						}
 					}
 					// [BB] If the activator is a player, tell the clients about the changed capacity.
 					// [BB] Only bother the clients if MaxAmount has actually changed.
