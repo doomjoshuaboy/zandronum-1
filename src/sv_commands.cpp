@@ -568,7 +568,10 @@ void SERVERCOMMANDS_SpawnPlayer( ULONG ulPlayer, LONG lPlayerState, ULONG ulPlay
 	// command.addByte( players[ulPlayer].userinfo.GetPlayerClassNum() );
 
 	if ( bMorph )
+	{
+		command.addShort( players[ulPlayer].MorphStyle );
 		command.addShort( usActorNetworkIndex );
+	}
 
 	command.sendCommandToClients( ulPlayerExtra, flags );
 
