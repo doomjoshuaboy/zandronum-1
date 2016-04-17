@@ -1486,6 +1486,11 @@ void SERVERCOMMANDS_SpawnThing( AActor *pActor, ULONG ulPlayerExtra, ServerComma
 	command.addShort( usActorNetworkIndex );
 	command.addShort( pActor->lNetID );
 	command.sendCommandToClients( ulPlayerExtra, flags );
+
+	if ( pActor->ulSTFlags & STFL_LEVELSPAWNED )
+	{
+		SERVERCOMMANDS_SetThingFlags( pActor, FLAGSET_FLAGS, ulPlayerExtra, flags );
+	}
 }
 
 //*****************************************************************************
