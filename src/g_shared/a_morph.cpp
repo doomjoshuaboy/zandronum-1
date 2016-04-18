@@ -50,6 +50,11 @@ bool P_MorphPlayer (player_t *activator, player_t *p, const PClass *spawntype, i
 	{ // Immune when invulnerable unless this is a power we activated
 		return false;
 	}
+
+	// [EP] Clients should not execute this.
+	if ( NETWORK_InClientMode() )
+		return false;
+
 	if (p->morphTics)
 	{ // Player is already a beast
 		if ((p->mo->GetClass() == spawntype)
