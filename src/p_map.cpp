@@ -38,6 +38,7 @@
 #include "p_effect.h"
 #include "p_terrain.h"
 #include "p_trace.h"
+#include "p_3dmidtex.h"
 
 #include "s_sound.h"
 #include "decallib.h"
@@ -1803,6 +1804,15 @@ static void CheckForPushSpecial(line_t *line, int side, AActor *mobj, bool windo
 			if (fzt >= mobj->z + mobj->height && bzt >= mobj->z + mobj->height &&
 				fzb <= mobj->z && bzb <= mobj->z)
 			{
+				if (line->flags & ML_3DMIDTEX)
+				{
+					fixed_t top, bot;
+					P_GetMidTexturePosition(line, side, &top, &bot);
+					if (bot < mobj->z + mobj->height && top > mobj->z)
+					{
+						goto isblocking;
+					}
+				}
 				// we must also check if some 3D floor in the backsector may be blocking
 #ifdef _3DFLOORS
 				for (unsigned int i = 0; i<line->backsector->e->XFloor.ffloors.Size(); i++)
