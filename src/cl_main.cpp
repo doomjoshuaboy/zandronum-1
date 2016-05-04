@@ -8937,7 +8937,7 @@ static void client_SetSectorLightLevel( BYTESTREAM_s *pByteStream )
 	lSectorID = NETWORK_ReadShort( pByteStream );
 
 	// Read in the new light level.
-	lLightLevel = NETWORK_ReadByte( pByteStream );
+	lLightLevel = NETWORK_ReadShort( pByteStream );
 
 	// Find the sector associated with this network ID.
 	pSector = CLIENT_FindSectorByID( lSectorID );
@@ -9432,10 +9432,10 @@ static void client_DoSectorLightFireFlicker( BYTESTREAM_s *pByteStream )
 	lSectorID = NETWORK_ReadShort( pByteStream );
 
 	// Read in the sector's light level when the light effect is in its bright phase.
-	lMaxLight = NETWORK_ReadByte( pByteStream );
+	lMaxLight = NETWORK_ReadShort( pByteStream );
 
 	// Read in the sector's light level when the light effect is in its dark phase.
-	lMinLight = NETWORK_ReadByte( pByteStream );
+	lMinLight = NETWORK_ReadShort( pByteStream );
 
 	// Now find the sector.
 	pSector = CLIENT_FindSectorByID( lSectorID );
@@ -9463,10 +9463,10 @@ static void client_DoSectorLightFlicker( BYTESTREAM_s *pByteStream )
 	lSectorID = NETWORK_ReadShort( pByteStream );
 
 	// Read in the sector's light level when the light effect is in its bright phase.
-	lMaxLight = NETWORK_ReadByte( pByteStream );
+	lMaxLight = NETWORK_ReadShort( pByteStream );
 
 	// Read in the sector's light level when the light effect is in its dark phase.
-	lMinLight = NETWORK_ReadByte( pByteStream );
+	lMinLight = NETWORK_ReadShort( pByteStream );
 
 	// Now find the sector.
 	pSector = CLIENT_FindSectorByID( lSectorID );
@@ -9494,10 +9494,10 @@ static void client_DoSectorLightLightFlash( BYTESTREAM_s *pByteStream )
 	lSectorID = NETWORK_ReadShort( pByteStream );
 
 	// Read in the sector's light level when the light effect is in its bright phase.
-	lMaxLight = NETWORK_ReadByte( pByteStream );
+	lMaxLight = NETWORK_ReadShort( pByteStream );
 
 	// Read in the sector's light level when the light effect is in its dark phase.
-	lMinLight = NETWORK_ReadByte( pByteStream );
+	lMinLight = NETWORK_ReadShort( pByteStream );
 
 	// Now find the sector.
 	pSector = CLIENT_FindSectorByID( lSectorID );
@@ -9534,10 +9534,10 @@ static void client_DoSectorLightStrobe( BYTESTREAM_s *pByteStream )
 	lBrightTime = NETWORK_ReadShort( pByteStream );
 
 	// Read in the sector's light level when the light effect is in its bright phase.
-	lMaxLight = NETWORK_ReadByte( pByteStream );
+	lMaxLight = NETWORK_ReadShort( pByteStream );
 
 	// Read in the sector's light level when the light effect is in its dark phase.
-	lMinLight = NETWORK_ReadByte( pByteStream );
+	lMinLight = NETWORK_ReadShort( pByteStream );
 
 	// Read in the amount of time left until the light changes from bright to dark, or vice
 	// versa.
@@ -9596,10 +9596,10 @@ static void client_DoSectorLightGlow2( BYTESTREAM_s *pByteStream )
 	lSectorID = NETWORK_ReadShort( pByteStream );
 
 	// Read in the start light level of the effect.
-	lStart = NETWORK_ReadByte( pByteStream );
+	lStart = NETWORK_ReadShort( pByteStream );
 
 	// Read in the end light level of the effect.
-	lEnd = NETWORK_ReadByte( pByteStream );
+	lEnd = NETWORK_ReadShort( pByteStream );
 
 	// Read in the current progression of the effect.
 	lTics = NETWORK_ReadShort( pByteStream );
@@ -9637,7 +9637,7 @@ static void client_DoSectorLightPhased( BYTESTREAM_s *pByteStream )
 	lSectorID = NETWORK_ReadShort( pByteStream );
 
 	// Read in the effect's base level parameter.
-	lBaseLevel = NETWORK_ReadByte( pByteStream );
+	lBaseLevel = NETWORK_ReadShort( pByteStream );
 
 	// Read in the sector's phase parameter.
 	lPhase = NETWORK_ReadByte( pByteStream );
