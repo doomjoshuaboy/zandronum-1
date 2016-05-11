@@ -2852,7 +2852,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_FadeIn)
 	// Should this clamp alpha to 1.0?
 
 	// [BB] Inform the clients about the alpha change and possibly about RenderStyle.
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	if (( NETWORK_GetState() == NETSTATE_SERVER ) && ( NETWORK_IsActorClientHandled( self ) == false ))
 	{
 		if ( renderStyleChanged )
 			SERVERCOMMANDS_SetThingProperty( self, APROP_RenderStyle );
@@ -2889,7 +2889,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_FadeOut)
 	self->alpha -= reduce;
 
 	// [BB] Inform the clients about the alpha change and possibly about RenderStyle.
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	if (( NETWORK_GetState() == NETSTATE_SERVER ) && ( NETWORK_IsActorClientHandled( self ) == false ))
 	{
 		if ( renderStyleChanged )
 			SERVERCOMMANDS_SetThingProperty( self, APROP_RenderStyle );
@@ -2907,7 +2907,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_FadeOut)
 		}
 
 		// [BB] Tell clients to destroy the actor.
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		if (( NETWORK_GetState() == NETSTATE_SERVER ) && ( NETWORK_IsActorClientHandled( self ) == false ))
 			SERVERCOMMANDS_DestroyThing( self );
 
 		self->HideOrDestroyIfSafe ();
@@ -2959,7 +2959,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_FadeTo)
 	}
 
 	// [EP] Inform the clients about possible alpha and renderstyle changes.
-	if ( NETWORK_GetState() == NETSTATE_SERVER )
+	if (( NETWORK_GetState() == NETSTATE_SERVER ) && ( NETWORK_IsActorClientHandled( self ) == false ))
 	{
 		if ( self->RenderStyle.Flags != oldrenderstyleflags )
 			SERVERCOMMANDS_SetThingProperty( self, APROP_RenderStyle );
@@ -2978,7 +2978,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_FadeTo)
 		}
 
 		// [EP] Tell clients to destroy the actor.
-		if ( NETWORK_GetState() == NETSTATE_SERVER )
+		if (( NETWORK_GetState() == NETSTATE_SERVER ) && ( NETWORK_IsActorClientHandled( self ) == false ))
 			SERVERCOMMANDS_DestroyThing( self );
 
 		self->HideOrDestroyIfSafe();
@@ -3010,7 +3010,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_SetScale)
 	self->scaleY = scaley ? scaley : scalex;
 
 	// [EP] Tell the clients to change the scale if anything changed.
-	if ( NETWORK_GetState() == NETSTATE_SERVER )
+	if (( NETWORK_GetState() == NETSTATE_SERVER ) && ( NETWORK_IsActorClientHandled( self ) == false ))
 	{
 		unsigned int scaleFlags = 0;
 		if ( savedScaleX != self->scaleX )
@@ -5444,7 +5444,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Warp)
 		}
 
 		// [BB] Inform the clients.
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		if (( NETWORK_GetState() == NETSTATE_SERVER ) && ( NETWORK_IsActorClientHandled( self ) == false ))
 			SERVERCOMMANDS_MoveThing( self, CM_X|CM_Y|CM_Z|CM_ANGLE );
 
 		if (success_state)
