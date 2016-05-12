@@ -58,7 +58,7 @@ AInventory *P_DropItem (AActor *source, const PClass *type, int special, int cha
 void P_TossItem (AActor *item);
 bool P_LookForPlayers (AActor *actor, INTBOOL allaround, FLookExParams *params);
 void A_Weave(AActor *self, int xyspeed, int zspeed, fixed_t xydist, fixed_t zdist);
-void A_Unblock(AActor *self, bool drop);
+void A_Unblock(AActor *self, bool drop, bool okforclients = false); // [EP] Added 'okforclients'.
 
 DECLARE_ACTION(A_Look)
 DECLARE_ACTION(A_Wander)
