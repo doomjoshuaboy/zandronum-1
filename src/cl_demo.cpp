@@ -54,6 +54,7 @@
 #include "cl_main.h"
 #include "cmdlib.h"
 #include "d_event.h"
+#include "d_net.h"
 #include "d_netinf.h"
 #include "d_protocol.h"
 #include "doomstat.h"
@@ -534,8 +535,7 @@ void CLIENTDEMO_ReadPacket( void )
 				break;
 			case CLD_LCMD_CENTERVIEW:
 
-				if ( players[consoleplayer].mo )
-					players[consoleplayer].mo->pitch = 0;
+				Net_DoCommand( DEM_CENTERVIEW, NULL, consoleplayer );
 				break;
 			case CLD_LCMD_TAUNT:
 
