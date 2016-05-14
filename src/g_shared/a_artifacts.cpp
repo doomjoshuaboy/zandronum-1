@@ -1706,7 +1706,7 @@ void APowerProtection::ModifyDamage(int damage, FName damageType, int &newdamage
 		if (pdf != NULL)
 		{
 			damage = newdamage = FixedMul(damage, *pdf);
-			if (Owner != NULL && *pdf < FRACUNIT) S_Sound(Owner, CHAN_AUTO, ActiveSound, 1.0f, ATTN_NONE);
+			if (Owner != NULL && *pdf < FRACUNIT) S_Sound(Owner, CHAN_AUTO, ActiveSound, 1.0f, ATTN_NONE, true);	// [EP] Inform the clients.
 		}
 	}
 	if (Inventory != NULL)
