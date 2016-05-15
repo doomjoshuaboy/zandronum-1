@@ -216,15 +216,18 @@ bool ARaiseAlarm::SpecialDropAction (AActor *dropper)
 
 		// [CW] Tell the server who set the alarm off!
 		Printf( PRINT_HIGH, "%s set off the alarm!\n", dropper->target->player->userinfo.GetName() );
-
-		Destroy( );
-		return ( true );
 	}
-
-	if (dropper->target->CheckLocalView (consoleplayer))
+	else if (dropper->target->CheckLocalView (consoleplayer))
 	{
 		Printf ("You Fool!  You've set off the alarm.\n");
 	}
+
+	// [EP] Inform the clients to destroy the item.
+	if ( NETWORK_GetState() == NETSTATE_SERVER )
+	{
+		SERVERCOMMANDS_DestroyThing( this );
+	}
+
 	Destroy ();
 	return true;
 }
