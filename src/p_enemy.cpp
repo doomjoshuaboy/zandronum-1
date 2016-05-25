@@ -118,30 +118,32 @@ void P_RandomChaseDir (AActor *actor);
 // PROC P_RecursiveSound
 //
 // Called by P_NoiseAlert.
-// Recursively traverse adjacent sectors,
+// Traverses adjacent sectors,
 // sound blocking lines cut off traversal.
 //----------------------------------------------------------------------------
 
-void P_RecursiveSound (sector_t *sec, AActor *soundtarget, bool splash, int soundblocks, AActor *emitter, fixed_t maxdist)
+struct NoiseTarget
 {
-	int 		i;
-	line_t* 	check;
-	sector_t*	other;
-	AActor*		actor;
-		
+	sector_t *sec;
+	int soundblocks;
+};
+static TArray<NoiseTarget> NoiseList(128);
+
+static void NoiseMarkSector(sector_t *sec, AActor *soundtarget, bool splash, AActor *emitter, int soundblocks, fixed_t maxdist)
+{
 	// wake up all monsters in this sector
 	if (sec->validcount == validcount
-		&& sec->soundtraversed <= soundblocks+1)
+		&& sec->soundtraversed <= soundblocks + 1)
 	{
 		return; 		// already flooded
 	}
-	
+
 	sec->validcount = validcount;
-	sec->soundtraversed = soundblocks+1;
+	sec->soundtraversed = soundblocks + 1;
 	sec->SoundTarget = soundtarget;
 
 	// [RH] Set this in the actors in the sector instead of the sector itself.
-	for (actor = sec->thinglist; actor != NULL; actor = actor->snext)
+	for (AActor *actor = sec->thinglist; actor != NULL; actor = actor->snext)
 	{
 		if (actor != soundtarget && (!splash || !(actor->flags4 & MF4_NOSPLASHALERT)) &&
 			(!maxdist || (P_AproxDistance(actor->x - emitter->x, actor->y - emitter->y) <= maxdist)))
@@ -149,20 +151,26 @@ void P_RecursiveSound (sector_t *sec, AActor *soundtarget, bool splash, int soun
 			actor->LastHeard = soundtarget;
 		}
 	}
+	NoiseList.Push({ sec, soundblocks });
+}
 
-	for (i = 0; i < sec->linecount; i++)
+
+static void P_RecursiveSound(sector_t *sec, AActor *soundtarget, bool splash, AActor *emitter, int soundblocks, fixed_t maxdist)
+{
+	for (int i = 0; i < sec->linecount; i++)
 	{
-		check = sec->lines[i];
+		line_t *check = sec->lines[i];
 		if (check->sidedef[1] == NULL ||
 			!(check->flags & ML_TWOSIDED))
 		{
 			continue;
 		}
-		
+
 		// Early out for intra-sector lines
 		if (check->sidedef[0]->sector == check->sidedef[1]->sector) continue;
 
-		if ( check->sidedef[0]->sector == sec)
+		sector_t *other;
+		if (check->sidedef[0]->sector == sec)
 			other = check->sidedef[1]->sector;
 		else
 			other = check->sidedef[0]->sector;
@@ -187,14 +195,15 @@ void P_RecursiveSound (sector_t *sec, AActor *soundtarget, bool splash, int soun
 		if (check->flags & ML_SOUNDBLOCK)
 		{
 			if (!soundblocks)
-				P_RecursiveSound (other, soundtarget, splash, 1, emitter, maxdist);
+				NoiseMarkSector(other, soundtarget, splash, emitter, 1, maxdist);
 		}
 		else
 		{
-			P_RecursiveSound (other, soundtarget, splash, soundblocks, emitter, maxdist);
+			NoiseMarkSector(other, soundtarget, splash, emitter, soundblocks, maxdist);
 		}
 	}
 }
+
 
 
 
@@ -216,7 +225,11 @@ void P_NoiseAlert (AActor *target, AActor *emitter, bool splash, fixed_t maxdist
 		return;
 
 	validcount++;
-	P_RecursiveSound (emitter->Sector, target, splash, 0, emitter, maxdist);
+	NoiseMarkSector(emitter->Sector, target, splash, emitter, 0, maxdist);
+	for (unsigned i = 0; i < NoiseList.Size(); i++)
+	{
+		P_RecursiveSound(NoiseList[i].sec, target, splash, emitter, NoiseList[i].soundblocks, maxdist);
+	}
 }
 
 
