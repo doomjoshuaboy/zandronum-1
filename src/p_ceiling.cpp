@@ -147,6 +147,11 @@ void DCeiling::Tick ()
 				// fall through
 			case genCeilingChg:
 				m_Sector->SetTexture(sector_t::ceiling, m_Texture);
+
+				// [TP] If we're the server, tell the client to change the ceiling texture.
+				if ( NETWORK_GetState() == NETSTATE_SERVER )
+					SERVERCOMMANDS_SetSectorFlat( m_Sector - sectors );
+
 				// fall through
 			default:
 
@@ -216,6 +221,11 @@ void DCeiling::Tick ()
 				// fall through
 			case genCeilingChg:
 				m_Sector->SetTexture(sector_t::ceiling, m_Texture);
+
+				// [TP] If we're the server, tell the client to change the ceiling texture.
+				if ( NETWORK_GetState() == NETSTATE_SERVER )
+					SERVERCOMMANDS_SetSectorFlat( m_Sector - sectors );
+
 				// fall through
 			default:
 
