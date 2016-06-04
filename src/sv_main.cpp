@@ -282,7 +282,7 @@ CUSTOM_CVAR( String, sv_adminlistfile, "adminlist.txt", CVAR_ARCHIVE|CVAR_NOSETB
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 		return;
 
-	if ( !(g_AdminIPList.clearAndLoadFromFile( sv_adminlistfile.GetGenericRep( CVAR_String ).String ) ) )
+	if ( !(g_AdminIPList.clearAndLoadFromFile( sv_adminlistfile ) ) )
 		Printf( "%s", g_AdminIPList.getErrorMessage() );
 }
 
@@ -1276,7 +1276,6 @@ bool SERVER_PerformAuthenticationChecksum( BYTESTREAM_s *pByteStream )
 void SERVERCONSOLE_ReListPlayers( void );
 void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 {
-	UCVarValue							Val;
 	LONG								lCommand;
 	ULONG								ulIdx;
 	PLAYERSAVEDINFO_t					*pSavedInfo;
@@ -1377,8 +1376,7 @@ void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 	SERVERCOMMANDS_SetMapMusic( SERVER_GetMapMusic( ), SERVER_GetMapMusicOrder( ), g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 
 	// Send the message of the day.
-	Val = sv_motd.GetGenericRep( CVAR_String );
-	FString motd = Val.String;
+	FString motd = *sv_motd;
 
 	// [BB] This server doesn't enforce the special lump authentication. Inform the client about it!
 	if ( !sv_pure )
@@ -1817,7 +1815,6 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 	char			szServerPassword[MAX_NETWORK_STRING];
 	LONG			lClientNetworkGameVersion;
 	char			szAddress[4][4];
-	UCVarValue		Val;
 	ULONG			ulIdx;
 	NETADDRESS_s	AddressFrom;
 	bool			bAdminClientConnecting;
@@ -1948,11 +1945,10 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 		g_aClients[lClient].ulLastCommandTic = g_aClients[lClient].ulLastGameTic = gametic;
 
 	// Check if we require a password to join this server.
-	Val = sv_password.GetGenericRep( CVAR_String );
-	if (( sv_forcepassword ) && ( strlen( Val.String )))
+	if ( sv_forcepassword && ( strlen( sv_password ) > 0 ))
 	{
 		// Store password in temporary buffer (becuase we strupr it).
-		strcpy( szServerPassword, Val.String );
+		strcpy( szServerPassword, sv_password );
 
 		// Check their password against ours (both not case sensitive).
 		if ( strcmp( strupr( szServerPassword ), clientPassword.GetChars() ) != 0 )
@@ -2830,7 +2826,7 @@ void SERVER_WriteCommands( void )
 				if ( afkKickTick <= gametic )
 				{
 					FString specReason;
-					specReason.Format ( "AFK for %d minute%s.", sv_afk2spec.GetGenericRep( CVAR_Int ).Int, sv_afk2spec == 1 ? "" : "s" );
+					specReason.Format ( "AFK for %d minute%s.", *sv_afk2spec, sv_afk2spec == 1 ? "" : "s" );
 					SERVER_ForceToSpectate( ulIdx, specReason.GetChars() );
 				}
 				// [BB] Warn the player before forcing him to spectate, if that's going to happen in no more than 30 seconds.
@@ -5564,10 +5560,7 @@ static bool server_RequestJoin( BYTESTREAM_s *pByteStream )
 //
 static bool server_RequestRCON( BYTESTREAM_s *pByteStream )
 {
-	UCVarValue	Val;
 	const char	*pszUserPassword;
-
-	Val = sv_rconpassword.GetGenericRep( CVAR_String );
 
 	// If the user password matches our PW, and we have a PW set, give him RCON access.
 	pszUserPassword = NETWORK_ReadString( pByteStream );
@@ -5577,7 +5570,7 @@ static bool server_RequestRCON( BYTESTREAM_s *pByteStream )
 	if ( server_CheckForClientCommandFlood ( g_lCurrentClient ) == true )
 		return ( true );
 
-	if (( strlen( Val.String )) && ( strcmp( Val.String, pszUserPassword ) == 0 ))
+	if (( strlen( sv_rconpassword ) > 0 ) && ( strcmp( sv_rconpassword, pszUserPassword ) == 0 ))
 	{
 		g_aClients[g_lCurrentClient].bRCONAccess = true;
 		SERVER_PrintfPlayer( g_lCurrentClient, "RCON access granted.\n" );
