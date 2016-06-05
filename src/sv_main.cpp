@@ -5770,7 +5770,7 @@ static bool server_ChangeTeam( BYTESTREAM_s *pByteStream )
 	players[g_lCurrentClient].bSpectating = false;
 	players[g_lCurrentClient].bDeadSpectator = false;
 
-	if ( teamgame )
+	if ( GAMEMODE_GetCurrentFlags() & GMF_TEAMGAME )
 		G_TeamgameSpawnPlayer( g_lCurrentClient, players[g_lCurrentClient].ulTeam, true );
 	else
 		G_DeathMatchSpawnPlayer( g_lCurrentClient, true );
