@@ -1081,6 +1081,7 @@ add_executable( zdoom WIN32
 	network.cpp #ST
 	networkshared.cpp #ST
 	network/cl_auth.cpp #ZA
+	network/netcommand.cpp #ZA
 	network/nettraffic.cpp #ST
 	network/packetarchive.cpp #ZA
 	network/srp.cpp #ZA
