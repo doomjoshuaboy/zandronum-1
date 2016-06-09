@@ -4625,6 +4625,10 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_RemoveSiblings)
 //===========================================================================
 DEFINE_ACTION_FUNCTION(AActor, A_RaiseMaster)
 {
+	// [EP] This is handled by the server.
+	if ( NETWORK_InClientMode() )
+		return;
+
 	if (self->master != NULL)
 	{
 		P_Thing_Raise(self->master);
@@ -4638,6 +4642,10 @@ DEFINE_ACTION_FUNCTION(AActor, A_RaiseMaster)
 //===========================================================================
 DEFINE_ACTION_FUNCTION(AActor, A_RaiseChildren)
 {
+	// [EP] This is handled by the server.
+	if ( NETWORK_InClientMode() )
+		return;
+
 	TThinkerIterator<AActor> it;
 	AActor *mo;
 
@@ -4657,6 +4665,10 @@ DEFINE_ACTION_FUNCTION(AActor, A_RaiseChildren)
 //===========================================================================
 DEFINE_ACTION_FUNCTION(AActor, A_RaiseSiblings)
 {
+	// [EP] This is handled by the server.
+	if ( NETWORK_InClientMode() )
+		return;
+
 	TThinkerIterator<AActor> it;
 	AActor *mo;
 
