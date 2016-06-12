@@ -165,20 +165,6 @@ class BoolParameter(SpecParameter):
 		self.cxxtypename = 'bool'
 
 	def writeread(self, writer, command, parametername):
-		# Bool needs a little bit different treatment
-		writer.writeline('command.{parametername} = !!NETWORK_ReadByte( bytestream );'.format(**locals()))
-
-	def writesend(self, writer, command, parametername):
-		writer.writecontext('command.addByte( this->{parametername} );'.format(**locals()))
-
-# ----------------------------------------------------------------------------------------------------------------------
-
-class BitParameter(SpecParameter):
-	def __init__(self, **args):
-		super().__init__(**args)
-		self.cxxtypename = 'bool'
-
-	def writeread(self, writer, command, parametername):
 		writer.writeline('command.{parametername} = NETWORK_ReadBit( bytestream );'.format(**locals()))
 
 	def writesend(self, writer, command, parametername):
