@@ -1822,7 +1822,7 @@ void APlayerPawn::DropImportantItems( bool bLeavingGame, AActor *pSource )
 				SCOREBOARD_RefreshHUD( );
 
 			// Spawn a new flag.
-			pTeamItem = Spawn( PClass::FindClass( "WhiteFlag" ), x, y, ONFLOORZ, NO_REPLACE );
+			pTeamItem = Spawn( PClass::FindClass( "WhiteFlag" ), x, y, z, NO_REPLACE );
 			if ( pTeamItem )
 			{
 				pTeamItem->flags |= MF_DROPPED;
