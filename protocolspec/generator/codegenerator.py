@@ -456,14 +456,14 @@ class HeaderWriter(SourceCodeWriter):
 			try:
 				assert int(parameter.specialization) in range(1, 8 + 1) # [1…8]
 			except:
-				raise Exception('Short bytes must be specialized to a number in range 1…8')
+				raise RuntimeError('Short bytes must be specialized to a number in range 1…8')
 
 		# Allow strings to be specialized into FNames
 		if definition == 'FString' and parameter.specialization:
 			if parameter.specialization == 'Name':
 				definition = 'FName'
 			else:
-				raise Exception('String parameters can only be specialized to Name')
+				raise RuntimeError('String parameters can only be specialized to Name')
 
 		# If this is an array, encapsulate it into a TArray.
 		if parameter.isarray:
@@ -492,13 +492,13 @@ def main():
 
 	try:
 		spec.loadfromfile(args.spec)
-	except Exception as error:
+	except RuntimeError as error:
 		# Got an error. Find out where it came from and print an IDE-friendly message to stderr.
 		from sys import stderr
 		print('{filename}:{linenumber}: error: {errormessage}'.format(
 			filename = spec.currentfilename,
 			linenumber = spec.linenumber,
-			errormessage = type(error) == Exception and str(error) or ('[%s] %s' % (type(error).__name__, error)),
+			errormessage = str(error),
 		), file = stderr)
 		return 1
 	else:
