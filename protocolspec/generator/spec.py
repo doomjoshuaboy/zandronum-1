@@ -34,6 +34,19 @@ import re
 import parametertypes
 from collections import defaultdict, OrderedDict
 
+def catches(function, exceptionType = Exception):
+	'''
+		Returns whether or not calling the provided function yields an exception of type exceptionType, or a descendant
+		of it.
+	'''
+	try:
+		function()
+		return False
+	except exceptionType:
+		return True
+	except Exception:
+		return False
+
 class NetworkSpec:
 	'''
 	Models the protocol specification.
@@ -41,11 +54,21 @@ class NetworkSpec:
 	def __init__(self):
 		self.currentcommand = None
 		self.currentprotocol = None
+		self.currentstruct = None
 		self.protocols = {}
 		self.commands = []
 		self.commandsByName = {}
 		self.includes = []
 		self.loadstack = 0
+
+	def findStructByName(self, name):
+		'''
+		Finds a struct by name, or None if none found.
+		'''
+		try:
+			return self.currentprotocol['structs'][name]
+		except KeyError:
+			return None
 
 	def loadfromfile(self, filename):
 		'''
@@ -98,7 +121,7 @@ class NetworkSpec:
 			if self.currentprotocol:
 				raise Exception('Missing EndProtocol before new protocol definition')
 
-			self.currentprotocol = {'name': match.group(1), 'commands': OrderedDict()}
+			self.currentprotocol = {'name': match.group(1), 'commands': OrderedDict(), 'structs': OrderedDict()}
 			self.protocols[match.group(1)] = self.currentprotocol
 			return
 
@@ -136,6 +159,26 @@ class NetworkSpec:
 			self.currentcommand.extended = True
 			return
 
+		# Check for struct definition. Note that this block has to come before the generic parameter one, or it will eat
+		# structure definitions.
+		match = re.search(r'^struct\s+([A-Za-z_]+)$', line, re.IGNORECASE)
+		if match:
+			if self.currentstruct:
+				raise Exception('Cannot nest a struct inside another struct')
+
+			name = match.group(1)
+
+			# Ensure that there's no built-in type by this name.
+			if not catches(lambda: parametertypes.getParameterClass(name), AttributeError):
+				raise Exception('%s is a built-in type' % name)
+
+			# Also ensure that there's no existing struct by this name.
+			if self.findStructByName(name) is not None:
+				raise Exception('Struct %s already exists' % name)
+
+			self.currentstruct = {'name': name, 'members': OrderedDict()}
+			return
+
 		# Parse command parameter, using another, more complicated, regular expression.
 		#   attributes ────────────────────────────────────────────────────┐
 		#   name ───────────────────────────────────────────┐              │
@@ -144,30 +187,36 @@ class NetworkSpec:
 		#   typename ────────┬───┐┌─────┴──────┐┌──┴──┐   ┌─┴─┐┌───────────┴───────────┐
 		match = re.search(r'^(\w+)(?:<([^>]+)>)?(\[\])?\s+(\w+)(?:\s+with\s+([\w\s,]+))?$', line, re.IGNORECASE)
 		if match:
-			if not self.currentcommand:
-				raise Exception('Must provide a command before specifying any parameters')
+			if not self.currentcommand and not self.currentstruct:
+				raise Exception('Tried to specify a parameter outside of a command or structure definition')
 
 			typename, specialization, arraybrackets, name, attributes = match.groups()
 
 			# Turn attributes into a set
 			attributes = attributes and {x.lower().strip() for x in attributes.split(',')} or set()
 
-			from string import capwords
-			classname = capwords(typename.lower()) + 'Parameter'
-
 			try:
-				classtype = getattr(parametertypes, classname)
+				classtype = parametertypes.getParameterClass(typename)
 			except AttributeError:
 				raise Exception('Unknown type: %s' % typename)
 
-			if name in self.currentcommand.parameters.keys():
+			if self.currentcommand:
+				members = self.currentcommand.parameters
+			else:
+				members = self.currentstruct['members']
+
+			if name in members.keys():
 				raise Exception('Tried to define %r twice in %s' % (name, self.currentcommand.name))
 
 			# Build the parameter object and add it to the command.
-			parm = classtype(typename=typename, name=name, specialization=specialization,
-							 attributes=attributes, isarray=bool(arraybrackets), condition=self.activecondition)
-			self.currentcommand.parameters[name] = parm
+			parm = classtype(typename = typename, name = name, specialization = specialization, attributes = attributes,
+					isarray = bool(arraybrackets), condition = self.activecondition, spec = self)
 
+			# Add this parameter to the members dictionary.
+			members[name] = parm
+
+			# If we have an active condition, add this parameter to the list of parameters affected by that
+			# condition.
 			if self.activecondition:
 				self.currentcommand.conditions[self.activecondition].append(parm)
 			return
@@ -181,10 +230,19 @@ class NetworkSpec:
 			return
 
 		if line.lower() == 'endcommand':
+			if self.currentstruct:
+				raise Exception('Got EndCommand inside a struct definition')
 			if not self.currentcommand:
 				raise Exception('Got EndCommand outside of a command definition')
 			self.finishCurrentCommand()
 			self.currentcommand = None
+			return
+
+		if line.lower() == 'endstruct':
+			if not self.currentstruct:
+				raise Exception('Got EndStruct outside of a struct definition')
+			self.currentprotocol['structs'][self.currentstruct['name']] = self.currentstruct
+			self.currentstruct = None
 			return
 
 		if line.lower() == 'endif':
@@ -196,6 +254,8 @@ class NetworkSpec:
 		if line.lower() == 'endprotocol':
 			if not self.currentprotocol:
 				raise Exception('Got EndProtocol outside of a protocol definition')
+			if self.currentstruct:
+				raise Exception('Got EndProtocol inside a struct definition')
 			if self.currentcommand:
 				raise Exception('Got EndProtocol inside a command definition')
 			self.currentprotocol = None
