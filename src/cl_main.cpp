@@ -1278,6 +1278,10 @@ void CLIENT_ParsePacket( BYTESTREAM_s *pByteStream, bool bSequencedPacket )
 		CLIENTDEMO_MarkCurrentPosition();
 		lCommand = NETWORK_ReadByte( pByteStream );
 
+		// [TP] Reset the bit reading buffer.
+		pByteStream->bitBuffer = NULL;
+		pByteStream->bitShift = -1;
+
 		// End of message.
 		if ( lCommand == -1 )
 			break;
