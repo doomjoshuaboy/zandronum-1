@@ -9,3 +9,13 @@ Command ACSScriptExecute
 	Bool backSide
 	Bool always
 EndCommand
+
+Struct JoinSlot
+	Byte player
+	Byte team
+EndStruct
+
+Command SyncJoinQueue
+	ExtendedCommand
+	Struct<JoinSlot>[] slots
+EndCommand
