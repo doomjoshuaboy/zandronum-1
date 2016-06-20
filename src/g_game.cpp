@@ -5143,8 +5143,6 @@ void G_DoPlayDemo (void)
 {
 	char mapname[9];
 	int demolump;
-	// [BC] For saving the output of ReadLong().
-	int	i;
 
 	gameaction = ga_nothing;
 
@@ -5180,7 +5178,7 @@ void G_DoPlayDemo (void)
 
 	C_BackupCVars ();		// [RH] Save cvars that might be affected by demo
 
-	if (( i = ReadLong (&demo_p)) != FORM_ID)
+	if (ReadLong (&demo_p) != FORM_ID)
 	{
 		const char *eek = "Cannot play non-ZDoom demos.\n";
 
