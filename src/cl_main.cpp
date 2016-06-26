@@ -217,13 +217,6 @@ static	void	client_WeaponSound( BYTESTREAM_s *pByteStream );
 static	void	client_WeaponChange( BYTESTREAM_s *pByteStream );
 
 // Sector commands.
-static	void	client_SetSectorFloorPlane( BYTESTREAM_s *pByteStream );
-static	void	client_SetSectorCeilingPlane( BYTESTREAM_s *pByteStream );
-static	void	client_SetSectorFloorPlaneSlope( BYTESTREAM_s *pByteStream );
-static	void	client_SetSectorCeilingPlaneSlope( BYTESTREAM_s *pByteStream );
-static	void	client_SetSectorLightLevel( BYTESTREAM_s *pByteStream );
-static	void	client_SetSectorColor( BYTESTREAM_s *pByteStream, bool bIdentifySectorsByTag = false );
-static	void	client_SetSectorFade( BYTESTREAM_s *pByteStream, bool bIdentifySectorsByTag = false );
 static	void	client_SetSectorFlat( BYTESTREAM_s *pByteStream );
 static	void	client_SetSectorPanning( BYTESTREAM_s *pByteStream );
 static	void	client_SetSectorRotation( BYTESTREAM_s *pByteStream, bool bIdentifySectorsByTag = false );
@@ -1688,42 +1681,6 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_WEAPONCHANGE:
 
 		client_WeaponChange( pByteStream );
-		break;
-	case SVC_SETSECTORFLOORPLANE:
-
-		client_SetSectorFloorPlane( pByteStream );
-		break;
-	case SVC_SETSECTORCEILINGPLANE:
-
-		client_SetSectorCeilingPlane( pByteStream );
-		break;
-	case SVC_SETSECTORFLOORPLANESLOPE:
-
-		client_SetSectorFloorPlaneSlope( pByteStream );
-		break;
-	case SVC_SETSECTORCEILINGPLANESLOPE:
-
-		client_SetSectorCeilingPlaneSlope( pByteStream );
-		break;
-	case SVC_SETSECTORLIGHTLEVEL:
-
-		client_SetSectorLightLevel( pByteStream );
-		break;
-	case SVC_SETSECTORCOLOR:
-
-		client_SetSectorColor( pByteStream );
-		break;
-	case SVC_SETSECTORCOLORBYTAG:
-
-		client_SetSectorColor( pByteStream, true );
-		break;
-	case SVC_SETSECTORFADE:
-
-		client_SetSectorFade( pByteStream );
-		break;
-	case SVC_SETSECTORFADEBYTAG:
-
-		client_SetSectorFade( pByteStream, true );
 		break;
 	case SVC_SETSECTORFLAT:
 
@@ -6754,259 +6711,106 @@ void ServerCommands::WeaponRailgun::Execute()
 
 //*****************************************************************************
 //
-static void client_SetSectorFloorPlane( BYTESTREAM_s *pByteStream )
+void ServerCommands::SetSectorFloorPlane::Execute()
 {
-	LONG		lSectorID;
-	LONG		lHeight;
-	sector_t	*pSector;
-	LONG		lDelta;
-	LONG		lLastPos;
-
-	// Read in the sector network ID.
-	lSectorID = NETWORK_ReadShort( pByteStream );
-
-	// Read in the height.
-	lHeight = NETWORK_ReadShort( pByteStream ) << FRACBITS;
-
-	// Find the sector associated with this network ID.
-	pSector = CLIENT_FindSectorByID( lSectorID );
-	if ( pSector == NULL )
-	{
-		CLIENT_PrintWarning( "client_SetSectorFloorPlane: Couldn't find sector: %ld\n", lSectorID );
-		return;
-	}
-
 	// Calculate the change in floor height.
-	lDelta = lHeight - pSector->floorplane.d;
+	fixed_t delta = height - sector->floorplane.d;
 
 	// Store the original height position.
-	lLastPos = pSector->floorplane.d;
+	fixed_t lastPos = sector->floorplane.d;
 
 	// Change the height.
-	pSector->floorplane.ChangeHeight( -lDelta );
+	sector->floorplane.ChangeHeight( -delta );
 
 	// Call this to update various actor's within the sector.
-	P_ChangeSector( pSector, false, -lDelta, 0, false );
+	P_ChangeSector( sector, false, -delta, 0, false );
 
 	// Finally, adjust textures.
-	pSector->SetPlaneTexZ(sector_t::floor, pSector->GetPlaneTexZ(sector_t::floor) + pSector->floorplane.HeightDiff( lLastPos ) );
+	sector->SetPlaneTexZ(sector_t::floor, sector->GetPlaneTexZ(sector_t::floor) + sector->floorplane.HeightDiff( lastPos ) );
 
 	// [BB] We also need to move any linked sectors.
-	P_MoveLinkedSectors(pSector, false, -lDelta, false);
+	P_MoveLinkedSectors(sector, false, -delta, false);
 }
 
 //*****************************************************************************
 //
-static void client_SetSectorCeilingPlane( BYTESTREAM_s *pByteStream )
+void ServerCommands::SetSectorCeilingPlane::Execute()
 {
-	LONG		lSectorID;
-	LONG		lHeight;
-	sector_t	*pSector;
-	LONG		lDelta;
-	LONG		lLastPos;
-
-	// Read in the sector network ID.
-	lSectorID = NETWORK_ReadShort( pByteStream );
-
-	// Read in the height.
-	lHeight = NETWORK_ReadShort( pByteStream ) << FRACBITS;
-
-	// Find the sector associated with this network ID.
-	pSector = CLIENT_FindSectorByID( lSectorID );
-	if ( pSector == NULL )
-	{
-		CLIENT_PrintWarning( "client_SetSectorCeilingPlane: Couldn't find sector: %ld\n", lSectorID );
-		return;
-	}
-
 	// Calculate the change in ceiling height.
-	lDelta = lHeight - pSector->ceilingplane.d;
+	fixed_t delta = height - sector->ceilingplane.d;
 
 	// Store the original height position.
-	lLastPos = pSector->ceilingplane.d;
+	fixed_t lastPos = sector->ceilingplane.d;
 
 	// Change the height.
-	pSector->ceilingplane.ChangeHeight( lDelta );
+	sector->ceilingplane.ChangeHeight( delta );
 
 	// Finally, adjust textures.
-	pSector->SetPlaneTexZ(sector_t::ceiling, pSector->GetPlaneTexZ(sector_t::ceiling) + pSector->ceilingplane.HeightDiff( lLastPos ) );
+	sector->SetPlaneTexZ(sector_t::ceiling, sector->GetPlaneTexZ(sector_t::ceiling) + sector->ceilingplane.HeightDiff( lastPos ) );
 
 	// [BB] We also need to move any linked sectors.
-	P_MoveLinkedSectors(pSector, false, lDelta, true);
+	P_MoveLinkedSectors(sector, false, delta, true);
 }
 
 //*****************************************************************************
 //
-static void client_SetSectorFloorPlaneSlope( BYTESTREAM_s *pByteStream )
+void ServerCommands::SetSectorFloorPlaneSlope::Execute()
 {
-	LONG		lSectorID;
-	LONG		lA;
-	LONG		lB;
-	LONG		lC;
-	sector_t	*pSector;
-
-	// Read in the sector network ID.
-	lSectorID = NETWORK_ReadShort( pByteStream );
-
-	// Read in the various variables needed to calculate the slope.
-	lA = NETWORK_ReadShort( pByteStream ) << FRACBITS;
-	lB = NETWORK_ReadShort( pByteStream ) << FRACBITS;
-	lC = NETWORK_ReadShort( pByteStream ) << FRACBITS;
-
-	// Find the sector associated with this network ID.
-	pSector = CLIENT_FindSectorByID( lSectorID );
-	if ( pSector == NULL )
-	{
-		CLIENT_PrintWarning( "client_SetSectorFloorPlaneSlope: Couldn't find sector: %ld\n", lSectorID );
-		return;
-	}
-
-	pSector->floorplane.a = lA;
-	pSector->floorplane.b = lB;
-	pSector->floorplane.c = lC;
-	pSector->floorplane.ic = DivScale32( 1, pSector->floorplane.c );
+	sector->floorplane.a = a;
+	sector->floorplane.b = b;
+	sector->floorplane.c = c;
+	sector->floorplane.ic = DivScale32( 1, sector->floorplane.c );
 }
 
 //*****************************************************************************
 //
-static void client_SetSectorCeilingPlaneSlope( BYTESTREAM_s *pByteStream )
+void ServerCommands::SetSectorCeilingPlaneSlope::Execute()
 {
-	LONG		lSectorID;
-	LONG		lA;
-	LONG		lB;
-	LONG		lC;
-	sector_t	*pSector;
-
-	// Read in the sector network ID.
-	lSectorID = NETWORK_ReadShort( pByteStream );
-
-	// Read in the various variables needed to calculate the slope.
-	lA = NETWORK_ReadShort( pByteStream ) << FRACBITS;
-	lB = NETWORK_ReadShort( pByteStream ) << FRACBITS;
-	lC = NETWORK_ReadShort( pByteStream ) << FRACBITS;
-
-	// Find the sector associated with this network ID.
-	pSector = CLIENT_FindSectorByID( lSectorID );
-	if ( pSector == NULL )
-	{
-		CLIENT_PrintWarning( "client_SetSectorCeilingPlaneSlope: Couldn't find sector: %ld\n", lSectorID );
-		return;
-	}
-
-	pSector->ceilingplane.a = lA;
-	pSector->ceilingplane.b = lB;
-	pSector->ceilingplane.c = lC;
-	pSector->ceilingplane.ic = DivScale32( 1, pSector->ceilingplane.c );
+	sector->ceilingplane.a = a;
+	sector->ceilingplane.b = b;
+	sector->ceilingplane.c = c;
+	sector->ceilingplane.ic = DivScale32( 1, sector->ceilingplane.c );
 }
 
 //*****************************************************************************
 //
-static void client_SetSectorLightLevel( BYTESTREAM_s *pByteStream )
+void ServerCommands::SetSectorLightLevel::Execute()
 {
-	LONG		lSectorID;
-	LONG		lLightLevel;
-	sector_t	*pSector;
-
-	// Read in the sector network ID.
-	lSectorID = NETWORK_ReadShort( pByteStream );
-
-	// Read in the new light level.
-	lLightLevel = NETWORK_ReadShort( pByteStream );
-
-	// Find the sector associated with this network ID.
-	pSector = CLIENT_FindSectorByID( lSectorID );
-	if ( pSector == NULL )
-	{
-		CLIENT_PrintWarning( "client_SetSectorLightLevel: Cannot find sector: %ld\n", lSectorID );
-		return; 
-	}
-
-	// Finally, set the light level.
-	pSector->lightlevel = lLightLevel;
+	sector->lightlevel = lightLevel;
 }
 
 //*****************************************************************************
 //
-static void client_SetSectorColor( BYTESTREAM_s *pByteStream, bool bIdentifySectorsByTag )
+void ServerCommands::SetSectorColor::Execute()
 {
-	LONG		lSectorIDOrTag;
-	LONG		lR;
-	LONG		lG;
-	LONG		lB;
-	LONG		lDesaturate;
-	sector_t	*pSector;
-	PalEntry	Color;
-
-	// Read in the sector to have its panning altered.
-	lSectorIDOrTag = NETWORK_ReadShort( pByteStream );
-
-	// Read in the RGB and desaturate.
-	lR = NETWORK_ReadByte( pByteStream );
-	lG = NETWORK_ReadByte( pByteStream );
-	lB = NETWORK_ReadByte( pByteStream );
-	lDesaturate = NETWORK_ReadByte( pByteStream );
-
-	if ( bIdentifySectorsByTag )
-	{
-		int secnum = -1;
-
-		while ((secnum = P_FindSectorFromTag (lSectorIDOrTag, secnum)) >= 0)
-			sectors[secnum].SetColor(lR, lG, lB, lDesaturate, false, true);
-	}
-	else
-	{
-		// Now find the sector.
-		pSector = CLIENT_FindSectorByID( lSectorIDOrTag );
-		if ( pSector == NULL )
-		{
-			CLIENT_PrintWarning( "client_SetSectorColor: Cannot find sector: %ld\n", lSectorIDOrTag );
-			return; 
-		}
-
-		// Finally, set the color.
-		pSector->SetColor(lR, lG, lB, lDesaturate, false, true);
-	}
+	sector->SetColor( red, green, blue, desaturate, false, true );
 }
 
 //*****************************************************************************
 //
-static void client_SetSectorFade( BYTESTREAM_s *pByteStream, bool bIdentifySectorsByTag )
+void ServerCommands::SetSectorColorByTag::Execute()
 {
-	LONG		lSectorIDOrTag;
-	LONG		lR;
-	LONG		lG;
-	LONG		lB;
-	sector_t	*pSector;
-	PalEntry	Fade;
+	int secnum = -1;
 
-	// Read in the sector to have its panning altered.
-	lSectorIDOrTag = NETWORK_ReadShort( pByteStream );
+	while (( secnum = P_FindSectorFromTag( tag, secnum )) >= 0 )
+		sectors[secnum].SetColor( red, green, blue, desaturate, false, true );
+}
 
-	// Read in the RGB.
-	lR = NETWORK_ReadByte( pByteStream );
-	lG = NETWORK_ReadByte( pByteStream );
-	lB = NETWORK_ReadByte( pByteStream );
+//*****************************************************************************
+//
+void ServerCommands::SetSectorFade::Execute()
+{
+	sector->SetFade( red, green, blue, false, true );
+}
 
-	if ( bIdentifySectorsByTag )
-	{
-		int secnum = -1;
+//*****************************************************************************
+//
+void ServerCommands::SetSectorFadeByTag::Execute()
+{
+	int secnum = -1;
 
-		while ((secnum = P_FindSectorFromTag (lSectorIDOrTag, secnum)) >= 0)
-			sectors[secnum].SetFade(lR, lG, lB, false, true);
-	}
-	else
-	{
-		// Now find the sector.
-		pSector = CLIENT_FindSectorByID( lSectorIDOrTag );
-		if ( pSector == NULL )
-		{
-			CLIENT_PrintWarning( "client_SetSectorFade: Cannot find sector: %ld\n", lSectorIDOrTag );
-			return; 
-		}
-
-		// Finally, set the fade.
-		pSector->SetFade(lR, lG, lB, false, true);
-	}
+	while (( secnum = P_FindSectorFromTag( tag, secnum )) >= 0 )
+		sectors[secnum].SetFade( red, green, blue, false, true );
 }
 
 //*****************************************************************************
