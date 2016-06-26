@@ -2573,7 +2573,7 @@ void SERVERCOMMANDS_SetSectorFloorPlane( ULONG ulSector, ULONG ulPlayerExtra, Se
 
 	ServerCommands::SetSectorFloorPlane command;
 	command.SetSector( &sectors[ulSector] );
-	command.SetHeight( sectors[ulSector].floorplane.d >> FRACBITS );
+	command.SetHeight( sectors[ulSector].floorplane.d );
 	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
@@ -2586,7 +2586,7 @@ void SERVERCOMMANDS_SetSectorCeilingPlane( ULONG ulSector, ULONG ulPlayerExtra, 
 
 	ServerCommands::SetSectorCeilingPlane command;
 	command.SetSector( &sectors[ulSector] );
-	command.SetHeight( sectors[ulSector].ceilingplane.d >> FRACBITS );
+	command.SetHeight( sectors[ulSector].ceilingplane.d );
 	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
@@ -2599,9 +2599,9 @@ void SERVERCOMMANDS_SetSectorFloorPlaneSlope( ULONG ulSector, ULONG ulPlayerExtr
 
 	ServerCommands::SetSectorFloorPlaneSlope command;
 	command.SetSector( &sectors[ulSector] );
-	command.SetA( sectors[ulSector].floorplane.a >> FRACBITS );
-	command.SetB( sectors[ulSector].floorplane.b >> FRACBITS );
-	command.SetC( sectors[ulSector].floorplane.c >> FRACBITS );
+	command.SetA( sectors[ulSector].floorplane.a );
+	command.SetB( sectors[ulSector].floorplane.b );
+	command.SetC( sectors[ulSector].floorplane.c );
 	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
@@ -2614,9 +2614,9 @@ void SERVERCOMMANDS_SetSectorCeilingPlaneSlope( ULONG ulSector, ULONG ulPlayerEx
 
 	ServerCommands::SetSectorCeilingPlaneSlope command;
 	command.SetSector( &sectors[ulSector] );
-	command.SetA( sectors[ulSector].ceilingplane.a >> FRACBITS );
-	command.SetB( sectors[ulSector].ceilingplane.b >> FRACBITS );
-	command.SetC( sectors[ulSector].ceilingplane.c >> FRACBITS );
+	command.SetA( sectors[ulSector].ceilingplane.a );
+	command.SetB( sectors[ulSector].ceilingplane.b );
+	command.SetC( sectors[ulSector].ceilingplane.c );
 	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
