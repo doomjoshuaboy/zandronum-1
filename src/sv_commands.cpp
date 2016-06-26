@@ -2571,9 +2571,9 @@ void SERVERCOMMANDS_SetSectorFloorPlane( ULONG ulSector, ULONG ulPlayerExtra, Se
 	if ( ulSector >= (ULONG)numsectors )
 		return;
 
-	NetCommand command( SVC_SETSECTORFLOORPLANE );
-	command.addShort( ulSector );
-	command.addShort( sectors[ulSector].floorplane.d >> FRACBITS );
+	ServerCommands::SetSectorFloorPlane command;
+	command.SetSector( &sectors[ulSector] );
+	command.SetHeight( sectors[ulSector].floorplane.d >> FRACBITS );
 	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
@@ -2584,9 +2584,9 @@ void SERVERCOMMANDS_SetSectorCeilingPlane( ULONG ulSector, ULONG ulPlayerExtra, 
 	if ( ulSector >= (ULONG)numsectors )
 		return;
 
-	NetCommand command( SVC_SETSECTORCEILINGPLANE );
-	command.addShort( ulSector );
-	command.addShort( sectors[ulSector].ceilingplane.d >> FRACBITS );
+	ServerCommands::SetSectorCeilingPlane command;
+	command.SetSector( &sectors[ulSector] );
+	command.SetHeight( sectors[ulSector].ceilingplane.d >> FRACBITS );
 	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
@@ -2597,12 +2597,11 @@ void SERVERCOMMANDS_SetSectorFloorPlaneSlope( ULONG ulSector, ULONG ulPlayerExtr
 	if ( ulSector >= (ULONG)numsectors )
 		return;
 
-	NetCommand command( SVC_SETSECTORFLOORPLANESLOPE );
-	command.addShort( ulSector );
-	command.addShort( sectors[ulSector].floorplane.a >> FRACBITS );
-	command.addShort( sectors[ulSector].floorplane.b >> FRACBITS );
-	command.addShort( sectors[ulSector].floorplane.c >> FRACBITS );
-	command.addShort( sectors[ulSector].floorplane.ic >> FRACBITS );
+	ServerCommands::SetSectorFloorPlaneSlope command;
+	command.SetSector( &sectors[ulSector] );
+	command.SetA( sectors[ulSector].floorplane.a >> FRACBITS );
+	command.SetB( sectors[ulSector].floorplane.b >> FRACBITS );
+	command.SetC( sectors[ulSector].floorplane.c >> FRACBITS );
 	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
@@ -2613,12 +2612,11 @@ void SERVERCOMMANDS_SetSectorCeilingPlaneSlope( ULONG ulSector, ULONG ulPlayerEx
 	if ( ulSector >= (ULONG)numsectors )
 		return;
 
-	NetCommand command( SVC_SETSECTORCEILINGPLANESLOPE );
-	command.addShort( ulSector );
-	command.addShort( sectors[ulSector].ceilingplane.a >> FRACBITS );
-	command.addShort( sectors[ulSector].ceilingplane.b >> FRACBITS );
-	command.addShort( sectors[ulSector].ceilingplane.c >> FRACBITS );
-	command.addShort( sectors[ulSector].ceilingplane.ic >> FRACBITS );
+	ServerCommands::SetSectorCeilingPlaneSlope command;
+	command.SetSector( &sectors[ulSector] );
+	command.SetA( sectors[ulSector].ceilingplane.a >> FRACBITS );
+	command.SetB( sectors[ulSector].ceilingplane.b >> FRACBITS );
+	command.SetC( sectors[ulSector].ceilingplane.c >> FRACBITS );
 	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
@@ -2629,9 +2627,9 @@ void SERVERCOMMANDS_SetSectorLightLevel( ULONG ulSector, ULONG ulPlayerExtra, Se
 	if ( ulSector >= (ULONG)numsectors )
 		return;
 
-	NetCommand command( SVC_SETSECTORLIGHTLEVEL );
-	command.addShort( ulSector );
-	command.addShort( sectors[ulSector].lightlevel );
+	ServerCommands::SetSectorLightLevel command;
+	command.SetSector( &sectors[ulSector] );
+	command.SetLightLevel( sectors[ulSector].lightlevel );
 	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
@@ -2642,12 +2640,12 @@ void SERVERCOMMANDS_SetSectorColor( ULONG ulSector, ULONG ulPlayerExtra, ServerC
 	if ( ulSector >= (ULONG)numsectors )
 		return;
 
-	NetCommand command( SVC_SETSECTORCOLOR );
-	command.addShort( ulSector );
-	command.addByte( sectors[ulSector].ColorMap->Color.r );
-	command.addByte( sectors[ulSector].ColorMap->Color.g );
-	command.addByte( sectors[ulSector].ColorMap->Color.b );
-	command.addByte( sectors[ulSector].ColorMap->Desaturate );
+	ServerCommands::SetSectorColor command;
+	command.SetSector( &sectors[ulSector] );
+	command.SetRed( sectors[ulSector].ColorMap->Color.r );
+	command.SetGreen( sectors[ulSector].ColorMap->Color.g );
+	command.SetBlue( sectors[ulSector].ColorMap->Color.b );
+	command.SetDesaturate( sectors[ulSector].ColorMap->Desaturate );
 	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
@@ -2655,12 +2653,12 @@ void SERVERCOMMANDS_SetSectorColor( ULONG ulSector, ULONG ulPlayerExtra, ServerC
 //
 void SERVERCOMMANDS_SetSectorColorByTag( ULONG ulTag, ULONG ulRed, ULONG ulGreen, ULONG ulBlue, ULONG ulDesaturate, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
-	NetCommand command( SVC_SETSECTORCOLORBYTAG );
-	command.addShort( ulTag );
-	command.addByte( ulRed );
-	command.addByte( ulGreen );
-	command.addByte( ulBlue );
-	command.addByte( ulDesaturate );
+	ServerCommands::SetSectorColorByTag command;
+	command.SetTag( ulTag );
+	command.SetRed( ulRed );
+	command.SetGreen( ulGreen );
+	command.SetBlue( ulBlue );
+	command.SetDesaturate( ulDesaturate );
 	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
@@ -2671,11 +2669,11 @@ void SERVERCOMMANDS_SetSectorFade( ULONG ulSector, ULONG ulPlayerExtra, ServerCo
 	if ( ulSector >= (ULONG)numsectors )
 		return;
 
-	NetCommand command( SVC_SETSECTORFADE );
-	command.addShort( ulSector );
-	command.addByte( sectors[ulSector].ColorMap->Fade.r );
-	command.addByte( sectors[ulSector].ColorMap->Fade.g );
-	command.addByte( sectors[ulSector].ColorMap->Fade.b );
+	ServerCommands::SetSectorFade command;
+	command.SetSector( &sectors[ulSector] );
+	command.SetRed( sectors[ulSector].ColorMap->Fade.r );
+	command.SetGreen( sectors[ulSector].ColorMap->Fade.g );
+	command.SetBlue( sectors[ulSector].ColorMap->Fade.b );
 	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
@@ -2683,11 +2681,11 @@ void SERVERCOMMANDS_SetSectorFade( ULONG ulSector, ULONG ulPlayerExtra, ServerCo
 //
 void SERVERCOMMANDS_SetSectorFadeByTag( ULONG ulTag, ULONG ulRed, ULONG ulGreen, ULONG ulBlue, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
-	NetCommand command( SVC_SETSECTORFADEBYTAG );
-	command.addShort( ulTag );
-	command.addByte( ulRed );
-	command.addByte( ulGreen );
-	command.addByte( ulBlue );
+	ServerCommands::SetSectorFadeByTag command;
+	command.SetTag( ulTag );
+	command.SetRed( ulRed );
+	command.SetGreen( ulGreen );
+	command.SetBlue( ulBlue );
 	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
