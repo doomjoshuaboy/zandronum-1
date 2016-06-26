@@ -217,12 +217,6 @@ static	void	client_WeaponSound( BYTESTREAM_s *pByteStream );
 static	void	client_WeaponChange( BYTESTREAM_s *pByteStream );
 
 // Sector commands.
-static	void	client_SetSectorFlat( BYTESTREAM_s *pByteStream );
-static	void	client_SetSectorPanning( BYTESTREAM_s *pByteStream );
-static	void	client_SetSectorRotation( BYTESTREAM_s *pByteStream, bool bIdentifySectorsByTag = false );
-static	void	client_SetSectorScale( BYTESTREAM_s *pByteStream );
-static	void	client_SetSectorSpecial( BYTESTREAM_s *pByteStream );
-static	void	client_SetSectorFriction( BYTESTREAM_s *pByteStream );
 static	void	client_SetSectorAngleYOffset( BYTESTREAM_s *pByteStream );
 static	void	client_SetSectorGravity( BYTESTREAM_s *pByteStream );
 static	void	client_SetSectorReflection( BYTESTREAM_s *pByteStream );
@@ -1681,34 +1675,6 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_WEAPONCHANGE:
 
 		client_WeaponChange( pByteStream );
-		break;
-	case SVC_SETSECTORFLAT:
-
-		client_SetSectorFlat( pByteStream );
-		break;
-	case SVC_SETSECTORPANNING:
-
-		client_SetSectorPanning( pByteStream );
-		break;
-	case SVC_SETSECTORROTATION:
-
-		client_SetSectorRotation( pByteStream );
-		break;
-	case SVC_SETSECTORROTATIONBYTAG:
-
-		client_SetSectorRotation( pByteStream, true );
-		break;
-	case SVC_SETSECTORSCALE:
-
-		client_SetSectorScale( pByteStream );
-		break;
-	case SVC_SETSECTORSPECIAL:
-
-		client_SetSectorSpecial( pByteStream );
-		break;
-	case SVC_SETSECTORFRICTION:
-
-		client_SetSectorFriction( pByteStream );
 		break;
 	case SVC_SETSECTORANGLEYOFFSET:
 
@@ -6815,215 +6781,77 @@ void ServerCommands::SetSectorFadeByTag::Execute()
 
 //*****************************************************************************
 //
-static void client_SetSectorFlat( BYTESTREAM_s *pByteStream )
+void ServerCommands::SetSectorFlat::Execute()
 {
-	sector_t		*pSector;
-	LONG			lSectorID;
-	char			szCeilingFlatName[MAX_NETWORK_STRING];
-	const char		*pszFloorFlatName;
-	FTextureID		flatLump;
-
-	// Read in the sector ID.
-	lSectorID = NETWORK_ReadShort( pByteStream );
-
-	// Read in the ceiling flat name.
-	sprintf( szCeilingFlatName, "%s", NETWORK_ReadString( pByteStream ));
-
-	// Read in the floor flat name.
-	pszFloorFlatName = NETWORK_ReadString( pByteStream );
-
 	// Not in a level. Nothing to do!
 	if ( gamestate != GS_LEVEL )
 		return;
 
-	// Find the sector associated with this network ID.
-	pSector = CLIENT_FindSectorByID( lSectorID );
-	if ( pSector == NULL )
-	{
-		CLIENT_PrintWarning( "client_SetSectorFlat: Couldn't find sector: %ld\n", lSectorID );
-		return; 
-	}
-
-	flatLump = TexMan.GetTexture( szCeilingFlatName, FTexture::TEX_Flat );
-	pSector->SetTexture(sector_t::ceiling, flatLump);
-
-	flatLump = TexMan.GetTexture( pszFloorFlatName, FTexture::TEX_Flat );
-	pSector->SetTexture(sector_t::floor, flatLump);
+	sector->SetTexture( sector_t::ceiling, TexMan.GetTexture( ceilingFlatName, FTexture::TEX_Flat ));
+	sector->SetTexture( sector_t::floor, TexMan.GetTexture( floorFlatName, FTexture::TEX_Flat ));
 }
 
 //*****************************************************************************
 //
-static void client_SetSectorPanning( BYTESTREAM_s *pByteStream )
+void ServerCommands::SetSectorPanning::Execute()
 {
-	LONG		lSectorID;
-	LONG		lCeilingXOffset;
-	LONG		lCeilingYOffset;
-	LONG		lFloorXOffset;
-	LONG		lFloorYOffset;
-	sector_t	*pSector;
-
-	// Read in the sector to have its panning altered.
-	lSectorID = NETWORK_ReadShort( pByteStream );
-
-	// Read it's ceiling X offset.
-	lCeilingXOffset = NETWORK_ReadShort( pByteStream );
-
-	// Read it's ceiling Y offset.
-	lCeilingYOffset = NETWORK_ReadShort( pByteStream );
-
-	// Read it's floor X offset.
-	lFloorXOffset = NETWORK_ReadShort( pByteStream );
-
-	// Read it's floor Y offset.
-	lFloorYOffset = NETWORK_ReadShort( pByteStream );
-
-	// Now find the sector.
-	pSector = CLIENT_FindSectorByID( lSectorID );
-	if ( pSector == NULL )
-	{
-		CLIENT_PrintWarning( "client_SetSectorPanning: Cannot find sector: %ld\n", lSectorID );
-		return; 
-	}
-
 	// Finally, set the offsets.
-	pSector->SetXOffset(sector_t::ceiling, lCeilingXOffset * FRACUNIT);
-	pSector->SetYOffset(sector_t::ceiling, lCeilingYOffset * FRACUNIT);
-
-	pSector->SetXOffset(sector_t::floor, lFloorXOffset * FRACUNIT);
-	pSector->SetYOffset(sector_t::floor, lFloorYOffset * FRACUNIT);
+	sector->SetXOffset( sector_t::ceiling, ceilingXOffset );
+	sector->SetYOffset( sector_t::ceiling, ceilingYOffset );
+	sector->SetXOffset( sector_t::floor, floorXOffset );
+	sector->SetYOffset( sector_t::floor, floorYOffset );
 }
 
 //*****************************************************************************
 //
-static void client_SetSectorRotation( BYTESTREAM_s *pByteStream, bool bIdentifySectorsByTag )
+void ServerCommands::SetSectorRotation::Execute()
 {
-	// Read in the sector to have its panning altered.
-	const LONG lSectorIDOrTag = NETWORK_ReadShort( pByteStream );
+	sector->SetAngle(sector_t::ceiling, ceilingRotation * ANGLE_1 );
+	sector->SetAngle(sector_t::floor, floorRotation * ANGLE_1 );
+}
 
-	// Read in the ceiling and floor rotation.
-	const LONG lCeilingRotation = NETWORK_ReadShort( pByteStream );
-	const LONG lFloorRotation = NETWORK_ReadShort( pByteStream );
+//*****************************************************************************
+//
+void ServerCommands::SetSectorRotationByTag::Execute()
+{
+	int secnum = -1;
 
-	if ( bIdentifySectorsByTag )
+	while (( secnum = P_FindSectorFromTag( tag, secnum )) >= 0 )
 	{
-		int secnum = -1;
-
-		while ((secnum = P_FindSectorFromTag (lSectorIDOrTag, secnum)) >= 0)
-		{
-			sectors[secnum].SetAngle(sector_t::floor, lFloorRotation * ANGLE_1);
-			sectors[secnum].SetAngle(sector_t::ceiling, lCeilingRotation * ANGLE_1);
-		}
-	}
-	else
-	{
-		// Now find the sector.
-		sector_t *pSector = CLIENT_FindSectorByID( lSectorIDOrTag );
-		if ( pSector == NULL )
-		{
-			CLIENT_PrintWarning( "client_SetSectorRotation: Cannot find sector: %ld\n", lSectorIDOrTag );
-			return; 
-		}
-
-		// Finally, set the rotation.
-		pSector->SetAngle(sector_t::ceiling, ( lCeilingRotation * ANGLE_1 ) );
-		pSector->SetAngle(sector_t::floor, ( lFloorRotation * ANGLE_1 ) );
+		sectors[secnum].SetAngle( sector_t::floor, floorRotation * ANGLE_1 );
+		sectors[secnum].SetAngle( sector_t::ceiling, ceilingRotation * ANGLE_1 );
 	}
 }
 
 //*****************************************************************************
 //
-static void client_SetSectorScale( BYTESTREAM_s *pByteStream )
+void ServerCommands::SetSectorScale::Execute()
 {
-	LONG		lSectorID;
-	LONG		lCeilingXScale;
-	LONG		lCeilingYScale;
-	LONG		lFloorXScale;
-	LONG		lFloorYScale;
-	sector_t	*pSector;
-
-	// Read in the sector to have its panning altered.
-	lSectorID = NETWORK_ReadShort( pByteStream );
-
-	// Read in the ceiling and floor scale.
-	lCeilingXScale = NETWORK_ReadShort( pByteStream ) * FRACBITS;
-	lCeilingYScale = NETWORK_ReadShort( pByteStream ) * FRACBITS;
-	lFloorXScale = NETWORK_ReadShort( pByteStream ) * FRACBITS;
-	lFloorYScale = NETWORK_ReadShort( pByteStream ) * FRACBITS;
-
-	// Now find the sector.
-	pSector = CLIENT_FindSectorByID( lSectorID );
-	if ( pSector == NULL )
-	{
-		CLIENT_PrintWarning( "client_SetSectorScale: Cannot find sector: %ld\n", lSectorID );
-		return; 
-	}
-
-	// Finally, set the scale.
-	pSector->SetXScale(sector_t::ceiling, lCeilingXScale);
-	pSector->SetYScale(sector_t::ceiling, lCeilingYScale);
-	pSector->SetXScale(sector_t::floor, lFloorXScale);
-	pSector->SetYScale(sector_t::floor, lFloorYScale);
+	sector->SetXScale( sector_t::ceiling, ceilingXScale );
+	sector->SetYScale( sector_t::ceiling, ceilingYScale );
+	sector->SetXScale( sector_t::floor, floorXScale );
+	sector->SetYScale( sector_t::floor, floorYScale );
 }
 
 //*****************************************************************************
 //
-static void client_SetSectorSpecial( BYTESTREAM_s *pByteStream )
+void ServerCommands::SetSectorSpecial::Execute()
 {
-	LONG		lSectorID;
-	SHORT		sSpecial;
-	sector_t	*pSector;
-
-	// Read in the sector to have its special altered.
-	lSectorID = NETWORK_ReadShort( pByteStream );
-
-	// Read in the new special.
-	sSpecial = NETWORK_ReadShort( pByteStream );
-
-	// Now find the sector.
-	pSector = CLIENT_FindSectorByID( lSectorID );
-	if ( pSector == NULL )
-	{
-		CLIENT_PrintWarning( "client_SetSectorSpecial: Cannot find sector: %ld\n", lSectorID );
-		return; 
-	}
-
-	// Finally, set the special.
-	pSector->special = sSpecial;
+	sector->special = special;
 }
 
 //*****************************************************************************
 //
-static void client_SetSectorFriction( BYTESTREAM_s *pByteStream )
+void ServerCommands::SetSectorFriction::Execute()
 {
-	LONG		lSectorID;
-	LONG		lFriction;
-	LONG		lMoveFactor;
-	sector_t	*pSector;
-
-	// Read in the sector to have its friction altered.
-	lSectorID = NETWORK_ReadShort( pByteStream );
-
-	// Read in the ceiling and floor scale.
-	lFriction = NETWORK_ReadLong( pByteStream );
-	lMoveFactor = NETWORK_ReadLong( pByteStream );
-
-	// Now find the sector.
-	pSector = CLIENT_FindSectorByID( lSectorID );
-	if ( pSector == NULL )
-	{
-		CLIENT_PrintWarning( "client_SetSectorScale: Cannot find sector: %ld\n", lSectorID );
-		return; 
-	}
-
-	// Set the friction.
-	pSector->friction = lFriction;
-	pSector->movefactor = lMoveFactor;
+	sector->friction = friction;
+	sector->movefactor = moveFactor;
 
 	// I'm not sure if we need to do this, but let's do it anyway.
-	if ( lFriction == ORIG_FRICTION )
-		pSector->special &= ~FRICTION_MASK;
+	if ( friction == ORIG_FRICTION )
+		sector->special &= ~FRICTION_MASK;
 	else
-		pSector->special |= FRICTION_MASK;
+		sector->special |= FRICTION_MASK;
 }
 
 //*****************************************************************************
