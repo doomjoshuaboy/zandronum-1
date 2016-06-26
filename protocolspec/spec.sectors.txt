@@ -56,3 +56,50 @@ Command SetSectorFadeByTag
 	Byte green
 	Byte blue
 EndCommand
+
+Command SetSectorFlat
+	Sector sector
+	String ceilingFlatName
+	String floorFlatName
+EndCommand
+
+Command SetSectorPanning
+	Sector sector
+	AproxFixed ceilingXOffset
+	AproxFixed ceilingYOffset
+	AproxFixed floorXOffset
+	AproxFixed floorYOffset
+EndCommand
+
+Command SetSectorRotation
+	Sector sector
+	# The angle here is sent in degrees.
+	Short ceilingRotation
+	Short floorRotation
+EndCommand
+
+Command SetSectorRotationByTag
+	Short tag
+	# The angle here is sent in degrees.
+	Short ceilingRotation
+	Short floorRotation
+EndCommand
+
+Command SetSectorScale
+	Sector sector
+	AproxFixed ceilingXScale
+	AproxFixed ceilingYScale
+	AproxFixed floorXScale
+	AproxFixed floorYScale
+EndCommand
+
+Command SetSectorSpecial
+	Sector sector
+	Short special
+EndCommand
+
+Command SetSectorFriction
+	Sector sector
+	Fixed friction
+	Fixed moveFactor
+EndCommand
