@@ -78,6 +78,12 @@ extern FWorldGlobalArray ACS_GlobalArrays[NUM_GLOBALVARS];
 #define STRPOOL_LIBRARYID		(INT_MAX >> LIBRARYID_SHIFT)
 #define STRPOOL_LIBRARYID_OR	(STRPOOL_LIBRARYID << LIBRARYID_SHIFT)
 
+// [TP]
+namespace ServerCommands
+{
+	class ReplaceTextures;
+};
+
 class ACSStringPool
 {
 public:
@@ -940,8 +946,8 @@ private:
 
 	friend class DACSThinker;
 
-	// [BB] The clients need to call some of the static functions from DLevelScript.
-	friend class STClient;
+	// [BB/TP] The client needs to call DLevelScript::ReplaceTextures.
+	friend class ServerCommands::ReplaceTextures;
 };
 
 class DACSThinker : public DThinker
