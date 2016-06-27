@@ -155,12 +155,12 @@ class SourceWriter(SourceCodeWriter):
 				self.writecontext('''
 					void ServerCommands::{commandname}::{setter}( {typename} value )
 					{{
-						this->{parametername} = value;
+						this->{reference} = value;
 						this->_verifyTable[{i}] = true;
 					}}'''.format(commandname = command.name,
 							     setter = parameter.setter,
 							     typename = parameter.constreference,
-							     parametername = parameter.name,
+							     reference = parameter.name,
 							     i = i))
 
 			# Write the condition check methods. The items must be sorted first or the methods will be written in a
@@ -191,9 +191,6 @@ class SourceWriter(SourceCodeWriter):
 		self.writeline('\treturn false;')
 		self.writeline('}')
 		self.endscope()
-
-	def writeparameter(self, command, parameter, parametername):
-		parameter.type.writeread(self, command, parameter, parametername)
 
 	def writecommandreader(self, command):
 		'''
@@ -243,7 +240,7 @@ class SourceWriter(SourceCodeWriter):
 			The method is expected to take the arguments:
 				- writer (this object)
 				- command
-				- parametername -- this is a reference to the actual parameter object (makes a difference with arrays).
+				- reference -- this is an expression string that refers to the actual parameter reference.
 			The method is expected to be a method of a SpecParameter subclass, and is expected to write code handling
 			recievement or sending of the parameter in question. Any extra parameters are also passed to the parameters.
 		'''
@@ -269,7 +266,7 @@ class SourceWriter(SourceCodeWriter):
 				self.activecondition = parameter.condition
 
 			# Now call the appropriate method.
-			getattr(parameter, methodname)(writer = self, command = command, parametername = parameter.name, **args)
+			getattr(parameter, methodname)(writer = self, command = command, reference = parameter.name, **args)
 
 		# If we're still in an if-block, close it now.
 		if self.activecondition:
