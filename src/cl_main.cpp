@@ -238,20 +238,6 @@ static	void	client_CallVote( BYTESTREAM_s *pByteStream );
 static	void	client_PlayerVote( BYTESTREAM_s *pByteStream );
 static	void	client_VoteEnded( BYTESTREAM_s *pByteStream );
 
-// Map commands.
-static	void	client_MapLoad( BYTESTREAM_s *pByteStream );
-static	void	client_MapNew( BYTESTREAM_s *pByteStream );
-static	void	client_MapExit( BYTESTREAM_s *pByteStream );
-static	void	client_MapAuthenticate( BYTESTREAM_s *pByteStream );
-static	void	client_SetMapTime( BYTESTREAM_s *pByteStream );
-static	void	client_SetMapNumKilledMonsters( BYTESTREAM_s *pByteStream );
-static	void	client_SetMapNumFoundItems( BYTESTREAM_s *pByteStream );
-static	void	client_SetMapNumFoundSecrets( BYTESTREAM_s *pByteStream );
-static	void	client_SetMapNumTotalMonsters( BYTESTREAM_s *pByteStream );
-static	void	client_SetMapNumTotalItems( BYTESTREAM_s *pByteStream );
-static	void	client_SetMapMusic( BYTESTREAM_s *pByteStream );
-static	void	client_SetMapSky( BYTESTREAM_s *pByteStream );
-
 // Inventory commands.
 static	void	client_GiveInventory( BYTESTREAM_s *pByteStream );
 static	void	client_TakeInventory( BYTESTREAM_s *pByteStream );
@@ -1711,69 +1697,6 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 		client_VoteEnded( pByteStream );
 		break;
-	case SVC_MAPLOAD:
-
-		// [BB] We are about to change the map, so if we are playing a demo right now
-		// and wanted to skip the current map, we are done with it now.
-		CLIENTDEMO_SetSkippingToNextMap ( false );
-		client_MapLoad( pByteStream );
-		break;
-	case SVC_MAPNEW:
-
-		// [BB] We are about to change the map, so if we are playing a demo right now
-		// and wanted to skip the current map, we are done with it now.
-		if ( CLIENTDEMO_IsSkippingToNextMap() == true )
-		{
-			// [BB] All the skipping seems to mess up the information which player is in game.
-			// Clearing everything will take care of this.
-			CLIENT_ClearAllPlayers();
-			CLIENTDEMO_SetSkippingToNextMap ( false );
-		}
-		client_MapNew( pByteStream );
-		break;
-	case SVC_MAPEXIT:
-
-		// [BB] We are about to change the map, so if we are playing a demo right now
-		// and wanted to skip the current map, we are done with it now.
-		CLIENTDEMO_SetSkippingToNextMap ( false );
-		client_MapExit( pByteStream );
-		break;
-	case SVC_MAPAUTHENTICATE:
-
-		client_MapAuthenticate( pByteStream );
-		break;
-	case SVC_SETMAPTIME:
-
-		client_SetMapTime( pByteStream );
-		break;
-	case SVC_SETMAPNUMKILLEDMONSTERS:
-
-		client_SetMapNumKilledMonsters( pByteStream );
-		break;
-	case SVC_SETMAPNUMFOUNDITEMS:
-
-		client_SetMapNumFoundItems( pByteStream );
-		break;
-	case SVC_SETMAPNUMFOUNDSECRETS:
-
-		client_SetMapNumFoundSecrets( pByteStream );
-		break;
-	case SVC_SETMAPNUMTOTALMONSTERS:
-
-		client_SetMapNumTotalMonsters( pByteStream );
-		break;
-	case SVC_SETMAPNUMTOTALITEMS:
-
-		client_SetMapNumTotalItems( pByteStream );
-		break;
-	case SVC_SETMAPMUSIC:
-
-		client_SetMapMusic( pByteStream );
-		break;
-	case SVC_SETMAPSKY:
-
-		client_SetMapSky( pByteStream );
-		break;
 	case SVC_GIVEINVENTORY:
 
 		client_GiveInventory( pByteStream );
@@ -2306,12 +2229,6 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 					UCVarValue vval;
 					vval.String = cvarValue;
 					cvar->ForceSet( vval, CVAR_String );
-				}
-				break;
-
-			case SVC2_SETMAPNUMTOTALSECRETS:
-				{
- 					level.total_secrets = NETWORK_ReadShort( pByteStream );
 				}
 				break;
 
@@ -7396,25 +7313,23 @@ static void client_VoteEnded( BYTESTREAM_s *pByteStream )
 
 //*****************************************************************************
 //
-static void client_MapLoad( BYTESTREAM_s *pByteStream )
+void ServerCommands::MapLoad::Execute()
 {
-	bool	bPlaying;
-	const char	*pszMap;
-	
-	// Read in the lumpname of the map we're about to load.
-	pszMap = NETWORK_ReadString( pByteStream );
+	// [BB] We are about to change the map, so if we are playing a demo right now
+	// and wanted to skip the current map, we are done with it now.
+	CLIENTDEMO_SetSkippingToNextMap ( false );
 
 	// Check to see if we have the map.
-	if ( P_CheckIfMapExists( pszMap ))
+	if ( P_CheckIfMapExists( mapName ))
 	{
 		// Save our demo recording status since G_InitNew resets it.
-		bPlaying = CLIENTDEMO_IsPlaying( );
+		bool playing = CLIENTDEMO_IsPlaying( );
 
 		// Start new level.
-		G_InitNew( pszMap, false );
+		G_InitNew( mapName, false );
 
 		// Restore our demo recording status.
-		CLIENTDEMO_SetPlaying( bPlaying );
+		CLIENTDEMO_SetPlaying( playing );
 
 		// [BB] viewactive is set in G_InitNew
 		// For right now, the view is not active.
@@ -7424,17 +7339,22 @@ static void client_MapLoad( BYTESTREAM_s *pByteStream )
 		C_HideConsole( );
 	}
 	else
-		CLIENT_PrintWarning( "client_MapLoad: Unknown map: %s\n", pszMap );
+		CLIENT_PrintWarning( "client_MapLoad: Unknown map: %s\n", mapName.GetChars() );
 }
 
 //*****************************************************************************
 //
-static void client_MapNew( BYTESTREAM_s *pByteStream )
+void ServerCommands::MapNew::Execute()
 {
-	const char	*pszMapName;
-
-	// Read in the new mapname the server is switching the level to.
-	pszMapName = NETWORK_ReadString( pByteStream );
+	// [BB] We are about to change the map, so if we are playing a demo right now
+	// and wanted to skip the current map, we are done with it now.
+	if ( CLIENTDEMO_IsSkippingToNextMap() == true )
+	{
+		// [BB] All the skipping seems to mess up the information which player is in game.
+		// Clearing everything will take care of this.
+		CLIENT_ClearAllPlayers();
+		CLIENTDEMO_SetSkippingToNextMap ( false );
+	}
 
 	// Clear out our local buffer.
 	NETWORK_ClearBuffer( &g_LocalBuffer );
@@ -7445,7 +7365,7 @@ static void client_MapNew( BYTESTREAM_s *pByteStream )
 	// Also, the view is no longer active.
 	viewactive = false;
 
-	Printf( "Connecting to %s\n%s\n", g_AddressServer.ToString(), pszMapName );
+	Printf( "Connecting to %s\n%s\n", g_AddressServer.ToString(), mapName.GetChars() );
 
 	// Update the connection state, and begin trying to reconnect.
 	CLIENT_SetConnectionState( CTS_ATTEMPTINGCONNECTION );
@@ -7454,16 +7374,11 @@ static void client_MapNew( BYTESTREAM_s *pByteStream )
 
 //*****************************************************************************
 //
-static void client_MapExit( BYTESTREAM_s *pByteStream )
+void ServerCommands::MapExit::Execute()
 {
-	LONG	lPos;
-	const char	*pszNextMap;
-
-	// Read in the position we're supposed to spawn at (is this needed?).
-	lPos = NETWORK_ReadByte( pByteStream );
-
-	// Read in the next map.
-	pszNextMap = NETWORK_ReadString( pByteStream );
+	// [BB] We are about to change the map, so if we are playing a demo right now
+	// and wanted to skip the current map, we are done with it now.
+	CLIENTDEMO_SetSkippingToNextMap ( false );
 
 	if (( gamestate == GS_FULLCONSOLE ) ||
 		( gamestate == GS_INTERMISSION ))
@@ -7471,17 +7386,13 @@ static void client_MapExit( BYTESTREAM_s *pByteStream )
 		return;
 	}
 
-	G_ChangeLevel( pszNextMap, lPos, true );
+	G_ChangeLevel( nextMap, position, true );
 }
 
 //*****************************************************************************
 //
-static void client_MapAuthenticate( BYTESTREAM_s *pByteStream )
+void ServerCommands::MapAuthenticate::Execute()
 {
-	const char	*pszMapName;
-
-	pszMapName = NETWORK_ReadString( pByteStream );
-
 	// Nothing to do in demo mode.
 	if ( CLIENTDEMO_IsPlaying( ))
 		return;
@@ -7490,94 +7401,77 @@ static void client_MapAuthenticate( BYTESTREAM_s *pByteStream )
 
 	// [BB] Send the name of the map we are authenticating, this allows the
 	// server to check whether we try to authenticate the correct map.
-	NETWORK_WriteString( &g_LocalBuffer.ByteStream, pszMapName );
+	NETWORK_WriteString( &g_LocalBuffer.ByteStream, mapName );
 
 	// Send a checksum of our verticies, linedefs, sidedefs, and sectors.
-	CLIENT_AuthenticateLevel( pszMapName );
+	CLIENT_AuthenticateLevel( mapName );
 }
 
 //*****************************************************************************
 //
-static void client_SetMapTime( BYTESTREAM_s *pByteStream )
+void ServerCommands::SetMapTime::Execute()
 {
-	level.time = NETWORK_ReadLong( pByteStream );
+	level.time = time;
 }
 
 //*****************************************************************************
 //
-static void client_SetMapNumKilledMonsters( BYTESTREAM_s *pByteStream )
+void ServerCommands::SetMapNumKilledMonsters::Execute()
 {
-	level.killed_monsters = NETWORK_ReadShort( pByteStream );
+	level.killed_monsters = killedMonsters;
 }
 
 //*****************************************************************************
 //
-static void client_SetMapNumFoundItems( BYTESTREAM_s *pByteStream )
+void ServerCommands::SetMapNumFoundItems::Execute()
 {
-	level.found_items = NETWORK_ReadShort( pByteStream );
+	level.found_items = foundItems;
 }
 
 //*****************************************************************************
 //
-static void client_SetMapNumFoundSecrets( BYTESTREAM_s *pByteStream )
+void ServerCommands::SetMapNumFoundSecrets::Execute()
 {
-	level.found_secrets = NETWORK_ReadShort( pByteStream );
+	level.found_secrets = foundSecrets;
 }
 
 //*****************************************************************************
 //
-static void client_SetMapNumTotalMonsters( BYTESTREAM_s *pByteStream )
+void ServerCommands::SetMapNumTotalMonsters::Execute()
 {
-	level.total_monsters = NETWORK_ReadShort( pByteStream );
+	level.total_monsters = totalMonsters;
 }
 
 //*****************************************************************************
 //
-static void client_SetMapNumTotalItems( BYTESTREAM_s *pByteStream )
+void ServerCommands::SetMapNumTotalItems::Execute()
 {
-	level.total_items = NETWORK_ReadShort( pByteStream );
+	level.total_items = totalItems;
 }
 
 //*****************************************************************************
 //
-static void client_SetMapMusic( BYTESTREAM_s *pByteStream )
+void ServerCommands::SetMapNumTotalSecrets::Execute()
 {
-	const char	*pszMusicString;
-
-	// Read in the music string.
-	pszMusicString = NETWORK_ReadString( pByteStream );
-
-	// [TP] Read in the music order.
-	int order = NETWORK_ReadByte( pByteStream );
-
-	// Change the music.
-	S_ChangeMusic( pszMusicString, order );
+	level.total_secrets = totalSecrets;
 }
 
 //*****************************************************************************
 //
-static void client_SetMapSky( BYTESTREAM_s *pByteStream )
+void ServerCommands::SetMapMusic::Execute()
 {
-	const char	*pszSky1;
-	const char	*pszSky2;
+	S_ChangeMusic( music, order );
+}
 
-	// Read in the texture name of the first sky.
-	pszSky1 = NETWORK_ReadString( pByteStream );
+//*****************************************************************************
+//
+void ServerCommands::SetMapSky::Execute()
+{
+	strncpy( level.skypic1, sky1, 8 );
+	sky1texture = TexMan.GetTexture( sky1, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable );
 
-	if ( pszSky1 != NULL )
-	{
-		strncpy( level.skypic1, pszSky1, 8 );
-		sky1texture = TexMan.GetTexture( pszSky1, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable );
-	}
-
-	// Read in the texture name of the second sky.
-	pszSky2 = NETWORK_ReadString( pByteStream );
-
-	if ( pszSky2 != NULL )
-	{
-		strncpy( level.skypic2, pszSky2, 8 );
-		sky2texture = TexMan.GetTexture( pszSky2, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable );
-	}
+	strncpy( level.skypic2, sky2, 8 );
+	sky2texture = TexMan.GetTexture( sky2, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable );
 
 	// Set some other sky properties.
 	R_InitSkyMap( );
