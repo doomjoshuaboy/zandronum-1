@@ -32,6 +32,7 @@
 
 from string import capwords
 
+# These types are passed by value.
 passbyvalue = {'int', 'unsigned int', 'short', 'unsigned short', 'long', 'unsigned long', 'bool', 'float', 'double',
 			   'BYTE', 'SBYTE', 'WORD', 'SWORD', 'DWORD', 'SDWORD', 'QWORD', 'SQWORD',
 			   'FName', 'fixed_t', 'angle_t', 'size_t'}
@@ -50,30 +51,25 @@ class SpecParameter:
 	'''
 	Represents a parameter in a server command.
 	'''
-	def __init__(self, typename, name, specialization = None, attributes = None, isarray = False,
-	             condition = None, spec = None):
+	def __init__(self, typename, name, specialization = None, attributes = None, condition = None, spec = None):
 		self.typename = typename
 		self.name = name
 		self.specialization = specialization
 		self.attributes = attributes or set()
-		self.isarray = isarray
 		self.condition = condition and condition.strip()
 
-	def writeread(self, writer, command, parametername):
+	def writeread(self, **args):
 		raise Exception('BUG: %s does not define writeread!' % type(self).__name__)
 
-	def writesend(self, writer, command, parametername):
+	def writesend(self, **args):
 		raise Exception('BUG: %s does not define writesend!' % type(self).__name__)
 
-	def writereadchecks(self, writer, command, parametername):
+	def writereadchecks(self, **args):
 		pass
 
 	@property
 	def constreference(self):
-		if self.isarray:
-			# Pass arrays as const references
-			return 'const TArray<%s> &' % self.cxxtypename
-		elif self.cxxtypename.endswith('*') or self.cxxtypename in passbyvalue:
+		if self.cxxtypename.endswith('*') or self.cxxtypename in passbyvalue:
 			# Pass pointers and known types by value
 			return self.cxxtypename
 		else:
@@ -451,3 +447,42 @@ class StructParameter(SpecParameter):
 	def writereadchecks(self, parametername, **args):
 		for member, membername in self.iterateMembers(parametername):
 			member.writereadchecks(parametername = membername, **args)
+
+# ----------------------------------------------------------------------------------------------------------------------
+
+class ArrayParameter(SpecParameter):
+	def __init__(self, element, **args):
+		super().__init__(**args)
+		self.elementType = element
+		self.cxxtypename = 'TArray<%s>' % self.elementType.cxxtypename
+
+	def writeread(self, writer, parametername, **args):
+		# Use a size variable to store the size of this array.
+		sizevariable = next(writer.tempvar)
+		writer.declare('unsigned int', sizevariable)
+		writer.writeline('%s = NETWORK_ReadByte( bytestream );' % sizevariable)
+
+		# Allocate the array using the size we read.
+		writer.writeline('command.%s.Reserve( %s );' % (parametername, sizevariable))
+
+		# Now iterate the array's elements, and write the reading code.
+		writer.writeline('for ( unsigned int i = 0; i < %s; ++i )' % sizevariable)
+		writer.startscope()
+		self.elementType.writeread(writer = writer, parametername = parametername + '[i]', **args)
+		writer.endscope()
+
+	def writesend(self, writer, parametername, **args):
+		# If we're writing the sending code, write array's size into the command, and use it to loop over
+		# the elements.
+		writer.writeline('command.addByte( %s.Size() );' % parametername)
+		writer.writeline('for ( unsigned int i = 0; i < %s.Size(); ++i )' % parametername)
+		writer.startscope()
+		self.elementType.writesend(writer = writer, parametername = parametername + '[i]', **args)
+		writer.endscope()
+
+	def writereadchecks(self, writer, parametername, **args):
+		# Iterate the array's elements and write read checks for all of them.
+		writer.writeline('for ( unsigned int i = 0; i < command.%s.Size(); ++i )' % parametername)
+		writer.startscope()
+		self.elementType.writereadchecks(writer = writer, parametername = parametername + '[i]', **args)
+		writer.endscope()

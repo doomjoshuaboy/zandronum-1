@@ -210,7 +210,13 @@ class NetworkSpec:
 
 			# Build the parameter object and add it to the command.
 			parm = classtype(typename = typename, name = name, specialization = specialization, attributes = attributes,
-					isarray = bool(arraybrackets), condition = self.activecondition, spec = self)
+					condition = self.activecondition, spec = self)
+
+			# If this is an array, wrap the parameter into an Array type.
+			if arraybrackets:
+				element = parm
+				parm = parametertypes.ArrayParameter(typename = typename, name = name, condition = self.activecondition,
+					spec = self, element = element)
 
 			# Add this parameter to the members dictionary.
 			members[name] = parm
