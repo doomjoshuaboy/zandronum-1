@@ -53,7 +53,7 @@ void ASkyViewpoint::BeginPlay ()
 
 	// [BB] At this point, the client doesn't know the TID. The server
 	// will inform the client about the default skybox during a full update instead.
-	if (tid == 0 && level.DefaultSkybox == NULL && (NETWORK_InClientMode() == false))
+	if (tid == 0 && level.DefaultSkybox == NULL && (NETWORK_InClientModeAndActorNotClientHandled( this ) == false) )
 	{
 		level.DefaultSkybox = this;
 	}
