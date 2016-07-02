@@ -190,7 +190,7 @@ bool ARaiseAlarm::TryPickup (AActor *&toucher)
 
 bool ARaiseAlarm::SpecialDropAction (AActor *dropper)
 {
-	if (dropper->target != nullptr)
+	if (dropper->target != NULL)
 	{
 		P_NoiseAlert(dropper->target, dropper->target);
 
@@ -275,7 +275,7 @@ bool ACloseDoor222::TryPickup (AActor *&toucher)
 bool ACloseDoor222::SpecialDropAction (AActor *dropper)
 {
 	EV_DoDoor (DDoor::doorClose, NULL, dropper, 222, 2*FRACUNIT, 0, 0, 0);
-	if (dropper->target != nullptr)
+	if (dropper->target != NULL)
 	{
 		if (dropper->target->CheckLocalView(consoleplayer))
 		{
