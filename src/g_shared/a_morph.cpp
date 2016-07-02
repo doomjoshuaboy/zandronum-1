@@ -111,8 +111,9 @@ bool P_MorphPlayer (player_t *activator, player_t *p, const PClass *spawntype, i
 	// [WS] We need a fog pointer.
 	AActor *fog = Spawn(((enter_flash) ? enter_flash : RUNTIME_CLASS(ATeleportFog)), actor->x, actor->y, actor->z + TELEFOGHEIGHT, ALLOW_REPLACE);
 	// [WS] Inform the clients of the fog.
+	// [BB] Needs a net id otherwise not all code pointers work on the fog.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SpawnThingNoNetID( fog );
+		SERVERCOMMANDS_SpawnThing( fog );
 	actor->player = NULL;
 	actor->flags &= ~(MF_SOLID|MF_SHOOTABLE);
 	actor->flags |= MF_UNMORPHED;
@@ -338,8 +339,9 @@ bool P_UndoPlayerMorph (player_t *activator, player_t *player, int unmorphflag, 
 		// [WS] We need a fog pointer.
 		AActor *fog = Spawn(exit_flash, pmo->x + 20*finecosine[angle], pmo->y + 20*finesine[angle], pmo->z + TELEFOGHEIGHT, ALLOW_REPLACE);
 		// [WS] Inform the clients of the fog.
+		// [BB] Needs a net id otherwise not all code pointers work on the fog.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SpawnThingNoNetID( fog );
+			SERVERCOMMANDS_SpawnThing( fog );
 	}
 	mo->SetupWeaponSlots();		// Use original class's weapon slots.
 	beastweap = player->ReadyWeapon;
@@ -461,7 +463,7 @@ bool P_MorphMonster (AActor *actor, const PClass *spawntype, int duration, int s
 		SERVERCOMMANDS_SpawnThing( morphed );
 	AActor* fog = Spawn(((enter_flash) ? enter_flash : RUNTIME_CLASS(ATeleportFog)), actor->x, actor->y, actor->z + TELEFOGHEIGHT, ALLOW_REPLACE);
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SpawnThingNoNetID( fog );
+		SERVERCOMMANDS_SpawnThing( fog );
 	return true;
 }
 
@@ -527,7 +529,7 @@ bool P_UndoMonsterMorph (AMorphedMonster *beast, bool force)
 	beast->Destroy ();
 	AActor* fog = Spawn(exit_flash, beast->x, beast->y, beast->z + TELEFOGHEIGHT, ALLOW_REPLACE);
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SpawnThingNoNetID( fog );
+		SERVERCOMMANDS_SpawnThing( fog );
 	return true;
 }
 
