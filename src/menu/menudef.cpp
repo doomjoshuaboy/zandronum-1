@@ -1416,7 +1416,7 @@ static void InitBotsList()
 	pair.Text = "-";
 	( *opt )->mValues.Push( pair );
 
-	for ( unsigned int i = 0; i < MAX_BOTINFO; ++i )
+	for ( unsigned int i = 0; i < BOTINFO_GetNumBotInfos(); ++i )
 	{
 		if ( BOTINFO_GetRevealed( i ) == false )
 			continue;
