@@ -4824,7 +4824,6 @@ void ServerCommands::SetThingState::Execute()
 		if ( actor->FindState(NAME_Heal) )
 		{
 			newState = actor->FindState(NAME_Heal);
-			S_Sound( actor, CHAN_BODY, "vile/raise", 1, ATTN_IDLE );
 		}
 		else if ( actor->IsKindOf( PClass::FindClass("Archvile")))
 		{
@@ -4833,7 +4832,6 @@ void ServerCommands::SetThingState::Execute()
 			{
 				newState = archvile->ActorInfo->FindState(NAME_Heal);
 			}
-			S_Sound( actor, CHAN_BODY, "vile/raise", 1, ATTN_IDLE );
 		}
 		else
 			return;
