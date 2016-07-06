@@ -4818,6 +4818,7 @@ void ServerCommands::SetThingState::Execute()
 		P_Thing_Raise( actor, true );
 		return;
 	case STATE_HEAL:
+	case STATE_ARCHVILE_HEAL:
 
 		// [BB] The monster count is increased when STATE_RAISE is set, so
 		// don't do it here.
@@ -4825,7 +4826,7 @@ void ServerCommands::SetThingState::Execute()
 		{
 			newState = actor->FindState(NAME_Heal);
 		}
-		else if ( actor->IsKindOf( PClass::FindClass("Archvile")))
+		else if ( state == STATE_ARCHVILE_HEAL )
 		{
 			const PClass *archvile = PClass::FindClass("Archvile");
 			if (archvile != NULL)
@@ -4833,9 +4834,6 @@ void ServerCommands::SetThingState::Execute()
 				newState = archvile->ActorInfo->FindState(NAME_Heal);
 			}
 		}
-		else
-			return;
-
 		break;
 
 	case STATE_IDLE:
