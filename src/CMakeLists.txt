@@ -513,6 +513,9 @@ if( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STRE
 	set( CMAKE_CXX_FLAGS_MINSIZEREL "${REL_CXX_FLAGS} ${CMAKE_CXX_FLAGS_MINSIZEREL}" )
 	set( CMAKE_CXX_FLAGS_RELWITHDEBINFO "${REL_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}" )
 
+	if(APPLE AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+		set( CMAKE_CXX_FLAGS "-Wno-inconsistent-missing-override ${CMAKE_CXX_FLAGS}" )
+	endif()
 	set( CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused -Wno-unused-parameter -Wno-missing-field-initializers ${CMAKE_CXX_FLAGS}" )
 
 	# Use the highest C++ standard available since VS2015 compiles with C++14
@@ -537,6 +540,12 @@ if( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STRE
 				endif ()
 			endif ()
 		endif ()
+	endif ()
+
+	# With standard Apple tools -stdlib=libc++ needs to be specified in order to get
+	# C++11 support using SDKs 10.7 and 10.8.
+	if ( APPLE AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang" )
+		set( CMAKE_CXX_FLAGS "-stdlib=libc++ ${CMAKE_CXX_FLAGS}" )
 	endif ()
 
 	# Remove extra warnings when using the official DirectX headers.
