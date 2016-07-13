@@ -2751,6 +2751,16 @@ sector_t *CLIENT_FindSectorByID( ULONG ulID )
 
 //*****************************************************************************
 //
+line_t *CLIENT_FindLineByID( ULONG lineID )
+{
+	if ( lineID >= static_cast<ULONG>( numlines ) )
+		return ( NULL );
+
+	return ( &lines[lineID] );
+}
+
+//*****************************************************************************
+//
 bool CLIENT_IsParsingPacket( void )
 {
 	return ( g_bIsParsingPacket );
