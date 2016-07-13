@@ -2890,9 +2890,9 @@ void SERVERCOMMANDS_SetSideFlags( ULONG ulSide, ULONG ulPlayerExtra, ServerComma
 	if ( ulSide >= (ULONG)numsides )
 		return;
 
-	NetCommand command ( SVC_SETSIDEFLAGS );
-	command.addLong ( ulSide );
-	command.addByte ( sides[ulSide].Flags );
+	ServerCommands::SetSideFlags command;
+	command.SetSide( &sides[ulSide] );
+	command.SetFlags( sides[ulSide].Flags );
 	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 
