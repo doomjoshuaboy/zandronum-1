@@ -2751,9 +2751,9 @@ void SERVERCOMMANDS_SetLineAlpha( ULONG ulLine, ULONG ulPlayerExtra, ServerComma
 	if ( ulLine >= (ULONG)numlines )
 		return;
 
-	NetCommand command ( SVC_SETLINEALPHA );
-	command.addShort ( ulLine );
-	command.addLong ( lines[ulLine].Alpha );
+	ServerCommands::SetLineAlpha command;
+	command.SetLine( &lines[ulLine] );
+	command.SetAlpha( lines[ulLine].Alpha );
 	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 
@@ -2768,33 +2768,30 @@ void SERVERCOMMANDS_SetLineTexture( ULONG ulLine, ULONG ulPlayerExtra, ServerCom
 	if ( lines[ulLine].ulTexChangeFlags == 0 )
 		return;
 
+	ServerCommands::SetLineTexture command;
+	command.SetLine( &lines[ulLine] );
+
 	if ( lines[ulLine].ulTexChangeFlags & TEXCHANGE_FRONTTOP )
 	{
-		NetCommand command ( SVC_SETLINETEXTURE );
-		command.addShort( ulLine );
-		command.addString( lines[ulLine].sidedef[0]->GetTexture(side_t::top).isValid() ? TexMan[lines[ulLine].sidedef[0]->GetTexture(side_t::top)]->Name : "-" );
-		command.addByte( 0 );
-		command.addByte( 0 );
+		command.SetTextureName( lines[ulLine].sidedef[0]->GetTexture(side_t::top).isValid() ? TexMan[lines[ulLine].sidedef[0]->GetTexture(side_t::top)]->Name : "-" );
+		command.SetSide( 0 );
+		command.SetPosition( 0 );
 		command.sendCommandToClients( ulPlayerExtra, flags );
 	}
 
 	if ( lines[ulLine].ulTexChangeFlags & TEXCHANGE_FRONTMEDIUM )
 	{
-		NetCommand command ( SVC_SETLINETEXTURE );
-		command.addShort( ulLine );
-		command.addString( lines[ulLine].sidedef[0]->GetTexture(side_t::mid).isValid() ? TexMan[lines[ulLine].sidedef[0]->GetTexture(side_t::mid)]->Name : "-" );
-		command.addByte( 0 );
-		command.addByte( 1 );
+		command.SetTextureName( lines[ulLine].sidedef[0]->GetTexture(side_t::mid).isValid() ? TexMan[lines[ulLine].sidedef[0]->GetTexture(side_t::mid)]->Name : "-" );
+		command.SetSide( 0 );
+		command.SetPosition( 1 );
 		command.sendCommandToClients( ulPlayerExtra, flags );
 	}
 
 	if ( lines[ulLine].ulTexChangeFlags & TEXCHANGE_FRONTBOTTOM )
 	{
-		NetCommand command ( SVC_SETLINETEXTURE );
-		command.addShort( ulLine );
-		command.addString( lines[ulLine].sidedef[0]->GetTexture(side_t::bottom).isValid() ? TexMan[lines[ulLine].sidedef[0]->GetTexture(side_t::bottom)]->Name : "-" );
-		command.addByte( 0 );
-		command.addByte( 2 );
+		command.SetTextureName( lines[ulLine].sidedef[0]->GetTexture(side_t::bottom).isValid() ? TexMan[lines[ulLine].sidedef[0]->GetTexture(side_t::bottom)]->Name : "-" );
+		command.SetSide( 0 );
+		command.SetPosition( 2 );
 		command.sendCommandToClients( ulPlayerExtra, flags );
 	}
 
@@ -2802,31 +2799,25 @@ void SERVERCOMMANDS_SetLineTexture( ULONG ulLine, ULONG ulPlayerExtra, ServerCom
 	{
 		if ( lines[ulLine].ulTexChangeFlags & TEXCHANGE_BACKTOP )
 		{
-			NetCommand command ( SVC_SETLINETEXTURE );
-			command.addShort( ulLine );
-			command.addString( lines[ulLine].sidedef[1]->GetTexture(side_t::top).isValid() ? TexMan[lines[ulLine].sidedef[1]->GetTexture(side_t::top)]->Name : "-" );
-			command.addByte( 1 );
-			command.addByte( 0 );
+			command.SetTextureName( lines[ulLine].sidedef[1]->GetTexture(side_t::top).isValid() ? TexMan[lines[ulLine].sidedef[1]->GetTexture(side_t::top)]->Name : "-" );
+			command.SetSide( 1 );
+			command.SetPosition( 0 );
 			command.sendCommandToClients( ulPlayerExtra, flags );
 		}
 
 		if ( lines[ulLine].ulTexChangeFlags & TEXCHANGE_BACKMEDIUM )
 		{
-			NetCommand command ( SVC_SETLINETEXTURE );
-			command.addShort( ulLine );
-			command.addString( lines[ulLine].sidedef[1]->GetTexture(side_t::mid).isValid() ? TexMan[lines[ulLine].sidedef[1]->GetTexture(side_t::mid)]->Name : "-" );
-			command.addByte( 1 );
-			command.addByte( 1 );
+			command.SetTextureName( lines[ulLine].sidedef[1]->GetTexture(side_t::mid).isValid() ? TexMan[lines[ulLine].sidedef[1]->GetTexture(side_t::mid)]->Name : "-" );
+			command.SetSide( 1 );
+			command.SetPosition( 1 );
 			command.sendCommandToClients( ulPlayerExtra, flags );
 		}
 
 		if ( lines[ulLine].ulTexChangeFlags & TEXCHANGE_BACKBOTTOM )
 		{
-			NetCommand command ( SVC_SETLINETEXTURE );
-			command.addShort( ulLine );
-			command.addString( lines[ulLine].sidedef[1]->GetTexture(side_t::bottom).isValid() ? TexMan[lines[ulLine].sidedef[1]->GetTexture(side_t::bottom)]->Name : "-" );
-			command.addByte( 1 );
-			command.addByte( 2 );
+			command.SetTextureName( lines[ulLine].sidedef[1]->GetTexture(side_t::bottom).isValid() ? TexMan[lines[ulLine].sidedef[1]->GetTexture(side_t::bottom)]->Name : "-" );
+			command.SetSide( 1 );
+			command.SetPosition( 2 );
 			command.sendCommandToClients( ulPlayerExtra, flags );
 		}
 	}
@@ -2836,11 +2827,11 @@ void SERVERCOMMANDS_SetLineTexture( ULONG ulLine, ULONG ulPlayerExtra, ServerCom
 //
 void SERVERCOMMANDS_SetLineTextureByID( ULONG ulLineID, ULONG ulSide, ULONG ulPosition, const char *pszTexName, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
-	NetCommand command ( SVC_SETLINETEXTUREBYID );
-	command.addShort ( ulLineID );
-	command.addString ( pszTexName );
-	command.addByte ( ulSide );
-	command.addByte ( ulPosition );
+	ServerCommands::SetLineTextureByID command;
+	command.SetLineID( ulLineID );
+	command.SetTextureName( pszTexName );
+	command.SetSide( ulSide );
+	command.SetPosition( ulPosition );
 	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 
@@ -2851,9 +2842,9 @@ void SERVERCOMMANDS_SetSomeLineFlags( ULONG ulLine, ULONG ulPlayerExtra, ServerC
 	if ( ulLine >= (ULONG)numlines )
 		return;
 
-	NetCommand command ( SVC_SETSOMELINEFLAGS );
-	command.addShort ( ulLine );
-	command.addLong ( lines[ulLine].flags & ( ML_BLOCKING | ML_BLOCKEVERYTHING | ML_RAILING | ML_BLOCK_PLAYERS | ML_ADDTRANS ));
+	ServerCommands::SetSomeLineFlags command;
+	command.SetLine( &lines[ulLine] );
+	command.SetBlockFlags( lines[ulLine].flags & ( ML_BLOCKING | ML_BLOCKEVERYTHING | ML_RAILING | ML_BLOCK_PLAYERS | ML_ADDTRANS ));
 	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 
