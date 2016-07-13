@@ -1769,13 +1769,13 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 		{
 			const LONG lExtCommand = NETWORK_ReadByte( pByteStream );
 
-			if ( CLIENT_ParseExtendedServerCommand( static_cast<SVC2>( lExtCommand ), pByteStream ))
-				break;
-
 #ifdef _DEBUG
 			if ( cl_showcommands )
 				Printf( "%s\n", GetStringSVC2 ( static_cast<SVC2> ( lExtCommand ) ) );
 #endif
+
+			if ( CLIENT_ParseExtendedServerCommand( static_cast<SVC2>( lExtCommand ), pByteStream ))
+				break;
 
 			switch ( lExtCommand )
 			{
