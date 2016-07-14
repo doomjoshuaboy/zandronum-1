@@ -15,9 +15,12 @@ static const float rModelAspectMod = 1 / 1.2f;	//.833334f;
 #define DMD_MAGIC			0x4D444D44
 #define MD3_MAGIC			0x33504449
 #define NUMVERTEXNORMALS	162
+#define MD3_MAX_SURFACES	32
 
 FTexture * LoadSkin(const char * path, const char * fn);
 
+// [JM] Necessary forward declaration
+typedef struct FSpriteModelFrame FSpriteModelFrame;
 
 class FModel
 {
@@ -34,6 +37,10 @@ public:
 	virtual void CleanGLData() {}
 
 
+
+	const FSpriteModelFrame *curSpriteMDLFrame;
+	int curMDLIndex;
+	void PushSpriteFrame(const FSpriteModelFrame *smf, int index) { curSpriteMDLFrame = smf; curMDLIndex = index; };
 
 	FString mFileName;
 };
@@ -323,6 +330,7 @@ struct FSpriteModelFrame
 {
 	FModel * models[MAX_MODELS_PER_FRAME];
 	FTexture * skins[MAX_MODELS_PER_FRAME];
+	FTexture * surfaceskins[MAX_MODELS_PER_FRAME][MD3_MAX_SURFACES];
 	int modelframes[MAX_MODELS_PER_FRAME];
 	float xscale, yscale, zscale;
 	// [BB] Added zoffset, rotation parameters and flags.

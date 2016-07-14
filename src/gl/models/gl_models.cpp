@@ -262,7 +262,7 @@ void gl_InitModels()
 {
 	int Lump, lastLump;
 	FString path;
-	int index;
+	int index, surface;
 	int i;
 
 	FSpriteModelFrame smf;
@@ -325,6 +325,7 @@ void gl_InitModels()
 		{
 			if (sc.Compare("model"))
 			{
+				path = "";
 				sc.MustGetString();
 				memset(&smf, 0, sizeof(smf));
 				smf.xscale=smf.yscale=smf.zscale=1.f;
@@ -495,6 +496,39 @@ void gl_InitModels()
 							if (smf.skins[index] == NULL)
 							{
 								Printf("Skin '%s' not found in '%s'\n",
+									sc.String, smf.type->TypeName.GetChars());
+							}
+						}
+					}
+					else if (sc.Compare("surfaceskin"))
+					{
+						sc.MustGetNumber();
+						index = sc.Number;
+						sc.MustGetNumber();
+						surface = sc.Number;
+
+						if (index<0 || index >= MAX_MODELS_PER_FRAME)
+						{
+							sc.ScriptError("Too many models in %s", smf.type->TypeName.GetChars());
+						}
+
+						if (surface<0 || index >= MD3_MAX_SURFACES)
+						{
+							sc.ScriptError("Invalid MD3 Surface %d in %s", MD3_MAX_SURFACES, smf.type->TypeName.GetChars());
+						}
+
+						sc.MustGetString();
+						FixPathSeperator(sc.String);
+						if (sc.Compare(""))
+						{
+							smf.surfaceskins[index][surface] = NULL;
+						}
+						else
+						{
+							smf.surfaceskins[index][surface] = LoadSkin("", sc.String);
+							if (smf.surfaceskins[index][surface] == NULL)
+							{
+								Printf("Surface Skin '%s' not found in '%s'\n",
 									sc.String, smf.type->TypeName.GetChars());
 							}
 						}
@@ -704,6 +738,8 @@ void gl_RenderFrameModels( const FSpriteModelFrame *smf,
 
 		if (mdl!=NULL)
 		{
+			mdl->PushSpriteFrame(smf, i);
+
 			if ( smfNext && smf->modelframes[i] != smfNext->modelframes[i] )
 				mdl->RenderFrameInterpolated(smf->skins[i], smf->modelframes[i], smfNext->modelframes[i], inter, cm, translation);
 			else
