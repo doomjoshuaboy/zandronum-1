@@ -65,10 +65,10 @@ EndCommand
 
 Command SetSectorPanning
 	Sector sector
-	AproxFixed ceilingXOffset
-	AproxFixed ceilingYOffset
-	AproxFixed floorXOffset
-	AproxFixed floorYOffset
+	Fixed ceilingXOffset
+	Fixed ceilingYOffset
+	Fixed floorXOffset
+	Fixed floorYOffset
 EndCommand
 
 Command SetSectorRotation
@@ -87,10 +87,10 @@ EndCommand
 
 Command SetSectorScale
 	Sector sector
-	AproxFixed ceilingXScale
-	AproxFixed ceilingYScale
-	AproxFixed floorXScale
-	AproxFixed floorYScale
+	Fixed ceilingXScale
+	Fixed ceilingYScale
+	Fixed floorXScale
+	Fixed floorYScale
 EndCommand
 
 Command SetSectorSpecial
