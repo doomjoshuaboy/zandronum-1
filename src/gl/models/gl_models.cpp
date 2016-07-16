@@ -738,7 +738,7 @@ void gl_RenderFrameModels( const FSpriteModelFrame *smf,
 
 		if (mdl!=NULL)
 		{
-			mdl->PushSpriteFrame(smf, i);
+			mdl->PushSpriteMDLFrame(smf, i);
 
 			if ( smfNext && smf->modelframes[i] != smfNext->modelframes[i] )
 				mdl->RenderFrameInterpolated(smf->skins[i], smf->modelframes[i], smfNext->modelframes[i], inter, cm, translation);
