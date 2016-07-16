@@ -525,7 +525,7 @@ void gl_InitModels()
 						}
 						else
 						{
-							smf.surfaceskins[index][surface] = LoadSkin("", sc.String);
+							smf.surfaceskins[index][surface] = LoadSkin(path.GetChars(), sc.String);
 							if (smf.surfaceskins[index][surface] == NULL)
 							{
 								Printf("Surface Skin '%s' not found in '%s'\n",
