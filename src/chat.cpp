@@ -83,8 +83,7 @@
 //	VARIABLES
 
 static	ULONG	g_ulChatMode;
-static	char	g_szChatBuffer[MAX_CHATBUFFER_LENGTH];
-static	LONG	g_lStringLength;
+static	FString	g_szChatBuffer;
 static	const char	*g_pszChatPrompt = "SAY: ";
 
 //*****************************************************************************
@@ -273,7 +272,7 @@ void CHAT_Render( void )
 	float		fXScale;
 	float		fYScale;
 	ULONG		ulYPos;
-	LONG		lIdx;
+	int			lIdx;
 	LONG		lX;
 	char		szString[64];
 
@@ -306,7 +305,7 @@ void CHAT_Render( void )
 
 	// figure out if the text is wider than the screen->
 	// if so, only draw the right-most portion of it.
-	for ( lIdx = g_lStringLength - 1; (( lIdx >= 0 ) && ( lX < ( (float)SCREENWIDTH * fXScale ))); lIdx-- )
+	for ( lIdx = g_szChatBuffer.Len() - 1; (( lIdx >= 0 ) && ( lX < ( (float)SCREENWIDTH * fXScale ))); lIdx-- )
 	{
 		lX += SmallFont->GetCharWidth( g_szChatBuffer[lIdx] & 0x7f );
 	}
@@ -317,9 +316,9 @@ void CHAT_Render( void )
 	else
 		lIdx = 0;
 
-	// Temporarily h4x0r the chat buffer string to include the cursor.
-	g_szChatBuffer[g_lStringLength] = gameinfo.gametype == GAME_Doom ? '_' : '[';
-	g_szChatBuffer[g_lStringLength+1] = 0;
+	FString displayString = g_szChatBuffer.Right( g_szChatBuffer.Len() - lIdx );
+	displayString += gameinfo.gametype == GAME_Doom ? '_' : '[';
+
 	if ( g_ulChatMode == CHATMODE_GLOBAL )
 	{
 		HUD_DrawText( SmallFont, CR_GREEN,
@@ -330,7 +329,7 @@ void CHAT_Render( void )
 		HUD_DrawText( SmallFont, CR_GRAY,
 			SmallFont->StringWidth( g_pszChatPrompt ),
 			(LONG)( ulYPos * fYScale ),
-			g_szChatBuffer + lIdx );
+			displayString );
 	}
 	else
 	{
@@ -342,7 +341,7 @@ void CHAT_Render( void )
 		HUD_DrawText( SmallFont, (TEAM_GetTextColor (players[consoleplayer].ulTeam)),
 			SmallFont->StringWidth( g_pszChatPrompt ),
 			(LONG)( ulYPos * fYScale ),
-			g_szChatBuffer + lIdx );
+			displayString );
 	}
 
 	// [RC] Tell chatters about the iron curtain of LMS chat.
@@ -361,7 +360,6 @@ void CHAT_Render( void )
 			szString );
 	}
 
-	g_szChatBuffer[g_lStringLength] = 0;
 	BorderTopRefresh = screen->GetPageCount( );
 }
 
@@ -559,33 +557,24 @@ void chat_SendMessage( ULONG ulMode, const char *pszString )
 //
 void chat_ClearChatMessage( void )
 {
-	ULONG	ulIdx;
-
 	// Clear out the chat string buffer.
-	for ( ulIdx = 0; ulIdx < MAX_CHATBUFFER_LENGTH; ulIdx++ )
-		g_szChatBuffer[ulIdx] = 0;
-
-	// String buffer is of zero length.
-	g_lStringLength = 0;
+	g_szChatBuffer = "";
 }
 
 //*****************************************************************************
 //
 void chat_AddChar( char cChar )
 {
-	if ( g_lStringLength >= ( MAX_CHATBUFFER_LENGTH - 2 ))
-		return;
-
-	g_szChatBuffer[g_lStringLength++] = cChar;
-	g_szChatBuffer[g_lStringLength] = 0;
+	if ( g_szChatBuffer.Len() < MAX_CHATBUFFER_LENGTH )
+		g_szChatBuffer += cChar;
 }
 
 //*****************************************************************************
 //
 void chat_DeleteChar( void )
 {
-	if ( g_lStringLength )
-		g_szChatBuffer[--g_lStringLength] = 0;
+	if ( g_szChatBuffer.IsNotEmpty() )
+		g_szChatBuffer.Truncate( g_szChatBuffer.Len() - 1 );
 }
 
 //*****************************************************************************
