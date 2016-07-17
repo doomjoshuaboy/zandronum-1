@@ -96,6 +96,7 @@ public:
 	int Length() const;
 	void Insert( char character );
 	void MoveCursor( int offset );
+	void MoveCursorTo( int position );
 	void RemoveCharacter( bool forward );
 	void PasteChat( const char *clip );
 
@@ -238,7 +239,14 @@ int ChatBuffer::GetPosition() const
 //
 void ChatBuffer::MoveCursor( int offset )
 {
-	CursorPosition = clamp( CursorPosition + offset, 0, Length() );
+	MoveCursorTo( GetPosition() + offset );
+}
+
+//*****************************************************************************
+//
+void ChatBuffer::MoveCursorTo( int position )
+{
+	CursorPosition = clamp( position, 0, Length() );
 }
 
 //*****************************************************************************
@@ -355,6 +363,18 @@ bool CHAT_Input( event_t *pEvent )
 			else if ( pEvent->data1 == GK_RIGHT )
 			{
 				g_ChatBuffer.MoveCursor( 1 );
+				return ( true );
+			}
+			// Home
+			else if ( pEvent->data1 == GK_HOME )
+			{
+				g_ChatBuffer.MoveCursorTo( 0 );
+				return ( true );
+			}
+			// End
+			else if ( pEvent->data1 == GK_END )
+			{
+				g_ChatBuffer.MoveCursorTo( g_ChatBuffer.Length() );
 				return ( true );
 			}
 		}
