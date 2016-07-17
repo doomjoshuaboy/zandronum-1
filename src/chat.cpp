@@ -88,17 +88,22 @@
 class ChatBuffer
 {
 public:
+	ChatBuffer();
+
+	void Clear();
 	FString GetMessage() const;
+	int GetPosition() const;
+	int Length() const;
 	void Insert( char character );
+	void MoveCursor( int offset );
 	void RemoveCharacter();
 	void PasteChat( const char *clip );
-	void Clear();
-	int Length() const;
 
 	const char &operator[]( int position ) const;
 
 private:
 	FString Message;
+	int CursorPosition;
 };
 
 //*****************************************************************************
@@ -153,7 +158,11 @@ void	chat_DoSubstitution( FString &Input ); // [CW]
 
 //*****************************************************************************
 //	FUNCTIONS
+ChatBuffer::ChatBuffer() :
+    CursorPosition( 0 ) {}
 
+//*****************************************************************************
+//
 FString ChatBuffer::GetMessage() const
 {
 	return Message;
@@ -164,15 +173,29 @@ FString ChatBuffer::GetMessage() const
 void ChatBuffer::Insert( char character )
 {
 	if ( Message.Len() < MAX_CHATBUFFER_LENGTH )
-		Message += character;
+	{
+		Message.Insert( CursorPosition, character );
+		CursorPosition++;
+	}
 }
 
 //*****************************************************************************
 //
 void ChatBuffer::RemoveCharacter()
 {
-	if ( Message.IsNotEmpty() )
-		Message.Truncate( Message.Len() - 1 );
+	if ( Message.IsNotEmpty() && ( CursorPosition > 0 ))
+	{
+		char *messageBuffer = Message.LockBuffer();
+
+		// Move all characters from the cursor position to the end of string back by one.
+		for ( int i = CursorPosition - 1; i < Length() - 1; ++i )
+			messageBuffer[i] = messageBuffer[i + 1];
+
+		// Remove the last character.
+		Message.UnlockBuffer();
+		Message.Truncate( Length() - 1 );
+		CursorPosition--;
+	}
 }
 
 //*****************************************************************************
@@ -180,6 +203,7 @@ void ChatBuffer::RemoveCharacter()
 void ChatBuffer::Clear()
 {
 	Message = "";
+	CursorPosition = 0;
 }
 
 //*****************************************************************************
@@ -194,6 +218,20 @@ int ChatBuffer::Length() const
 const char &ChatBuffer::operator[]( int position ) const
 {
 	return Message[position];
+}
+
+//*****************************************************************************
+//
+int ChatBuffer::GetPosition() const
+{
+	return CursorPosition;
+}
+
+//*****************************************************************************
+//
+void ChatBuffer::MoveCursor( int offset )
+{
+	CursorPosition = clamp( CursorPosition + offset, 0, Length() );
 }
 
 //*****************************************************************************
@@ -294,6 +332,18 @@ bool CHAT_Input( event_t *pEvent )
 			else if ( pEvent->data1 == 'V' && ( pEvent->data3 & GKM_CTRL ))
 			{
 				g_ChatBuffer.PasteChat( I_GetFromClipboard( false ));
+				return ( true );
+			}
+			// Arrow keys
+			else if ( pEvent->data1 == GK_LEFT )
+			{
+				g_ChatBuffer.MoveCursor( -1 );
+				return ( true );
+			}
+			else if ( pEvent->data1 == GK_RIGHT )
+			{
+				g_ChatBuffer.MoveCursor( 1 );
+				return ( true );
 			}
 		}
 		else if ( pEvent->subtype == EV_GUI_Char )
@@ -325,6 +375,7 @@ bool CHAT_Input( event_t *pEvent )
 void CHAT_Render( void )
 {
 	static const char *prompt = "SAY: ";
+	static const char *cursor = gameinfo.gametype == GAME_Doom ? "_" : "[";
 	bool scale = ( con_scaletext ) && ( con_virtualwidth > 0 ) && ( con_virtualheight > 0 );
 	float scaleX = 1.0f;
 	float scaleY = 1.0f;
@@ -362,7 +413,7 @@ void CHAT_Render( void )
 
 	// Build the message that we will display to clients.
 	FString displayString = g_ChatBuffer.GetMessage().Right( g_ChatBuffer.Length() - offset );
-	displayString += gameinfo.gametype == GAME_Doom ? '_' : '[';
+	displayString = displayString.Mid( 0, g_ChatBuffer.GetPosition() ) + cursor + displayString.Mid( g_ChatBuffer.GetPosition() );
 	EColorRange promptColor = CR_GREEN;
 	EColorRange messageColor = CR_GRAY;
 
