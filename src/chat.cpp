@@ -96,7 +96,7 @@ public:
 	int Length() const;
 	void Insert( char character );
 	void MoveCursor( int offset );
-	void RemoveCharacter();
+	void RemoveCharacter( bool forward );
 	void PasteChat( const char *clip );
 
 	const char &operator[]( int position ) const;
@@ -181,20 +181,27 @@ void ChatBuffer::Insert( char character )
 
 //*****************************************************************************
 //
-void ChatBuffer::RemoveCharacter()
+void ChatBuffer::RemoveCharacter( bool forward )
 {
-	if ( Message.IsNotEmpty() && ( CursorPosition > 0 ))
+	int deletePosition = CursorPosition;
+
+	if ( forward == false )
+		deletePosition--;
+
+	if ( Message.IsNotEmpty() && ( deletePosition >= 0 ) && ( deletePosition < Length() ))
 	{
 		char *messageBuffer = Message.LockBuffer();
 
 		// Move all characters from the cursor position to the end of string back by one.
-		for ( int i = CursorPosition - 1; i < Length() - 1; ++i )
+		for ( int i = deletePosition; i < Length() - 1; ++i )
 			messageBuffer[i] = messageBuffer[i + 1];
 
 		// Remove the last character.
 		Message.UnlockBuffer();
 		Message.Truncate( Length() - 1 );
-		CursorPosition--;
+
+		if ( forward == false )
+			CursorPosition--;
 	}
 }
 
@@ -319,7 +326,12 @@ bool CHAT_Input( event_t *pEvent )
 			}
 			else if ( pEvent->data1 == '\b' )
 			{
-				g_ChatBuffer.RemoveCharacter();
+				g_ChatBuffer.RemoveCharacter( false );
+				return ( true );
+			}
+			else if ( pEvent->data1 == GK_DEL )
+			{
+				g_ChatBuffer.RemoveCharacter( true );
 				return ( true );
 			}
 			// Ctrl+C. 
