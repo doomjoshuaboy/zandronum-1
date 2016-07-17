@@ -29,6 +29,7 @@
 +	- The default 'authhostname' CVAR has been changed to the official zandronum game authentication server ( auth.zandronum.com:16666 ). [AlexMax, Edward-san]
 +	- BOTINFO now allows to define more than 128 bots. [Torr Samaho]
 +	- Chat now features a movable cursor, allowing text insertion/deletion from elsewhere than just the end. [Dusk]
++	- Chat preview is now rendered on multiple lines, if necessary. [Dusk]
 -	- Fixed: Newly connecting clients were not properly informed about the secrets that were already revealed. [Torr Samaho]
 -	- Fixed: Resurrect cheat didn't work online. [Dusk]
 -	- Fixed: Turbo cheat didn't work online. [Dusk]
