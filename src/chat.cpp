@@ -428,23 +428,12 @@ void CHAT_Render( void )
 		positionY = positionY - SmallFont->GetHeight() + 1;
 	}
 
-	int width = round( SmallFont->GetCharWidth( '_' ) * scaleX * 2 + SmallFont->StringWidth( prompt ));
-	int offset;
-
-	// Figure out if the text is wider than the screen, if so, only draw the right-most portion of it.
-	for ( offset = g_ChatBuffer.Length() - 1; (( offset >= 0 ) && ( width < ( (float)SCREENWIDTH * scaleX ))); offset-- )
-	{
-		width += SmallFont->GetCharWidth( g_ChatBuffer[offset] & 0x7f );
-	}
-
-	// If offset is >= 0, then this chat string goes beyond the edge of the screen.
-	if ( offset >= 0 )
-		offset++;
-	else
-		offset = 0;
+	int chatWidth = SCREENWIDTH * scaleX;
+	chatWidth -= round( SmallFont->GetCharWidth( '_' ) * scaleX * 2 + SmallFont->StringWidth( prompt ));
 
 	// Build the message that we will display to clients.
-	FString displayString = g_ChatBuffer.GetMessage().Right( g_ChatBuffer.Length() - offset );
+	FString displayString = g_ChatBuffer.GetMessage();
+	// Insert the cursor string into the message.
 	displayString = displayString.Mid( 0, g_ChatBuffer.GetPosition() ) + cursor + displayString.Mid( g_ChatBuffer.GetPosition() );
 	EColorRange promptColor = CR_GREEN;
 	EColorRange messageColor = CR_GRAY;
@@ -458,7 +447,26 @@ void CHAT_Render( void )
 
 	// Render the chat string.
 	HUD_DrawText( SmallFont, promptColor, 0, positionY, prompt );
-	HUD_DrawText( SmallFont, messageColor, SmallFont->StringWidth( prompt ), positionY, displayString );
+
+	if ( SmallFont->StringWidth( displayString ) > chatWidth )
+	{
+		// Break it onto multiple lines, if necessary.
+		const BYTE *bytes = reinterpret_cast<const BYTE*>( displayString.GetChars() );
+		FBrokenLines *lines = V_BreakLines( SmallFont, chatWidth, bytes );
+		int messageY = positionY;
+
+		for ( int i = 0; lines[i].Width != -1; ++i )
+		{
+			HUD_DrawText( SmallFont, messageColor, SmallFont->StringWidth( prompt ), messageY, lines[i].Text );
+			messageY += SmallFont->GetHeight();
+		}
+
+		V_FreeBrokenLines( lines );
+	}
+	else
+	{
+		HUD_DrawText( SmallFont, messageColor, SmallFont->StringWidth( prompt ), positionY, displayString );
+	}
 
 	// [RC] Tell chatters about the iron curtain of LMS chat.
 	if ( GAMEMODE_AreSpectatorsFordiddenToChatToPlayers() )
