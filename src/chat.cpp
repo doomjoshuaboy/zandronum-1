@@ -88,22 +88,29 @@
 class ChatBuffer
 {
 public:
+	enum { MaxMessages = 10 + 1 };
 	ChatBuffer();
 
+	void BeginNewMessage();
 	void Clear();
-	FString GetMessage() const;
+	FString &GetEditableMessage();
+	const FString &GetMessage() const;
 	int GetPosition() const;
 	int Length() const;
 	void Insert( char character );
+	bool IsInArchive() const;
 	void MoveCursor( int offset );
 	void MoveCursorTo( int position );
+	void MoveInArchive( int offset );
 	void RemoveCharacter( bool forward );
 	void PasteChat( const char *clip );
+	void SetCurrentMessage( int position );
 
 	const char &operator[]( int position ) const;
 
 private:
-	FString Message;
+	TArray<FString> Messages;
+	int MessagePosition;
 	int CursorPosition;
 };
 
@@ -160,22 +167,52 @@ void	chat_DoSubstitution( FString &Input ); // [CW]
 //*****************************************************************************
 //	FUNCTIONS
 ChatBuffer::ChatBuffer() :
-    CursorPosition( 0 ) {}
+    MessagePosition( 0 ),
+    CursorPosition( 0 )
+{
+	Messages.Push( "" );
+}
 
 //*****************************************************************************
 //
-FString ChatBuffer::GetMessage() const
+// [TP] Returns the message the user is currently looking at, for viewing purposes.
+//
+const FString &ChatBuffer::GetMessage() const
 {
-	return Message;
+	return Messages[MessagePosition];
+}
+
+//*****************************************************************************
+//
+// [TP] Returns the current message to be edited. Only edit the current chat message through this function,
+//      as it ensures the user sends the message he intends to, and that the archive won't be edited!
+//      Never edit the elements of Messages directly! If you do not intend to edit this string, use
+//      GetMessage() instead, as this has the side effect of unwinding the archive.
+//
+FString &ChatBuffer::GetEditableMessage()
+{
+	if ( IsInArchive() )
+	{
+		// If we're not already using the newest message, make the current message the newest, and then use it.
+		Messages.Last() = GetMessage();
+		MessagePosition = Messages.Size() - 1;
+		CursorPosition = clamp( CursorPosition, 0, static_cast<signed>( GetMessage().Len() ));
+	}
+
+	// The user should be out of the archive now.
+	assert( &GetMessage() == &Messages.Last() );
+	return Messages.Last();
 }
 
 //*****************************************************************************
 //
 void ChatBuffer::Insert( char character )
 {
-	if ( Message.Len() < MAX_CHATBUFFER_LENGTH )
+	FString &message = GetEditableMessage();
+
+	if ( message.Len() < MAX_CHATBUFFER_LENGTH )
 	{
-		Message.Insert( CursorPosition, character );
+		message.Insert( CursorPosition, character );
 		CursorPosition++;
 	}
 }
@@ -185,21 +222,22 @@ void ChatBuffer::Insert( char character )
 void ChatBuffer::RemoveCharacter( bool forward )
 {
 	int deletePosition = CursorPosition;
+	FString &message = GetEditableMessage();
 
 	if ( forward == false )
 		deletePosition--;
 
-	if ( Message.IsNotEmpty() && ( deletePosition >= 0 ) && ( deletePosition < Length() ))
+	if ( message.IsNotEmpty() && ( deletePosition >= 0 ) && ( deletePosition < Length() ))
 	{
-		char *messageBuffer = Message.LockBuffer();
+		char *messageBuffer = message.LockBuffer();
 
 		// Move all characters from the cursor position to the end of string back by one.
 		for ( int i = deletePosition; i < Length() - 1; ++i )
 			messageBuffer[i] = messageBuffer[i + 1];
 
 		// Remove the last character.
-		Message.UnlockBuffer();
-		Message.Truncate( Length() - 1 );
+		message.UnlockBuffer();
+		message.Truncate( Length() - 1 );
 
 		if ( forward == false )
 			CursorPosition--;
@@ -210,22 +248,23 @@ void ChatBuffer::RemoveCharacter( bool forward )
 //
 void ChatBuffer::Clear()
 {
-	Message = "";
+	MessagePosition = Messages.Size() - 1;
 	CursorPosition = 0;
+	GetEditableMessage() = "";
 }
 
 //*****************************************************************************
 //
 int ChatBuffer::Length() const
 {
-	return Message.Len();
+	return GetMessage().Len();
 }
 
 //*****************************************************************************
 //
 const char &ChatBuffer::operator[]( int position ) const
 {
-	return Message[position];
+	return GetMessage()[position];
 }
 
 //*****************************************************************************
@@ -251,6 +290,21 @@ void ChatBuffer::MoveCursorTo( int position )
 
 //*****************************************************************************
 //
+void ChatBuffer::MoveInArchive( int offset )
+{
+	SetCurrentMessage( MessagePosition + offset );
+}
+
+//*****************************************************************************
+//
+void ChatBuffer::SetCurrentMessage( int position )
+{
+	MessagePosition = clamp( position, 0, static_cast<signed>( Messages.Size() - 1 ));
+	CursorPosition = GetMessage().Len();
+}
+
+//*****************************************************************************
+//
 // [BB] From ZDoom
 void ChatBuffer::PasteChat(const char *clip)
 {
@@ -266,6 +320,29 @@ void ChatBuffer::PasteChat(const char *clip)
 			Insert( *clip++ );
 		}
 	}
+}
+
+//*****************************************************************************
+//
+void ChatBuffer::BeginNewMessage()
+{
+	// Put a new empty string to be our current message.
+	Messages.Push( "" );
+
+	// If there now are too many messages, drop some from the archive.
+	while ( Messages.Size() > MaxMessages )
+		Messages.Delete( 0 );
+
+	// Select the newly created message.
+	MessagePosition = Messages.Size() - 1;
+	CursorPosition = 0;
+}
+
+//*****************************************************************************
+//
+bool ChatBuffer::IsInArchive() const
+{
+	return &GetMessage() != &Messages.Last();
 }
 
 //*****************************************************************************
@@ -365,6 +442,16 @@ bool CHAT_Input( event_t *pEvent )
 				g_ChatBuffer.MoveCursor( 1 );
 				return ( true );
 			}
+			else if ( pEvent->data1 == GK_UP )
+			{
+				g_ChatBuffer.MoveInArchive( -1 );
+				return ( true );
+			}
+			else if ( pEvent->data1 == GK_DOWN )
+			{
+				g_ChatBuffer.MoveInArchive( 1 );
+				return ( true );
+			}
 			// Home
 			else if ( pEvent->data1 == GK_HOME )
 			{
@@ -444,6 +531,10 @@ void CHAT_Render( void )
 		promptColor = CR_GREY;
 		messageColor = static_cast<EColorRange>( TEAM_GetTextColor( players[consoleplayer].ulTeam ));
 	}
+
+	// [TP] If we're currently viewing the archive, use a different color
+	if ( g_ChatBuffer.IsInArchive() )
+		messageColor = CR_DARKGRAY;
 
 	// Render the chat string.
 	HUD_DrawText( SmallFont, promptColor, 0, positionY, prompt );
@@ -677,6 +768,9 @@ void chat_SendMessage( ULONG ulMode, const char *pszString )
 	}
 	else
 		CHAT_PrintChatString( consoleplayer, ulMode, ChatMessage.GetChars( ));
+
+	// [TP] The message has been sent. Start creating a new one.
+	g_ChatBuffer.BeginNewMessage();
 }
 
 //*****************************************************************************
