@@ -80,10 +80,32 @@
 #include "p_acs.h"
 
 //*****************************************************************************
+//
+// [TP] ChatBuffer
+//
+// Encapsulates the storage for the message in the chat input line.
+//
+class ChatBuffer
+{
+public:
+	FString GetMessage() const;
+	void Insert( char character );
+	void RemoveCharacter();
+	void PasteChat( const char *clip );
+	void Clear();
+	int Length() const;
+
+	const char &operator[]( int position ) const;
+
+private:
+	FString Message;
+};
+
+//*****************************************************************************
 //	VARIABLES
 
+static	ChatBuffer g_ChatBuffer;
 static	ULONG	g_ulChatMode;
-static	FString	g_szChatBuffer;
 static	const char	*g_pszChatPrompt = "SAY: ";
 
 //*****************************************************************************
@@ -127,20 +149,58 @@ FStringCVar	*g_ChatMacros[10] =
 
 void	chat_SetChatMode( ULONG ulMode );
 void	chat_SendMessage( ULONG ulMode, const char *pszString );
-void	chat_ClearChatMessage( void );
-void	chat_AddChar( char cChar );
-void	chat_DeleteChar( void );
 void	chat_GetIgnoredPlayers( FString &Destination ); // [RC]
 void	chat_DoSubstitution( FString &Input ); // [CW]
 
-// [BB] From ZDoom
-//===========================================================================
-//
-// CT_PasteChat
-//
-//===========================================================================
+//*****************************************************************************
+//	FUNCTIONS
 
-void CT_PasteChat(const char *clip)
+FString ChatBuffer::GetMessage() const
+{
+	return Message;
+}
+
+//*****************************************************************************
+//
+void ChatBuffer::Insert( char character )
+{
+	if ( Message.Len() < MAX_CHATBUFFER_LENGTH )
+		Message += character;
+}
+
+//*****************************************************************************
+//
+void ChatBuffer::RemoveCharacter()
+{
+	if ( Message.IsNotEmpty() )
+		Message.Truncate( Message.Len() - 1 );
+}
+
+//*****************************************************************************
+//
+void ChatBuffer::Clear()
+{
+	Message = "";
+}
+
+//*****************************************************************************
+//
+int ChatBuffer::Length() const
+{
+	return Message.Len();
+}
+
+//*****************************************************************************
+//
+const char &ChatBuffer::operator[]( int position ) const
+{
+	return Message[position];
+}
+
+//*****************************************************************************
+//
+// [BB] From ZDoom
+void ChatBuffer::PasteChat(const char *clip)
 {
 	if (clip != NULL && *clip != '\0')
 	{
@@ -151,21 +211,20 @@ void CT_PasteChat(const char *clip)
 			{
 				break;
 			}
-			chat_AddChar (*clip++);
+			Insert( *clip++ );
 		}
 	}
 }
 
 //*****************************************************************************
-//	FUNCTIONS
-
+//
 void CHAT_Construct( void )
 {
 	// Initialize the chat mode.
 	g_ulChatMode = CHATMODE_NONE;
 
 	// Clear out the chat buffer.
-	chat_ClearChatMessage( );
+	g_ChatBuffer.Clear();
 }
 
 //*****************************************************************************
@@ -212,7 +271,7 @@ bool CHAT_Input( event_t *pEvent )
 		{
 			if ( pEvent->data1 == '\r' )
 			{
-				chat_SendMessage( g_ulChatMode, g_szChatBuffer );
+				chat_SendMessage( g_ulChatMode, g_ChatBuffer.GetMessage() );
 				chat_SetChatMode( CHATMODE_NONE );
 				return ( true );
 			}
@@ -223,19 +282,19 @@ bool CHAT_Input( event_t *pEvent )
 			}
 			else if ( pEvent->data1 == '\b' )
 			{
-				chat_DeleteChar( );
+				g_ChatBuffer.RemoveCharacter();
 				return ( true );
 			}
 			// Ctrl+C. 
 			else if ( pEvent->data1 == 'C' && ( pEvent->data3 & GKM_CTRL ))
 			{
-				I_PutInClipboard(g_szChatBuffer );
+				I_PutInClipboard( g_ChatBuffer.GetMessage() );
 				return ( true );
 			}
 			// Ctrl+V.
 			else if ( pEvent->data1 == 'V' && ( pEvent->data3 & GKM_CTRL ))
 			{
-				CT_PasteChat(I_GetFromClipboard(false));
+				g_ChatBuffer.PasteChat( I_GetFromClipboard( false ));
 			}
 		}
 		else if ( pEvent->subtype == EV_GUI_Char )
@@ -247,14 +306,14 @@ bool CHAT_Input( event_t *pEvent )
 				chat_SetChatMode( CHATMODE_NONE );
 			}
 			else
-				chat_AddChar( pEvent->data1 );
+				g_ChatBuffer.Insert( pEvent->data1 );
 
 			return ( true );
 		}
 #ifdef unix
 		else if (pEvent->subtype == EV_GUI_MButtonDown)
 		{
-			CT_PasteChat(I_GetFromClipboard(true));
+			g_ChatBuffer.PasteChat( I_GetFromClipboard( true ));
 		}
 #endif
 	}
@@ -305,9 +364,9 @@ void CHAT_Render( void )
 
 	// figure out if the text is wider than the screen->
 	// if so, only draw the right-most portion of it.
-	for ( lIdx = g_szChatBuffer.Len() - 1; (( lIdx >= 0 ) && ( lX < ( (float)SCREENWIDTH * fXScale ))); lIdx-- )
+	for ( lIdx = g_ChatBuffer.Length() - 1; (( lIdx >= 0 ) && ( lX < ( (float)SCREENWIDTH * fXScale ))); lIdx-- )
 	{
-		lX += SmallFont->GetCharWidth( g_szChatBuffer[lIdx] & 0x7f );
+		lX += SmallFont->GetCharWidth( g_ChatBuffer[lIdx] & 0x7f );
 	}
 
 	// If lIdx is >= 0, then this chat string goes beyond the edge of the screen.
@@ -316,7 +375,7 @@ void CHAT_Render( void )
 	else
 		lIdx = 0;
 
-	FString displayString = g_szChatBuffer.Right( g_szChatBuffer.Len() - lIdx );
+	FString displayString = g_ChatBuffer.GetMessage().Right( g_ChatBuffer.Length() - lIdx );
 	displayString += gameinfo.gametype == GAME_Doom ? '_' : '[';
 
 	if ( g_ulChatMode == CHATMODE_GLOBAL )
@@ -555,30 +614,6 @@ void chat_SendMessage( ULONG ulMode, const char *pszString )
 
 //*****************************************************************************
 //
-void chat_ClearChatMessage( void )
-{
-	// Clear out the chat string buffer.
-	g_szChatBuffer = "";
-}
-
-//*****************************************************************************
-//
-void chat_AddChar( char cChar )
-{
-	if ( g_szChatBuffer.Len() < MAX_CHATBUFFER_LENGTH )
-		g_szChatBuffer += cChar;
-}
-
-//*****************************************************************************
-//
-void chat_DeleteChar( void )
-{
-	if ( g_szChatBuffer.IsNotEmpty() )
-		g_szChatBuffer.Truncate( g_szChatBuffer.Len() - 1 );
-}
-
-//*****************************************************************************
-//
 // [RC] Fills Destination with a list of ignored players.
 //
 void chat_GetIgnoredPlayers( FString &Destination )
@@ -731,7 +766,7 @@ CCMD( say )
 		C_HideConsole( );
 
 		// Clear out the chat buffer.
-		chat_ClearChatMessage( );
+		g_ChatBuffer.Clear();
 	}
 	else
 	{
@@ -793,7 +828,7 @@ CCMD( say_team )
 		C_HideConsole( );
 
 		// Clear out the chat buffer.
-		chat_ClearChatMessage( );
+		g_ChatBuffer.Clear();
 	}
 	else
 	{
@@ -939,7 +974,7 @@ CCMD( messagemode )
 	{
 		chat_SetChatMode( CHATMODE_GLOBAL );
 		C_HideConsole( );
-		chat_ClearChatMessage( );
+		g_ChatBuffer.Clear();
 	}
 }
 
@@ -950,7 +985,7 @@ CCMD( messagemode2 )
 	{
 		chat_SetChatMode( CHATMODE_TEAM );
 		C_HideConsole( );
-		chat_ClearChatMessage( );
+		g_ChatBuffer.Clear();
 	}
 }
 
