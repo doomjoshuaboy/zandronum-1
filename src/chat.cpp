@@ -876,17 +876,17 @@ void chat_SendMessage( ULONG ulMode, const char *pszString )
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
 	{
 		CLIENTCOMMANDS_Say( ulMode, ChatMessage.GetChars( ));
-		return;
 	}
-
-	if ( demorecording )
+	else if ( demorecording )
 	{
 		Net_WriteByte( DEM_SAY );
 		Net_WriteByte( ulMode );
 		Net_WriteString( ChatMessage.GetChars( ));
 	}
 	else
+	{
 		CHAT_PrintChatString( consoleplayer, ulMode, ChatMessage.GetChars( ));
+	}
 
 	// [TP] The message has been sent. Start creating a new one.
 	g_ChatBuffer.BeginNewMessage();
