@@ -106,7 +106,6 @@ private:
 
 static	ChatBuffer g_ChatBuffer;
 static	ULONG	g_ulChatMode;
-static	const char	*g_pszChatPrompt = "SAY: ";
 
 //*****************************************************************************
 //	CONSOLE VARIABLES
@@ -325,98 +324,75 @@ bool CHAT_Input( event_t *pEvent )
 //
 void CHAT_Render( void )
 {
-	UCVarValue	ValWidth;
-	UCVarValue	ValHeight;
-	bool		bScale;
-	float		fXScale;
-	float		fYScale;
-	ULONG		ulYPos;
-	int			lIdx;
-	LONG		lX;
-	char		szString[64];
+	static const char *prompt = "SAY: ";
+	bool scale = ( con_scaletext ) && ( con_virtualwidth > 0 ) && ( con_virtualheight > 0 );
+	float scaleX = 1.0f;
+	float scaleY = 1.0f;
+	int positionY = ( gamestate == GS_INTERMISSION ) ? SCREENHEIGHT : ST_Y;
 
 	if ( g_ulChatMode == CHATMODE_NONE )
 		return;
 
-	ValWidth = con_virtualwidth.GetGenericRep( CVAR_Int );
-	ValHeight = con_virtualheight.GetGenericRep( CVAR_Int );
-
-	// Initialization.
-	if (( con_scaletext ) && ( con_virtualwidth > 0 ) && ( con_virtualheight > 0 ))
+	if ( scale )
 	{
-		fXScale = (float)ValWidth.Int / SCREENWIDTH;
-		fYScale = (float)ValHeight.Int / SCREENHEIGHT;
-		bScale = true;
-
-		ulYPos = (( gamestate == GS_INTERMISSION ) ? SCREENHEIGHT : ST_Y ) - ( Scale( SCREENHEIGHT, SmallFont->GetHeight( ) + 1, ValHeight.Int )) + 1;
-
+		scaleX = static_cast<float>( *con_virtualwidth ) / SCREENWIDTH;
+		scaleY = static_cast<float>( *con_virtualheight ) / SCREENHEIGHT;
+		positionY = positionY - Scale( SCREENHEIGHT, SmallFont->GetHeight() + 1, con_virtualheight ) + 1;
+		positionY *= scaleY;
 	}
 	else
 	{
-		fXScale = 1.0f;
-		fYScale = 1.0f;
-		bScale = false;
-
-		ulYPos = (( gamestate == GS_INTERMISSION ) ? SCREENHEIGHT : ST_Y ) - SmallFont->GetHeight( ) + 1;
+		positionY = positionY - SmallFont->GetHeight() + 1;
 	}
-	
-	lX = static_cast<LONG>(SmallFont->GetCharWidth( '_' ) * fXScale * 2 + SmallFont->StringWidth( g_pszChatPrompt ));
 
-	// figure out if the text is wider than the screen->
-	// if so, only draw the right-most portion of it.
-	for ( lIdx = g_ChatBuffer.Length() - 1; (( lIdx >= 0 ) && ( lX < ( (float)SCREENWIDTH * fXScale ))); lIdx-- )
+	int width = round( SmallFont->GetCharWidth( '_' ) * scaleX * 2 + SmallFont->StringWidth( prompt ));
+	int offset;
+
+	// Figure out if the text is wider than the screen, if so, only draw the right-most portion of it.
+	for ( offset = g_ChatBuffer.Length() - 1; (( offset >= 0 ) && ( width < ( (float)SCREENWIDTH * scaleX ))); offset-- )
 	{
-		lX += SmallFont->GetCharWidth( g_ChatBuffer[lIdx] & 0x7f );
+		width += SmallFont->GetCharWidth( g_ChatBuffer[offset] & 0x7f );
 	}
 
-	// If lIdx is >= 0, then this chat string goes beyond the edge of the screen.
-	if ( lIdx >= 0 )
-		lIdx++;
+	// If offset is >= 0, then this chat string goes beyond the edge of the screen.
+	if ( offset >= 0 )
+		offset++;
 	else
-		lIdx = 0;
+		offset = 0;
 
-	FString displayString = g_ChatBuffer.GetMessage().Right( g_ChatBuffer.Length() - lIdx );
+	// Build the message that we will display to clients.
+	FString displayString = g_ChatBuffer.GetMessage().Right( g_ChatBuffer.Length() - offset );
 	displayString += gameinfo.gametype == GAME_Doom ? '_' : '[';
+	EColorRange promptColor = CR_GREEN;
+	EColorRange messageColor = CR_GRAY;
 
-	if ( g_ulChatMode == CHATMODE_GLOBAL )
+	// Use different colors in team chat.
+	if ( g_ulChatMode == CHATMODE_TEAM )
 	{
-		HUD_DrawText( SmallFont, CR_GREEN,
-			0,
-			(LONG)( ulYPos * fYScale ),
-			g_pszChatPrompt );
-
-		HUD_DrawText( SmallFont, CR_GRAY,
-			SmallFont->StringWidth( g_pszChatPrompt ),
-			(LONG)( ulYPos * fYScale ),
-			displayString );
+		promptColor = CR_GREY;
+		messageColor = static_cast<EColorRange>( TEAM_GetTextColor( players[consoleplayer].ulTeam ));
 	}
-	else
-	{
-		HUD_DrawText( SmallFont, CR_GREY,
-			0,
-			(LONG)( ulYPos * fYScale ),
-			g_pszChatPrompt );
 
-		HUD_DrawText( SmallFont, (TEAM_GetTextColor (players[consoleplayer].ulTeam)),
-			SmallFont->StringWidth( g_pszChatPrompt ),
-			(LONG)( ulYPos * fYScale ),
-			displayString );
-	}
+	// Render the chat string.
+	HUD_DrawText( SmallFont, promptColor, 0, positionY, prompt );
+	HUD_DrawText( SmallFont, messageColor, SmallFont->StringWidth( prompt ), positionY, displayString );
 
 	// [RC] Tell chatters about the iron curtain of LMS chat.
 	if ( GAMEMODE_AreSpectatorsFordiddenToChatToPlayers() )
 	{
+		FString note;
+
 		// Is this the spectator talking?
 		if ( players[consoleplayer].bSpectating )
-			sprintf( szString, "\\cdNOTE: \\ccPlayers cannot hear you chat" );
+			note = "\\cdNOTE: \\ccPlayers cannot hear you chat";
 		else
-			sprintf( szString, "\\cdNOTE: \\ccSpectators cannot talk to you" );
+			note = "\\cdNOTE: \\ccSpectators cannot talk to you";
 
-		V_ColorizeString( szString );
+		V_ColorizeString( note );
 		HUD_DrawText( SmallFont, CR_UNTRANSLATED,
-			(LONG)(( ( bScale ? ValWidth.Int : SCREENWIDTH )/ 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
-			(LONG)(( ulYPos * fYScale ) - ( SmallFont->GetHeight( ) * 2 ) + 1 ),
-			szString );
+			(LONG)(( ( scale ? *con_virtualwidth : SCREENWIDTH )/ 2 ) - ( SmallFont->StringWidth( note ) / 2 )),
+			(LONG)(( positionY * scaleY ) - ( SmallFont->GetHeight( ) * 2 ) + 1 ),
+			note );
 	}
 
 	BorderTopRefresh = screen->GetPageCount( );
