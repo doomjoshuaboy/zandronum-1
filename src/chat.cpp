@@ -370,17 +370,21 @@ void ChatBuffer::PasteChat(const char *clip)
 //
 void ChatBuffer::BeginNewMessage()
 {
-	// Put a new empty string to be our current message.
-	Messages.Push( "" );
+	// Only begin a new message if we don't already have a cleared message buffer.
+	if ( GetMessage().IsNotEmpty() )
+	{
+		// Put a new empty string to be our current message.
+		Messages.Push( "" );
 
-	// If there now are too many messages, drop some from the archive.
-	while ( Messages.Size() > MaxMessages )
-		Messages.Delete( 0 );
+		// If there now are too many messages, drop some from the archive.
+		while ( Messages.Size() > MaxMessages )
+			Messages.Delete( 0 );
 
-	// Select the newly created message.
-	MessagePosition = Messages.Size() - 1;
-	MoveCursorTo( 0 );
-	ResetTabCompletion();
+		// Select the newly created message.
+		MessagePosition = Messages.Size() - 1;
+		MoveCursorTo( 0 );
+		ResetTabCompletion();
+	}
 }
 
 //*****************************************************************************
