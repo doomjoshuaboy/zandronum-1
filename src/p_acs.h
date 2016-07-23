@@ -223,6 +223,7 @@ enum
 	SCRIPT_Disconnect	= 14,
 	SCRIPT_Return		= 15,
 	SCRIPT_Event		= 16, // [BB]
+	SCRIPT_Kill			= 17, // [JM]
 };
 
 // Script flags

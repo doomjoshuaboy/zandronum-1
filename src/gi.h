@@ -143,6 +143,7 @@ struct gameinfo_t
 	FGIFont mStatscreenFinishedFont;
 	FGIFont mStatscreenEnteringFont;
 	bool norandomplayerclass;
+	bool forcekillscripts;
 
 	const char *GetFinalePage(unsigned int num) const;
 };
