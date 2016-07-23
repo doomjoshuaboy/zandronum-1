@@ -347,6 +347,10 @@ enum
 	MF7_NODECAL			= 0x00020000,	// [ZK] Forces puff to have no impact decal
 	MF7_FORCEDECAL		= 0x00040000,	// [ZK] Forces P_LineAttack to use the puff's decal, even if the player's weapon has a decal defined
 
+	// [BB] Out of order ZDoom backport.
+	MF7_USEKILLSCRIPTS	= 0x00800000,	// [JM] Use "KILL" Script on death if not forced by GameInfo.
+	MF7_NOKILLSCRIPTS	= 0x01000000,	// [JM] No "KILL" Script on death whatsoever, even if forced by GameInfo.
+
 	// [BC] More object flags for Skulltag.
 
 	// Object can only be picked up by blue team members.
