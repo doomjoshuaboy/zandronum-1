@@ -2953,10 +2953,6 @@ void SERVERCOMMANDS_SoundSector( sector_t *sector, int channel, const char *soun
 	if ( sector == NULL )
 		return;
 
-	int sectorID = sector - sectors;
-	if (( sectorID < 0 ) || ( sectorID >= numsectors ))
-		return;
-
 	ServerCommands::SoundSector command;
 	command.SetSector( sector );
 	command.SetChannel( channel );
@@ -2995,8 +2991,7 @@ void SERVERCOMMANDS_AnnouncerSound( const char *pszSound, ULONG ulPlayerExtra, S
 //
 void SERVERCOMMANDS_StartSectorSequence( sector_t *pSector, const int Channel, const char *pszSequence, const int Modenum, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
-	const LONG lSectorID = LONG( pSector - sectors );
-	if (( lSectorID < 0 ) || ( lSectorID >= numsectors ))
+	if ( pSector == NULL )
 		return;
 
 	ServerCommands::StartSectorSequence command;
@@ -3011,10 +3006,7 @@ void SERVERCOMMANDS_StartSectorSequence( sector_t *pSector, const int Channel, c
 //
 void SERVERCOMMANDS_StopSectorSequence( sector_t *pSector, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
-	LONG	lSectorID;
-
-	lSectorID = LONG( pSector - sectors );
-	if (( lSectorID < 0 ) || ( lSectorID >= numsectors ))
+	if ( pSector == NULL )
 		return;
 
 	ServerCommands::StopSectorSequence command;
