@@ -1866,6 +1866,7 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 			NETWORK_ReadString( pByteStream );
 			NETWORK_ReadByte( pByteStream );
 			NETWORK_ReadByte( pByteStream );
+			NETWORK_ReadByte( pByteStream );
 			// [BB] Lump authentication string.
 			NETWORK_ReadString( pByteStream );
 			return;
@@ -1900,6 +1901,9 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 
 	// [BB] Save whether the clients wants his country to be hidden.
 	g_aClients[lClient].bWantHideCountry = !!( connectFlags & CCF_HIDECOUNTRY );
+
+	// [TP] Save whether or not the player wants to hide his account.
+	g_aClients[lClient].WantHideAccount = NETWORK_ReadByte( pByteStream );
 
 	// Read in the client's network game version.
 	lClientNetworkGameVersion = NETWORK_ReadByte( pByteStream );
@@ -2217,6 +2221,9 @@ bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick )
 
 	// Now send out the player's userinfo out to other players.
 	SERVERCOMMANDS_SetPlayerUserInfo( g_lCurrentClient, ulFlags, g_lCurrentClient, SVCF_SKIPTHISCLIENT );
+
+	// [TP] Tell the player his account name though.
+	SERVERCOMMANDS_SetPlayerUserInfo( g_lCurrentClient, USERINFO_ACCOUNTNAME, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 
 	// Also, update the scoreboard.
 	SERVERCONSOLE_UpdatePlayerInfo( g_lCurrentClient, UDF_NAME );
@@ -4622,6 +4629,19 @@ bool SERVER_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 		}
 		break;
 
+	case CLC_SETWANTHIDEACCOUNT:
+		// [TP] Player changes his stance on whether or not he wants his account to be displayed.
+		{
+			// [TP] If the client is flooding the server with commands, the client is
+			// kicked and we don't need to handle the command.
+			if ( server_CheckForClientMinorCommandFlood ( g_lCurrentClient ) == true )
+				return ( true );
+
+			SERVER_GetClient( SERVER_GetCurrentClient() )->WantHideAccount = NETWORK_ReadByte( pByteStream );
+			SERVERCOMMANDS_SetPlayerUserInfo( g_lCurrentClient, USERINFO_ACCOUNTNAME );
+		}
+		return false;
+
 	default:
 
 		Printf( PRINT_HIGH, "SERVER_ParseCommands: Unknown client message: %d\n", static_cast<int> (lCommand) );
@@ -6541,6 +6561,23 @@ static void server_PrintWithIP( FString message, const NETADDRESS_s &address )
 	// [TP] Then print a version of the message without the IP address to clients.
 	message.Substitute( "{ip}", "" );
 	SERVERCOMMANDS_Print( message, PRINT_HIGH );
+}
+
+//*****************************************************************************
+//
+FString CLIENT_s::GetAccountName() const
+{
+	if ( loggedIn )
+	{
+		return username;
+	}
+	// [BB] Anonymous players get an account name based on their player slot.
+	else
+	{
+		FString result;
+		result.Format ( "%td@localhost", this - g_aClients );
+		return result;
+	}
 }
 
 //*****************************************************************************
