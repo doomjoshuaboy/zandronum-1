@@ -98,20 +98,28 @@ public:
 	int GetPosition() const;
 	int Length() const;
 	void Insert( char character );
+	void Insert( const char *text );
 	bool IsInArchive() const;
 	void MoveCursor( int offset );
 	void MoveCursorTo( int position );
 	void MoveInArchive( int offset );
 	void RemoveCharacter( bool forward );
+	void RemoveRange( int start, int end );
+	void ResetTabCompletion();
 	void PasteChat( const char *clip );
 	void SetCurrentMessage( int position );
+	void TabComplete();
 
 	const char &operator[]( int position ) const;
 
 private:
-	TArray<FString> Messages;
-	int MessagePosition;
-	int CursorPosition;
+	TArray<FString> Messages; // List of messages stored. Last one is the current message being edited.
+	int MessagePosition; // Index in Messages that the user is currently using.
+	int CursorPosition; // Position of the cursor within the message.
+	int TabCompletionPlayerOffset; // Player the tab completion routine should look at.
+	int TabCompletionStart; // Position of the message where current tab completion begins.
+	bool IsInTabCompletion; // Is tab completion routine currently active?
+	FString TabCompletionWord; // The word being tab completed.
 };
 
 //*****************************************************************************
@@ -168,7 +176,9 @@ void	chat_DoSubstitution( FString &Input ); // [CW]
 //	FUNCTIONS
 ChatBuffer::ChatBuffer() :
     MessagePosition( 0 ),
-    CursorPosition( 0 )
+    CursorPosition( 0 ),
+    TabCompletionPlayerOffset( 0 ),
+    TabCompletionStart( 0 )
 {
 	Messages.Push( "" );
 }
@@ -191,6 +201,10 @@ const FString &ChatBuffer::GetMessage() const
 //
 FString &ChatBuffer::GetEditableMessage()
 {
+	// We're about to edit the message, so tab completion needs to reset, unless tab completion is causing the edit.
+	if ( IsInTabCompletion == false )
+		ResetTabCompletion();
+
 	if ( IsInArchive() )
 	{
 		// If we're not already using the newest message, make the current message the newest, and then use it.
@@ -208,20 +222,28 @@ FString &ChatBuffer::GetEditableMessage()
 //
 void ChatBuffer::Insert( char character )
 {
-	FString &message = GetEditableMessage();
+	char text[2] = { character, '\0' };
+	Insert( text );
+}
 
-	if ( message.Len() < MAX_CHATBUFFER_LENGTH )
-	{
-		message.Insert( CursorPosition, character );
-		CursorPosition++;
-	}
+//*****************************************************************************
+//
+void ChatBuffer::Insert( const char *text )
+{
+	FString &message = GetEditableMessage();
+	message.Insert( GetPosition(), text );
+
+	if ( message.Len() > MAX_CHATBUFFER_LENGTH )
+		message.Truncate( MAX_CHATBUFFER_LENGTH );
+
+	MoveCursor( strlen( text ));
 }
 
 //*****************************************************************************
 //
 void ChatBuffer::RemoveCharacter( bool forward )
 {
-	int deletePosition = CursorPosition;
+	int deletePosition = GetPosition();
 	FString &message = GetEditableMessage();
 
 	if ( forward == false )
@@ -240,7 +262,26 @@ void ChatBuffer::RemoveCharacter( bool forward )
 		message.Truncate( Length() - 1 );
 
 		if ( forward == false )
-			CursorPosition--;
+			MoveCursor( -1 );
+	}
+}
+
+//*****************************************************************************
+//
+// [TP] Removes all characters from 'start' to 'end', including 'start' but not 'end'.
+//
+void ChatBuffer::RemoveRange( int start, int end )
+{
+	FString &message = GetEditableMessage();
+	message = message.Mid( 0, start ) + message.Mid( end );
+
+	// Move the cursor if appropriate.
+	if ( CursorPosition >= start )
+	{
+		CursorPosition -= end - start;
+
+		// Don't move it in front of 'start', though, in case the cursor is inside the range.
+		CursorPosition = MAX( CursorPosition, start );
 	}
 }
 
@@ -249,7 +290,7 @@ void ChatBuffer::RemoveCharacter( bool forward )
 void ChatBuffer::Clear()
 {
 	MessagePosition = Messages.Size() - 1;
-	CursorPosition = 0;
+	MoveCursorTo( 0 );
 	GetEditableMessage() = "";
 }
 
@@ -286,6 +327,9 @@ void ChatBuffer::MoveCursor( int offset )
 void ChatBuffer::MoveCursorTo( int position )
 {
 	CursorPosition = clamp( position, 0, Length() );
+
+	if ( IsInTabCompletion == false )
+		ResetTabCompletion();
 }
 
 //*****************************************************************************
@@ -300,7 +344,7 @@ void ChatBuffer::MoveInArchive( int offset )
 void ChatBuffer::SetCurrentMessage( int position )
 {
 	MessagePosition = clamp( position, 0, static_cast<signed>( Messages.Size() - 1 ));
-	CursorPosition = GetMessage().Len();
+	MoveCursorTo( GetMessage().Len() );
 }
 
 //*****************************************************************************
@@ -335,7 +379,8 @@ void ChatBuffer::BeginNewMessage()
 
 	// Select the newly created message.
 	MessagePosition = Messages.Size() - 1;
-	CursorPosition = 0;
+	MoveCursorTo( 0 );
+	ResetTabCompletion();
 }
 
 //*****************************************************************************
@@ -343,6 +388,75 @@ void ChatBuffer::BeginNewMessage()
 bool ChatBuffer::IsInArchive() const
 {
 	return &GetMessage() != &Messages.Last();
+}
+
+//*****************************************************************************
+//
+void ChatBuffer::TabComplete()
+{
+	IsInTabCompletion = true;
+	FString message = GetMessage();
+
+	// If we do not yet have a word to tab complete, then find one now.
+	// Only consider doing tab completion if there is no graphic character in front of the cursor.
+	if ( TabCompletionWord.IsEmpty() && ( isgraph( message[GetPosition()] ) == false ))
+	{
+		TabCompletionStart = GetPosition();
+
+		// Where's the beginning of the word?
+		while (( TabCompletionStart > 0 ) && ( isspace( message[TabCompletionStart - 1] ) == false ))
+			TabCompletionStart--;
+
+		TabCompletionPlayerOffset = 0;
+		TabCompletionWord = message.Mid( TabCompletionStart, CursorPosition - TabCompletionStart );
+	}
+
+	// If we now have a word to tab complete, proceed to try to complete it.
+	if ( TabCompletionWord.IsNotEmpty() )
+	{
+		// Go through each player, and compare our string with their names.
+		for ( int i = 0; i < MAXPLAYERS; ++i )
+		{
+			player_t &player = players[( i + TabCompletionPlayerOffset ) % MAXPLAYERS];
+
+			if ( PLAYER_IsValidPlayer( &player - players ))
+			{
+				FString name = player.userinfo.GetName();
+				V_RemoveColorCodes( name );
+
+				// See if this player's name begins with our tab completion word.
+				if ( strnicmp( name, TabCompletionWord, TabCompletionWord.Len() ) == 0 )
+				{
+					// Do the completion.
+					RemoveRange( TabCompletionStart, GetPosition() );
+					Insert( name );
+
+					// Remove any whitespace from in front of the cursor.
+					while ( isspace( GetMessage()[GetPosition()] ))
+						RemoveCharacter( true );
+
+					// Now add the suffix.
+					Insert(( TabCompletionStart == 0 ) ? ": " : " " );
+
+					// Mark down where to start looking next time. This allows us to cycle through player names.
+					TabCompletionPlayerOffset = ( &player - players ) + 1;
+					TabCompletionPlayerOffset %= MAXPLAYERS;
+					break;
+				}
+			}
+		}
+	}
+
+	IsInTabCompletion = false;
+}
+
+//*****************************************************************************
+//
+void ChatBuffer::ResetTabCompletion()
+{
+	TabCompletionPlayerOffset = 0;
+	TabCompletionStart = 0;
+	TabCompletionWord = "";
 }
 
 //*****************************************************************************
@@ -462,6 +576,11 @@ bool CHAT_Input( event_t *pEvent )
 			else if ( pEvent->data1 == GK_END )
 			{
 				g_ChatBuffer.MoveCursorTo( g_ChatBuffer.Length() );
+				return ( true );
+			}
+			else if ( pEvent->data1 == '\t' )
+			{
+				g_ChatBuffer.TabComplete();
 				return ( true );
 			}
 		}
