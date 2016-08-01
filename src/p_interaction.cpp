@@ -758,7 +758,9 @@ void AActor::Die (AActor *source, AActor *inflictor)
 
 		// [RH] Force a delay between death and respawn
 		if ((( zacompatflags & ZACOMPATF_INSTANTRESPAWN ) == false ) ||
-			( player->bSpawnTelefragged ))
+			( player->bSpawnTelefragged ) ||
+			// [EP] Avoid instant body disappearing if the player had no lives left.
+			( GAMEMODE_AreLivesLimited() && GAMEMODE_IsGameInProgress() && ( player->ulLivesLeft == 0 )))
 		{
 			player->respawn_time = level.time + TICRATE;
 
