@@ -411,7 +411,7 @@ FString M_GetConfigPath(bool for_reading)
 		noErr == FSRefMakePath(&folder, (UInt8*)cpath, PATH_MAX))
 	{
 		FString path;
-		path << cpath << "/"GAMENAMELOWERCASE".ini"; // [BB]
+		path << cpath << "/" GAMENAMELOWERCASE ".ini"; // [BB]
 		return path;
 	}
 	// Ungh.
