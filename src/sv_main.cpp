@@ -4090,7 +4090,7 @@ void SERVER_SyncSharedKeys( int playerToSync, bool withmessage )
 			// [Dusk] See if the player should get this key
 			if ( PLAYER_IsValidPlayerWithMo( player ) &&
 				players[player].bSpectating == false &&
-				players[player].mo->FindInventory( keyclass ) == false )
+				players[player].mo->FindInventory( keyclass ) == NULL )
 			{
 				// [Dusk] Try give the key to the player.
 				AInventory* newkey;
@@ -4691,7 +4691,7 @@ void SERVER_HandleWeaponStateJump( ULONG ulPlayer, FState *pState, LONG lPositio
 
 	AWeapon *pReadyWeapon = players[ulPlayer].ReadyWeapon;
 
-	if ( pReadyWeapon == false )
+	if ( pReadyWeapon == NULL )
 		return;
 
 	// [BB] First set the weapon sprite of the player according to the jump.

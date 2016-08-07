@@ -578,7 +578,7 @@ void BOTS_RemoveBot( ULONG ulPlayerIdx, bool bExitMsg )
 	ULONG	ulIdx;
 
 	if (( ulPlayerIdx >= MAXPLAYERS ) ||
-		( players[ulPlayerIdx].pSkullBot == false ))
+		( players[ulPlayerIdx].pSkullBot == NULL ))
 	{
 		return;
 	}
@@ -921,7 +921,7 @@ void BOTS_PostWeaponFiredEvent( ULONG ulPlayer, BOTEVENT_e EventIfSelf, BOTEVENT
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
-		if (( playeringame[ulIdx] == false ) || ( players[ulIdx].pSkullBot == false ))
+		if (( playeringame[ulIdx] == false ) || ( players[ulIdx].pSkullBot == NULL ))
 			continue;
 
 		if ( players[ulIdx].pSkullBot->m_ulPlayerEnemy == ulPlayer )

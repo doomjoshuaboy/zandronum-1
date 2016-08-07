@@ -1607,7 +1607,7 @@ void CountActors ( )
 		if ( mo->lNetID > 0 )
 			numActorsWithNetID++;
 		const FName curName = mo->GetClass()->TypeName.GetChars();
-		if ( actorCountMap.CheckKey( curName ) == false )
+		if ( actorCountMap.CheckKey( curName ) == NULL )
 			actorCountMap.Insert( curName, 1 );
 		else
 			actorCountMap [ curName ] ++;
