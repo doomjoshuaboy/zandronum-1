@@ -526,7 +526,7 @@ int FIWadManager::IdentifyVersion (TArray<FString> &wadfiles, const char *iwad, 
 #else
 	{
 		I_FatalError ("Cannot find a game IWAD (doom.wad, doom2.wad, heretic.wad, etc.).\n"
-					  "Did you install "GAMENAME" properly? You can do either of the following:\n"
+					  "Did you install " GAMENAME " properly? You can do either of the following:\n"
 					  "\n"
 #if defined(_WIN32)
 					  "1. Place one or more of these wads in the same directory as "GAMENAME".\n"
