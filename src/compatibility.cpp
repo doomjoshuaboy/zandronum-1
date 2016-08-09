@@ -106,7 +106,6 @@ static FCompatOption Options[] =
 	{ "ignoreteleporttags",		BCOMPATF_BADTELEPORTERS, SLOT_BCOMPAT },
 	{ "rebuildnodes",			BCOMPATF_REBUILDNODES, SLOT_BCOMPAT },
 	{ "linkfrozenprops",		BCOMPATF_LINKFROZENPROPS, SLOT_BCOMPAT },
-	{ "disablepushwindowcheck",	BCOMPATF_NOWINDOWCHECK, SLOT_BCOMPAT },
 
 	// list copied from g_mapinfo.cpp
 	{ "shorttex",				COMPATF_SHORTTEX, SLOT_COMPAT },
@@ -140,6 +139,7 @@ static FCompatOption Options[] =
 	{ "maskedmidtex",			COMPATF_MASKEDMIDTEX, SLOT_COMPAT },
 	{ "badangles",				COMPATF2_BADANGLES, SLOT_COMPAT2 },
 	{ "floormove",				COMPATF2_FLOORMOVE, SLOT_COMPAT2 },
+	{ "disablepushwindowcheck",	COMPATF2_PUSHWINDOW, SLOT_COMPAT2 },
 
 	{ NULL, 0, 0 }
 };

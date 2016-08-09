@@ -413,6 +413,8 @@ enum : unsigned int
 
 	COMPATF2_BADANGLES		= 1 << 0,	// It is impossible to face directly NSEW.
 	COMPATF2_FLOORMOVE		= 1 << 1,	// Use the same floor motion behavior as Doom.
+	// [BB] Out of order ZDoom backport.
+	COMPATF2_PUSHWINDOW		= 1 << 6,	// Disable the window check in CheckForPushSpecial()
 };
 
 // [BB] Zandronum compatibility flags.
@@ -496,7 +498,6 @@ enum
 	BCOMPATF_BADPORTALS			= 1 << 4,	// Restores the old unstable portal behavior
 	BCOMPATF_REBUILDNODES		= 1 << 5,	// Force node rebuild
 	BCOMPATF_LINKFROZENPROPS	= 1 << 6,	// Clearing PROP_TOTALLYFROZEN or PROP_FROZEN also clears the other
-	BCOMPATF_NOWINDOWCHECK		= 1 << 7,	// Disable the window check in CheckForPushSpecial()
 };
 
 // phares 3/20/98:

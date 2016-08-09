@@ -728,6 +728,8 @@ CUSTOM_CVAR(Int, compatmode, 0, CVAR_ARCHIVE|CVAR_NOINITCALL)
 
 	case 4: // Old ZDoom compat mode
 		v = COMPATF_SOUNDTARGET|COMPATF_LIGHT;
+		// [BB] Out of order ZDoom backport.
+		w = COMPATF2_PUSHWINDOW;
 		break;
 
 	case 5: // MBF compat mode
@@ -779,6 +781,8 @@ CVAR (Flag, compat_polyobj,				compatflags,  COMPATF_POLYOBJ);
 CVAR (Flag, compat_maskedmidtex,		compatflags,  COMPATF_MASKEDMIDTEX);
 CVAR (Flag, compat_badangles,			compatflags2, COMPATF2_BADANGLES);
 CVAR (Flag, compat_floormove,			compatflags2, COMPATF2_FLOORMOVE);
+// [BB] Out of order ZDoom backport.
+CVAR (Flag, compat_pushwindow,			compatflags2, COMPATF2_PUSHWINDOW);
 // [BB] Skulltag compat flags.
 CVAR (Flag, compat_limited_airmovement, zacompatflags, ZACOMPATF_LIMITED_AIRMOVEMENT);
 CVAR (Flag, compat_plasmabump,	zacompatflags, ZACOMPATF_PLASMA_BUMP_BUG);
