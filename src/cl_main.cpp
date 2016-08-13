@@ -5067,7 +5067,7 @@ void ServerCommands::SetThingFrame::Execute()
 //
 void ServerCommands::SetThingFrameNF::Execute()
 {
-	client_SetThingFrame( actor, stateOwner, offset, true );
+	client_SetThingFrame( actor, stateOwner, offset, false );
 }
 
 //*****************************************************************************
