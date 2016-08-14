@@ -235,7 +235,8 @@ void P_GetFloorCeilingZ(FCheckPosition &tmf, int flags)
 
 		if (ff_top > tmf.floorz)
 		{
-			if (ff_top <= tmf.z || (!(flags && FFCF_3DRESTRICT) && (tmf.thing != NULL && ff_bottom < tmf.z && ff_top < tmf.z + tmf.thing->MaxStepHeight)))
+			// [BB] Added FFCF_INCLUDE3DFLOORS as workaround for client side spawning.
+			if (ff_top <= tmf.z || ( ( !(flags && FFCF_3DRESTRICT) || ( flags & FFCF_INCLUDE3DFLOORS ) ) && (tmf.thing != NULL && ff_bottom < tmf.z && ff_top < tmf.z + tmf.thing->MaxStepHeight)))
 			{
 				tmf.dropoffz = tmf.floorz = ff_top;
 				tmf.floorpic = *rover->top.texture;
