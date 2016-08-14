@@ -373,6 +373,11 @@ void ChatBuffer::BeginNewMessage()
 	// Only begin a new message if we don't already have a cleared message buffer.
 	if ( GetMessage().IsNotEmpty() )
 	{
+		// If we re-sent something from the archive, store it into the current chat line. This way it is copied and becomes the most recent
+		// message again.
+		if ( &GetMessage() != &Messages.Last() )
+			Messages.Last() = GetMessage();
+
 		// Put a new empty string to be our current message.
 		Messages.Push( "" );
 
