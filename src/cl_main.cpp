@@ -4104,7 +4104,7 @@ void ServerCommands::SetPlayerPSprite::Execute()
 	// [BB] The offset is only guaranteed to work if the actor owns the state.
 	if ( stateOwner->ActorInfo->OwnsState( pNewState ))
 	{
-		P_SetPsprite( player, position, pNewState + offset );
+		P_SetPsprite( player, position, pNewState );
 	}
 	else
 	{
