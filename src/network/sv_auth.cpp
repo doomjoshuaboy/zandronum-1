@@ -126,7 +126,7 @@ CVAR( String, authhostname, "auth.zandronum.com:16666", CVAR_ARCHIVE|CVAR_GLOBAL
 
 void NETWORK_AUTH_Construct( void )
 {
-	NETWORK_InitBuffer( &g_AuthServerBuffer, MAX_UDP_PACKET, BUFFERTYPE_WRITE );
+	g_AuthServerBuffer.Init( MAX_UDP_PACKET, BUFFERTYPE_WRITE );
 	NETWORK_ClearBuffer( &g_AuthServerBuffer );
 
 	g_AuthServerAddress = NETWORK_AUTH_GetServerAddress();

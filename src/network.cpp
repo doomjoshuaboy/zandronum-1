@@ -289,7 +289,7 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 	// and it turns into 8 bits when it's decompressed. Thus we need to allocate a buffer that
 	// can hold the biggest possible size we may get after decompressing (aka Huffman decoding)
 	// the incoming UDP packet.
-	NETWORK_InitBuffer( &g_NetworkMessage, ((MAX_UDP_PACKET * 8) / 3 + 1), BUFFERTYPE_READ );
+	g_NetworkMessage.Init( ((MAX_UDP_PACKET * 8) / 3 + 1), BUFFERTYPE_READ );
 	NETWORK_ClearBuffer( &g_NetworkMessage );
 
 	// If hosting, update the server GUI.

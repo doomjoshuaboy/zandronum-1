@@ -100,7 +100,7 @@ static	LONG							server_rcon_FindCandidate( NETADDRESS_s Address );
 //
 void SERVER_RCON_Construct( )
 {
-	NETWORK_InitBuffer( &g_MessageBuffer, MAX_UDP_PACKET, BUFFERTYPE_WRITE );
+	g_MessageBuffer.Init( MAX_UDP_PACKET, BUFFERTYPE_WRITE );
 	NETWORK_ClearBuffer( &g_MessageBuffer );
 	
 	// Call SERVER_RCON_Destruct() when Skulltag closes.

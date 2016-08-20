@@ -109,7 +109,7 @@ void SERVER_MASTER_Construct( void )
 	const char *pszPort;
 
 	// Setup our message buffer.
-	NETWORK_InitBuffer( &g_MasterServerBuffer, MAX_UDP_PACKET, BUFFERTYPE_WRITE );
+	g_MasterServerBuffer.Init( MAX_UDP_PACKET, BUFFERTYPE_WRITE );
 	NETWORK_ClearBuffer( &g_MasterServerBuffer );
 
 	// Allow the user to specify which port the master server is on.

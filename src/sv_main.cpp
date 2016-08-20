@@ -425,21 +425,21 @@ void SERVER_Construct( void )
 	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ++ulIdx )
 		playeringame[ulIdx] = false;
 
-	NETWORK_InitBuffer( &g_PacketLossBuffer, MAX_UDP_PACKET, BUFFERTYPE_WRITE );
+	g_PacketLossBuffer.Init( MAX_UDP_PACKET, BUFFERTYPE_WRITE );
 	NETWORK_ClearBuffer( &g_PacketLossBuffer );
 
 	// Initialize clients.
 	g_ulMaxPacketSize = sv_maxpacketsize;
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
     {
-		NETWORK_InitBuffer( &g_aClients[ulIdx].PacketBuffer, MAX_UDP_PACKET, BUFFERTYPE_WRITE );
+		g_aClients[ulIdx].PacketBuffer.Init( MAX_UDP_PACKET, BUFFERTYPE_WRITE );
 		NETWORK_ClearBuffer( &g_aClients[ulIdx].PacketBuffer );
 
 		// Initialize the saved packet buffer.
 		g_aClients[ulIdx].SavedPackets.Initialize( g_ulMaxPacketSize );
 
 		// Initialize the unreliable packet buffer.
-		NETWORK_InitBuffer( &g_aClients[ulIdx].UnreliablePacketBuffer, MAX_UDP_PACKET, BUFFERTYPE_WRITE );
+		g_aClients[ulIdx].UnreliablePacketBuffer.Init( MAX_UDP_PACKET, BUFFERTYPE_WRITE );
 		NETWORK_ClearBuffer( &g_aClients[ulIdx].UnreliablePacketBuffer );
 
 		// This is currently an open slot.
@@ -1766,7 +1766,7 @@ void SERVER_DetermineConnectionType( BYTESTREAM_s *pByteStream )
 			{
 				NETBUFFER_s	TempBuffer;
 
-				NETWORK_InitBuffer( &TempBuffer, MAX_UDP_PACKET, BUFFERTYPE_WRITE );
+				TempBuffer.Init( MAX_UDP_PACKET, BUFFERTYPE_WRITE );
 				NETWORK_ClearBuffer( &TempBuffer );
 
 				// Make sure the packet has a packet header. The client is expecting this!
@@ -2238,7 +2238,7 @@ void SERVER_ConnectionError( NETADDRESS_s Address, const char *pszMessage, ULONG
 {
 	NETBUFFER_s	TempBuffer;
 
-	NETWORK_InitBuffer( &TempBuffer, MAX_UDP_PACKET, BUFFERTYPE_WRITE );
+	TempBuffer.Init( MAX_UDP_PACKET, BUFFERTYPE_WRITE );
 	NETWORK_ClearBuffer( &TempBuffer );
 
 	// Display error message locally in the console.

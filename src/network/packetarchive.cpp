@@ -72,7 +72,7 @@ void PacketArchive::Initialize( size_t maxPacketSize )
 {
 	if ( _initialized == false )
 	{
-		NETWORK_InitBuffer( &_packetData, maxPacketSize * PACKET_BUFFER_SIZE, BUFFERTYPE_WRITE );
+		_packetData.Init( maxPacketSize * PACKET_BUFFER_SIZE, BUFFERTYPE_WRITE );
 		Clear();
 		_initialized = true;
 	}
