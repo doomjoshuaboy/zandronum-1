@@ -110,7 +110,7 @@ void SERVER_MASTER_Construct( void )
 
 	// Setup our message buffer.
 	g_MasterServerBuffer.Init( MAX_UDP_PACKET, BUFFERTYPE_WRITE );
-	NETWORK_ClearBuffer( &g_MasterServerBuffer );
+	g_MasterServerBuffer.Clear();
 
 	// Allow the user to specify which port the master server is on.
 	pszPort = Args->CheckValue( "-masterport" );
@@ -170,7 +170,7 @@ void SERVER_MASTER_Tick( void )
 	if ( sv_updatemaster == false )
 		return;
 
-	NETWORK_ClearBuffer( &g_MasterServerBuffer );
+	g_MasterServerBuffer.Clear();
 
 	// [BB] If we can't find the master address, we can't tick the master.
 	bool ok = g_AddressMasterServer.LoadFromString( masterhostname );
@@ -209,7 +209,7 @@ void SERVER_MASTER_Broadcast( void )
 	if (( sv_broadcast == false ) || ( Args->CheckParm( "-nobroadcast" )))
 		return;
 
-//	NETWORK_ClearBuffer( &g_MasterServerBuffer );
+//	g_MasterServerBuffer.Clear();
 
 	sockaddr_in broadcast_addr;
 	broadcast_addr.sin_family = AF_INET;
@@ -265,7 +265,7 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 	ULONG		ulBits;
 
 	// Let's just use the master server buffer! It gets cleared again when we need it anyway!
-	NETWORK_ClearBuffer( &g_MasterServerBuffer );
+	g_MasterServerBuffer.Clear();
 
 	if ( bBroadcasting == false )
 	{
@@ -643,7 +643,7 @@ void SERVER_MASTER_HandleVerificationRequest( BYTESTREAM_s *pByteStream  )
 {
 	LONG lVerificationNumber = NETWORK_ReadLong( pByteStream );
 
-	NETWORK_ClearBuffer( &g_MasterServerBuffer );
+	g_MasterServerBuffer.Clear();
 	NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, SERVER_MASTER_VERIFICATION );
 	NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, SERVER_GetMasterBanlistVerificationString().GetChars() );
 	NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, lVerificationNumber );
@@ -656,7 +656,7 @@ void SERVER_MASTER_HandleVerificationRequest( BYTESTREAM_s *pByteStream  )
 //
 void SERVER_MASTER_SendBanlistReceipt ( void )
 {
-	NETWORK_ClearBuffer( &g_MasterServerBuffer );
+	g_MasterServerBuffer.Clear();
 	NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, SERVER_MASTER_BANLIST_RECEIPT );
 	NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, SERVER_GetMasterBanlistVerificationString().GetChars() );
 

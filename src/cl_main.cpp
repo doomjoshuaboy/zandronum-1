@@ -422,7 +422,7 @@ void CLIENT_Construct( void )
 	NETWORK_Construct( usPort, true );
 
 	g_LocalBuffer.Init( MAX_UDP_PACKET * 8, BUFFERTYPE_WRITE );
-	NETWORK_ClearBuffer( &g_LocalBuffer );
+	g_LocalBuffer.Clear();
 
 	// Initialize the stored packets buffer.
 	g_ReceivedPacketBuffer.lMaxSize = MAX_UDP_PACKET * PACKET_BUFFER_SIZE;
@@ -763,7 +763,7 @@ void CLIENT_SendServerPacket( void )
 
 	// Launch the packet, and clear out the buffer.
 	NETWORK_LaunchPacket( &g_LocalBuffer, g_AddressServer );
-	NETWORK_ClearBuffer( &g_LocalBuffer );
+	g_LocalBuffer.Clear();
 }
 
 //*****************************************************************************
@@ -783,7 +783,7 @@ void CLIENT_AttemptConnection( void )
 	Printf( "Connecting to %s\n", g_AddressServer.ToString() );
 
 	// Reset a bunch of stuff.
-	NETWORK_ClearBuffer( &g_LocalBuffer );
+	g_LocalBuffer.Clear();
 	memset( g_ReceivedPacketBuffer.abData, 0, MAX_UDP_PACKET * 32 );
 	for ( ulIdx = 0; ulIdx < PACKET_BUFFER_SIZE; ulIdx++ )
 	{
@@ -6642,7 +6642,7 @@ void ServerCommands::MapNew::Execute()
 	}
 
 	// Clear out our local buffer.
-	NETWORK_ClearBuffer( &g_LocalBuffer );
+	g_LocalBuffer.Clear();
 
 	// Back to the full console.
 	gameaction = ga_fullconsole;
@@ -8955,7 +8955,7 @@ CCMD( timeout )
 		if ( g_lBytesSent > g_lMaxBytesSent )
 			g_lMaxBytesSent = g_lBytesSent;
 		NETWORK_LaunchPacket( g_LocalBuffer, g_AddressServer );
-		NETWORK_ClearBuffer( &g_LocalBuffer );
+		g_LocalBuffer.Clear();
 	}
 */
 	// Clear out our copy of the server address.

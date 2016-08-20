@@ -89,16 +89,16 @@ void NETBUFFER_s::Free()
 
 //*****************************************************************************
 //
-void NETWORK_ClearBuffer( NETBUFFER_s *pBuffer )
+void NETBUFFER_s::Clear()
 {
-	pBuffer->ulCurrentSize = 0;
-	pBuffer->ByteStream.pbStream = pBuffer->pbData;
-	pBuffer->ByteStream.bitBuffer = NULL;
-	pBuffer->ByteStream.bitShift = -1;
-	if ( pBuffer->BufferType == BUFFERTYPE_READ )
-		pBuffer->ByteStream.pbStreamEnd = pBuffer->ByteStream.pbStream;
+	this->ulCurrentSize = 0;
+	this->ByteStream.pbStream = this->pbData;
+	this->ByteStream.bitBuffer = NULL;
+	this->ByteStream.bitShift = -1;
+	if ( this->BufferType == BUFFERTYPE_READ )
+		this->ByteStream.pbStreamEnd = this->ByteStream.pbStream;
 	else
-		pBuffer->ByteStream.pbStreamEnd = pBuffer->ByteStream.pbStream + pBuffer->ulMaxSize;
+		this->ByteStream.pbStreamEnd = this->ByteStream.pbStream + this->ulMaxSize;
 }
 
 //*****************************************************************************

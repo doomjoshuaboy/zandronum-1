@@ -125,7 +125,7 @@ unsigned int PacketArchive::StorePacket( const NETBUFFER_s& packet )
 void PacketArchive::Clear()
 {
 	if ( _initialized )
-		NETWORK_ClearBuffer( &_packetData );
+		_packetData.Clear();
 
 	_sequenceNumber = 0;
 

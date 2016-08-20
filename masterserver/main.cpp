@@ -137,7 +137,7 @@ public:
 			_destServer ( DestServer )
 	{
 		_netBuffer.Init( MAX_UDP_PACKET, BUFFERTYPE_WRITE );
-		NETWORK_ClearBuffer( &_netBuffer );
+		_netBuffer.Clear();
 	}
 
 	~BanlistPacketSender ( )
@@ -167,7 +167,7 @@ public:
 	}
 private:
 	void startPacket ( ) {
-		NETWORK_ClearBuffer( &_netBuffer );
+		_netBuffer.Clear();
 		NETWORK_WriteByte( &_netBuffer.ByteStream, MASTER_SERVER_BANLISTPART );
 		NETWORK_WriteString( &_netBuffer.ByteStream, _destServer.MasterBanlistVerificationString.c_str() );
 		NETWORK_WriteByte( &_netBuffer.ByteStream, _ulPacketNum );
@@ -240,7 +240,7 @@ void MASTERSERVER_SendBanlistToServer( const SERVER_s &Server )
 	}
 	else
 	{
-		NETWORK_ClearBuffer( &g_MessageBuffer );
+		g_MessageBuffer.Clear();
 		NETWORK_WriteByte( &g_MessageBuffer.ByteStream, MASTER_SERVER_BANLIST );
 		// [BB] If the server sent us a verification string, send it along with the ban list.
 		// This allows the server to verify that the list actually was sent from our master
@@ -269,7 +269,7 @@ void MASTERSERVER_SendBanlistToServer( const SERVER_s &Server )
 //
 void MASTERSERVER_RequestServerVerification( const SERVER_s &Server )
 {
-	NETWORK_ClearBuffer( &g_MessageBuffer );
+	g_MessageBuffer.Clear();
 	NETWORK_WriteByte( &g_MessageBuffer.ByteStream, MASTER_SERVER_VERIFICATION );
 	NETWORK_WriteString( &g_MessageBuffer.ByteStream, Server.MasterBanlistVerificationString.c_str() );
 	NETWORK_WriteLong( &g_MessageBuffer.ByteStream, Server.ServerVerificationInt );
@@ -423,7 +423,7 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 	// Is this IP banned? Send the user an explanation, and ignore the IP for 30 seconds.
 	if ( !g_BannedIPExemptions.isIPInList( AddressFrom ) && g_BannedIPs.isIPInList( AddressFrom ))
 	{
-		NETWORK_ClearBuffer( &g_MessageBuffer );
+		g_MessageBuffer.Clear();
 		NETWORK_WriteLong( &g_MessageBuffer.ByteStream, MSC_IPISBANNED );
 		NETWORK_LaunchPacket( &g_MessageBuffer, AddressFrom );
 
@@ -442,7 +442,7 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 			// Certain IPs can be blocked from just hosting.
 			if ( !g_BannedIPExemptions.isIPInList( AddressFrom ) && g_BlockedIPs.isIPInList( AddressFrom ))
 			{
-				NETWORK_ClearBuffer( &g_MessageBuffer );
+				g_MessageBuffer.Clear();
 				NETWORK_WriteLong( &g_MessageBuffer.ByteStream, MSC_IPISBANNED );
 				NETWORK_LaunchPacket( &g_MessageBuffer, AddressFrom );
 
@@ -566,7 +566,7 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 	case LAUNCHER_SERVER_CHALLENGE:
 	case LAUNCHER_MASTER_CHALLENGE:
 		{
-			NETWORK_ClearBuffer( &g_MessageBuffer );
+			g_MessageBuffer.Clear();
 
 			// Did this IP query us recently? If so, send it an explanation, and ignore it completely for 3 seconds.
 			if ( g_queryIPQueue.addressInQueue( AddressFrom ))
@@ -655,7 +655,7 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 						NETWORK_WriteByte( &g_MessageBuffer.ByteStream, MSC_ENDSERVERLISTPART );
 						NETWORK_LaunchPacket( &g_MessageBuffer, AddressFrom );
 
-						NETWORK_ClearBuffer( &g_MessageBuffer );
+						g_MessageBuffer.Clear();
 						++ulPacketNum;
 						ulSizeOfPacket = 5;
 						NETWORK_WriteLong( &g_MessageBuffer.ByteStream, MSC_BEGINSERVERLISTPART );
@@ -731,7 +731,7 @@ int main( int argc, char **argv )
 
 	// Initialize the message buffer we send messages to the launcher in.
 	g_MessageBuffer.Init ( MAX_UDP_PACKET, BUFFERTYPE_WRITE );
-	NETWORK_ClearBuffer( &g_MessageBuffer );
+	g_MessageBuffer.Clear();
 
 	// Initialize the bans subsystem.
 	std::cerr << "Initializing ban list...\n";
