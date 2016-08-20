@@ -96,7 +96,7 @@ unsigned int PacketArchive::StorePacket( const NETBUFFER_s& packet )
 	if ( _initialized == false )
 		return 0;
 
-	_packetData.ulCurrentSize = NETWORK_CalcBufferSize( &_packetData );
+	_packetData.ulCurrentSize = _packetData.CalcSize();
 
 	// If we've reached the end of our reliable packets buffer, start writing at the beginning.
 	if (( _packetData.ulCurrentSize + packet.ulCurrentSize ) >= _packetData.ulMaxSize )

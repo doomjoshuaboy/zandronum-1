@@ -778,10 +778,10 @@ void SERVER_SendOutPackets( void )
 		if ( SERVER_IsValidClient( ulIdx ) == false )
 			continue;
 
-		if ( NETWORK_CalcBufferSize( &g_aClients[ulIdx].PacketBuffer ) > 0 )
+		if ( g_aClients[ulIdx].PacketBuffer.CalcSize() > 0 )
 			SERVER_SendClientPacket( ulIdx, true );
 
-		if ( NETWORK_CalcBufferSize( &g_aClients[ulIdx].UnreliablePacketBuffer ) > 0 )
+		if ( g_aClients[ulIdx].UnreliablePacketBuffer.CalcSize() > 0 )
 			SERVER_SendClientPacket( ulIdx, false );
 	}
 }
@@ -811,7 +811,7 @@ void SERVER_SendClientPacket( ULONG ulClient, bool bReliable )
 	else
 		pBuffer = &pClient->UnreliablePacketBuffer;
 
-	pBuffer->ulCurrentSize = NETWORK_CalcBufferSize( pBuffer );
+	pBuffer->ulCurrentSize = pBuffer->CalcSize();
 	if ( bReliable )
 	{
 		int sequenceNumber = pClient->SavedPackets.StorePacket( *pBuffer );

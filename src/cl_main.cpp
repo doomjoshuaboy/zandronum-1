@@ -562,7 +562,7 @@ void CLIENT_EndTick( void )
 	}
 
 	// If there's any data in our packet, send it to the server.
-	if ( NETWORK_CalcBufferSize( &g_LocalBuffer ) > 0 )
+	if ( g_LocalBuffer.CalcSize() > 0 )
 		CLIENT_SendServerPacket( );
 }
 
@@ -759,7 +759,7 @@ const FString &CLIENT_GetPlayerAccountName( int player )
 void CLIENT_SendServerPacket( void )
 {
 	// Add the size of the packet to the number of bytes sent.
-	CLIENTSTATISTICS_AddToBytesSent( NETWORK_CalcBufferSize( &g_LocalBuffer ));
+	CLIENTSTATISTICS_AddToBytesSent( g_LocalBuffer.CalcSize());
 
 	// Launch the packet, and clear out the buffer.
 	NETWORK_LaunchPacket( &g_LocalBuffer, g_AddressServer );
@@ -1151,17 +1151,17 @@ bool CLIENT_ReadPacketHeader( BYTESTREAM_s *pByteStream )
 	}
 
 	// The end of the buffer has been reached.
-	if (( g_lCurrentPosition + ( NETWORK_CalcBufferSize( NETWORK_GetNetworkMessageBuffer( )))) >= g_ReceivedPacketBuffer.lMaxSize )
+	if (( g_lCurrentPosition + ( NETWORK_GetNetworkMessageBuffer( )->CalcSize())) >= g_ReceivedPacketBuffer.lMaxSize )
 		g_lCurrentPosition = 0;
 
 	// Save a bunch of information about this incoming packet.
 	g_lPacketBeginning[g_bPacketNum] = g_lCurrentPosition;
-	g_lPacketSize[g_bPacketNum] = NETWORK_CalcBufferSize( NETWORK_GetNetworkMessageBuffer( ));
+	g_lPacketSize[g_bPacketNum] = NETWORK_GetNetworkMessageBuffer( )->CalcSize();
 	g_lPacketSequence[g_bPacketNum] = lSequence;
 
 	// Save the received packet.
-	memcpy( g_ReceivedPacketBuffer.abData + g_lPacketBeginning[g_bPacketNum], NETWORK_GetNetworkMessageBuffer( )->ByteStream.pbStream, NETWORK_CalcBufferSize( NETWORK_GetNetworkMessageBuffer( )));
-	g_lCurrentPosition += NETWORK_CalcBufferSize( NETWORK_GetNetworkMessageBuffer( ));
+	memcpy( g_ReceivedPacketBuffer.abData + g_lPacketBeginning[g_bPacketNum], NETWORK_GetNetworkMessageBuffer( )->ByteStream.pbStream, NETWORK_GetNetworkMessageBuffer( )->CalcSize());
+	g_lCurrentPosition += NETWORK_GetNetworkMessageBuffer( )->CalcSize();
 
 	if ( lSequence > g_lHighestReceivedSequence )
 		g_lHighestReceivedSequence = lSequence;

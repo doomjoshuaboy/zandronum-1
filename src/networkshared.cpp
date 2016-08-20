@@ -103,12 +103,12 @@ void NETBUFFER_s::Clear()
 
 //*****************************************************************************
 //
-LONG NETWORK_CalcBufferSize( NETBUFFER_s *pBuffer )
+LONG NETBUFFER_s::CalcSize() const
 {
-	if ( pBuffer->BufferType == BUFFERTYPE_READ )
-		return ( LONG( pBuffer->ByteStream.pbStreamEnd - pBuffer->ByteStream.pbStream ));
+	if ( this->BufferType == BUFFERTYPE_READ )
+		return ( LONG( this->ByteStream.pbStreamEnd - this->ByteStream.pbStream ));
 	else
-		return ( LONG( pBuffer->ByteStream.pbStream - pBuffer->pbData ));
+		return ( LONG( this->ByteStream.pbStream - this->pbData ));
 }
 
 //*****************************************************************************
