@@ -65,12 +65,12 @@ static	int		g_OutboundBytesMeasured = 0;
 
 //*****************************************************************************
 //
-void NETWORK_InitBuffer( NETBUFFER_s *pBuffer, ULONG ulLength, BUFFERTYPE_e BufferType )
+void NETBUFFER_s::Init( ULONG ulLength, BUFFERTYPE_e BufferType )
 {
-	memset( pBuffer, 0, sizeof( *pBuffer ));
-	pBuffer->ulMaxSize = ulLength;
-	pBuffer->pbData = new BYTE[ulLength];
-	pBuffer->BufferType = BufferType;
+	memset( this, 0, sizeof( *this ));
+	this->ulMaxSize = ulLength;
+	this->pbData = new BYTE[ulLength];
+	this->BufferType = BufferType;
 }
 
 //*****************************************************************************

@@ -326,7 +326,7 @@ void CLIENTCOMMANDS_Pong( ULONG ulTime )
 	// immediately instead of sending the answer together with the the
 	// other commands tic-synced in CLIENT_EndTick().
 	NETBUFFER_s	TempBuffer;
-	NETWORK_InitBuffer( &TempBuffer, MAX_UDP_PACKET, BUFFERTYPE_WRITE );
+	TempBuffer.Init( MAX_UDP_PACKET, BUFFERTYPE_WRITE );
 	NETWORK_ClearBuffer( &TempBuffer );
 	NETWORK_WriteByte( &TempBuffer.ByteStream, CLC_PONG );
 	NETWORK_WriteLong( &TempBuffer.ByteStream, ulTime );

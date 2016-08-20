@@ -136,7 +136,7 @@ public:
 			_ulSizeOfPacket ( 0 ),
 			_destServer ( DestServer )
 	{
-		NETWORK_InitBuffer( &_netBuffer, MAX_UDP_PACKET, BUFFERTYPE_WRITE );
+		_netBuffer.Init( MAX_UDP_PACKET, BUFFERTYPE_WRITE );
 		NETWORK_ClearBuffer( &_netBuffer );
 	}
 
@@ -730,7 +730,7 @@ int main( int argc, char **argv )
 	NETWORK_Construct( DEFAULT_MASTER_PORT, ( ( argc >= 4 ) && ( stricmp ( argv[2], "-useip" ) == 0 ) ) ? argv[3] : NULL );
 
 	// Initialize the message buffer we send messages to the launcher in.
-	NETWORK_InitBuffer( &g_MessageBuffer, MAX_UDP_PACKET, BUFFERTYPE_WRITE );
+	g_MessageBuffer.Init ( MAX_UDP_PACKET, BUFFERTYPE_WRITE );
 	NETWORK_ClearBuffer( &g_MessageBuffer );
 
 	// Initialize the bans subsystem.

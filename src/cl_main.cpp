@@ -421,7 +421,7 @@ void CLIENT_Construct( void )
 	// Set up a socket and network message buffer.
 	NETWORK_Construct( usPort, true );
 
-	NETWORK_InitBuffer( &g_LocalBuffer, MAX_UDP_PACKET * 8, BUFFERTYPE_WRITE );
+	g_LocalBuffer.Init( MAX_UDP_PACKET * 8, BUFFERTYPE_WRITE );
 	NETWORK_ClearBuffer( &g_LocalBuffer );
 
 	// Initialize the stored packets buffer.

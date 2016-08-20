@@ -105,7 +105,7 @@ ULONG ClientIterator::operator++ ( ) {
 NetCommand::NetCommand ( const SVC Header ) :
 	_unreliable( false )
 {
-	NETWORK_InitBuffer( &_buffer, MAX_UDP_PACKET, BUFFERTYPE_WRITE );
+	_buffer.Init( MAX_UDP_PACKET, BUFFERTYPE_WRITE );
 	NETWORK_ClearBuffer( &_buffer );
 	addByte( Header );
 }
@@ -115,7 +115,7 @@ NetCommand::NetCommand ( const SVC Header ) :
 NetCommand::NetCommand ( const SVC2 Header2 ) :
 	_unreliable( false )
 {
-	NETWORK_InitBuffer( &_buffer, MAX_UDP_PACKET, BUFFERTYPE_WRITE );
+	_buffer.Init( MAX_UDP_PACKET, BUFFERTYPE_WRITE );
 	NETWORK_ClearBuffer( &_buffer );
 	addByte( SVC_EXTENDEDCOMMAND );
 	addByte( Header2 );

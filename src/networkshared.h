@@ -272,13 +272,13 @@ struct NETBUFFER_s
 	// Is this a buffer that we write to, or read from?
 	BUFFERTYPE_e	BufferType;
 
+	void			Init( ULONG ulLength, BUFFERTYPE_e BufferType );
 };
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 //-- PROTOTYPES ------------------------------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 
-void			NETWORK_InitBuffer( NETBUFFER_s *pBuffer, ULONG ulLength, BUFFERTYPE_e BufferType );
 void			NETWORK_FreeBuffer( NETBUFFER_s *pBuffer );
 void			NETWORK_ClearBuffer( NETBUFFER_s *pBuffer );
 LONG			NETWORK_CalcBufferSize( NETBUFFER_s *pBuffer );

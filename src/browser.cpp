@@ -101,11 +101,11 @@ void BROWSER_Construct( void )
 	g_bWaitingForMasterResponse = false;
 
 	// Setup our master server message buffer.
-	NETWORK_InitBuffer( &g_MasterServerBuffer, MAX_UDP_PACKET, BUFFERTYPE_WRITE );
+	g_MasterServerBuffer.Init( MAX_UDP_PACKET, BUFFERTYPE_WRITE );
 	NETWORK_ClearBuffer( &g_MasterServerBuffer );
 
 	// Setup our server message buffer.
-	NETWORK_InitBuffer( &g_ServerBuffer, MAX_UDP_PACKET, BUFFERTYPE_WRITE );
+	g_ServerBuffer.Init( MAX_UDP_PACKET, BUFFERTYPE_WRITE );
 	NETWORK_ClearBuffer( &g_ServerBuffer );
 
 	// Allow the user to specify which port the master server is on.
