@@ -278,7 +278,7 @@ void NETWORK_LaunchPacket( NETBUFFER_s *pBuffer, NETADDRESS_s Address )
 	LONG				lNumBytes;
 	INT					iNumBytesOut = sizeof(g_ucHuffmanBuffer);
 
-	pBuffer->ulCurrentSize = NETWORK_CalcBufferSize( pBuffer );
+	pBuffer->ulCurrentSize = pBuffer->CalcSize();
 
 	// Nothing to do.
 	if ( pBuffer->ulCurrentSize == 0 )
