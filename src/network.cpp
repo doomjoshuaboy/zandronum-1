@@ -290,7 +290,7 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 	// can hold the biggest possible size we may get after decompressing (aka Huffman decoding)
 	// the incoming UDP packet.
 	g_NetworkMessage.Init( ((MAX_UDP_PACKET * 8) / 3 + 1), BUFFERTYPE_READ );
-	NETWORK_ClearBuffer( &g_NetworkMessage );
+	g_NetworkMessage.Clear();
 
 	// If hosting, update the server GUI.
 	if( NETWORK_GetState() == NETSTATE_SERVER )
@@ -1592,7 +1592,7 @@ void NETWORK_FillBufferWithShit( BYTESTREAM_s *pByteStream, ULONG ulSize )
 	for ( ulIdx = 0; ulIdx < ulSize; ulIdx++ )
 		NETWORK_WriteByte( pByteStream, M_Random( ));
 
-//	NETWORK_ClearBuffer( &g_NetworkMessage );
+//	g_NetworkMessage.Clear();
 }
 
 CCMD( fillbufferwithshit )
@@ -1606,7 +1606,7 @@ CCMD( fillbufferwithshit )
 	for ( ulIdx = 0; ulIdx < 1024; ulIdx++ )
 		NETWORK_WriteByte( &g_NetworkMessage, M_Random( ));
 
-//	NETWORK_ClearBuffer( &g_NetworkMessage );
+//	g_NetworkMessage.Clear();
 */
 }
 

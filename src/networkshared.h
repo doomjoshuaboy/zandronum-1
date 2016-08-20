@@ -274,13 +274,13 @@ struct NETBUFFER_s
 
 	void			Init( ULONG ulLength, BUFFERTYPE_e BufferType );
 	void			Free();
+	void			Clear();
 };
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 //-- PROTOTYPES ------------------------------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 
-void			NETWORK_ClearBuffer( NETBUFFER_s *pBuffer );
 LONG			NETWORK_CalcBufferSize( NETBUFFER_s *pBuffer );
 void			NETWORK_WriteBuffer( BYTESTREAM_s *pByteStream, const void *pvBuffer, int nLength );
 
