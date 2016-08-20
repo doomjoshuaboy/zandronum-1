@@ -272,6 +272,9 @@ struct NETBUFFER_s
 	// Is this a buffer that we write to, or read from?
 	BUFFERTYPE_e	BufferType;
 
+	NETBUFFER_s ( );
+	NETBUFFER_s ( const NETBUFFER_s &Buffer );
+
 	void			Init( ULONG ulLength, BUFFERTYPE_e BufferType );
 	void			Free();
 	void			Clear();
