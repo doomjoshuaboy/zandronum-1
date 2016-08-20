@@ -65,6 +65,33 @@ static	int		g_OutboundBytesMeasured = 0;
 
 //*****************************************************************************
 //
+NETBUFFER_s::NETBUFFER_s ( )
+{
+	this->pbData = NULL;
+	this->ulMaxSize = 0;
+	this->BufferType = (BUFFERTYPE_e)0;
+	Clear();
+}
+
+//*****************************************************************************
+//
+NETBUFFER_s::NETBUFFER_s ( const NETBUFFER_s &Buffer )
+{
+	Init ( Buffer.ulMaxSize, Buffer.BufferType );
+	Clear();
+
+	memcpy( this->pbData, Buffer.pbData, Buffer.ulMaxSize );
+	this->ByteStream.pbStream = this->pbData + ( Buffer.ByteStream.pbStream - Buffer.pbData );
+	this->ByteStream.pbStreamEnd = this->pbData + ( Buffer.ByteStream.pbStreamEnd - Buffer.pbData );
+	this->ByteStream.bitShift = Buffer.ByteStream.bitShift;
+	if ( Buffer.ByteStream.bitBuffer != NULL )
+		this->ByteStream.bitBuffer = this->ByteStream.pbStream + ( Buffer.ByteStream.bitBuffer - Buffer.ByteStream.pbStream );
+
+	this->ulCurrentSize = Buffer.ulCurrentSize;
+}
+
+//*****************************************************************************
+//
 void NETBUFFER_s::Init( ULONG ulLength, BUFFERTYPE_e BufferType )
 {
 	memset( this, 0, sizeof( *this ));
