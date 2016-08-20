@@ -142,7 +142,7 @@ public:
 
 	~BanlistPacketSender ( )
 	{
-		NETWORK_FreeBuffer( &_netBuffer );
+		_netBuffer.Free();
 	}
 
 	void writeBanEntry ( const char *BanEntry, const int EntryType )

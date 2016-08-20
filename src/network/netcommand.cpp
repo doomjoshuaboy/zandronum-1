@@ -125,7 +125,7 @@ NetCommand::NetCommand ( const SVC2 Header2 ) :
 //
 NetCommand::~NetCommand ( )
 {
-	NETWORK_FreeBuffer ( &_buffer );
+	_buffer.Free();
 }
 
 //*****************************************************************************

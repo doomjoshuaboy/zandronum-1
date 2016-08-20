@@ -331,7 +331,7 @@ void CLIENTCOMMANDS_Pong( ULONG ulTime )
 	NETWORK_WriteByte( &TempBuffer.ByteStream, CLC_PONG );
 	NETWORK_WriteLong( &TempBuffer.ByteStream, ulTime );
 	NETWORK_LaunchPacket( &TempBuffer, NETWORK_GetFromAddress( ) );
-	NETWORK_FreeBuffer( &TempBuffer );
+	TempBuffer.Free();
 }
 
 //*****************************************************************************
