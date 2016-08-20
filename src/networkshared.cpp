@@ -75,16 +75,16 @@ void NETBUFFER_s::Init( ULONG ulLength, BUFFERTYPE_e BufferType )
 
 //*****************************************************************************
 //
-void NETWORK_FreeBuffer( NETBUFFER_s *pBuffer )
+void NETBUFFER_s::Free()
 {
-	if ( pBuffer->pbData )
+	if ( this->pbData )
 	{
-		delete[] ( pBuffer->pbData );
-		pBuffer->pbData = NULL;
+		delete[] ( this->pbData );
+		this->pbData = NULL;
 	}
 
-	pBuffer->ulMaxSize = 0;
-	pBuffer->BufferType = (BUFFERTYPE_e)0;
+	this->ulMaxSize = 0;
+	this->BufferType = (BUFFERTYPE_e)0;
 }
 
 //*****************************************************************************

@@ -138,7 +138,7 @@ void NETWORK_AUTH_Construct( void )
 //
 void NETWORK_AUTH_Destruct( void )
 {
-	NETWORK_FreeBuffer( &g_AuthServerBuffer );
+	g_AuthServerBuffer.Free();
 }
 
 //*****************************************************************************

@@ -112,7 +112,7 @@ void SERVER_RCON_Construct( )
 void SERVER_RCON_Destruct( )
 {
 	// Free our local buffer.
-	NETWORK_FreeBuffer( &g_MessageBuffer );
+	g_MessageBuffer.Free();
 }
 
 //*****************************************************************************

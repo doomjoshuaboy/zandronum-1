@@ -149,7 +149,7 @@ void SERVER_MASTER_Construct( void )
 void SERVER_MASTER_Destruct( void )
 {
 	// Free our local buffer.
-	NETWORK_FreeBuffer( &g_MasterServerBuffer );
+	g_MasterServerBuffer.Free();
 }
 
 //*****************************************************************************

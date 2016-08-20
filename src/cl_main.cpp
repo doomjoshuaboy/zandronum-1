@@ -483,7 +483,7 @@ void CLIENT_Destruct( void )
 		CLIENT_QuitNetworkGame( NULL );
 
 	// Free our local buffer.
-	NETWORK_FreeBuffer( &g_LocalBuffer );
+	g_LocalBuffer.Free();
 }
 
 //*****************************************************************************

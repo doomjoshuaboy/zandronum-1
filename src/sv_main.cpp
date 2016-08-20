@@ -517,7 +517,7 @@ void SERVER_Destruct( void )
 	ULONG	ulIdx;
 
 	// Free the packet loss buffer.
-	NETWORK_FreeBuffer( &g_PacketLossBuffer );
+	g_PacketLossBuffer.Free();
 
 	// Free the clients' buffers.
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -529,8 +529,8 @@ void SERVER_Destruct( void )
 			NETWORK_LaunchPacket( &SERVER_GetClient( ulIdx )->PacketBuffer, SERVER_GetClient( ulIdx )->Address );
 		}
 
-		NETWORK_FreeBuffer( &g_aClients[ulIdx].PacketBuffer );
-		NETWORK_FreeBuffer( &g_aClients[ulIdx].UnreliablePacketBuffer );
+		g_aClients[ulIdx].PacketBuffer.Free();
+		g_aClients[ulIdx].UnreliablePacketBuffer.Free();
 		g_aClients[ulIdx].SavedPackets.Free();
 	}
 
@@ -1780,7 +1780,7 @@ void SERVER_DetermineConnectionType( BYTESTREAM_s *pByteStream )
 				NETWORK_WriteString( &TempBuffer.ByteStream, versionStringMessage.GetChars() );
 
 				NETWORK_LaunchPacket( &TempBuffer, NETWORK_GetFromAddress( ) );
-				NETWORK_FreeBuffer( &TempBuffer );
+				TempBuffer.Free();
 			}
 
 			return;
@@ -2253,7 +2253,7 @@ void SERVER_ConnectionError( NETADDRESS_s Address, const char *pszMessage, ULONG
 
 //	NETWORK_LaunchPacket( TempBuffer, Address, true );
 	NETWORK_LaunchPacket( &TempBuffer, Address );
-	NETWORK_FreeBuffer( &TempBuffer );
+	TempBuffer.Free();
 }
 
 //*****************************************************************************

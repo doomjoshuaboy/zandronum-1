@@ -84,7 +84,7 @@ void PacketArchive::Free()
 {
 	if ( _initialized )
 	{
-		NETWORK_FreeBuffer( &_packetData );
+		_packetData.Free();
 		_initialized = false;
 	}
 }

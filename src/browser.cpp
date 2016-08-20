@@ -130,8 +130,8 @@ void BROWSER_Construct( void )
 void BROWSER_Destruct( void )
 {
 	// Free our local buffers.
-	NETWORK_FreeBuffer( &g_MasterServerBuffer );
-	NETWORK_FreeBuffer( &g_ServerBuffer );
+	g_MasterServerBuffer.Free();
+	g_ServerBuffer.Free();
 }
 
 //*****************************************************************************

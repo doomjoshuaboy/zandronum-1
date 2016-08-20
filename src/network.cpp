@@ -506,7 +506,7 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 void NETWORK_Destruct( void )
 {
 	// Free the network message buffer.
-	NETWORK_FreeBuffer( &g_NetworkMessage );
+	g_NetworkMessage.Free();
 
 	// [BB] Delete the GeoIP database.
 	GeoIP_delete ( g_GeoIPDB );
