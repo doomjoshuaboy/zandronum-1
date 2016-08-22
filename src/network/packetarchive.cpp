@@ -140,6 +140,18 @@ bool PacketArchive::FindPacket( unsigned int packetNumber, const BYTE*& data, si
 	if ( _initialized == false )
 		return false;
 
+	// [BB] We know the internal index the packet should have.
+	size_t index = packetNumber % PACKET_BUFFER_SIZE;
+	if ( _records[index].sequenceNumber == packetNumber )
+	{
+		data = _packetData.pbData + _records[index].position;
+		size = _records[index].size;
+		return true;
+	}
+	// [BB] If we still have it, we should have found the packet above.
+	// Nevertheless, to guarantee consistency with the old behaviort, look
+	// through all packets.
+
 	// Search through all PACKET_BUFFER_SIZE of the stored packets. We're looking for the packet that
 	// that we want to send to the client by matching the sequences.
 	for ( size_t i = 0; i < countof( _records ); ++i )
