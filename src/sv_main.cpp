@@ -197,9 +197,6 @@ static	TArray<FString>	g_ServerCommandQueue;
 // Timer for restarting the map.
 static	LONG			g_lMapRestartTimer;
 
-// Buffer that we use for handling packet loss.
-static	NETBUFFER_s		g_PacketLossBuffer;
-
 // List of IP addresses that may connect to full servers.
 static	IPList			g_AdminIPList;
 
@@ -426,9 +423,6 @@ void SERVER_Construct( void )
 	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ++ulIdx )
 		playeringame[ulIdx] = false;
 
-	g_PacketLossBuffer.Init( MAX_UDP_PACKET, BUFFERTYPE_WRITE );
-	g_PacketLossBuffer.Clear();
-
 	// Initialize clients.
 	g_ulMaxPacketSize = sv_maxpacketsize;
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -518,9 +512,6 @@ void SERVER_Construct( void )
 void SERVER_Destruct( void )
 {
 	ULONG	ulIdx;
-
-	// Free the packet loss buffer.
-	g_PacketLossBuffer.Free();
 
 	// Free the clients' buffers.
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -5339,10 +5330,8 @@ static bool server_MissingPacket( BYTESTREAM_s *pByteStream )
 		}
 		lLastPacket = lPacket;
 
-		// Find the packet from the saved packet archive.
-		const BYTE* packetData;
-		size_t packetSize;
-		bool found = g_aClients[g_lCurrentClient].SavedPackets.FindPacket( lPacket, packetData, packetSize );
+		// Send the packet from the saved packet archive.
+		bool found = g_aClients[g_lCurrentClient].SavedPackets.SendPacket( lPacket, g_aClients[g_lCurrentClient].Address );
 
 		// We could not find the correct packet to resend to the client, so there's nothing we can do to save him.
 		if ( found == false )
@@ -5350,15 +5339,6 @@ static bool server_MissingPacket( BYTESTREAM_s *pByteStream )
 			SERVER_KickPlayer( g_lCurrentClient, "Too many missed packets." );
 			return ( true );
 		}
-
-		// Now that we've found the missed packet that we need to send to the client,
-		// send it.
-		g_PacketLossBuffer.Clear();
-		NETWORK_WriteHeader( &g_PacketLossBuffer.ByteStream, SVC_HEADER );
-		NETWORK_WriteLong( &g_PacketLossBuffer.ByteStream, lPacket );
-		if ( packetSize > 0 )
-			NETWORK_WriteBuffer( &g_PacketLossBuffer.ByteStream, packetData, packetSize );
-		NETWORK_LaunchPacket( &g_PacketLossBuffer, g_aClients[g_lCurrentClient].Address );
 	}
 
 	// Mark this client as having requested missing packets.
