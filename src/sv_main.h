@@ -228,7 +228,7 @@ struct CLIENT_s
 
 	// We back up the last PACKET_BUFFER_SIZE packets we've sent to the client so that we can
 	// retransmit them if necessary.
-	PacketArchive	SavedPackets;
+	OutgoingPacketBuffer	SavedPackets;
 
 	// This is the last tic in which we received a command from this client. Used for timeouts.
 	ULONG			ulLastCommandTic;

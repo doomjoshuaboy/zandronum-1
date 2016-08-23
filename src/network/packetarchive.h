@@ -83,3 +83,16 @@ private:
 	// Is this initialized or not?
 	bool _initialized;
 };
+
+//==========================================================================
+//
+// OutgoingPacketBuffer
+//
+// @author Benjamin Berkels
+//
+//==========================================================================
+class OutgoingPacketBuffer : public PacketArchive
+{
+public:
+	bool SendPacket( unsigned int packetNumber, const NETADDRESS_s &Address ) const;
+};

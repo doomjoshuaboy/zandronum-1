@@ -49,6 +49,8 @@
 //-----------------------------------------------------------------------------
 
 #include "../sv_main.h"
+#include "../network.h"
+#include "../network_enums.h" 
 #include "packetarchive.h"
 
 //*****************************************************************************
@@ -163,4 +165,30 @@ bool PacketArchive::FindPacket( unsigned int packetNumber, const BYTE*& data, si
 	}
 
 	return false;
+}
+
+//*****************************************************************************
+//
+bool OutgoingPacketBuffer::SendPacket( unsigned int packetNumber, const NETADDRESS_s &Address ) const
+{
+	// Find the packet from the saved packet archive.
+	const BYTE* packetData;
+	size_t packetSize;
+	bool found = this->FindPacket( packetNumber, packetData, packetSize );
+
+	// We could not find the correct packet.
+	if ( found == false )
+		return false;
+
+	// Now that we've found the packet, send it.
+	NETBUFFER_s TempBuffer;
+	TempBuffer.Init( MAX_UDP_PACKET, BUFFERTYPE_WRITE );
+	TempBuffer.Clear();
+	NETWORK_WriteHeader( &TempBuffer.ByteStream, SVC_HEADER );
+	NETWORK_WriteLong( &TempBuffer.ByteStream, packetNumber );
+	if ( packetSize > 0 )
+		NETWORK_WriteBuffer( &TempBuffer.ByteStream, packetData, packetSize );
+	NETWORK_LaunchPacket( &TempBuffer, Address );
+	TempBuffer.Free();
+	return true;
 }
