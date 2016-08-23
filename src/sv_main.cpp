@@ -784,7 +784,6 @@ void SERVER_SendOutPackets( void )
 //
 void SERVER_SendClientPacket( ULONG ulClient, bool bReliable )
 {
-	NETBUFFER_s		*pBuffer;
     NETBUFFER_s		TempBuffer;
 	BYTE			abData[MAX_UDP_PACKET];
 	CLIENT_s		*pClient;
@@ -793,6 +792,14 @@ void SERVER_SendClientPacket( ULONG ulClient, bool bReliable )
 	if ( pClient == NULL )
 		return;
 
+	if ( bReliable )
+	{
+		int sequenceNumber = pClient->SavedPackets.StorePacket( pClient->PacketBuffer );
+		pClient->SavedPackets.SendPacket( sequenceNumber, pClient->Address );
+		pClient->PacketBuffer.Clear();
+		return;
+	}
+
 	TempBuffer.pbData = abData;
 	TempBuffer.ulMaxSize = sizeof( abData );
 	TempBuffer.ulCurrentSize = 0;
@@ -800,32 +807,15 @@ void SERVER_SendClientPacket( ULONG ulClient, bool bReliable )
 	TempBuffer.ByteStream.pbStream = abData;
 	TempBuffer.ByteStream.pbStreamEnd = TempBuffer.ByteStream.pbStream + TempBuffer.ulMaxSize;
 
-	if ( bReliable )
-		pBuffer = &pClient->PacketBuffer;
-	else
-		pBuffer = &pClient->UnreliablePacketBuffer;
-
-	pBuffer->ulCurrentSize = pBuffer->CalcSize();
-	if ( bReliable )
-	{
-		int sequenceNumber = pClient->SavedPackets.StorePacket( *pBuffer );
-
-		// Write the header to our temporary buffer.
-		NETWORK_WriteByte( &TempBuffer.ByteStream, SVC_HEADER );
-		NETWORK_WriteLong( &TempBuffer.ByteStream, sequenceNumber );
-	}
-	else
-	{
-		// Write the header to our temporary buffer.
-		NETWORK_WriteByte( &TempBuffer.ByteStream, SVC_UNRELIABLEPACKET );
-	}
+	// Write the header to our temporary buffer.
+	NETWORK_WriteByte( &TempBuffer.ByteStream, SVC_UNRELIABLEPACKET );
 
 	// Write the body of the message to our temporary buffer.
-	pBuffer->WriteTo ( TempBuffer.ByteStream );
+	pClient->UnreliablePacketBuffer.WriteTo ( TempBuffer.ByteStream );
 
 	// Finally, send the packet, and clear the buffer.
 	NETWORK_LaunchPacket( &TempBuffer, pClient->Address );
-	pBuffer->Clear();
+	pClient->UnreliablePacketBuffer.Clear();
 }
 
 //*****************************************************************************
