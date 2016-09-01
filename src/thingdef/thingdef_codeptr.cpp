@@ -171,6 +171,14 @@ bool ACustomInventory::CallStateChain (AActor *actor, FState * State)
 			State = StateCall.State;
 		}
 	}
+
+	// [TP] The server handles state chain results. The client considers everything to succeed. This way, the client is
+	// immune to state chain failure in event it cannot predict the result properly. Since the client is here, it has
+	// already succeded on the server. Without this, clients would sometimes be unable to handle e.g. GiveInventory
+	// messages properly for CustomInventory items with Pickup states that call ACS.
+	if ( NETWORK_InClientMode() )
+		return true;
+
 	return result;
 }
 
