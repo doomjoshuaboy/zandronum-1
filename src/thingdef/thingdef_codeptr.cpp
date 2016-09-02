@@ -3586,6 +3586,10 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Respawn)
 	ACTION_PARAM_START(1);
 	ACTION_PARAM_INT(flags, 0);
 
+	// [EP] Don't let the clients execute it.
+	if ( NETWORK_InClientModeAndActorNotClientHandled( self ) )
+		return;
+
 	bool oktorespawn = false;
 
 	self->flags |= MF_SOLID;
