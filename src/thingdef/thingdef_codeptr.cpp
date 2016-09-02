@@ -3651,6 +3651,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Respawn)
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		{
 			SERVERCOMMANDS_SpawnThing( self );
+			SERVERCOMMANDS_SetThingAngle( self );
 			// [BB] Since the clients just spawned this actor again, be sure to remove this flag.
 			self ->ulNetworkFlags &= ~NETFL_DESTROYED_ON_CLIENT;
 		}
