@@ -1273,7 +1273,8 @@ static void TakeInventory (AActor *activator, const char *type, int amount)
 	{
 		for (int i = 0; i < MAXPLAYERS; ++i)
 		{
-			if (playeringame[i])
+			// [BB] On clients it's possible that players have no valid body.
+			if (playeringame[i] && ( players[i].mo != NULL ))
 				DoTakeInv (players[i].mo, info, amount);
 		}
 	}
