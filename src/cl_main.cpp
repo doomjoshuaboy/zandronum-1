@@ -5038,6 +5038,11 @@ static void client_SetThingFrame( AActor* pActor, const PClass *stateOwner, int 
 	if ( gamestate != GS_LEVEL )
 		return;
 
+	// [BB] While skipping to the next map, DThinker::RunThinkers is not called, which seems to invalidate
+	// the arguments of this command. Since we don't need to update the actors anyway, just skip this.
+	if ( CLIENTDEMO_IsSkippingToNextMap() == true )
+		return;
+
 	if ( stateOwner->ActorInfo == NULL )
 		return;
 
