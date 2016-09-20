@@ -3058,6 +3058,10 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_SpawnDebris)
 
 	if (debris == NULL) return;
 
+	// [BB] Should the actor not be spawned, taking in account client side only actors?
+	if ( NETWORK_ShouldActorNotBeSpawned ( self, debris ) )
+		return;
+
 	// only positive values make sense here
 	if (mult_v<=0) mult_v=FRACUNIT;
 	if (mult_h<=0) mult_h=FRACUNIT;
@@ -3069,17 +3073,35 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_SpawnDebris)
 			self->z + (pr_spawndebris()*self->height/256+self->GetBobOffset()), ALLOW_REPLACE);
 		if (mo)
 		{
+			// [BB]
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SpawnThing( mo );
+			else if ( NETWORK_InClientMode() )
+				mo->ulNetworkFlags |= NETFL_CLIENTSIDEONLY;
+
 			if (transfer_translation)
 			{
 				mo->Translation = self->Translation;
+
+				// [BB]
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVERCOMMANDS_SetThingTranslation( mo );
 			}
 			if (i < mo->GetClass()->ActorInfo->NumOwnedStates)
 			{
+				// [BB]
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVERCOMMANDS_SetThingFrame( mo, mo->GetClass()->ActorInfo->OwnedStates + i );
+
 				mo->SetState(mo->GetClass()->ActorInfo->OwnedStates + i);
 			}
 			mo->velz = FixedMul(mult_v, ((pr_spawndebris()&7)+5)*FRACUNIT);
 			mo->velx = FixedMul(mult_h, pr_spawndebris.Random2()<<(FRACBITS-6));
 			mo->vely = FixedMul(mult_h, pr_spawndebris.Random2()<<(FRACBITS-6));
+
+			// [BB]
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_MoveThing( self, CM_VELX|CM_VELY|CM_VELZ );
 		}
 	}
 }
