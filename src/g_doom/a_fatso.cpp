@@ -154,6 +154,10 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Mushroom)
 	ACTION_PARAM_FIXED(vrange, 3);
 	ACTION_PARAM_FIXED(hrange, 4);
 
+	// [BB] The server will let the client know about the outcome.
+	if ( NETWORK_InClientModeAndActorNotClientHandled ( self ) )
+		return;
+
 	if (n == 0) n = self->Damage; // GetMissileDamage (0, 1);
 	if (spawntype == NULL) spawntype = PClass::FindClass("FatShot");
 
@@ -187,6 +191,13 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Mushroom)
 				mo->vely = FixedMul(mo->vely, hrange);
 				mo->velz = FixedMul(mo->velz, hrange);
 				mo->flags &= ~MF_NOGRAVITY;   // Make debris fall under gravity
+
+				// [BB] If we're the server, tell clients to spawn the missile and set the flags.
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				{
+					SERVERCOMMANDS_SpawnMissile( mo );
+					SERVERCOMMANDS_SetThingFlags( mo, FLAGSET_FLAGS );
+				}
 			}
 		}
 	}
