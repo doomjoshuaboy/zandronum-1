@@ -102,7 +102,7 @@ static FRandom pr_teleport("A_Teleport");
 // the NETFL_CLIENTSIDEONLY property.
 //
 //==========================================================================
-bool shouldActorNotBeSpawned ( const AActor *pSpawner, const PClass *pSpawnType, const bool bForceClientSide = false )
+bool NETWORK_ShouldActorNotBeSpawned ( const AActor *pSpawner, const PClass *pSpawnType, const bool bForceClientSide )
 {
 	// [BB] Nothing to spawn.
 	if ( pSpawnType == NULL )
@@ -1095,7 +1095,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomMissile)
 	AActor * missile;
 
 	// [BB] Should the actor not be spawned, taking in account client side only actors?
-	if ( shouldActorNotBeSpawned ( self, ti ) )
+	if ( NETWORK_ShouldActorNotBeSpawned ( self, ti ) )
 		return;
 
 	if (self->target != NULL || aimmode==2)
@@ -1685,7 +1685,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_FireCustomMissile)
 	}
 
 	// [BB] Should the actor not be spawned, taking in account client side only actors?
-	if ( shouldActorNotBeSpawned ( self, ti ) )
+	if ( NETWORK_ShouldActorNotBeSpawned ( self, ti ) )
 		return;
 
 	if (ti) 
@@ -2401,7 +2401,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_SpawnItem)
 	}
 
 	// [BB] Should the actor not be spawned, taking in account client side only actors?
-	if ( shouldActorNotBeSpawned ( self, missile ) )
+	if ( NETWORK_ShouldActorNotBeSpawned ( self, missile ) )
 		return;
 
 	AActor * mo = Spawn( missile, 
@@ -2495,7 +2495,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_SpawnItemEx)
 	}
 
 	// [BB] Should the actor not be spawned, taking in account client side only actors?
-	if ( shouldActorNotBeSpawned ( self, missile, !!( flags & SIXF_CLIENTSIDE ) ) )
+	if ( NETWORK_ShouldActorNotBeSpawned ( self, missile, !!( flags & SIXF_CLIENTSIDE ) ) )
 		return;
 
 	AActor *mo = Spawn(missile, x, y, self->z - self->floorclip + self->GetBobOffset() + zofs, ALLOW_REPLACE);
