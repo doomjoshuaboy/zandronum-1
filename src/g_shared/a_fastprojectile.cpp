@@ -172,7 +172,8 @@ void AFastProjectile::Effect()
 			hitz += GetClass()->Meta.GetMetaFixed (ACMETA_MissileHeight);
 		
 			const PClass *trail = PClass::FindClass(name);
-			if (trail != NULL)
+			// [BB] Check whether to spawn.
+			if ( (trail != NULL) && ( NETWORK_ShouldActorNotBeSpawned ( this, trail, true ) == false ) )
 			{
 				AActor *act = Spawn (trail, x, y, hitz, ALLOW_REPLACE);
 				if (act != NULL)
