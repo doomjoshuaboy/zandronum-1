@@ -165,6 +165,9 @@ CVAR (Bool, addrocketexplosion, false, CVAR_ARCHIVE)
 CVAR (Int, cl_pufftype, 0, CVAR_ARCHIVE);
 CVAR (Int, cl_bloodtype, 0, CVAR_ARCHIVE);
 
+// [BB]
+CVAR (Bool, sv_showspawnnames, false, CVAR_DEBUGONLY)
+
 // CODE --------------------------------------------------------------------
 
 IMPLEMENT_POINTY_CLASS (AActor)
@@ -5023,6 +5026,8 @@ AActor *AActor::StaticSpawn (const PClass *type, fixed_t ix, fixed_t iy, fixed_t
 	{
 		actor->lNetID = g_NetIDList.getNewID( );
 		g_NetIDList.useID ( actor->lNetID, actor );
+		if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && sv_showspawnnames )
+			Printf ( "%s %d\n", actor->GetClass()->TypeName.GetChars(), actor->lNetID );
 	}
 	else
 		actor->lNetID = -1;
