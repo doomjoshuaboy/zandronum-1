@@ -6824,10 +6824,14 @@ static void client_GiveInventory( BYTESTREAM_s *pByteStream )
 		}
 	}
 
-	// If he still doesn't have the object after trying to give it to him... then YIKES!
 	if ( pInventory == NULL )
 	{
-		CLIENT_PrintWarning( "client_GiveInventory: Failed to give inventory type, %s!\n", NETWORK_GetClassNameFromIdentification( usActorNetworkIndex ));
+		// If he still doesn't have the object after trying to give it to him... then YIKES!
+		if ( ( pType->IsDescendantOf( RUNTIME_CLASS( ABasicArmorPickup ) ) == false ) 
+			 && ( pType->IsDescendantOf( RUNTIME_CLASS( ABasicArmorBonus ) ) == false )
+			 && ( pType->IsDescendantOf( RUNTIME_CLASS( AHealth ) ) == false )
+			 && ( players[ulPlayer].mo->FindInventory( pType ) == NULL ) )
+			CLIENT_PrintWarning( "client_GiveInventory: Failed to give inventory type, %s!\n", NETWORK_GetClassNameFromIdentification( usActorNetworkIndex ));
 		return;
 	}
 
