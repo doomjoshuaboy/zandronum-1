@@ -1202,11 +1202,9 @@ void CLIENT_ParsePacket( BYTESTREAM_s *pByteStream, bool bSequencedPacket )
 		if ( lCommand == -1 )
 			break;
 
-#ifdef _DEBUG
 		// Option to print commands for debugging purposes.
 		if ( cl_showcommands )
 			CLIENT_PrintCommand( lCommand );
-#endif
 
 		// Process this command.
 		CLIENT_ProcessCommand( lCommand, pByteStream );
@@ -1782,10 +1780,8 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 		{
 			const LONG lExtCommand = NETWORK_ReadByte( pByteStream );
 
-#ifdef _DEBUG
 			if ( cl_showcommands )
 				Printf( "%s\n", GetStringSVC2 ( static_cast<SVC2> ( lExtCommand ) ) );
-#endif
 
 			if ( CLIENT_ParseExtendedServerCommand( static_cast<SVC2>( lExtCommand ), pByteStream ))
 				break;
@@ -2131,7 +2127,6 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 //*****************************************************************************
 //
-#ifdef _DEBUG
 void CLIENT_PrintCommand( LONG lCommand )
 {
 	const char	*pszString;
@@ -2181,7 +2176,6 @@ void CLIENT_PrintCommand( LONG lCommand )
 	if ( debugfile )
 		fprintf( debugfile, "%s\n", pszString );
 }
-#endif
 
 //*****************************************************************************
 //
@@ -9086,7 +9080,7 @@ CVAR( Bool, cl_predict_players, true, CVAR_ARCHIVE )
 //CVAR( Int, cl_maxmonstercorpses, 0, CVAR_ARCHIVE )
 CVAR( Float, cl_motdtime, 5.0, CVAR_ARCHIVE )
 CVAR( Bool, cl_taunts, true, CVAR_ARCHIVE )
-CVAR( Int, cl_showcommands, 0, CVAR_ARCHIVE )
+CVAR( Int, cl_showcommands, 0, CVAR_ARCHIVE|CVAR_DEBUGONLY )
 CVAR( Int, cl_showspawnnames, 0, CVAR_ARCHIVE )
 CVAR( Int, cl_connect_flags, CCF_STARTASSPECTATOR, CVAR_ARCHIVE );
 CVAR( Flag, cl_startasspectator, cl_connect_flags, CCF_STARTASSPECTATOR );
