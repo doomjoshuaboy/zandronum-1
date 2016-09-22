@@ -3961,7 +3961,8 @@ void GAME_ResetMap( bool bRunEnterScripts )
 				level.total_items--;
 
 			// Remove the old actor.
-			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			// [BB] A client destroys a RandomSpawner in PostBeginPlay, so there is nothing left to destroy.
+			if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && !pActor->IsKindOf ( PClass::FindClass("RandomSpawner") ) )
 				SERVERCOMMANDS_DestroyThing( pActor );
 
 			// [BB] A voodoo doll needs to stay assigned to the corresponding player.
