@@ -6414,13 +6414,15 @@ AActor *P_SpawnPuff (AActor *source, const PClass *pufftype, fixed_t x, fixed_t 
 					if ( ( activatorPlayerNumber == ulPlayer ) && ( puff->ulNetworkFlags & NETFL_NONETID ) && ( source->player->userinfo.GetClientFlags() & CLIENTFLAGS_CLIENTSIDEPUFFS ) )
 						continue;
 
-					SERVERCOMMANDS_SpawnThingNoNetID( puff, ulPlayer, SVCF_ONLYTHISCLIENT );
+					// [BB] If the puff has a net ID, it must be spawned with one.
+					SERVERCOMMANDS_SpawnThing( puff, ulPlayer, SVCF_ONLYTHISCLIENT );
 				}
 			}
 			else
 			{
 				// [CK] It is always sent when fired from a non-player.
-				SERVERCOMMANDS_SpawnThingNoNetID( puff );
+				// [BB] If the puff has a net ID, it must be spawned with one.
+				SERVERCOMMANDS_SpawnThing( puff );
 			}
 		}
 	}
