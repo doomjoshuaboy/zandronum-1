@@ -99,6 +99,7 @@
 !	- kickfromgame and kickfromgame_idx have been renamed to forcespec and forcespec_idx, respectively, though the old names still exist for compatibility with e.g. aliases. Same also with the ACS function KickFromGame, whose new name is ForceToSpectate.
 !	- A new non-fatal 'Script Error' message will be printed if in a MAPINFO episode definition it's present either 'botskillname' or 'botskillpicname' but not 'botepisode'.
 !	- The CVARs gl_render_things, gl_render_walls and gl_render_flats are now restricted to beta builds. [Torr Samaho]
+!	- Make newly connected clients wait before calling a vote. The wait time is controlled with the new CVAR 'sv_voteconnectwait'. [Ru5tK1ng]
 
 
 2.2
