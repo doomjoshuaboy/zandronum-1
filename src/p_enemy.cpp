@@ -3523,12 +3523,20 @@ void P_TossItem (AActor *item)
 	{
 		item->velx += pr_dropitem.Random2(7) << FRACBITS;
 		item->vely += pr_dropitem.Random2(7) << FRACBITS;
+
+		// [EP] The server should inform the clients having enough bandwidth.
+		if ( NETWORK_GetState() == NETSTATE_SERVER )
+			SERVERCOMMANDS_MoveThing( item, CM_VELX|CM_VELY, MAXPLAYERS, SVCF_ONLY_CONNECTIONTYPE_1 );
 	}
 	else
 	{
 		item->velx = pr_dropitem.Random2() << 8;
 		item->vely = pr_dropitem.Random2() << 8;
 		item->velz = FRACUNIT*5 + (pr_dropitem() << 10);
+
+		// [EP] The server should inform the clients having enough bandwidth.
+		if ( NETWORK_GetState() == NETSTATE_SERVER )
+			SERVERCOMMANDS_MoveThing( item, CM_VELX|CM_VELY|CM_VELZ, MAXPLAYERS, SVCF_ONLY_CONNECTIONTYPE_1 );
 	}
 }
 
