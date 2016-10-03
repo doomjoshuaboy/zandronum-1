@@ -109,6 +109,9 @@ static	bool				g_bDemoRecording;
 static	bool				g_bDemoPlaying;
 static	bool				g_bDemoPlayingHonest;
 
+// [BB] Is the demo we are playing paused?
+static	bool				g_bDemoPaused = false;
+
 // [BB] Do we want to skip to the next map in the demo we are playing at the moment?
 static	bool				g_bSkipToNextMap = false;
 
@@ -770,6 +773,16 @@ void CLIENTDEMO_SetPlaying( bool bPlaying )
 
 //*****************************************************************************
 //
+bool CLIENTDEMO_IsPaused( void )
+{
+	if ( CLIENTDEMO_IsPlaying() == false )
+		return false;
+
+	return g_bDemoPaused;
+}
+
+//*****************************************************************************
+//
 bool CLIENTDEMO_IsSkipping( void )
 {
 	return ( g_ulTicsToSkip > 0 ) || CLIENTDEMO_IsSkippingToNextMap();
@@ -805,9 +818,11 @@ void CLIENTDEMO_SetFreeSpectatorTiccmd( ticcmd_t *pCmd )
 
 //*****************************************************************************
 //
-void CLIENTDEMO_FreeSpectatorPlayerThink( void )
+void CLIENTDEMO_FreeSpectatorPlayerThink( bool bTickBody )
 {
 	P_PlayerThink ( &g_demoCameraPlayer );
+	if ( bTickBody )
+		g_demoCameraPlayer.mo->Tick();
 }
 
 //*****************************************************************************
@@ -927,6 +942,24 @@ static void clientdemo_CheckDemoBuffer( ULONG ulSize )
 
 //*****************************************************************************
 //	CONSOLE COMMANDS
+
+CCMD( demo_pause )
+{
+	// [BB] This command shouldn't do anything if a demo isn't playing.
+	if ( CLIENTDEMO_IsPlaying( ) == false )
+		return;
+
+	if (g_bDemoPaused)
+	{
+		g_bDemoPaused = false;
+		S_ResumeSound (false);
+	}
+	else
+	{
+		g_bDemoPaused = true;
+		S_PauseSound (false, false);
+	}
+}
 
 CCMD( demo_skiptonextmap )
 {
