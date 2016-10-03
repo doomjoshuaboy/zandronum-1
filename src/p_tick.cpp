@@ -55,6 +55,10 @@ extern gamestate_t wipegamestate;
 
 bool P_CheckTickerPaused ()
 {
+	// [BB] A paused demo always pauses the ticker.
+	if ( CLIENTDEMO_IsPaused( ) )
+		return true;
+
 	// pause if in menu or console and at least one tic has been run
 	if (( NETWORK_GetState( ) != NETSTATE_CLIENT )
 		 && gamestate != GS_TITLELEVEL
@@ -104,6 +108,10 @@ void P_Ticker (void)
 			// is delayed slightly due to latency. (Even on a singleplayer game!)
 	//		GSnd->SetSfxPaused(!!playerswiping, 2);
 		}
+
+		// [BB] Allow the free spectate player to move even if the demo is paused.
+		if ( CLIENTDEMO_IsPaused() && CLIENTDEMO_IsInFreeSpectateMode() )
+			CLIENTDEMO_FreeSpectatorPlayerThink( true );
 
 		// run the tic
 		if (paused || P_CheckTickerPaused())

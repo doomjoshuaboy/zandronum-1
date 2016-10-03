@@ -1533,7 +1533,8 @@ void G_Ticker ()
 	}
 
 	// If we're playing back a demo, read packets and ticcmds now.
-	if ( CLIENTDEMO_IsPlaying( ))
+	// [BB] If the demo is not currently paused.
+	if ( CLIENTDEMO_IsPlaying( ) && ( CLIENTDEMO_IsPaused( ) == false ) )
 		CLIENTDEMO_ReadPacket( );
 
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
