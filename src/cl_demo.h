@@ -84,6 +84,7 @@ void		CLIENTDEMO_FinishRecording( void );
 void		CLIENTDEMO_DoPlayDemo( const char *pszDemoName );
 void		CLIENTDEMO_FinishPlaying( void );
 LONG		CLIENTDEMO_GetGameticOffset( void );
+void		CLIENTDEMO_SetGameticOffset( LONG lOffset );
 void		CLIENTDEMO_WriteLocalCommand( ClientDemoLocalCommand command, const char *pszArg );
 void		CLIENTDEMO_WriteCheat( ECheatCommand cheat );
 void		CLIENTDEMO_WriteWarpCheat( fixed_t x, fixed_t y );
