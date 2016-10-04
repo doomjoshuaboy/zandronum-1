@@ -146,7 +146,9 @@ void P_Ticker (void)
 		// [BB] If the freeze command was executed from the console, the sound needs to
 		// be resumed. In this case, the music isn't paused. The other check is only meant
 		// not to resume the music.
-		if ( ( i == MAXPLAYERS ) || ( S_IsMusicPaused () == false ) )
+		// [BB] Don't resume the sound while we are skipping. This is important when skipping
+		// while the demo is paused.
+		if ( ( ( i == MAXPLAYERS ) || ( S_IsMusicPaused () == false ) ) && ( CLIENTDEMO_IsSkipping() == false ) )
 			S_ResumeSound (false);
 		P_ResetSightCounters (false);
 
