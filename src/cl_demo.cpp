@@ -706,6 +706,13 @@ LONG CLIENTDEMO_GetGameticOffset( void )
 
 //*****************************************************************************
 //
+void CLIENTDEMO_SetGameticOffset( LONG lOffset )
+{
+	g_lGameticOffset = lOffset;
+}
+
+//*****************************************************************************
+//
 void CLIENTDEMO_WriteLocalCommand( ClientDemoLocalCommand command, const char* pszArg )
 {
 	if ( pszArg != NULL )
