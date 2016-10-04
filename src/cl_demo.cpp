@@ -778,6 +778,11 @@ bool CLIENTDEMO_IsPaused( void )
 	if ( CLIENTDEMO_IsPlaying() == false )
 		return false;
 
+	// [BB] Allow to skip while the playback is paused. This allows to go
+	// through a demo tic by tic.
+	if ( CLIENTDEMO_IsSkipping() == true )
+		return false;
+
 	return g_bDemoPaused;
 }
 
