@@ -2435,7 +2435,7 @@ AActor *CLIENT_SpawnThing( const PClass *pType, fixed_t X, fixed_t Y, fixed_t Z,
 			pActor->ulInvasionWave = INVASION_GetCurrentWave( );
 	}
 	else
-		CLIENT_PrintWarning( "CLIENT_SpawnThing: Failed to spawn actor %s with id %ld\n", lNetID, pType->TypeName.GetChars( ) );
+		CLIENT_PrintWarning( "CLIENT_SpawnThing: Failed to spawn actor %s with id %ld\n", pType->TypeName.GetChars( ), lNetID );
 
 	return ( pActor );
 }
