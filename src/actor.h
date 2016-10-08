@@ -1371,14 +1371,7 @@ public:
 		clear ( );
 	}
 
-	void useID ( const LONG lNetID, T *pActor )
-	{
-		if ( isIndexValid ( lNetID ) )
-		{
-			_entries[lNetID].bFree = false;
-			_entries[lNetID].pActor = pActor;
-		}
-	}
+	void useID ( const LONG lNetID, T *pActor );
 
 	void freeID ( const LONG lNetID )
 	{
