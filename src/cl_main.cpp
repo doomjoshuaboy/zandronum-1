@@ -5167,7 +5167,7 @@ void ServerCommands::TeleportThing::Execute()
 	actor->angle = angle;
 
 	// User variable to do a weird zoom thingy when you teleport.
-	if (( telezoom ) && ( telezoom ) && ( actor->player ))
+	if (( teleportzoom ) && ( telezoom ) && ( actor->player ))
 		actor->player->FOV = MIN( 175.f, actor->player->DesiredFOV + 45.f );
 }
 
