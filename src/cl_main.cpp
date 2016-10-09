@@ -3171,7 +3171,7 @@ void ServerCommands::SpawnPlayer::Execute()
 
 	// [BB] Potentially print the player number, position, and network ID of the player spawning.
 	if ( cl_showspawnnames )
-		Printf( "Player %d body: (%d, %d, %d), %d\n", ulPlayer, x >> FRACBITS, y >> FRACBITS, z >> FRACBITS, static_cast<int> (netid) );
+		Printf( "Player %d body: (%d, %d, %d), %d\n", static_cast<int>(ulPlayer), x >> FRACBITS, y >> FRACBITS, z >> FRACBITS, static_cast<int> (netid) );
 
 	// [BB] Remember if we were already ignoring WeaponSelect commands. If so, the server
 	// told us to ignore them and we need to continue to do so after spawning the player.
