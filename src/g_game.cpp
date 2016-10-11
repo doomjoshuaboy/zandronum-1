@@ -4479,9 +4479,6 @@ void G_DoLoadGame ()
 	delete png;
 	fclose (stdfile);
 
-	// [BB] The NetID list is not saved, so we have to rebuild it after loading a saved game.
-	g_NetIDList.rebuild();
-
 	demoplayback = false;
 	usergame = true;
 	// At this point, the GC threshold is likely a lot higher than the

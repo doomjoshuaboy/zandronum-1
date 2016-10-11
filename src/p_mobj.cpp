@@ -366,7 +366,8 @@ void AActor::Serialize (FArchive &arc)
 	// [BB] Zandronum additions.
 	arc << ulLimitedToTeam // [BB]
 		<< lFixedColormap // [BB]
-		<< lNetID // [BC] We need to archive this so that it's restored properly when going between maps in a hub.
+		// [BB] Before the snapshot is loaded, player bodies are spawned, which invalidates the old netIDs.
+		//<< lNetID // [BC] We need to archive this so that it's restored properly when going between maps in a hub.
 		<< ulSTFlags
 		<< ulNetworkFlags
 		<< ulInvasionWave
@@ -387,6 +388,13 @@ void AActor::Serialize (FArchive &arc)
 
 	if (arc.IsLoading ())
 	{
+		// [BB] If the the actor needs one, generate a new netID.
+		if ( !( ulNetworkFlags & NETFL_NONETID ) && !( ulNetworkFlags & NETFL_SERVERSIDEONLY ) )
+		{
+			lNetID = g_NetIDList.getNewID( );
+			g_NetIDList.useID ( lNetID, this );
+		}
+
 		touching_sectorlist = NULL;
 		LinkToWorld (Sector);
 		AddToHash ();

@@ -2289,6 +2289,9 @@ void G_UnSnapshotLevel (bool hubLoad)
 
 	if (level.info->isValid())
 	{
+		// [BB] Make sure that the NetID list is valid. Loading a snapshot generates new NetIDs for the loaded actors.
+		g_NetIDList.rebuild();
+
 		SaveVersion = level.info->snapshotVer;
 		level.info->snapshot->Reopen ();
 		FArchive arc (*level.info->snapshot);
