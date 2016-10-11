@@ -341,9 +341,13 @@ OptionMenu ZA_IgnoreMenu
 OptionMenu ZA_JoinMenu
 {
 	Title		"JOIN GAME"
-	Position 75
 
-	StaticText	"You are spectating.", 1
+	StaticText	"You are spectating."
+	StaticText	" "
+	StaticText	" "
+	StaticText	" "
+	StaticText	" "
+	StaticText	" "
 	StaticText	" "
 	Command		"Join game",			"menu_joingame"
 	Command		"How to play",			"menu_help"
@@ -352,8 +356,12 @@ OptionMenu ZA_JoinMenu
 OptionMenu ZA_JoinTeamMenu
 {
 	Title		"JOIN TEAM"
-	Position 75
 
+	StaticText	"Please select a team."
+	StaticText	" "
+	StaticText	" "
+	StaticText	" "
+	StaticText	" "
 	Command		"Auto-select",			"menu_autoselect"
 	StaticText	" "
 	JoinMenuTeamOption
@@ -365,9 +373,15 @@ OptionMenu ZA_JoinTeamMenu
 OptionMenu ZA_SelectClassMenu
 {
 	Title		"PLAYER CLASS SELECTION"
-	Position 75
 
+	StaticText	" "
+	StaticText	" "
+	StaticText	" "
+	StaticText	" "
+	StaticText	" "
+	StaticText	" "
 	JoinMenuPlayerClassOption
+	StaticText	" "
 	Command		"Join game",			"menu_joingamewithclass"
 }
 
