@@ -228,7 +228,7 @@ OptionMenu ZA_TextScaling
 	Title "TEXT SCALING"
 	Class "TextScalingMenu"
 
-	Option		"Enable text scaling",	"con_scaletext",				"OnOff"
+	Option		"Enable text scaling",	"con_scaletext",				"ScaleValues"
 	Slider		"Text size scalar",		"menu_textsizescalar",			0, 24, 1
 	TextField	"Virtual width",		"con_virtualwidth", "con_scaletext"
 	TextField	"Virtual height",		"con_virtualheight", "con_scaletext"
