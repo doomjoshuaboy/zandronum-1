@@ -1310,7 +1310,10 @@ OptionMenu GameplayOptions
 	Option "Lose frag if fragged",	"sv_losefrag", "YesNo"
 	Option "Keep frags gained",		"sv_keepfrags", "YesNo"
 	Option "No team switching",		"sv_noteamswitch", "YesNo"
-	// [TP] Zandronum deathmatch settings
+	// [TP/BB/EP] Zandronum deathmatch settings
+	Option "Don't spawn runes (DM)", "sv_norunes", "YesNo"
+	Option "Instant flag return (ST/CTF)", "sv_instantreturn", "YesNo"
+	Option "Server picks teams (ST/CTF)", "sv_noteamselect", "YesNo"
 	Option "Keep teams across levels", "sv_keepteams", "YesNo"
 	Option "Apply LMS spectator settings",	"sv_applylmsspectatorsettings", "YesNo"
 	Option "Medals",				"sv_nomedals", "NoYes"
@@ -1337,7 +1340,8 @@ OptionMenu GameplayOptions
 	Option "Keep ammo",				"sv_coop_loseammo", "NoYes"
 	Option "Lose half ammo",		"sv_coop_halveammo", "YesNo"
 	Option "Spawn where died",		"sv_samespawnspot", "YesNo"
-	// [TP] Zandronum co-operative settings
+	// [TP/BB/EP] Zandronum co-operative settings
+	Option "Start with shotgun",	"sv_shotgunstart", "YesNo"
 	Option "Spawn singleplayer actors", "sv_coop_spactorspawn", "YesNo"
 	Option "Share keys",			"sv_sharekeys", "YesNo"
 	Option "Allow coop info",		"sv_nocoopinfo", "NoYes"
