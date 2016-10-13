@@ -985,10 +985,10 @@ void SCOREBOARD_RenderInVoteClassic( void )
 	// Count how many players voted for what.
 	for ( ulIdx = 0; ulIdx < ( MAXPLAYERS / 2 ) + 1; ulIdx++ )
 	{
-		if ( pulPlayersWhoVotedYes[ulIdx] != MAXPLAYERS )
+		if ( pulPlayersWhoVotedYes[ulIdx] != MAXPLAYERS && SERVER_IsValidClient( pulPlayersWhoVotedYes[ulIdx] ))
 			ulNumYes++;
 
-		if ( pulPlayersWhoVotedNo[ulIdx] != MAXPLAYERS )
+		if ( pulPlayersWhoVotedNo[ulIdx] != MAXPLAYERS && SERVER_IsValidClient( pulPlayersWhoVotedNo[ulIdx] ))
 			ulNumNo++;
 	}
 
@@ -1013,7 +1013,7 @@ void SCOREBOARD_RenderInVoteClassic( void )
 	for ( ulIdx = 0; ulIdx < MAX( ulNumYes, ulNumNo ); ulIdx++ )
 	{
 		ulCurYPos += 8;
-		if ( pulPlayersWhoVotedYes[ulIdx] != MAXPLAYERS )
+		if ( pulPlayersWhoVotedYes[ulIdx] != MAXPLAYERS && SERVER_IsValidClient( pulPlayersWhoVotedYes[ulIdx] ))
 		{
 			sprintf( szString, "%s", players[pulPlayersWhoVotedYes[ulIdx]].userinfo.GetName() );
 			screen->DrawText( SmallFont, CR_UNTRANSLATED,
@@ -1023,7 +1023,7 @@ void SCOREBOARD_RenderInVoteClassic( void )
 				DTA_Clean, true, TAG_DONE );
 		}
 
-		if ( pulPlayersWhoVotedNo[ulIdx] != MAXPLAYERS )
+		if ( pulPlayersWhoVotedNo[ulIdx] != MAXPLAYERS && SERVER_IsValidClient( pulPlayersWhoVotedNo[ulIdx] ))
 		{
 			sprintf( szString, "%s", players[pulPlayersWhoVotedNo[ulIdx]].userinfo.GetName() );
 			screen->DrawText( SmallFont, CR_UNTRANSLATED,
@@ -1058,14 +1058,14 @@ void SCOREBOARD_RenderInVote( void )
 	pulPlayersWhoVotedNo = CALLVOTE_GetPlayersWhoVotedNo( );
 	for ( ulIdx = 0; ulIdx < ( MAXPLAYERS / 2 ) + 1; ulIdx++ )
 	{
-		if ( pulPlayersWhoVotedYes[ulIdx] != MAXPLAYERS )
+		if ( pulPlayersWhoVotedYes[ulIdx] != MAXPLAYERS && SERVER_IsValidClient( pulPlayersWhoVotedYes[ulIdx] ))
 		{
 			ulNumYes++;
 			if( static_cast<signed> (pulPlayersWhoVotedYes[ulIdx]) == consoleplayer )
 				bWeVotedYes = true;
 		}
 
-		if ( pulPlayersWhoVotedNo[ulIdx] != MAXPLAYERS )
+		if ( pulPlayersWhoVotedNo[ulIdx] != MAXPLAYERS && SERVER_IsValidClient( pulPlayersWhoVotedNo[ulIdx] ))
 		{
 			ulNumNo++;
 			if( static_cast<signed> (pulPlayersWhoVotedNo[ulIdx]) == consoleplayer)

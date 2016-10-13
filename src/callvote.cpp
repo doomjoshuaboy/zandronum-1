@@ -108,9 +108,6 @@ void CALLVOTE_Construct( void )
 //
 void CALLVOTE_Tick( void )
 {
-	ULONG	ulNumYes;
-	ULONG	ulNumNo;
-
 	switch ( g_VoteState )
 	{
 	case VOTESTATE_NOVOTE:
@@ -128,15 +125,8 @@ void CALLVOTE_Tick( void )
 			if (( NETWORK_InClientMode() == false ) &&
 				( g_ulVoteCountdownTicks == 0 ))
 			{
-				ulNumYes = callvote_CountPlayersWhoVotedYes( );
-				ulNumNo = callvote_CountPlayersWhoVotedNo( );
-
-				if (( ulNumYes > 0 ) && ( ulNumYes > ulNumNo ))
-					g_bVotePassed = true;
-				else
-					g_bVotePassed = false;
-
-				callvote_EndVote( );
+				// [RK] Perform the final tally of votes.
+				CALLVOTE_TallyVotes();
 			}
 		}
 		break;
@@ -268,8 +258,6 @@ void CALLVOTE_ClearVote( void )
 bool CALLVOTE_VoteYes( ULONG ulPlayer )
 {
 	ULONG	ulIdx;
-	ULONG	ulNumYes;
-	ULONG	ulNumNo;
 
 	// Don't allow the vote unless we're in the middle of a vote.
 	if ( g_VoteState != VOTESTATE_INVOTE )
@@ -340,16 +328,8 @@ bool CALLVOTE_VoteYes( ULONG ulPlayer )
 
 	SERVERCOMMANDS_PlayerVote( ulPlayer, true );
 
-	ulNumYes = callvote_CountPlayersWhoVotedYes( );
-	ulNumNo = callvote_CountPlayersWhoVotedNo( );
-
-	// If more than half of the total eligible voters have voted, we must have a majority!
-	if ( MAX( ulNumYes, ulNumNo ) > ( CALLVOTE_CountNumEligibleVoters( ) / 2 ))
-	{
-		g_bVotePassed = ( ulNumYes > ulNumNo );
-
-		callvote_EndVote( );
-	}
+	// [RK] Check for a majority after the player has voted.
+	CALLVOTE_TallyVotes();
 
 	return ( true );
 }
@@ -359,8 +339,6 @@ bool CALLVOTE_VoteYes( ULONG ulPlayer )
 bool CALLVOTE_VoteNo( ULONG ulPlayer )
 {
 	ULONG	ulIdx;
-	ULONG	ulNumYes;
-	ULONG	ulNumNo;
 
 	// Don't allow the vote unless we're in the middle of a vote.
 	if ( g_VoteState != VOTESTATE_INVOTE )
@@ -444,16 +422,8 @@ bool CALLVOTE_VoteNo( ULONG ulPlayer )
 	
 	SERVERCOMMANDS_PlayerVote( ulPlayer, false );
 
-	ulNumYes = callvote_CountPlayersWhoVotedYes( );
-	ulNumNo = callvote_CountPlayersWhoVotedNo( );
-
-	// If more than half of the total eligible voters have voted, we must have a majority!
-	if ( MAX( ulNumYes, ulNumNo ) > ( CALLVOTE_CountNumEligibleVoters( ) / 2 ))
-	{
-		g_bVotePassed = ( ulNumYes > ulNumNo );
-
-		callvote_EndVote( );
-	}
+	// [RK] Check for a majority after the player has voted.
+	CALLVOTE_TallyVotes();
 
 	return ( true );
 }
@@ -551,6 +521,70 @@ bool CALLVOTE_ShouldShowVoteScreen( void )
 }
 
 //*****************************************************************************
+//
+void CALLVOTE_DisconnectedVoter( ULONG ulPlayer )
+{
+	ULONG ulIdx;
+	
+	// [RK] Make sure a vote is in progress
+	if ( g_VoteState == VOTESTATE_INVOTE )
+	{
+		// If the disconnected player called the vote, end it.
+		if ( CALLVOTE_GetVoteCaller() == ulPlayer )
+		{
+			g_PreviousVotes.back().ulVoteType = NUM_VOTECMDS;
+			SERVER_Printf("The vote caller has disconnected and the vote has been cancelled.\n");
+			g_bVoteCancelled = true;
+			g_bVotePassed = false;
+			callvote_EndVote();
+			return;
+		}
+		
+		// Disconnected players need to have their vote removed.
+		for ( ulIdx = 0; ulIdx < ( MAXPLAYERS / 2 ) + 1; ulIdx++ )
+		{
+			// Since the actual player ID is stored in the indices sequentially we'll check
+			// each index against ulPlayer and then change the indexed value if necessary.
+			if ( g_ulPlayersWhoVotedYes[ulIdx] == ulPlayer )
+				g_ulPlayersWhoVotedYes[ulIdx] = MAXPLAYERS;
+
+			if ( g_ulPlayersWhoVotedNo[ulIdx] == ulPlayer )
+				g_ulPlayersWhoVotedNo[ulIdx] = MAXPLAYERS;
+		}
+	}
+}
+
+//*****************************************************************************
+//
+void CALLVOTE_TallyVotes( void )
+{
+	ULONG ulNumYes;
+	ULONG ulNumNo;
+
+	// Count up all the Yes/No votes.
+	ulNumYes = callvote_CountPlayersWhoVotedYes();
+	ulNumNo = callvote_CountPlayersWhoVotedNo();
+
+	// If More than half of the total eligible voters have voted, we must have a majority!
+	if ( MAX( ulNumYes, ulNumNo ) > ( CALLVOTE_CountNumEligibleVoters( ) / 2 ))
+	{
+		g_bVotePassed = ( ulNumYes > ulNumNo );
+		callvote_EndVote();
+	}
+
+	// This will serve as the final tally.
+	if ( g_ulVoteCountdownTicks == 0 )
+	{
+		if (( ulNumYes > 0 ) && ( ulNumYes > ulNumNo ))
+			g_bVotePassed = true;
+		else
+			g_bVotePassed = false;
+
+		callvote_EndVote();
+	}
+}
+
+//*****************************************************************************
 //*****************************************************************************
 //
 static void callvote_EndVote( void )
@@ -607,7 +641,7 @@ static ULONG callvote_CountPlayersWhoVotedYes( void )
 	ulNumYes = 0;
 	for ( ulIdx = 0; ulIdx < ( MAXPLAYERS / 2 ) + 1; ulIdx++ )
 	{
-		if ( g_ulPlayersWhoVotedYes[ulIdx] != MAXPLAYERS )
+		if ( g_ulPlayersWhoVotedYes[ulIdx] != MAXPLAYERS && SERVER_IsValidClient( g_ulPlayersWhoVotedYes[ulIdx] ))
 			ulNumYes++;
 	}
 
@@ -624,7 +658,7 @@ static ULONG callvote_CountPlayersWhoVotedNo( void )
 	ulNumNo = 0;
 	for ( ulIdx = 0; ulIdx < ( MAXPLAYERS / 2 ) + 1; ulIdx++ )
 	{
-		if ( g_ulPlayersWhoVotedNo[ulIdx] != MAXPLAYERS )
+		if ( g_ulPlayersWhoVotedNo[ulIdx] != MAXPLAYERS && SERVER_IsValidClient( g_ulPlayersWhoVotedNo[ulIdx] ))
 			ulNumNo++;
 	}
 
