@@ -504,7 +504,7 @@ void NETWORK_WriteVariable( BYTESTREAM_s *byteStream, int value )
 	// Determine how long we need to send this value
 	if ( value == 0 )
 		length = 0; // 0 - don't bother sending it at all
-	else if (( value <= 0x7F ) && ( value >= -0x80 ))
+	else if (( value <= 0xFF ) && ( value >= 0 ))
 		length = 1; // Can be sent as a byte
 	else if (( value <= 0x7FFF ) && ( value >= -0x8000 ))
 		length = 2; // Can be sent as a short
