@@ -2911,6 +2911,9 @@ void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo )
 			Printf( "%s \\c-disconnected.\n", g_aClients[ulClient].Address.ToString() );
 	}
 
+	// [RK] Disconnectd players need their vote removed/cancelled.
+	CALLVOTE_DisconnectedVoter( ulClient );
+
 	// [BB] Morphed players need to be unmorphed before disconnecting.
 	if (players[ulClient].morphTics)
 		P_UndoPlayerMorph (&players[ulClient], &players[ulClient]);

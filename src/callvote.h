@@ -125,6 +125,8 @@ void			CALLVOTE_EndVote( bool bPassed );
 
 const char		*CALLVOTE_GetCommand( void );
 const char		*CALLVOTE_GetReason( void );
+void			CALLVOTE_DisconnectedVoter( ULONG ulPlayer );
+void			CALLVOTE_TallyVotes( void );
 ULONG			CALLVOTE_GetVoteCaller( void );
 VOTESTATE_e		CALLVOTE_GetVoteState( void );
 ULONG			CALLVOTE_GetCountdownTicks( void );
