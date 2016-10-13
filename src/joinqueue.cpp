@@ -156,9 +156,6 @@ void JOINQUEUE_PlayerLeftGame( int player, bool pop )
 
 	JOINQUEUE_RemovePlayerFromQueue( player );
 
-	if ( PLAYER_IsTrueSpectator( &players[player] ) == false )
-		return;
-
 	// If we're in a duel, revert to the "waiting for players" state.
 	// [BB] But only do so if there are less then two duelers left (probably JOINQUEUE_PlayerLeftGame was called mistakenly).
 	if ( duel && ( DUEL_CountActiveDuelers( ) < 2 ) )
