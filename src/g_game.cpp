@@ -1700,6 +1700,12 @@ void G_Ticker ()
 				// before doing the map reset on the server.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 					SERVERCOMMANDS_ResetMap();
+				else if ( NETWORK_InClientMode() == false )
+				{
+					// [EP] Clear all the HUD messages.
+					if ( StatusBar )
+						StatusBar->DetachAllMessages();	
+				}
 
 				GAME_ResetMap( );
 				GAMEMODE_RespawnAllPlayers ( );
@@ -3327,10 +3333,6 @@ void GAME_ResetMap( bool bRunEnterScripts )
 			}
 		}
 	}
-
-	// [EP] Remove all the HUD messages.
-	if ( StatusBar )
-		StatusBar->DetachAllMessages ();
 
 	// This is all we do in client mode.
 	if ( NETWORK_InClientMode() )

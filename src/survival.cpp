@@ -219,9 +219,6 @@ void SURVIVAL_DoFight( void )
 	// Reset everyone's kill count.
 	GAMEMODE_ResetPlayersKillCount ( false );
 
-	// Revert the map to how it was in its original state.
-	GAME_ResetMap( );
-
 	// Tell clients to "fight!".
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCOMMANDS_DoGameModeFight( 0 );
@@ -230,6 +227,9 @@ void SURVIVAL_DoFight( void )
 	{
 		// Play fight sound.
 		ANNOUNCER_PlayEntry( cl_announcer, "Fight" );
+
+		// [EP] Clear all the HUD messages.
+		StatusBar->DetachAllMessages();
 
 		// Display "FIGHT!" HUD message.
 		pMsg = new DHUDMessageFadeOut( BigFont, "FIGHT!",
@@ -247,6 +247,8 @@ void SURVIVAL_DoFight( void )
 	else
 		Printf( "FIGHT!\n" );
 
+	// Revert the map to how it was in its original state.
+	GAME_ResetMap( );
 	GAMEMODE_RespawnAllPlayers( );
 
 	// [BB] To properly handle respawning of the consoleplayer in single player

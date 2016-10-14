@@ -1881,7 +1881,13 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 				break;
 
 			case SVC2_RESETMAP:
-				GAME_ResetMap();
+				{
+					// [EP] Clear all the HUD messages.
+					if ( StatusBar )
+						StatusBar->DetachAllMessages();
+
+					GAME_ResetMap();
+				}
 				break;
 
 			case SVC2_SETPOWERUPBLENDCOLOR:
