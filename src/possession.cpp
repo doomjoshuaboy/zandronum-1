@@ -412,6 +412,9 @@ void POSSESSION_DoFight( void )
 		// Play fight sound.
 		ANNOUNCER_PlayEntry( cl_announcer, "Fight" );
 
+		// [EP] Clear all the HUD messages.
+		StatusBar->DetachAllMessages();
+
 		// Display "FIGHT!" HUD message.
 		pMsg = new DHUDMessageFadeOut( BigFont, "FIGHT!",
 			160.4f,

@@ -228,9 +228,6 @@ void DUEL_DoFight( void )
 	// each player.
 	PLAYER_ResetAllPlayersSpecialCounters();
 
-	// Reset the map.
-	GAME_ResetMap( );
-
 	// Tell clients to "fight!".
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCOMMANDS_DoGameModeFight( 0 );
@@ -239,6 +236,9 @@ void DUEL_DoFight( void )
 	{
 		// Play fight sound.
 		ANNOUNCER_PlayEntry( cl_announcer, "Fight" );
+
+		// [EP] Clear all the HUD messages.
+		StatusBar->DetachAllMessages();
 
 		// Display "FIGHT!" HUD message.
 		pMsg = new DHUDMessageFadeOut( BigFont, "FIGHT!",
@@ -256,6 +256,8 @@ void DUEL_DoFight( void )
 	else
 		Printf( "FIGHT!\n" );
 
+	// Reset the map.
+	GAME_ResetMap( );
 	GAMEMODE_RespawnAllPlayers( BOTEVENT_DUEL_FIGHT );
 
 	SCOREBOARD_RefreshHUD( );
