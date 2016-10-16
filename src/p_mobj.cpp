@@ -4472,6 +4472,8 @@ void AActor::Tick ()
 		else if (z <= floorz)
 		{
 			Crash();
+			if (ObjectFlags & OF_EuthanizeMe)
+				return;		// actor was destroyed
 		}
 
 		UpdateWaterLevel (oldz);
