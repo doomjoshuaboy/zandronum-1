@@ -254,7 +254,8 @@ void JOINQUEUE_PlayerLeftGame( int player, bool pop )
 void JOINQUEUE_PopQueue( int slotCount )
 {
 	// [BB] Players are not allowed to join.
-	if ( GAMEMODE_PreventPlayersFromJoining() )
+	// [TP] The client does not decide when players join.
+	if ( GAMEMODE_PreventPlayersFromJoining() || NETWORK_InClientMode() )
 		return;
 
 	JOINQUEUE_CheckSanity();
