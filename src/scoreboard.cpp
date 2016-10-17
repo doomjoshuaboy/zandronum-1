@@ -361,7 +361,7 @@ void SCOREBOARD_Render( ULONG ulDisplayPlayer )
 	if (( players[consoleplayer].bSpectating ) && r_drawspectatingstring && !CLIENTDEMO_IsInFreeSpectateMode())
 	{
 		g_BottomString += "\n";
-		lPosition = JOINQUEUE_GetPositionInLine( ulDisplayPlayer );
+		lPosition = JOINQUEUE_GetPositionInLine( consoleplayer );
 		if ( players[consoleplayer].bDeadSpectator )
 			g_BottomString += "\\cdSPECTATING - WAITING TO RESPAWN";
 		else if ( lPosition != -1 )
