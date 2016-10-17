@@ -188,6 +188,7 @@ ULONG		TEAM_CountSkulls( void );
 ULONG		TEAM_GetTeamFromItem( AActor *pActor );
 ULONG		TEAM_GetNextTeam( ULONG ulTeamIdx );
 
+bool		TEAM_ShouldJoinTeam();
 bool		TEAM_IsActorAllowedForPlayer( AActor *pActor, player_t *pPlayer );
 bool		TEAM_IsClassAllowedForPlayer( ULONG ulClass, player_t *pPlayer );
 bool		TEAM_CheckTeamRestriction( ULONG ulTeam, ULONG ulTeamRestriction );
