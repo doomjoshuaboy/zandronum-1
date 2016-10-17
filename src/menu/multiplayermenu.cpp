@@ -681,10 +681,8 @@ static void M_JoinMenu()
 	M_StartControlPanel( true );
 
 	// ST/CTF/domination without a selection room, or another team game.
-	if ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS
-		&& (( GAMEMODE_GetCurrentFlags() & GMF_TEAMGAME ) == 0
-			|| TemporaryTeamStarts.Size() == 0 )
-		&& ( dmflags2 & DF2_NO_TEAM_SELECT ) == false )
+	// [EP] Use TEAM_ShouldJoinTeam here.
+	if ( TEAM_ShouldJoinTeam() )
 	{
 		M_SetMenu( "ZA_JoinTeamMenu", -1 );
 	}
@@ -704,12 +702,8 @@ static void M_JoinMenu()
 
 static void M_JoinFromMenu()
 {
-	unsigned int teamId = menu_jointeamidx;
-	bool haveTeams = !!( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS );
-
-	// [TP] This also stems from m_options.cpp
-	if (( PlayerClasses.Size() > 1 )
-		&& (( haveTeams == false ) || ( teamId < teams.Size() )))
+	// [TP/EP] This also stems from m_options.cpp
+	if ( PlayerClasses.Size() > 1 )
 	{
 		M_SetMenu( "ZA_SelectClassMenu", 1 );
 	}
@@ -729,7 +723,9 @@ static void M_DoJoinFromMenu()
 {
 	M_ClearMenus();
 
-	if ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS )
+	// ST/CTF/domination without a selection room, or another team game.
+	// [EP] Use TEAM_ShouldJoinTeam also here.
+	if ( TEAM_ShouldJoinTeam() )
 	{
 		if ( static_cast<unsigned>( menu_jointeamidx ) == teams.Size() )
 		{

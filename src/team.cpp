@@ -1729,6 +1729,16 @@ ULONG TEAM_GetNextTeam( ULONG ulTeamIdx )
 	return ( ulNewTeamIdx );
 }
 
+//*****************************************************************************
+//
+bool TEAM_ShouldJoinTeam()
+{
+	return ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS )
+		&& ((( GAMEMODE_GetCurrentFlags() & GMF_TEAMGAME ) == 0 )
+			|| ( TemporaryTeamStarts.Size() == 0 ))
+		&& (( dmflags2 & DF2_NO_TEAM_SELECT ) == 0 );
+}
+
 //****************************************************************************
 //
 bool TEAM_IsActorAllowedForPlayer( AActor *pActor, player_t *pPlayer )

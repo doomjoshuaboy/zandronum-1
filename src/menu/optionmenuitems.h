@@ -1395,8 +1395,12 @@ public:
 		// [BB] The random class is always a valid choice.
 		if ( classId == ( Maximum() - 1 ) )
 			return true;
-		else
-			return TEAM_IsClassAllowedForTeam( classId, menu_jointeamidx );
+
+		// [EP] Temporary spots require no other limitation.
+		if ( !TEAM_ShouldJoinTeam() )
+			return true;
+
+		return TEAM_IsClassAllowedForTeam( classId, menu_jointeamidx );
 	}
 
 	int Maximum()
