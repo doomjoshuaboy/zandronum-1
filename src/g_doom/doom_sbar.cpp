@@ -116,7 +116,7 @@ public:
 
 		if (state == HUD_Fullscreen)
 		{
-			SB_state = screen->GetPageCount ();
+			ST_SetNeedRefresh();
 			if ( cl_stfullscreenhud )
 				DrawFullScreenStuffST( );
 			else
@@ -142,7 +142,7 @@ public:
 			if (CPlayer->inventorytics > 0 && !(level.flags & LEVEL_NOINVENTORYBAR))
 			{
 				DrawInventoryBar ();
-				SB_state = screen->GetPageCount ();
+				ST_SetNeedRefresh();
 			}
 		}
 	}
@@ -205,7 +205,7 @@ private:
 
 		StatusBarTex.Unload ();
 
-		SB_state = screen->GetPageCount ();
+		ST_SetNeedRefresh();
 	}
 
 	void DrawMainBar ()
