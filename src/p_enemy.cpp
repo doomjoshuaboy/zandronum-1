@@ -3526,7 +3526,7 @@ void P_TossItem (AActor *item)
 
 		// [EP] The server should inform the clients having enough bandwidth.
 		if ( NETWORK_GetState() == NETSTATE_SERVER )
-			SERVERCOMMANDS_MoveThing( item, CM_VELX|CM_VELY, MAXPLAYERS, SVCF_ONLY_CONNECTIONTYPE_1 );
+			SERVERCOMMANDS_MoveThingExact( item, CM_VELX|CM_VELY, MAXPLAYERS, SVCF_ONLY_CONNECTIONTYPE_1 );
 	}
 	else
 	{
@@ -3536,7 +3536,7 @@ void P_TossItem (AActor *item)
 
 		// [EP] The server should inform the clients having enough bandwidth.
 		if ( NETWORK_GetState() == NETSTATE_SERVER )
-			SERVERCOMMANDS_MoveThing( item, CM_VELX|CM_VELY|CM_VELZ, MAXPLAYERS, SVCF_ONLY_CONNECTIONTYPE_1 );
+			SERVERCOMMANDS_MoveThingExact( item, CM_VELX|CM_VELY|CM_VELZ, MAXPLAYERS, SVCF_ONLY_CONNECTIONTYPE_1 );
 	}
 }
 
