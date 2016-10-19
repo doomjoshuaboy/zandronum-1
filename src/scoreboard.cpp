@@ -3222,5 +3222,5 @@ static void scoreboard_DrawRankings( ULONG ulPlayer )
 		scoreboard_DoRankingListPass( ulPlayer, 2, 0, 1, 0, 0, 0 );
 	}
 
-	BorderNeedRefresh = true;
+	V_SetBorderNeedRefresh();
 }
