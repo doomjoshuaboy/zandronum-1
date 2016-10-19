@@ -92,8 +92,6 @@ public:
 
 	void AttachToPlayer (player_t *player)
 	{
-		player_t *oldplayer = CPlayer;
-
 		DBaseStatusBar::AttachToPlayer (player);
 		if ( NETWORK_GetState( ) != NETSTATE_SINGLE )
 		{
