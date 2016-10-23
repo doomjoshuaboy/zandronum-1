@@ -311,10 +311,10 @@ void SCOREBOARD_Render( ULONG ulDisplayPlayer )
 	}
 
 	// Print the totals for living and dead allies/enemies.
-	if ( !players[ulDisplayPlayer].bSpectating )
+	if (( players[ulDisplayPlayer].bSpectating == false ) && ( GAMEMODE_GetCurrentFlags() & GMF_DEADSPECTATORS ) && ( GAMEMODE_GetState() == GAMESTATE_INPROGRESS ))
 	{
-		// Survival
-		if ( survival && ( SURVIVAL_GetState( ) == SURVS_INPROGRESS ) && ( GAMEMODE_GetCurrentFlags() & GMF_COOPERATIVE ) )
+		// Survival, Survival Invasion, etc
+		if ( GAMEMODE_GetCurrentFlags() & GMF_COOPERATIVE )
 		{
 			if (( players[consoleplayer].camera ) && ( players[consoleplayer].camera != players[consoleplayer].mo ) && ( players[consoleplayer].camera->player ))
 				g_BottomString.AppendFormat(" - ");
@@ -327,13 +327,13 @@ void SCOREBOARD_Render( ULONG ulDisplayPlayer )
 			}
 		}
 
-		// Last Man Standing
-		if ( ( lastmanstanding || teamlms ) && ( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS ) && ( GAMEMODE_GetCurrentFlags() & GMF_DEATHMATCH ) )
+		// Last Man Standing, TLMS, etc
+		if ( GAMEMODE_GetCurrentFlags() & GMF_DEATHMATCH )
 		{
 			if (( players[consoleplayer].camera ) && ( players[consoleplayer].camera != players[consoleplayer].mo ) && ( players[consoleplayer].camera->player ))
 				g_BottomString.AppendFormat(" - ");
 
-			if( teamlms )
+			if ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS )
 			{
 				g_BottomString += "\\cC";
 				g_BottomString.AppendFormat( "%d ", static_cast<int> (g_lNumOpponentsLeft) );
@@ -1848,7 +1848,7 @@ void SCOREBOARD_DisplayFragMessage( player_t *pFraggedPlayer )
 			if ( i == players[consoleplayer].ulTeam )
 				continue;
 
-			lMenLeftStanding += LASTMANSTANDING_TeamCountMenStanding( i );
+			lMenLeftStanding += TEAM_CountLivingAndRespawnablePlayers( i );
 		}
 
 		sprintf( szString, "%d opponent%s left standing", static_cast<int> (lMenLeftStanding), ( lMenLeftStanding != 1 ) ? "s" : "" );
@@ -1969,33 +1969,33 @@ void SCOREBOARD_RefreshHUD( void )
 		}
 	}
 
-	if ( players[consoleplayer].camera && players[consoleplayer].camera->player )
+	player_t *player = &players[ SCOREBOARD_GetViewPlayer() ];
+
+	g_ulRank = SCOREBOARD_CalcRank( player - players );
+	g_lSpread = SCOREBOARD_CalcSpread( player - players );
+	g_bIsTied = SCOREBOARD_IsTied( player - players );
+
+	// "x opponents left", "x allies alive", etc
+	if ( GAMEMODE_GetCurrentFlags() & GMF_DEADSPECTATORS )
 	{
-		g_ulRank = SCOREBOARD_CalcRank( ULONG( players[consoleplayer].camera->player - players ));
-		g_lSpread = SCOREBOARD_CalcSpread( ULONG( players[consoleplayer].camera->player - players ));
-		g_bIsTied = SCOREBOARD_IsTied( ULONG( players[consoleplayer].camera->player - players ));
+		// Survival, Survival Invasion, etc
+		if ( GAMEMODE_GetCurrentFlags() & GMF_COOPERATIVE )
+			g_lNumAlliesLeft = GAME_CountLivingAndRespawnablePlayers() - PLAYER_IsAliveOrCanRespawn( player );
 
-		//  "x opponents left", "x allies alive", etc
-		if ( lastmanstanding )
-			g_lNumOpponentsLeft = GAME_CountLivingAndRespawnablePlayers( ) - 1;
-
-		if ( teamlms )
+		// Last Man Standing, TLMS, etc
+		if ( GAMEMODE_GetCurrentFlags() & GMF_DEATHMATCH )
 		{
-			// [RC] If we're spying someone, use their team for the counts.
-			if (( players[consoleplayer].camera ) && ( players[consoleplayer].camera != players[consoleplayer].mo ) && ( players[consoleplayer].camera->player ))
+			if ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS )
 			{
-				g_lNumOpponentsLeft = LASTMANSTANDING_TeamCountEnemiesStanding( players[consoleplayer].camera->player->ulTeam );
-				g_lNumAlliesLeft = LASTMANSTANDING_TeamCountMenStanding( players[consoleplayer].camera->player->ulTeam) - 1;
+				unsigned livingAndRespawnableTeammates = TEAM_CountLivingAndRespawnablePlayers( player->ulTeam );
+				g_lNumOpponentsLeft = GAME_CountLivingAndRespawnablePlayers() - livingAndRespawnableTeammates;
+				g_lNumAlliesLeft = livingAndRespawnableTeammates - PLAYER_IsAliveOrCanRespawn( player );
 			}
 			else
 			{
-				g_lNumOpponentsLeft = LASTMANSTANDING_TeamCountEnemiesStanding( players[consoleplayer].ulTeam );
-				g_lNumAlliesLeft = LASTMANSTANDING_TeamCountMenStanding( players[consoleplayer].ulTeam) - 1;
+				g_lNumOpponentsLeft = GAME_CountLivingAndRespawnablePlayers() - PLAYER_IsAliveOrCanRespawn( player );
 			}
 		}
-
-		if ( survival )
-			g_lNumAlliesLeft = GAME_CountLivingAndRespawnablePlayers( ) - 1;
 	}
 }
 

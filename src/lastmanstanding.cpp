@@ -270,31 +270,6 @@ void LASTMANSTANDING_Tick( void )
 
 //*****************************************************************************
 //
-LONG LASTMANSTANDING_TeamCountMenStanding( ULONG ulTeam )
-{
-	ULONG	ulNumMenStanding = 0;
-
-	// Not in team LMS mode.
-	if ( !teamlms )
-		return ( -1 );
-
-	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-		if ( playeringame[ulIdx] && ( players[ulIdx].bSpectating == false ) && ( PLAYER_IsAliveOrCanRespawn ( &players[ulIdx] ) == true ) && ( players[ulIdx].bOnTeam ) && ( players[ulIdx].ulTeam == ulTeam ))
-			ulNumMenStanding++;
-
-	return ( ulNumMenStanding );
-}
-
-//*****************************************************************************
-// Counts the number of enemies alive in team LMS.
-LONG LASTMANSTANDING_TeamCountEnemiesStanding( ULONG ulTeam )
-{
-	// Total living players - team living players
-	return ( GAME_CountLivingAndRespawnablePlayers( ) - LASTMANSTANDING_TeamCountMenStanding( ulTeam ));
-}
-
-//*****************************************************************************
-//
 LONG LASTMANSTANDING_GetLastManStanding( void )
 {
 	ULONG	ulIdx;

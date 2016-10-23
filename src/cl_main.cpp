@@ -4342,6 +4342,9 @@ void ServerCommands::PlayerIsSpectator::Execute()
 	// Don't lag anymore if we're a spectator.
 	if ( player == &players[consoleplayer] )
 		g_bClientLagging = false;
+
+	// [EP] Refresh the HUD, since this could affect the number of players left in a dead spectators game.
+	SCOREBOARD_RefreshHUD();
 }
 
 //*****************************************************************************
