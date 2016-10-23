@@ -3879,7 +3879,8 @@ bool AActor::IsOkayToAttack (AActor *link)
 	if ((link->flags5 & MF5_SUMMONEDMONSTER)			// No attack against minions on the same side
 		&& (link->tracer == Friend))					return false;
 	// [BB] Changed "multiplayer" check
-	if (( NETWORK_GetState( ) != NETSTATE_SINGLE ) && !deathmatch						// No attack against fellow players in coop
+	// [RK] Check for CTF and team games
+	if (( NETWORK_GetState( ) != NETSTATE_SINGLE ) && !deathmatch && !teamgame						// No attack against fellow players in coop
 		&& link->player && Friend->player)				return false;
 	if (((flags & link->flags) & MF_FRIENDLY)			// No friendly infighting amongst minions
 		&& IsFriend(link))								return false;
