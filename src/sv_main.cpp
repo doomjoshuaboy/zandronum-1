@@ -509,6 +509,8 @@ void SERVER_Construct( void )
 	{
 		players[i].userinfo.Reset();
 	}
+	// [BB] The voodoo doll dummy player also needs its userinfo reset.
+	COOP_InitVoodooDollDummyPlayer();
 }
 
 //*****************************************************************************

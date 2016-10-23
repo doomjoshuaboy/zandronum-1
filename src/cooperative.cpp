@@ -237,6 +237,13 @@ bool COOP_VoodooDollsSelectedByGameMode ( void )
 
 //*****************************************************************************
 //
+void COOP_InitVoodooDollDummyPlayer ( void )
+{
+	DummyPlayer.userinfo.Reset();
+}
+
+//*****************************************************************************
+//
 const player_t* COOP_GetVoodooDollDummyPlayer ( void )
 {
 	return &DummyPlayer;
