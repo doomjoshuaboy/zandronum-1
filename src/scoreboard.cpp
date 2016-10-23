@@ -224,7 +224,7 @@ static void SCOREBOARD_DrawBottomString( void )
 static void SCOREBOARD_DrawWaiting( void )
 {
 	// [RC] Formatting linebreak.
-	if ((( players[consoleplayer].camera ) && ( players[consoleplayer].camera != players[consoleplayer].mo ) && ( players[consoleplayer].camera->player )))
+	if ( static_cast<int>( SCOREBOARD_GetViewPlayer() ) != consoleplayer )
 		g_BottomString += "\n";
 	
 	g_BottomString += "\\cgWAITING FOR PLAYERS";
@@ -295,19 +295,20 @@ void SCOREBOARD_Render( ULONG ulDisplayPlayer )
 
 	g_BottomString = "";
 
+	int viewplayer = static_cast<int>( SCOREBOARD_GetViewPlayer() );
 	// [BB] Draw a message to show that the free spectate mode is active.
 	if ( CLIENTDEMO_IsInFreeSpectateMode() )
 		g_BottomString.AppendFormat( "FREE SPECTATE MODE" );
 	// If the console player is looking through someone else's eyes, draw the following message.
-	else if ( static_cast<signed> (SCOREBOARD_GetViewPlayer()) != consoleplayer )
+	else if ( viewplayer != consoleplayer )
 	{
 		char cColor = V_GetColorChar( CR_RED );
 
 		// [RC] Or draw this in their team's color.
 		if ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS )
-			 cColor = V_GetColorChar( TEAM_GetTextColor( players[ SCOREBOARD_GetViewPlayer() ].ulTeam ) );
+			 cColor = V_GetColorChar( TEAM_GetTextColor( players[viewplayer].ulTeam ) );
 
-		g_BottomString.AppendFormat( "\\c%cFOLLOWING - %s\\c%c", cColor, players[ SCOREBOARD_GetViewPlayer() ].userinfo.GetName(), cColor );
+		g_BottomString.AppendFormat( "\\c%cFOLLOWING - %s\\c%c", cColor, players[viewplayer].userinfo.GetName(), cColor );
 	}
 
 	// Print the totals for living and dead allies/enemies.
@@ -316,7 +317,7 @@ void SCOREBOARD_Render( ULONG ulDisplayPlayer )
 		// Survival, Survival Invasion, etc
 		if ( GAMEMODE_GetCurrentFlags() & GMF_COOPERATIVE )
 		{
-			if (( players[consoleplayer].camera ) && ( players[consoleplayer].camera != players[consoleplayer].mo ) && ( players[consoleplayer].camera->player ))
+			if ( viewplayer != consoleplayer )
 				g_BottomString.AppendFormat(" - ");
 
 			if(g_lNumAlliesLeft < 1)
@@ -330,7 +331,7 @@ void SCOREBOARD_Render( ULONG ulDisplayPlayer )
 		// Last Man Standing, TLMS, etc
 		if ( GAMEMODE_GetCurrentFlags() & GMF_DEATHMATCH )
 		{
-			if (( players[consoleplayer].camera ) && ( players[consoleplayer].camera != players[consoleplayer].mo ) && ( players[consoleplayer].camera->player ))
+			if ( viewplayer != consoleplayer )
 				g_BottomString.AppendFormat(" - ");
 
 			if ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS )
