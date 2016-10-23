@@ -64,6 +64,7 @@ void	COOP_DestroyVoodooDollsOfPlayer ( const ULONG ulPlayer );
 bool	COOP_PlayersVoodooDollsNeedToBeSpawned ( const ULONG ulPlayer );
 void	COOP_SpawnVoodooDollsForPlayerIfNecessary ( const ULONG ulPlayer, const bool bSpawnEvenIfPlayerIsNotIngame = false );
 bool	COOP_VoodooDollsSelectedByGameMode ( void );
+void	COOP_InitVoodooDollDummyPlayer ( void );
 const player_t* COOP_GetVoodooDollDummyPlayer ( void );
 void	COOP_PotentiallyStoreUVDPickup ( const PClass *pType );
 void	COOP_ClearStoredUVDPickups ( void );
