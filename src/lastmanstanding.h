@@ -89,8 +89,6 @@ typedef enum
 void	LASTMANSTANDING_Construct( void );
 void	LASTMANSTANDING_Tick( void );
 
-LONG	LASTMANSTANDING_TeamCountMenStanding( ULONG ulTeam );
-LONG	LASTMANSTANDING_TeamCountEnemiesStanding( ULONG ulTeam ); // [RC] 
 LONG	LASTMANSTANDING_GetLastManStanding( void );
 LONG	LASTMANSTANDING_TeamGetLastManStanding( void );
 LONG	LASTMANSTANDING_TeamsWithAlivePlayersOn( void );
