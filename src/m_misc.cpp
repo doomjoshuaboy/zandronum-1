@@ -156,7 +156,8 @@ bool M_DoesFileExist( const char *pszFileName )
 	handle = open (pszFileName, O_RDONLY | O_BINARY, 0666);
 	if (handle == -1)
 		return ( false );
-	if (fstat (handle,&fileinfo) == -1)
+	// [BL/BB] Use stat instead of fstat for v140_xp hack
+	if (stat (pszFileName,&fileinfo) == -1)
 		return ( false );
 
 	return ( true );
