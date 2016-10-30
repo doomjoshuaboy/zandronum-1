@@ -1263,9 +1263,9 @@ bool G_Responder (event_t *ev)
 {
 	// any other key pops up menu if in demos
 	// [RH] But only if the key isn't bound to a "special" command
-	// [BC] Support for client-side demos [BB] and free spectate mode.
+	// [BB] We explicitly don't check if a client side demo is played to allow binding demo_pause, etc..
 	if (gameaction == ga_nothing && 
-		(demoplayback || ( CLIENTDEMO_IsPlaying( ) && !CLIENTDEMO_IsInFreeSpectateMode() ) || gamestate == GS_DEMOSCREEN || gamestate == GS_TITLELEVEL))
+		(demoplayback || gamestate == GS_DEMOSCREEN || gamestate == GS_TITLELEVEL))
 	{
 		const char *cmd = Bindings.GetBind (ev->data1);
 
