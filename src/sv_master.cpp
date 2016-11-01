@@ -567,12 +567,13 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 	// [BB] Send all dmflags and compatflags.
 	if ( ulBits & SQF_ALL_DMFLAGS )
 	{
-		NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, 5 );
+		NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, 6 );
 		NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, dmflags );
 		NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, dmflags2 );
 		NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, zadmflags );
 		NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, compatflags );
 		NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, zacompatflags );
+		NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, compatflags2 );
 	}
 
 	// [BB] Send special security settings like sv_enforcemasterbanlist.
