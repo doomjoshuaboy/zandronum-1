@@ -868,6 +868,9 @@ void R_ProjectSprite (AActor *thing, int fakeside, F3DFloor *fakefloor, F3DFloor
 		}
 	}
 
+	// [BB]
+	vis->Style.bFixedColormap = false;
+
 	// get light level
 	if (fixedcolormap != NULL)
 	{ // fixed map
@@ -876,7 +879,10 @@ void R_ProjectSprite (AActor *thing, int fakeside, F3DFloor *fakefloor, F3DFloor
 	// [BB] This makes sure that actors, which have lFixedColormap set, are renderes accordingly.
 	// For example a player using a doom sphere is rendered red for the other players.
 	else if ( ( thing->lFixedColormap != NOFIXEDCOLORMAP ) && ( thing->lFixedColormap >= 0 ) && ( unsigned ( thing->lFixedColormap ) < SpecialColormaps.Size() ) )
+	{
 		vis->Style.colormap = SpecialColormaps[ thing->lFixedColormap ].Colormap;
+		vis->Style.bFixedColormap = true;
+	}
 	else
 	{
 		if (invertcolormap)
@@ -1606,7 +1612,8 @@ void R_DrawSprite (vissprite_t * /*dummyArg*/, vissprite_t *spr)
 	if ((fake3D & FAKE3D_CLIPTOP)    && spr->gzb >= sclipTop) return;
 
 	// kg3D - correct colors now
-	if (!fixedcolormap && fixedlightlev < 0 && spr->sector->e && spr->sector->e->XFloor.lightlist.Size()) 
+	// [BB] Added bFixedColormap check.
+	if ( !spr->Style.bFixedColormap && !fixedcolormap && fixedlightlev < 0 && spr->sector->e && spr->sector->e->XFloor.lightlist.Size()) 
 	{
 		if (!(fake3D & FAKE3D_CLIPTOP))
 		{
