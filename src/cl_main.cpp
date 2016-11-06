@@ -144,6 +144,7 @@ EXTERN_CVAR( Float, turbo )
 EXTERN_CVAR( Float, sv_gravity )
 EXTERN_CVAR( Float, sv_aircontrol )
 EXTERN_CVAR( Bool, cl_hideaccount )
+EXTERN_CVAR( String, name )
 
 //*****************************************************************************
 //	CONSOLE COMMANDS/VARIABLES
@@ -2240,6 +2241,10 @@ void CLIENT_QuitNetworkGame( const char *pszString )
 	// [BB] Also, if we're playing a demo, finish it
 	if ( CLIENTDEMO_IsPlaying( ))
 		CLIENTDEMO_FinishPlaying( );
+
+	// [BB] If the server assigned a different name to us, reset that now.
+	if ( strcmp ( static_cast<const char*>(name), players[consoleplayer].userinfo.GetName() ) != 0 )
+		D_SetupUserInfo ();
 }
 
 //*****************************************************************************
