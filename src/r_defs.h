@@ -1230,6 +1230,8 @@ struct visstyle_t
 	lighttable_t	*colormap;
 	fixed_t			alpha;
 	FRenderStyle	RenderStyle;
+	// [BB]
+	bool bFixedColormap;
 };
 
 
