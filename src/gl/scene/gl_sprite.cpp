@@ -387,6 +387,12 @@ inline void GLSprite::PutSprite(bool translucent)
 	{
 		list = GLDL_MASKED;
 	}
+
+	// [TP/BB] This makes sure that actors, which have lFixedColormap set, are rendered accordingly.
+	// For example a player using a doom sphere is rendered red for the other players.
+	if ( this->actor && this->actor->lFixedColormap != NOFIXEDCOLORMAP )
+		this->Colormap.colormap = CM_FIRSTSPECIALCOLORMAP + this->actor->lFixedColormap;
+
 	gl_drawinfo->drawlists[list].AddSprite(this);
 }
 
