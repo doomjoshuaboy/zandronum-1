@@ -884,9 +884,10 @@ void SCOREBOARD_RenderStats_RankSpread( void )
 
 	// 'Wins' isn't an entry on the statusbar, so we have to draw this here.
 	// [BB] Note: SCOREBOARD_RenderStats_RankSpread is not called in LMS, so the LMS check can be removed...
-	if (( duel || lastmanstanding ) && ( players[consoleplayer].camera->player->ulWins > 0 ))
+	unsigned int viewplayerwins = static_cast<unsigned int>( players[ SCOREBOARD_GetViewPlayer() ].ulWins );
+	if (( duel || lastmanstanding ) && ( viewplayerwins > 0 ))
 	{
-		sprintf( szString, "\\cGWINS: \\cC%d", static_cast<unsigned int> (players[consoleplayer].camera->player->ulWins) );
+		sprintf( szString, "\\cGWINS: \\cC%d", viewplayerwins );
 		V_ColorizeString( szString );
 
 		HUD_DrawText( SmallFont, CR_GRAY,
