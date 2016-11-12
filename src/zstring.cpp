@@ -582,6 +582,10 @@ void FString::StripLeft ()
 		if (!isspace(Chars[i]))
 			break;
 	}
+	if (i == 0)
+	{ // Nothing to strip.
+		return;
+	}
 	if (Data()->RefCount <= 1)
 	{
 		for (j = 0; i <= max; ++j, ++i)
@@ -613,6 +617,10 @@ void FString::StripLeft (const char *charset)
 		if (!strchr (charset, Chars[i]))
 			break;
 	}
+	if (i == 0)
+	{ // Nothing to strip.
+		return;
+	}
 	if (Data()->RefCount <= 1)
 	{
 		for (j = 0; i <= max; ++j, ++i)
@@ -633,10 +641,15 @@ void FString::StripLeft (const char *charset)
 void FString::StripRight ()
 {
 	size_t max = Len(), i;
-	for (i = max; i-- > 0; )
+	if (max == 0) return;
+	for (i = --max; i-- > 0; )
 	{
 		if (!isspace(Chars[i]))
 			break;
+	}
+	if (i == max)
+	{ // Nothing to strip.
+		return;
 	}
 	if (Data()->RefCount <= 1)
 	{
@@ -661,10 +674,14 @@ void FString::StripRight (const char *charset)
 {
 	size_t max = Len(), i;
 	if (max == 0) return;
-	for (i = max; i-- > 0; )
+	for (i = --max; i-- > 0; )
 	{
 		if (!strchr (charset, Chars[i]))
 			break;
+	}
+	if (i == max)
+	{ // Nothing to strip.
+		return;
 	}
 	if (Data()->RefCount <= 1)
 	{
@@ -694,6 +711,10 @@ void FString::StripLeftRight ()
 		if (!isspace(Chars[j]))
 			break;
 	}
+	if (i == 0 && j == max - 1)
+	{ // Nothing to strip.
+		return;
+	}
 	if (Data()->RefCount <= 1)
 	{
 		for (k = 0; i <= j; ++i, ++k)
@@ -706,8 +727,8 @@ void FString::StripLeftRight ()
 	else
 	{
 		FStringData *old = Data();
-		AllocBuffer (j - i);
-		StrCopy (Chars, old->Chars(), j - i);
+		AllocBuffer(j - i + 1);
+		StrCopy(Chars, old->Chars(), j - i + 1);
 		old->Release();
 	}
 }
