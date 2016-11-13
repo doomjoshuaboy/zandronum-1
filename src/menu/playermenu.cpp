@@ -422,9 +422,14 @@ bool FSliderItem::MouseEvent(int type, int x, int y)
 	if (type == DMenu::MOUSE_Release)
 	{
 		lm->ReleaseFocus();
+
+		// [BB] Workaround for the handicap slider.
+		if ( mText && strcmp ( mText, "Handicap" ) == 0 )
+			handicap = mSelection;
 	}
 
-	int slide_left = SmallFont->StringWidth ("Green") + 8 + mXpos;
+	// [BB] "Green" -> "Handicap"
+	int slide_left = SmallFont->StringWidth ("Handicap") + 8 + mXpos;
 	int slide_right = slide_left + 12*8;	// 12 char cells with 8 pixels each.
 
 	if (type == DMenu::MOUSE_Click)
