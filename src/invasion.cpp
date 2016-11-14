@@ -101,9 +101,9 @@ static	std::vector<AActor*> g_MonsterCorpsesFromPreviousWave;
 //*****************************************************************************
 //	STRUCTURES
 
-char *ABaseMonsterInvasionSpot::GetSpawnName( void )
+FName ABaseMonsterInvasionSpot::GetSpawnName( void )
 {
-	return GetSpawnName( );
+	return NAME_None;
 }
 
 //*****************************************************************************
@@ -229,12 +229,12 @@ class ACustomMonsterInvasionSpot : public ABaseMonsterInvasionSpot
 	DECLARE_CLASS( ACustomMonsterInvasionSpot, ABaseMonsterInvasionSpot )
 public:
 
-	virtual char	*GetSpawnName( void );
+	virtual FName	GetSpawnName( void );
 };
 
 //*****************************************************************************
 //
-char *ACustomMonsterInvasionSpot::GetSpawnName( void )
+FName ACustomMonsterInvasionSpot::GetSpawnName( void )
 {
 	ULONG		ulNumDropItems;
 	FDropItem	*pDropItem;
@@ -261,7 +261,7 @@ char *ACustomMonsterInvasionSpot::GetSpawnName( void )
 		if ( pDropItem->Name != NAME_None )
 		{
 			if ( ulNumDropItems == 0 )
-				return ( (char *)pDropItem->Name.GetChars( ));
+				return pDropItem->Name;
 			else
 				ulNumDropItems--;
 		}
@@ -269,7 +269,7 @@ char *ACustomMonsterInvasionSpot::GetSpawnName( void )
 		pDropItem = pDropItem->Next;
 	}
 
-	return ( NULL );
+	return NAME_None;
 }
 
 //*****************************************************************************
@@ -278,9 +278,9 @@ IMPLEMENT_CLASS( ACustomMonsterInvasionSpot )
 //*****************************************************************************
 //*****************************************************************************
 //
-char *ABasePickupInvasionSpot::GetSpawnName( void )
+FName ABasePickupInvasionSpot::GetSpawnName( void )
 {
-	return GetSpawnName( );
+	return NAME_None;
 }
 
 //*****************************************************************************
@@ -422,12 +422,12 @@ class ACustomPickupInvasionSpot : public ABasePickupInvasionSpot
 	DECLARE_CLASS( ACustomPickupInvasionSpot, ABasePickupInvasionSpot )
 public:
 
-	virtual char	*GetSpawnName( void );
+	virtual FName	GetSpawnName( void );
 };
 
 //*****************************************************************************
 //
-char *ACustomPickupInvasionSpot::GetSpawnName( void )
+FName ACustomPickupInvasionSpot::GetSpawnName( void )
 {
 	ULONG		ulNumDropItems;
 	FDropItem	*pDropItem;
@@ -454,7 +454,7 @@ char *ACustomPickupInvasionSpot::GetSpawnName( void )
 		if ( pDropItem->Name != NAME_None )
 		{
 			if ( ulNumDropItems == 0 )
-				return ( (char *)pDropItem->Name.GetChars( ));
+				return pDropItem->Name;
 			else
 				ulNumDropItems--;
 		}
@@ -462,7 +462,7 @@ char *ACustomPickupInvasionSpot::GetSpawnName( void )
 		pDropItem = pDropItem->Next;
 	}
 
-	return ( NULL );
+	return NAME_None;
 }
 
 //*****************************************************************************
@@ -471,9 +471,9 @@ IMPLEMENT_CLASS( ACustomPickupInvasionSpot )
 //*****************************************************************************
 //*****************************************************************************
 //
-char *ABaseWeaponInvasionSpot::GetSpawnName( void )
+FName ABaseWeaponInvasionSpot::GetSpawnName( void )
 {
-	return GetSpawnName( );
+	return NAME_None;
 }
 
 //*****************************************************************************
@@ -565,12 +565,12 @@ class ACustomWeaponInvasionSpot : public ABaseWeaponInvasionSpot
 	DECLARE_CLASS( ACustomWeaponInvasionSpot, ABaseWeaponInvasionSpot )
 public:
 
-	virtual char	*GetSpawnName( void );
+	virtual FName	GetSpawnName( void );
 };
 
 //*****************************************************************************
 //
-char *ACustomWeaponInvasionSpot::GetSpawnName( void )
+FName ACustomWeaponInvasionSpot::GetSpawnName( void )
 {
 	ULONG		ulNumDropItems;
 	FDropItem	*pDropItem;
@@ -597,7 +597,7 @@ char *ACustomWeaponInvasionSpot::GetSpawnName( void )
 		if ( pDropItem->Name != NAME_None )
 		{
 			if ( ulNumDropItems == 0 )
-				return ( (char *)pDropItem->Name.GetChars( ));
+				return pDropItem->Name;
 			else
 				ulNumDropItems--;
 		}
@@ -605,7 +605,7 @@ char *ACustomWeaponInvasionSpot::GetSpawnName( void )
 		pDropItem = pDropItem->Next;
 	}
 
-	return ( NULL );
+	return NAME_None;
 }
 
 //*****************************************************************************

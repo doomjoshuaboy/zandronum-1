@@ -80,7 +80,7 @@ class ABaseMonsterInvasionSpot : public AActor
 	DECLARE_CLASS( ABaseMonsterInvasionSpot, AActor )
 public:
 
-	virtual	char	*GetSpawnName( void );
+	virtual	FName	GetSpawnName( void );
 	virtual	void	Activate( AActor *pActivator );
 	virtual	void	Deactivate( AActor *pActivator );
 	
@@ -99,7 +99,7 @@ class ABasePickupInvasionSpot : public AActor
 	DECLARE_CLASS( ABasePickupInvasionSpot, AActor )
 public:
 
-	virtual	char	*GetSpawnName( void );
+	virtual	FName	GetSpawnName( void );
 	virtual	void	Activate( AActor *pActivator );
 	virtual	void	Deactivate( AActor *pActivator );
 	virtual void	Destroy ();
@@ -119,7 +119,7 @@ class ABaseWeaponInvasionSpot : public AActor
 	DECLARE_CLASS( ABaseWeaponInvasionSpot, AActor )
 public:
 
-	virtual	char	*GetSpawnName( void );
+	virtual	FName	GetSpawnName( void );
 	virtual	void	Activate( AActor *pActivator );
 	virtual	void	Deactivate( AActor *pActivator );
 	
