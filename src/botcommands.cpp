@@ -1844,7 +1844,7 @@ static void botcmd_IsEnemyVisible( CSkullBot *pBot )
 //
 static void botcmd_GetDistanceToEnemy( CSkullBot *pBot )
 {
-	if (( pBot->m_ulPlayerEnemy != MAXPLAYERS ) && ( players[pBot->m_ulPlayerEnemy].mo > 0 ))
+	if (( pBot->m_ulPlayerEnemy != MAXPLAYERS ) && ( players[pBot->m_ulPlayerEnemy].mo != nullptr ))
 	{
 		POS_t	EnemyPos;
 
