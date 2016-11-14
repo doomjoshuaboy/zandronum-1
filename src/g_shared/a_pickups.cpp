@@ -220,6 +220,10 @@ bool P_GiveBody (AActor *actor, int num, int max)
 		return false;
 	}
 
+	// [EP] DummyPlayer shouldn't receive anything.
+	if (actor->player == COOP_GetVoodooDollDummyPlayer())
+		return false;
+
 	player_t *player = actor->player;
 
 	num = clamp(num, -65536, 65536);	// prevent overflows for bad values
