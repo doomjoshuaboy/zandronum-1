@@ -3246,7 +3246,7 @@ bool PLAYER_NameUsed( const FString &Name, const ULONG ulIgnorePlayer )
 	FString nameNoColor = Name;
 	V_RemoveColorCodes( nameNoColor );
 
-	for ( int i = 0; i < MAXPLAYERS; ++i )
+	for ( unsigned int i = 0; i < MAXPLAYERS; ++i )
 	{
 		if ( playeringame[i] == false )
 			continue;
