@@ -953,9 +953,9 @@ drawfullconsole:
 				goto drawfullconsole;
 			}
 
-			// [BB] if (viewactive) is necessary here. Otherwise it could try to render a NULL actor.
+			// [BB/EP] if (automapactive || viewactive) is necessary here. Otherwise it could try to render a NULL actor.
 			// This happens for example if you start a new game, while being on a server.
-			if (viewactive)
+			if (automapactive || viewactive)
 			{
 				if (StatusBar != NULL)
 				{
