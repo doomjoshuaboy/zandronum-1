@@ -370,13 +370,13 @@ public:
 		screen->DrawText( SmallFont, CR_UNTRANSLATED, 224, y, "TYPE", DTA_Clean, true, TAG_DONE );
 		screen->DrawText( SmallFont, CR_UNTRANSLATED, 272, y, "PLYRS", DTA_Clean, true, TAG_DONE );
 
-		char	szString[256];
+		FString str;
 		const int numServers = static_cast<int> ( M_CalcLastSortedIndex( ) );
 		if ( numServers > NUM_SERVER_SLOTS )
-			sprintf( szString, "Currently showing servers %d to %d out of %d", g_sortedServerListOffest + 1, MIN ( g_sortedServerListOffest + NUM_SERVER_SLOTS, numServers ), numServers );
+			str.Format( "Currently showing servers %d to %d out of %d", g_sortedServerListOffest + 1, MIN ( g_sortedServerListOffest + NUM_SERVER_SLOTS, numServers ), numServers );
 		else
-			sprintf( szString, "Currently showing %d servers", numServers );
-			screen->DrawText( SmallFont, CR_WHITE, 160 - ( SmallFont->StringWidth( szString ) / 2 ), 190, szString, DTA_Clean, true, TAG_DONE );
+			str.Format( "Currently showing %d servers", numServers );
+		screen->DrawText( SmallFont, CR_WHITE, 160 - ( SmallFont->StringWidth( str ) / 2 ), 190, str, DTA_Clean, true, TAG_DONE );
 	}
 };
 
