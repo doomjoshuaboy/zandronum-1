@@ -9925,9 +9925,9 @@ scriptwait:
 						state = activator->GetClass()->ActorInfo->FindStateByString (statename, !!STACK(1));
 						if (state != NULL)
 						{
-						// [BC] Tell clients to change this thing's state.
-						if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-							SERVERCOMMANDS_SetThingFrame( activator, state );
+							// [BC] Tell clients to change this thing's state.
+							if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+								SERVERCOMMANDS_SetThingFrame( activator, state );
 
 							activator->SetState (state);
 							STACK(3) = 1;
