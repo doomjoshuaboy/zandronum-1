@@ -33,6 +33,9 @@ CVAR (Bool,  m_noprescale,			false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR (Bool,	 m_filter,				false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR (Bool,  sdl_nokeyrepeat,		false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 
+// [EP] Allows to keep the sound turned on, when the client is not the active app.
+CVAR (Bool,	 cl_soundwhennotactive, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+
 EXTERN_CVAR (Bool, fullscreen)
 
 extern int WaitingForKey;
@@ -302,7 +305,8 @@ void MessagePump (const SDL_Event &sev)
 			{ // kill focus
 				FlushDIKState ();
 			}
-			S_SetSoundPaused(sev.active.gain);
+			if (( NETWORK_GetState() != NETSTATE_CLIENT ) || ( cl_soundwhennotactive == false ))	// [EP]
+				S_SetSoundPaused(sev.active.gain);
 		}
 		break;
 
