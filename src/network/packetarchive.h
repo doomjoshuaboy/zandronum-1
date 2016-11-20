@@ -93,6 +93,19 @@ private:
 //==========================================================================
 class OutgoingPacketBuffer : public PacketArchive
 {
-public:
+	unsigned int _packetsSentThisTick;
+	unsigned int _clientIdx;
+	TArray<unsigned int> _scheduledPacketIndices;
+	TArray<NETBUFFER_s> _unsentPackets;
+private:
 	bool SendPacket( unsigned int packetNumber, const NETADDRESS_s &Address ) const;
+public:
+	OutgoingPacketBuffer ( );
+	void SetClientIndex ( const unsigned int ClientIdx );
+	void ScheduleUnsentPacket ( const NETBUFFER_s &Packet );
+	bool SchedulePacket( unsigned int packetNumber );
+	void ClearScheduling();
+	void ForceSendAll();
+	void Clear();
+	void Tick ( );
 };

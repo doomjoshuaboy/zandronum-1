@@ -432,6 +432,7 @@ void SERVER_Construct( void )
 
 		// Initialize the saved packet buffer.
 		g_aClients[ulIdx].SavedPackets.Initialize( g_ulMaxPacketSize );
+		g_aClients[ulIdx].SavedPackets.SetClientIndex ( ulIdx );
 
 		// Initialize the unreliable packet buffer.
 		g_aClients[ulIdx].UnreliablePacketBuffer.Init( MAX_UDP_PACKET, BUFFERTYPE_WRITE );
@@ -651,6 +652,10 @@ void SERVER_Tick( void )
 		// Check everyone's PacketBuffer for anything that needs to be sent.
 		SERVER_SendOutPackets( );
 
+		// [BB] Send out sheduled packets, respecting sv_maxpacketspertick.
+		for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+			SERVER_GetClient ( ulIdx )->SavedPackets.Tick ( );
+
 		// Potentially send an update to the master server.
 		SERVER_MASTER_Tick( );
 
@@ -794,8 +799,7 @@ void SERVER_SendClientPacket( ULONG ulClient, bool bReliable )
 
 	if ( bReliable )
 	{
-		int sequenceNumber = pClient->SavedPackets.StorePacket( pClient->PacketBuffer );
-		pClient->SavedPackets.SendPacket( sequenceNumber, pClient->Address );
+		pClient->SavedPackets.ScheduleUnsentPacket( pClient->PacketBuffer );
 		pClient->PacketBuffer.Clear();
 		return;
 	}
@@ -3546,6 +3550,8 @@ void SERVER_KickPlayer( ULONG ulPlayer, const char *pszReason )
 		// Tell the player that he's been kicked.
 		SERVERCOMMANDS_ConsolePlayerKicked( ulPlayer );
 		SERVER_SendClientPacket( ulPlayer, true );
+		g_aClients[ulPlayer].SavedPackets.ForceSendAll();
+		g_aClients[ulPlayer].SavedPackets.ClearScheduling();
 
 		// Tell the other players that this player has been kicked.
 		SERVER_DisconnectClient( ulPlayer, true, false );
@@ -5321,7 +5327,7 @@ static bool server_MissingPacket( BYTESTREAM_s *pByteStream )
 		lLastPacket = lPacket;
 
 		// Send the packet from the saved packet archive.
-		bool found = g_aClients[g_lCurrentClient].SavedPackets.SendPacket( lPacket, g_aClients[g_lCurrentClient].Address );
+		bool found = g_aClients[g_lCurrentClient].SavedPackets.SchedulePacket( lPacket );
 
 		// We could not find the correct packet to resend to the client, so there's nothing we can do to save him.
 		if ( found == false )
