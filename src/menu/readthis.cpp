@@ -38,6 +38,8 @@
 #include "g_level.h"
 #include "gi.h"
 #include "textures/textures.h"
+// [BB] New #includes.
+#include "gamemode.h"
 
 class DReadThisMenu : public DMenu
 {
@@ -80,6 +82,10 @@ void DReadThisMenu::Drawer()
 {
 	FTexture *tex = NULL, *prevpic = NULL;
 	fixed_t alpha;
+
+	// [BB] Is there a built in texture for this gamemode?
+	if ( ( NETWORK_GetState( ) != NETSTATE_SINGLE ) && TexMan.CheckForTexture( GAMEMODE_GetF1Texture( GAMEMODE_GetCurrentMode( )), 0, 0 ).Exists() )
+		tex = TexMan[GAMEMODE_GetF1Texture( GAMEMODE_GetCurrentMode( ))];
 
 	// Did the mapper choose a custom help page via MAPINFO?
 	if ((level.info != NULL) && level.info->f1[0] != 0)
