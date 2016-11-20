@@ -169,6 +169,48 @@ bool PacketArchive::FindPacket( unsigned int packetNumber, const BYTE*& data, si
 
 //*****************************************************************************
 //
+CUSTOM_CVAR( Int, sv_maxpacketspertick, 64, CVAR_ARCHIVE )
+{
+	if ( self <= 0 )
+	{
+		Printf( "sv_maxpacketspertick must be positive.\n" );
+		self = 64;
+	}
+}
+
+//*****************************************************************************
+//
+OutgoingPacketBuffer::OutgoingPacketBuffer ( )
+{
+	_packetsSentThisTick = 0;
+	_clientIdx = MAXPLAYERS;
+}
+
+//*****************************************************************************
+//
+void OutgoingPacketBuffer::SetClientIndex ( const unsigned int ClientIdx )
+{
+	_clientIdx = ClientIdx;
+}
+
+//*****************************************************************************
+//
+void OutgoingPacketBuffer::ScheduleUnsentPacket ( const NETBUFFER_s &Packet )
+{
+	if ( ( _unsentPackets.Size () == 0 ) && ( _packetsSentThisTick < sv_maxpacketspertick ) )
+	{
+		++_packetsSentThisTick;
+		const int packetNumber = this->StorePacket ( Packet );
+		SendPacket( packetNumber, SERVER_GetClient ( _clientIdx )->Address );
+	}
+	else
+	{
+		_unsentPackets.Push ( Packet );
+	}
+}
+
+//*****************************************************************************
+//
 bool OutgoingPacketBuffer::SendPacket( unsigned int packetNumber, const NETADDRESS_s &Address ) const
 {
 	// Find the packet from the saved packet archive.
@@ -191,4 +233,94 @@ bool OutgoingPacketBuffer::SendPacket( unsigned int packetNumber, const NETADDRE
 	NETWORK_LaunchPacket( &TempBuffer, Address );
 	TempBuffer.Free();
 	return true;
+}
+
+//*****************************************************************************
+//
+bool OutgoingPacketBuffer::SchedulePacket ( unsigned int packetNumber )
+{
+	if ( ( _scheduledPacketIndices.Size() == 0 ) && ( _packetsSentThisTick < sv_maxpacketspertick ) )
+	{
+		++_packetsSentThisTick;
+		return SendPacket( packetNumber, SERVER_GetClient ( _clientIdx )->Address );
+	}
+	else
+	{
+		_scheduledPacketIndices.Push ( packetNumber );
+		const BYTE* packetData;
+		size_t packetSize;
+		return this->FindPacket( packetNumber, packetData, packetSize );
+	}
+}
+
+//*****************************************************************************
+//
+void OutgoingPacketBuffer::ClearScheduling ( )
+{
+	_packetsSentThisTick = 0;
+	_scheduledPacketIndices.Clear();
+}
+
+//*****************************************************************************
+//
+void OutgoingPacketBuffer::Clear ( )
+{
+	PacketArchive::Clear();
+	ClearScheduling();
+	for ( unsigned int i = 0; i < _unsentPackets.Size(); ++i )
+		_unsentPackets[i].Free();
+	_unsentPackets.Clear();
+}
+
+//*****************************************************************************
+//
+void OutgoingPacketBuffer::ForceSendAll()
+{
+	for ( unsigned int i = 0; i < _scheduledPacketIndices.Size(); ++i )
+	{
+		++_packetsSentThisTick;
+		SendPacket( _scheduledPacketIndices[i], SERVER_GetClient ( _clientIdx )->Address );
+	}
+	_scheduledPacketIndices.Clear();
+	for ( unsigned int i = 0; i < _unsentPackets.Size(); ++i )
+	{
+		++_packetsSentThisTick;
+		const int packetNumber = this->StorePacket ( _unsentPackets[i] );
+		SendPacket ( packetNumber, SERVER_GetClient (_clientIdx)->Address );
+		_unsentPackets[i].Free ();
+	}
+	_unsentPackets.Clear();
+}
+
+//*****************************************************************************
+//
+void OutgoingPacketBuffer::Tick ( )
+{
+	{
+		const int packetsToSend = MIN ( sv_maxpacketspertick - static_cast<int> ( _packetsSentThisTick ), static_cast<int> ( _scheduledPacketIndices.Size () ) );
+		for ( int i = 0; i < packetsToSend; ++i )
+		{
+			++_packetsSentThisTick;
+			if ( SendPacket( _scheduledPacketIndices[i], SERVER_GetClient( _clientIdx )->Address) == false )
+			{
+				SERVER_KickPlayer( _clientIdx, "Too many missed packets.");
+				return;
+			}
+		}
+		_scheduledPacketIndices.Delete( 0, packetsToSend );
+	}
+
+	{
+		const int unsentPacketsToSend = MIN ( sv_maxpacketspertick - static_cast<int> ( _packetsSentThisTick ), static_cast<int> ( _unsentPackets.Size () ) );
+		for ( int i = 0; i < unsentPacketsToSend; ++i )
+		{
+			++_packetsSentThisTick;
+			const int packetNumber = this->StorePacket ( _unsentPackets[i] );
+			SendPacket ( packetNumber, SERVER_GetClient( _clientIdx )->Address );
+			_unsentPackets[i].Free ();
+		}
+		_unsentPackets.Delete( 0, unsentPacketsToSend );
+	}
+
+	_packetsSentThisTick = 0;
 }
