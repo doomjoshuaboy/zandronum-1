@@ -117,6 +117,7 @@
 #include "network_enums.h"
 #include "decallib.h"
 #include "network/servercommands.h"
+#include "am_map.h"
 
 //*****************************************************************************
 //	MISC CRAP THAT SHOULDN'T BE HERE BUT HAS TO BE BECAUSE OF SLOPPY CODING
@@ -2219,6 +2220,11 @@ void CLIENT_QuitNetworkGame( const char *pszString )
 	// [BB] This is what the CCMD endgame is doing and thus should be
 	// enough to handle all non-network related things.
 	gameaction = ga_fullconsole;
+
+	// [BB] If we arrive here, because a client used the map CCMD, the
+	// gameaction will be ignored. So we manually stop the automap.
+	if ( automapactive )
+		AM_Stop ();
 
 	g_lLastParsedSequence = -1;
 	g_lHighestReceivedSequence = -1;
