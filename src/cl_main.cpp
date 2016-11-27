@@ -6476,8 +6476,8 @@ void ServerCommands::ACSScriptExecute::Execute()
 	else
 		line = &lines[lineid];
 
-	int args[3] = { arg0, arg1, arg2 };
-	P_StartScript( activator, line, scriptNum, mapname, args, 3, ( backSide ? ACS_BACKSIDE : 0 ) | ( always ? ACS_ALWAYS : 0 ) );
+	int args[4] = { arg0, arg1, arg2, arg3 };
+	P_StartScript( activator, line, scriptNum, mapname, args, 4, ( backSide ? ACS_BACKSIDE : 0 ) | ( always ? ACS_ALWAYS : 0 ) );
 }
 
 //*****************************************************************************
