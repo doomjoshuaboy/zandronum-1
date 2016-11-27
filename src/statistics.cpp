@@ -605,6 +605,13 @@ CCMD(printstats)
 
 CCMD(finishgame)
 {
+	// [BB] The logic for this only works offline.
+	if (( NETWORK_GetState( ) != NETSTATE_SINGLE ) && ( NETWORK_GetState( ) != NETSTATE_SINGLE_MULTIPLAYER ))
+	{
+		Printf ("\"finishgame\" can't be used during a network game.\n");
+		return;
+	}
+
 	// This CCMD simulates an end-of-game action and exists to end mods that never exit their last level.
 	G_ChangeLevel(NULL, 0, 0);
 }
