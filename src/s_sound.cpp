@@ -2740,9 +2740,12 @@ int S_GetMusic (char **name)
 {
 	int order;
 
-	// [BC] Server doesn't use music/sound.
+	// [BC] Server doesn't use music/sound, [BB] but saves the values.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		return ( 0 );
+	{
+		*name = copystring ( SERVER_GetMapMusic( ) );
+		return ( SERVER_GetMapMusicOrder( ) );
+	}
 
 	if (mus_playing.name)
 	{
