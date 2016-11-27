@@ -112,6 +112,7 @@ enum
 //	VARIABLES
 
 static	NETADDRESS_s		g_AuthServerAddress;
+static	bool				g_AuthServerAddressCached = false;
 
 static	NETBUFFER_s			g_AuthServerBuffer;
 
@@ -129,7 +130,7 @@ void NETWORK_AUTH_Construct( void )
 	g_AuthServerBuffer.Init( MAX_UDP_PACKET, BUFFERTYPE_WRITE );
 	g_AuthServerBuffer.Clear();
 
-	g_AuthServerAddress = NETWORK_AUTH_GetServerAddress();
+	g_AuthServerAddressCached = false;
 
 	atterm( NETWORK_AUTH_Destruct );
 }
@@ -162,6 +163,12 @@ NETADDRESS_s NETWORK_AUTH_GetServerAddress( void )
 //
 NETADDRESS_s NETWORK_AUTH_GetCachedServerAddress( void )
 {
+	if ( g_AuthServerAddressCached == false )
+	{
+		g_AuthServerAddress = NETWORK_AUTH_GetServerAddress();
+		g_AuthServerAddressCached = true;
+	}
+
 	return g_AuthServerAddress;
 }
 
