@@ -7199,7 +7199,7 @@ static void client_DoDoor( BYTESTREAM_s *pByteStream )
 	// If door already has a thinker, we can't spawn a new door on it.
 	if ( pSector->ceilingdata )
 	{
-		CLIENT_PrintWarning( "client_DoDoor: WARNING! Door's sector already has a ceiling mover attached to it!" );
+		CLIENT_PrintWarning( "client_DoDoor: WARNING! Door's sector already has a ceiling mover attached to it!\n" );
 		return;
 	}
 
