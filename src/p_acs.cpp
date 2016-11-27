@@ -3018,16 +3018,16 @@ void FBehavior::StartTypedScripts (WORD type, AActor *activator, bool always, in
 				continue;
 			}
 
+			// [BB] Added arg2+arg3
+			int arg[3] = { arg1, arg2, arg3 };
+
 			// [BC] If this script is client side, just let clients execute it themselves.
 			if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
 				ACS_IsScriptClientSide( ptr ))
 			{
-				SERVERCOMMANDS_ACSScriptExecute( ptr->Number, activator, 0, 0, 0, arg1, arg2, arg3, always );
+				SERVERCOMMANDS_ACSScriptExecute( ptr->Number, activator, 0, 0, 0, arg, 3, always );
 				continue;
 			}
-
-			// [BB] Added arg2+arg3
-			int arg[3] = { arg1, arg2, arg3 };
 			DLevelScript *runningScript = P_GetScriptGoing (activator, NULL, ptr->Number,
 				ptr, this, arg, 3, always ? ACS_ALWAYS : 0);
 			if (runNow)

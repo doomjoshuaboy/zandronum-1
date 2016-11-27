@@ -2858,10 +2858,16 @@ void SERVERCOMMANDS_SetSomeLineFlags( ULONG ulLine, ULONG ulPlayerExtra, ServerC
 //*****************************************************************************
 //*****************************************************************************
 //
-void SERVERCOMMANDS_ACSScriptExecute( int ScriptNum, AActor *pActivator, LONG lLineIdx, int levelnum, bool bBackSide, int iArg0, int iArg1, int iArg2, bool bAlways, ULONG ulPlayerExtra, ServerCommandFlags flags )
+void SERVERCOMMANDS_ACSScriptExecute( int ScriptNum, AActor *pActivator, LONG lLineIdx, int levelnum, bool bBackSide, const int *args, int argcount, bool bAlways, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( ACS_ExistsScript( ScriptNum ) == false )
 		return;
+
+	if (( argcount < 3 ) || ( argcount > 4 ))
+	{
+		SERVER_PrintWarning( "SERVERCOMMANDS_ACSScriptExecute: invalid argcount: %d!\n", argcount );
+		return;
+	}
 
 	int netid = NETWORK_ACSScriptToNetID( ScriptNum );
 
@@ -2876,14 +2882,17 @@ void SERVERCOMMANDS_ACSScriptExecute( int ScriptNum, AActor *pActivator, LONG lL
 		return;
 	}
 
+	int arg3 = ( argcount == 4 ) ? args[3] : 0;
+
 	ServerCommands::ACSScriptExecute command;
 	command.SetNetid( netid );
 	command.SetActivator( pActivator );
 	command.SetLineid( lLineIdx );
 	command.SetLevelnum( levelnum );
-	command.SetArg0( iArg0 );
-	command.SetArg1( iArg1 );
-	command.SetArg2( iArg2 );
+	command.SetArg0( args[0] );
+	command.SetArg1( args[1] );
+	command.SetArg2( args[2] );
+	command.SetArg3( arg3 );
 	command.SetAlways( bAlways );
 	command.SetBackSide( bBackSide );
 	command.sendCommandToClients( ulPlayerExtra, flags );

@@ -1760,7 +1760,7 @@ FUNC(LS_ACS_Execute)
 	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
 		( ACS_IsScriptClientSide( arg0 )))
 	{
-		SERVERCOMMANDS_ACSScriptExecute( arg0, it, LONG( ln - lines ), arg1, backSide, arg2, arg3, arg4, false );
+		SERVERCOMMANDS_ACSScriptExecute( arg0, it, LONG( ln - lines ), arg1, backSide, args, 3, false );
 		return ( true );
 	}
 
@@ -1791,7 +1791,7 @@ FUNC(LS_ACS_ExecuteAlways)
 	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
 		( ACS_IsScriptClientSide( arg0 )))
 	{
-		SERVERCOMMANDS_ACSScriptExecute( arg0, it, LONG( ln - lines ), arg1, backSide, arg2, arg3, arg4, true );
+		SERVERCOMMANDS_ACSScriptExecute( arg0, it, LONG( ln - lines ), arg1, backSide, args, 3, true );
 		return ( true );
 	}
 
@@ -1841,7 +1841,7 @@ FUNC(LS_ACS_ExecuteWithResult)
 	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
 		( ACS_IsScriptClientSide( arg0 )))
 	{
-		SERVERCOMMANDS_ACSScriptExecute( arg0, it, LONG( ln - lines ), 0, backSide, arg1, arg2, arg3, true );
+		SERVERCOMMANDS_ACSScriptExecute( arg0, it, LONG( ln - lines ), 0, backSide, args, 4, true );
 		return ( false );
 	}
 
