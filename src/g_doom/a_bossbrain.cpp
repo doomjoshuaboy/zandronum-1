@@ -32,6 +32,10 @@ static void BrainishExplosion (fixed_t x, fixed_t y, fixed_t z)
 	AActor *boom = Spawn("Rocket", x, y, z, NO_REPLACE);
 	if (boom != NULL)
 	{
+		// [BB] Clients spawn these on their own.
+		if ( NETWORK_GetState () == NETSTATE_SERVER )
+			boom->FreeNetID ();
+
 		boom->DeathSound = "misc/brainexplode";
 		boom->velz = pr_brainscream() << 9;
 
