@@ -515,13 +515,21 @@ void BROWSER_ParseServerQuery( BYTESTREAM_s *pByteStream, bool bLAN )
 	g_BrowserServerList[lServer].Version = NETWORK_ReadString( pByteStream );
 
 	// If the version doesn't match ours, remove it from the list.
-	if ( g_BrowserServerList[lServer].Version.CompareNoCase( GetVersionStringRev() ) != 0 )
 	{
-		g_BrowserServerList[lServer].ulActiveState = AS_INACTIVE;
-		while ( 1 )
+		// [BB] Get rid of a trailing 'M' that indicates local source changes.
+		FString ourVersion = GetVersionStringRev();
+		if ( ourVersion[ourVersion.Len()-1] == 'M' )
+			ourVersion = ourVersion.Left ( ourVersion.Len()-1 );
+
+		// [BB] Check whether the server version starts with our version.
+		if ( g_BrowserServerList[lServer].Version.IndexOf ( ourVersion ) != 0 )
 		{
-			if ( NETWORK_ReadByte( pByteStream ) == -1 )
-				return;
+			g_BrowserServerList[lServer].ulActiveState = AS_INACTIVE;
+			while ( 1 )
+			{
+				if ( NETWORK_ReadByte( pByteStream ) == -1 )
+					return;
+			}
 		}
 	}
 
