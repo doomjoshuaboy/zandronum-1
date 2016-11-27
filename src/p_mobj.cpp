@@ -5717,7 +5717,13 @@ APlayerPawn *P_SpawnPlayer (FPlayerStart *mthing, int playernum, int flags)
 		// [BB] Clients spawn the fog on their own. Giving the fog the NETFL_ALLOWCLIENTSPAWN flag will prevent
 		// the server from telling the clients to spawn the fog again during a full update.
 		if ( pFog && ( NETWORK_GetState( ) == NETSTATE_SERVER ) )
+		{
 			pFog->ulNetworkFlags |= NETFL_ALLOWCLIENTSPAWN;
+			// [BB] Also remove the netID. Otherwise, the server will not know that 
+			// it cannot notify the client about changes to the fog, like when it is
+			// destroyed during a map reset.
+			pFog->FreeNetID();
+		}
 	}
 
 	// [BB] Moved the exec.wad MAP01 "fix" up.
