@@ -3879,8 +3879,6 @@ void ServerCommands::SetPlayerUserInfo::Execute()
 		if ( player->mo )
 		{
 			player->mo->sprite = skins[skin].sprite;
-			player->mo->scaleX = skins[skin].ScaleX;
-			player->mo->scaleY = skins[skin].ScaleY;
 		}
 	}
 
