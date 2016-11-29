@@ -3250,10 +3250,10 @@ void ServerCommands::SpawnPlayer::Execute()
 			( priorState == PST_ENTER ) ||
 			( priorState == PST_ENTERNOINVENTORY ))
 		{
-			pOldActor->player = NULL;
-			pOldActor->id = -1;
 			// [BB] This will eventually free the player's body's network ID.
 			G_QueueBody (pOldActor);
+			pOldActor->player = NULL;
+			pOldActor->id = -1;
 		}
 		else
 		{
@@ -3390,8 +3390,6 @@ void ServerCommands::SpawnPlayer::Execute()
 	if ( !isMorphed )
 	{
 		pActor->sprite = skins[lSkin].sprite;
-		pActor->scaleX = skins[lSkin].ScaleX;
-		pActor->scaleY = skins[lSkin].ScaleY;
 	}
 
 	pPlayer->DesiredFOV = pPlayer->FOV = 90.f;
