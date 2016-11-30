@@ -737,7 +737,8 @@ void V_CleanPlayerName( FString &String )
 {
 	const int length = (int) String.Len();
 	// [BB] V_CleanPlayerName possibly appends "\\c-", hence we need to reserve more memory than just "length + terminating 0".
-	char *tempCharArray = new char[length+4];
+	// [EP] Don't forget it might return "Player" in case the name results being too short.
+	char *tempCharArray = new char[MAX<size_t>(7, length+4)];
 	strncpy( tempCharArray, String.GetChars(), length );
 	tempCharArray[length] = 0;
 	V_CleanPlayerName( tempCharArray );
