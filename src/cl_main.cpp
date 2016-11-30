@@ -1133,9 +1133,10 @@ bool CLIENT_ReadPacketHeader( BYTESTREAM_s *pByteStream )
 	if ( lCommand == SVC_UNRELIABLEPACKET )
 		return ( true );
 	else
-
-	// Read in the sequence. This is the # of the packet the server has sent us.
-	lSequence = NETWORK_ReadLong( pByteStream );
+	{
+		// Read in the sequence. This is the # of the packet the server has sent us.
+		lSequence = NETWORK_ReadLong( pByteStream );
+	}
 	if ( lCommand != SVC_HEADER )
 		Printf( "CLIENT_ReadPacketHeader: WARNING! Expected SVC_HEADER or SVC_UNRELIABLEPACKET!\n" );
 
@@ -2433,7 +2434,7 @@ AActor *CLIENT_SpawnThing( const PClass *pType, fixed_t X, fixed_t Y, fixed_t Z,
 		pActor->SpawnPoint[1] = Y;
 		pActor->SpawnPoint[2] = Z;
 
-		// [BB] The "Spawn" call apparantly doesn't properly take into account 3D floors,
+		// [BB] The "Spawn" call apparently doesn't properly take into account 3D floors,
 		// so we have to explicitly adjust the floor again.
 		P_FindFloorCeiling ( pActor, FFCF_ONLYSPAWNPOS|FFCF_INCLUDE3DFLOORS );
 
