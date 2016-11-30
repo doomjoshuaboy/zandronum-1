@@ -135,7 +135,7 @@ if( MSVC )
 
 	
 	# Debug allocations in debug builds
-	set( DEB_C_FLAGS "/D _CRTDBG_MAP_ALLOC /MTd /Gm" )
+	set( DEB_C_FLAGS "/D _CRTDBG_MAP_ALLOC /MTd" )
 
 	# Disable warnings for unsecure CRT functions from VC8+
 	if( MSVC_VERSION GREATER 1399 )
