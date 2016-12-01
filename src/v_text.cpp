@@ -429,55 +429,16 @@ void V_ColorizeString( FString &String )
 	delete[] tempCharArray;
 }
 
-// [BC] This essentially does the reverse of V_ColorizeString(). It takes a string with
-// color codes and puts it back in \c<color code> format.
-void V_UnColorizeString( char *pszString, ULONG ulMaxStringLength )
-{
-	char	*p;
-	char	c;
-	ULONG	ulCurStringLength;
-
-	ulCurStringLength = static_cast<ULONG>(strlen( pszString ));
-
-	p = pszString;
-	while ( (c = *p++) )
-	{
-		if ( c == TEXTCOLOR_ESCAPE )
-		{
-			ULONG	ulPos;
-
-			ulCurStringLength++;
-			if ( ulCurStringLength > ulMaxStringLength )
-			{
-				pszString++;
-				continue;
-			}
-
-			for ( ulPos = static_cast<ULONG>(strlen( pszString ) + 1); ulPos > 0; ulPos-- )
-				pszString[ulPos] = pszString[ulPos - 1];
-
-			pszString[0] = '\\';
-			pszString[1] = 'c';
-		}
-
-		pszString++;
-	}
-	*pszString = 0;
-}
-
-// [BB] Version of V_UnColorizeString that accepts a FString as argument and doesn't need ulMaxStringLength.
+//*****************************************************************************
+//
+// V_UnColorizeString
+//
+// This essentially does the reverse of V_ColorizeString(). It takes a string with
+// color codes and puts it back in \c<color code> format
+//
 void V_UnColorizeString( FString &String )
 {
-	const int length = static_cast<int> (String.Len());
-	// [BB] The temporary array is twice as big, because every converted color code
-	// increases the length of the string by one.
-	char *tempCharArray = new char[2*length+1];
-	// [BB] We only need to copy length chars, because that's length = String.Len().
-	strncpy( tempCharArray, String.GetChars(), length );
-	tempCharArray[length] = 0;
-	V_UnColorizeString( tempCharArray, 2*length );
-	String = tempCharArray;
-	delete[] tempCharArray;
+	String.Substitute( TEXTCOLOR_ESCAPE, "\\c" );
 }
 
 // [BC] This strips color codes from a string.

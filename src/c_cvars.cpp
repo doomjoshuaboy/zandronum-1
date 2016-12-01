@@ -1585,12 +1585,9 @@ void C_ArchiveCVars (FConfigFile *f, uint32 filter)
 			// [BB] This is ancient code from Skulltag...
 			if ( filter == (CVAR_ARCHIVE|CVAR_USERINFO) )
 			{
-				char	szString[64];
-
-				strncpy( szString, val.String, 63 );
-				szString[63] = 0;
-				V_UnColorizeString( szString, 64 );
-				f->SetValueForKey (cvar->GetName (), szString);
+				FString uncolorized = val.String;
+				V_UnColorizeString( uncolorized );
+				f->SetValueForKey( cvar->GetName(), uncolorized );
 			}
 			else
 				f->SetValueForKey (cvar->GetName (), val.String);

@@ -79,7 +79,6 @@ struct FBrokenLines
 void	V_ApplyCharArrayFunctionToFString ( FString &String, void (*CharArrayFunction) ( char *pszString ) );
 void	V_ColorizeString( char *pszString );
 void	V_ColorizeString( FString &String );
-void	V_UnColorizeString( char *pszString, ULONG ulMaxStringLength );
 void	V_UnColorizeString( FString &String );
 void	V_RemoveColorCodes( FString &String );
 void	V_RemoveColorCodes( char *pszString );
