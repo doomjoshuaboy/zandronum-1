@@ -505,36 +505,9 @@ BOOL CALLBACK settings_ServerTab_MOTDCallback( HWND hDlg, UINT Message, WPARAM w
 
 			// Initialize the MOTD. We have to turn "\n" into carriage returns.
 			{
-				char	szBuffer[512];
-				char	szInputString[512];
-				char	*psz;
-				char	*pszString;
-				char	c;
-
-				strncpy( szInputString, g_fsMOTD.GetChars( ), 512 );
-				szInputString[512-1] = 0;
-
-				// Nifty little trick to turn "\n" into '\n', while maintaining the "\c" color codes.
-				V_ColorizeString( szInputString );
-				V_UnColorizeString( szInputString, 256 );
-
-				pszString = szInputString;
-				psz = szBuffer;
-
-				while ( 1 )
-				{
-					c = *pszString++;
-					if ( c == '\0' )
-					{
-						*psz = c;
-						break;
-					}
-					if ( c == '\n' )
-						*psz++ = '\r';
-					*psz++ = c;
-				}
-
-				SetDlgItemText( hDlg, IDC_MOTD, szBuffer );
+				FString motd = g_fsMOTD;
+				motd.Substitute( "\\n", "\r\n" );
+				SetDlgItemText( hDlg, IDC_MOTD, motd.GetChars() );
 				SendDlgItemMessage( hDlg, IDC_MOTD, EM_SETSEL, -1, 0 ); // [RC] Why doesn't this work?
 			}			
 		}
