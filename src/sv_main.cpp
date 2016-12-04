@@ -128,6 +128,7 @@
 
 FPolyObj	*GetPolyobj( int polyNum );
 FPolyObj	*GetPolyobjByIndex( ULONG ulPoly );
+extern fixed_t	sidemove[2];
 
 void SERVERCONSOLE_UpdatePlayerInfo( LONG lPlayer, ULONG ulUpdateFlags );
 void SERVERCONSOLE_ReListPlayers( void );
@@ -5247,7 +5248,7 @@ bool ClientMoveCommand::process( const ULONG ulClient ) const
 			if (SERVER_GetClient(ulClient)->State == CLS_SPAWNED) {
 				pPlayer->mo->pitch = moveCmd.pitch;
 				// [HYP] Lock angle if speed is above sr40
-				if (pCmd->ucmd.sidemove > 10240 || pCmd->ucmd.sidemove < -10240)
+				if (pCmd->ucmd.sidemove > ( sidemove[1] << 8 ) || pCmd->ucmd.sidemove < -(sidemove[1] << 8))
 				{
 					pCmd->ucmd.yaw = 0;
 				}

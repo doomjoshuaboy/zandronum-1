@@ -888,7 +888,7 @@ void G_BuildTiccmd (ticcmd_t *cmd)
 	cmd->ucmd.forwardmove <<= 8;
 	cmd->ucmd.sidemove <<= 8;
 
-	if (cmd->ucmd.sidemove > 10240 || cmd->ucmd.sidemove < -10240) //[Hyp] Lock client's turning to zero when speed is above sr40
+	if (cmd->ucmd.sidemove > ( sidemove[1] << 8 ) || cmd->ucmd.sidemove < - ( sidemove[1] << 8 ) ) //[Hyp] Lock client's turning to zero when speed is above sr40
 		cmd->ucmd.yaw = 0;
 
 	// [BB] The client calculates a checksum of the ticcmd just built. This
