@@ -87,6 +87,7 @@
 #include "unlagged.h"
 #include "d_netinf.h"
 #include "domination.h"
+#include "network_enums.h"
 #include <set>
 
 // MACROS ------------------------------------------------------------------
@@ -6408,7 +6409,7 @@ AActor *P_SpawnPuff (AActor *source, const PClass *pufftype, fixed_t x, fixed_t 
 		// treat it as a special case.
 		if ( ulState != STATE_SPAWN )
 		{
-			SERVERCOMMANDS_SpawnPuff( puff, ulState, false );
+			SERVERCOMMANDS_SpawnPuffNoNetID( puff, ulState, false );
 		}
 		// In certain other conditions, we need to spawn the puff with a network
 		// ID so that things like sounds work.
@@ -6421,7 +6422,7 @@ AActor *P_SpawnPuff (AActor *source, const PClass *pufftype, fixed_t x, fixed_t 
 				g_NetIDList.useID ( puff->lNetID , puff );
 			}
 
-			SERVERCOMMANDS_SpawnThing( puff );
+			SERVERCOMMANDS_SpawnPuff( puff );
 		}
 		else
 		{
@@ -6445,14 +6446,14 @@ AActor *P_SpawnPuff (AActor *source, const PClass *pufftype, fixed_t x, fixed_t 
 						continue;
 
 					// [BB] If the puff has a net ID, it must be spawned with one.
-					SERVERCOMMANDS_SpawnThing( puff, ulPlayer, SVCF_ONLYTHISCLIENT );
+					SERVERCOMMANDS_SpawnPuff( puff, ulPlayer, SVCF_ONLYTHISCLIENT );
 				}
 			}
 			else
 			{
 				// [CK] It is always sent when fired from a non-player.
 				// [BB] If the puff has a net ID, it must be spawned with one.
-				SERVERCOMMANDS_SpawnThing( puff );
+				SERVERCOMMANDS_SpawnPuff( puff );
 			}
 		}
 	}

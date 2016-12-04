@@ -28,6 +28,23 @@ Command SpawnThingExactNoNetID
 	Class type
 EndCommand
 
+Command LevelSpawnThing
+	ExtendedCommand
+	AproxFixed x
+	AproxFixed y
+	AproxFixed z
+	Class type
+	Short id
+EndCommand
+
+Command LevelSpawnThingNoNetID
+	ExtendedCommand
+	AproxFixed x
+	AproxFixed y
+	AproxFixed z
+	Class type
+EndCommand
+
 Command MoveThing
 	Actor actor
 	Short bits
@@ -342,6 +359,14 @@ Command SpawnBloodSplatter2
 EndCommand
 
 Command SpawnPuff
+	AproxFixed x
+	AproxFixed y
+	AproxFixed z
+	Class pufftype
+	Short id
+EndCommand
+
+Command SpawnPuffNoNetID
 	AproxFixed x
 	AproxFixed y
 	AproxFixed z

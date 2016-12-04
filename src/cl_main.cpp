@@ -2366,7 +2366,7 @@ void CLIENT_AuthenticateLevel( const char *pszMapName )
 
 //*****************************************************************************
 //
-AActor *CLIENT_SpawnThing( const PClass *pType, fixed_t X, fixed_t Y, fixed_t Z, LONG lNetID )
+AActor *CLIENT_SpawnThing( const PClass *pType, fixed_t X, fixed_t Y, fixed_t Z, LONG lNetID, BYTE spawnFlags )
 {
 	AActor			*pActor;
 
@@ -2423,8 +2423,10 @@ AActor *CLIENT_SpawnThing( const PClass *pType, fixed_t X, fixed_t Y, fixed_t Z,
 		}
 	}
 
+	bool levelThing = ((spawnFlags & SPAWNFLAG_LEVELTHING) != 0);
+
 	// Now that all checks have been done, spawn the actor.
-	pActor = Spawn( pType, X, Y, Z, NO_REPLACE );
+	pActor = AActor::StaticSpawn( pType, X, Y, Z, NO_REPLACE, levelThing );
 	if ( pActor )
 	{
 		pActor->lNetID = lNetID;
@@ -2434,9 +2436,13 @@ AActor *CLIENT_SpawnThing( const PClass *pType, fixed_t X, fixed_t Y, fixed_t Z,
 		pActor->SpawnPoint[1] = Y;
 		pActor->SpawnPoint[2] = Z;
 
-		// [BB] The "Spawn" call apparently doesn't properly take into account 3D floors,
-		// so we have to explicitly adjust the floor again.
-		P_FindFloorCeiling ( pActor, FFCF_ONLYSPAWNPOS|FFCF_INCLUDE3DFLOORS );
+		// [Zalewa] Bullet puffs don't do 3D floor checks server-side.
+		if (!(spawnFlags & SPAWNFLAG_PUFF))
+		{
+			// [BB] The "Spawn" call apparently doesn't properly take into account 3D floors,
+			// so we have to explicitly adjust the floor again.
+			P_FindFloorCeiling ( pActor, FFCF_SAMESECTOR | FFCF_ONLY3DFLOORS | FFCF_3DRESTRICT );
+		}
 
 		// [BB] The current position of the actor comes straight from the server, so it's safe
 		// to assume that it's correct and thus a valid value for the last updated position.
@@ -4525,7 +4531,7 @@ void ServerCommands::SetHexenArmorSlots::Execute()
 //
 void ServerCommands::SpawnThing::Execute()
 {
-	CLIENT_SpawnThing( type, x, y, z, id );
+	CLIENT_SpawnThing( type, x, y, z, id, 0 );
 }
 
 //*****************************************************************************
@@ -4547,6 +4553,20 @@ void ServerCommands::SpawnThingExact::Execute()
 void ServerCommands::SpawnThingExactNoNetID::Execute()
 {
 	CLIENT_SpawnThing( type, x, y, z, -1 );
+}
+
+//*****************************************************************************
+//
+void ServerCommands::LevelSpawnThing::Execute()
+{
+	CLIENT_SpawnThing( type, x, y, z, id, SPAWNFLAG_LEVELTHING );
+}
+
+//*****************************************************************************
+//
+void ServerCommands::LevelSpawnThingNoNetID::Execute()
+{
+	CLIENT_SpawnThing( type, x, y, z, -1, SPAWNFLAG_LEVELTHING );
 }
 
 //*****************************************************************************
@@ -5253,7 +5273,14 @@ void ServerCommands::SpawnBloodSplatter2::Execute()
 //
 void ServerCommands::SpawnPuff::Execute()
 {
-	AActor *puff = CLIENT_SpawnThing( pufftype, x, y, z, -1 );
+	CLIENT_SpawnThing( pufftype, x, y, z, id, SPAWNFLAG_PUFF );
+}
+
+//*****************************************************************************
+//
+void ServerCommands::SpawnPuffNoNetID::Execute()
+{
+	AActor *puff = CLIENT_SpawnThing( pufftype, x, y, z, -1, SPAWNFLAG_PUFF );
 
 	if ( puff == NULL )
 		return;

@@ -2558,7 +2558,21 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 		// Tell the client to spawn this thing.
 		else
 		{
-			SERVERCOMMANDS_SpawnThing( pActor, ulClient, SVCF_ONLYTHISCLIENT );
+			// [EP] Handle level-spawned actors which didn't move yet on X/Y axes.
+			bool shouldLevelSpawn = false;
+			if ((pActor->ulSTFlags & STFL_LEVELSPAWNED) != 0)
+			{
+				shouldLevelSpawn = (pActor->x == pActor->SpawnPoint[0] 
+					&& pActor->y == pActor->SpawnPoint[1]);
+			}
+			if ( shouldLevelSpawn )
+			{
+				SERVERCOMMANDS_LevelSpawnThing( pActor, ulClient, SVCF_ONLYTHISCLIENT );
+			}
+			else
+			{
+				SERVERCOMMANDS_SpawnThing( pActor, ulClient, SVCF_ONLYTHISCLIENT );
+			}
 			// [BB] If the thing is not at its spawn point, let the client know about the spawn point.
 			if ( ( pActor->x != pActor->SpawnPoint[0] )
 				|| ( pActor->y != pActor->SpawnPoint[1] )
