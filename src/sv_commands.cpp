@@ -1143,6 +1143,47 @@ void SERVERCOMMANDS_SpawnThingExactNoNetID( AActor *pActor, ULONG ulPlayerExtra,
 
 //*****************************************************************************
 //
+void SERVERCOMMANDS_LevelSpawnThing( AActor *pActor, ULONG ulPlayerExtra, ServerCommandFlags flags )
+{
+	if ( pActor == NULL )
+		return;
+
+	// If the actor doesn't have a network ID, it's better to send it ID-less.
+	if ( pActor->lNetID == -1 )
+	{
+		SERVERCOMMANDS_LevelSpawnThingNoNetID( pActor, ulPlayerExtra, flags );
+		return;
+	}
+
+	ServerCommands::LevelSpawnThing command;
+	command.SetType( pActor->GetClass() );
+	command.SetX( pActor->x );
+	command.SetY( pActor->y );
+	command.SetZ( pActor->z );
+	command.SetId( pActor->lNetID );
+	command.sendCommandToClients( ulPlayerExtra, flags );
+}
+
+//*****************************************************************************
+//
+void SERVERCOMMANDS_LevelSpawnThingNoNetID( AActor *pActor, ULONG ulPlayerExtra, ServerCommandFlags flags )
+{
+	if ( pActor == NULL )
+		return;
+
+	if ( pActor->ulNetworkFlags & NETFL_SERVERSIDEONLY )
+		return;
+
+	ServerCommands::LevelSpawnThingNoNetID command;
+	command.SetType( pActor->GetClass() );
+	command.SetX( pActor->x );
+	command.SetY( pActor->y );
+	command.SetZ( pActor->z );
+	command.sendCommandToClients( ulPlayerExtra, flags );
+}
+
+//*****************************************************************************
+//
 void SERVERCOMMANDS_MoveThing( AActor *actor, ULONG bits, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( !EnsureActorHasNetID (actor) )
@@ -1796,13 +1837,43 @@ void SERVERCOMMANDS_SpawnBloodSplatter( fixed_t x, fixed_t y, fixed_t z, AActor 
 }
 
 //*****************************************************************************
-//
-void SERVERCOMMANDS_SpawnPuff( AActor *pActor, ULONG ulState, bool bSendTranslation, ULONG ulPlayerExtra, ServerCommandFlags flags )
+// SpawnPuff is essentially SpawnThing that is treated a bit differently
+// by the client. It differs a lot from SpawnPuffNoNetID.
+void SERVERCOMMANDS_SpawnPuff( AActor *pActor, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( pActor == NULL )
 		return;
 
+	// If the actor doesn't have a network ID, it's better to send it ID-less.
+	if ( pActor->lNetID == -1 )
+	{
+		ULONG ulState = STATE_SPAWN;
+		if ( pActor->state == pActor->MeleeState )
+			ulState = STATE_MELEE;
+		else if ( pActor->state == pActor->FindState( NAME_Crash ) )
+			ulState = STATE_CRASH;
+		bool bSendTranslation = pActor->Translation != 0;
+		SERVERCOMMANDS_SpawnPuffNoNetID( pActor, ulState, bSendTranslation, ulPlayerExtra, flags );
+		return;
+	}
+
 	ServerCommands::SpawnPuff command;
+	command.SetX( pActor->x );
+	command.SetY( pActor->y );
+	command.SetZ( pActor->z );
+	command.SetPufftype( pActor->GetClass( ) );
+	command.SetId( pActor->lNetID );
+	command.sendCommandToClients( ulPlayerExtra, flags );
+}
+
+//*****************************************************************************
+//
+void SERVERCOMMANDS_SpawnPuffNoNetID( AActor *pActor, ULONG ulState, bool bSendTranslation, ULONG ulPlayerExtra, ServerCommandFlags flags )
+{
+	if ( pActor == NULL )
+		return;
+
+	ServerCommands::SpawnPuffNoNetID command;
 	command.SetX( pActor->x );
 	command.SetY( pActor->y );
 	command.SetZ( pActor->z );

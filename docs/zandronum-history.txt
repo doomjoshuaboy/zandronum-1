@@ -100,6 +100,7 @@
 -	- Fixed: The screen blending effects wouldn't work on the automap. [Edward-san]
 -	- Fixed: A_BrainScream and A_BrainExplode caused unnecessary network traffic. [Torr Samaho]
 -	- Fixed: the change of the player name with a too short name wasn't handled correctly. [Edward-san]
+-	- Fixed: z-position client-server inconsistencies for things on cliffs. [Zalewa, Edward-san]
 !	- Changed: Spectators can now interact with gravity and use the fly/land commands. [Leonard]
 !	- Save games now contain information about the renderer used to create the save. This allows to print a proper error message when an incompatible save is tried to be loaded. [Torr Samaho]
 !	- Clients don't error out anymore when encountering a division by zero in a DECORATE expression. Instead, a one time warning is printed on the first occasion and the result is assumed to be zero. This is necessary since clients can encounter this in valid DECORATE code due to Zandronum's jump handling. [Torr Samaho]
