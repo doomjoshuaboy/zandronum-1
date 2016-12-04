@@ -55,6 +55,10 @@ void gl_ParseDefs()
 {
 }
 
+void gl_InitModels()
+{
+}
+
 void StartGLMenu (void)
 {
 }
