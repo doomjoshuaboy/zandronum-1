@@ -216,6 +216,15 @@ DEFINE_ACTION_FUNCTION(AActor, A_LeafSpawn)
 			self->z + (pr_leaf()<<14), ALLOW_REPLACE);
 		if (mo)
 		{
+			// [BB] Clients spawn these on their own. In order to prevent the 
+			// server from printing warnings when the server calls P_ExplodeMissile,
+			// we also mark this as SERVERSIDEONLY.
+			if ( NETWORK_GetState () == NETSTATE_SERVER )
+			{
+				mo->ulNetworkFlags |= NETFL_SERVERSIDEONLY;
+				mo->FreeNetID ();
+			}
+
 			P_ThrustMobj (mo, self->angle, (pr_leaf()<<9)+3*FRACUNIT);
 			mo->target = self;
 			mo->special1 = 0;
