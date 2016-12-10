@@ -288,7 +288,7 @@ bool			NETWORK_ShouldActorNotBeSpawned ( const AActor *pSpawner, const PClass *p
 SDWORD			NETWORK_Check ( ticcmd_t *pCmd );
 
 // [TP] Announce something to all clients if the server or just print if not
-void STACK_ARGS NETWORK_Printf( const char* format, ... );
+void STACK_ARGS NETWORK_Printf( const char* format, ... ) GCCPRINTF(1,2);
 
 // [BB] Sound attenuation is a float, but we only want to sent a byte for the 
 // attenuation to instructs clients to play a sound. The enum is used for the
