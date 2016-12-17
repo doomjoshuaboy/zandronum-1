@@ -1551,6 +1551,7 @@ void DDoomStatusBar::FDoomStatusBarTexture::SetPlayerRemap(FRemapTable *remap)
 	Unload();
 	KillNative();
 	STFBRemap = remap;
+	UncacheGL( );
 }
 
 DBaseStatusBar *CreateDoomStatusBar ()
