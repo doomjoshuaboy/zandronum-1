@@ -2399,7 +2399,16 @@ bool D_LoadDehLump(int lumpnum)
 }
 
 // [TP]
-const TArray<FString>& D_GetDehFileNames()
+TArray<FString> D_GetDehFileNames()
+{
+	TArray<FString> filenames;
+	for ( int i = 0; i < g_LoadedDehFiles.Size( ); ++i )
+		filenames.Push( ExtractFileBase( g_LoadedDehFiles[i], true ) );
+	return filenames;
+}
+
+// [Zalewa]
+const TArray<FString>& D_GetDehFiles( )
 {
 	return g_LoadedDehFiles;
 }
@@ -2422,9 +2431,9 @@ bool D_LoadDehFile(const char *patchfile)
 		bool result = DoDehPatch();
 
 		// [TP] If the patching succeeded, write this patch down so we can broadcast it to the
-		// launcher.
+		// launcher (and to "File|Join" in server console ~[Zalewa]).
 		if ( result )
-			g_LoadedDehFiles.Push( ExtractFileBase( patchfile, true ) );
+			g_LoadedDehFiles.Push( patchfile );
 
 		return result;
 	}
