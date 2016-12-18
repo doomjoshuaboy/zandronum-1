@@ -58,6 +58,7 @@
 #include "c_dispatch.h"
 #include "cmdlib.h"
 #include "cooperative.h"
+#include "d_dehacked.h"
 #include "deathmatch.h"
 #include "doomstat.h"
 #include "duel.h"
@@ -486,6 +487,12 @@ BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WP
 						const char *wadFullName = ( wadnum != -1 ) ? Wads.GetWadFullName ( wadnum ) : NULL;
 						if ( wadFullName )
 							arguments.AppendFormat( "\"%s\" ", wadFullName );
+					}
+
+					const TArray<FString> &dehfiles = D_GetDehFiles( );
+					for ( int dehidx = 0; dehidx < dehfiles.Size( ); ++dehidx )
+					{
+						arguments.AppendFormat( "-deh \"%s\" ", dehfiles[dehidx] );
 					}
 					arguments.AppendFormat( "-iwad %s ", NETWORK_GetIWAD( ) );
 					arguments.AppendFormat( "-connect %s ", g_LocalAddress.ToString() );
