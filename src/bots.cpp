@@ -3387,10 +3387,7 @@ void CSkullBot::HandleAiming( void )
 				Printf( "Initially off by (absolute value): %2.2f\n", (float)( (float)AngleDifference / ANGLE_1 ));
 */
 				// Select some random angle between 0 and 360 degrees. 
-				AngleRandom = g_RandomBotAimSeed.Random2( 360 );
-				while ( (LONG)AngleRandom < 0 )
-					AngleRandom += 360;
-				AngleRandom *= ANGLE_1;
+				AngleRandom = ANGLE_1 * g_RandomBotAimSeed( 360 );
 
 				// Select the range of possible angles and how long it's going to be before
 				// reaiming, based on the bot's accuracy skill level.
