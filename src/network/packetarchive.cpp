@@ -197,7 +197,7 @@ void OutgoingPacketBuffer::SetClientIndex ( const unsigned int ClientIdx )
 //
 void OutgoingPacketBuffer::ScheduleUnsentPacket ( const NETBUFFER_s &Packet )
 {
-	if ( ( _unsentPackets.Size () == 0 ) && ( _packetsSentThisTick < sv_maxpacketspertick ) )
+	if ( ( _unsentPackets.Size () == 0 ) && ( _packetsSentThisTick < static_cast<unsigned int> ( sv_maxpacketspertick ) ) )
 	{
 		++_packetsSentThisTick;
 		const int packetNumber = this->StorePacket ( Packet );
@@ -239,7 +239,7 @@ bool OutgoingPacketBuffer::SendPacket( unsigned int packetNumber, const NETADDRE
 //
 bool OutgoingPacketBuffer::SchedulePacket ( unsigned int packetNumber )
 {
-	if ( ( _scheduledPacketIndices.Size() == 0 ) && ( _packetsSentThisTick < sv_maxpacketspertick ) )
+	if ( ( _scheduledPacketIndices.Size() == 0 ) && ( _packetsSentThisTick < static_cast<unsigned int> ( sv_maxpacketspertick ) ) )
 	{
 		++_packetsSentThisTick;
 		return SendPacket( packetNumber, SERVER_GetClient ( _clientIdx )->Address );
