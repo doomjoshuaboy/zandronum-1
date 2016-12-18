@@ -2402,7 +2402,7 @@ bool D_LoadDehLump(int lumpnum)
 TArray<FString> D_GetDehFileNames()
 {
 	TArray<FString> filenames;
-	for ( int i = 0; i < g_LoadedDehFiles.Size( ); ++i )
+	for ( unsigned int i = 0; i < g_LoadedDehFiles.Size( ); ++i )
 		filenames.Push( ExtractFileBase( g_LoadedDehFiles[i], true ) );
 	return filenames;
 }
