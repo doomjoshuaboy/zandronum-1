@@ -82,7 +82,11 @@ bool AArtiTeleport::Use (bool pickup)
 			destAngle = ANG45 * (pSpot->angle/45);
 		}
 		else
+		{
+			// [BB] Silence uninitialized warnings.
+			destX = destY = destAngle = 0;
 			I_Error( "ArtiTeleport: No player start found!" );
+		}
 	}
 	P_Teleport (Owner, destX, destY, ONFLOORZ, destAngle, true, true, false);
 	bool canlaugh = true;
