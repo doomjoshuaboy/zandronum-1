@@ -5097,6 +5097,8 @@ ClientMoveCommand::ClientMoveCommand ( BYTESTREAM_s *pByteStream )
 {
 	ticcmd_t *pCmd = &moveCmd.cmd;
 
+	memset(pCmd, 0, sizeof(*pCmd));
+
 	// Read in the client's gametic.
 	moveCmd.ulGametic = NETWORK_ReadLong( pByteStream );
 
@@ -5111,38 +5113,24 @@ ClientMoveCommand::ClientMoveCommand ( BYTESTREAM_s *pByteStream )
 
 	if ( ulBits & CLIENT_UPDATE_YAW )
 		pCmd->ucmd.yaw = NETWORK_ReadShort( pByteStream );
-	else
-		pCmd->ucmd.yaw = 0;
 
 	if ( ulBits & CLIENT_UPDATE_PITCH )
 		pCmd->ucmd.pitch = NETWORK_ReadShort( pByteStream );
-	else
-		pCmd->ucmd.pitch = 0;
 
 	if ( ulBits & CLIENT_UPDATE_ROLL )
 		pCmd->ucmd.roll = NETWORK_ReadShort( pByteStream );
-	else
-		pCmd->ucmd.roll = 0;
 
 	if ( ulBits & CLIENT_UPDATE_BUTTONS )
 		pCmd->ucmd.buttons = ( ulBits & CLIENT_UPDATE_BUTTONS_LONG ) ? NETWORK_ReadLong( pByteStream ) : NETWORK_ReadByte( pByteStream );
-	else
-		pCmd->ucmd.buttons = 0;
 
 	if ( ulBits & CLIENT_UPDATE_FORWARDMOVE )
 		pCmd->ucmd.forwardmove = NETWORK_ReadShort( pByteStream );
-	else
-		pCmd->ucmd.forwardmove = 0;
 
 	if ( ulBits & CLIENT_UPDATE_SIDEMOVE )
 		pCmd->ucmd.sidemove = NETWORK_ReadShort( pByteStream );
-	else
-		pCmd->ucmd.sidemove = 0;
 
 	if ( ulBits & CLIENT_UPDATE_UPMOVE )
 		pCmd->ucmd.upmove = NETWORK_ReadShort( pByteStream );
-	else
-		pCmd->ucmd.upmove = 0;
 
 	// Always read in the angle and pitch.
 	moveCmd.angle = NETWORK_ReadLong( pByteStream );
