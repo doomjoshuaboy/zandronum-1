@@ -2143,7 +2143,7 @@ fixed_t P_XYMovement (AActor *mo, fixed_t scrollx, fixed_t scrolly)
 				// velocity change.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				{
-					SERVERCOMMANDS_SetThingState( mo, mo->SeeState != NULL ? STATE_SEE : STATE_SPAWN );
+					SERVERCOMMANDS_SetThingState( mo, mo->SeeState != NULL ? STATE_SEE : STATE_IDLE );
 					SERVERCOMMANDS_MoveThing( mo, CM_VELX|CM_VELY|CM_VELZ );
 				}
 
@@ -2156,7 +2156,7 @@ fixed_t P_XYMovement (AActor *mo, fixed_t scrollx, fixed_t scrolly)
 				// velocity change.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				{
-					SERVERCOMMANDS_SetThingState( mo, STATE_SPAWN );
+					SERVERCOMMANDS_SetThingState( mo, STATE_IDLE );
 					SERVERCOMMANDS_MoveThing( mo, CM_VELX|CM_VELY|CM_VELZ );
 				}
 
@@ -3765,7 +3765,7 @@ bool AActor::Slam (AActor *thing)
 			{
 				// [BC] If we are the server, tell clients about the state change.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_SetThingState( this, SeeState != NULL ? STATE_SEE : STATE_SPAWN );
+					SERVERCOMMANDS_SetThingState( this, SeeState != NULL ? STATE_SEE : STATE_IDLE );
 
 				if (SeeState != NULL) SetState (SeeState);
 				else SetIdle();
@@ -3775,7 +3775,7 @@ bool AActor::Slam (AActor *thing)
 		{
 			// [BB] If we are the server, tell clients about the state change.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SetThingState( this, STATE_SPAWN );
+				SERVERCOMMANDS_SetThingState( this, STATE_IDLE );
 
 			SetIdle();
 			tics = -1;
