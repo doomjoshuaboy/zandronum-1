@@ -720,7 +720,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_MinotaurChase)
 	{ // look for a new target
 		// [BC] If we're the server, set the thing's state.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SetThingFrame( self, self->FindState ("Spawn") );
+			SERVERCOMMANDS_SetThingState( self1, STATE_IDLE );
 
 		self1->SetIdle();
 		return;
