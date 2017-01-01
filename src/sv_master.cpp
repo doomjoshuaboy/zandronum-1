@@ -674,32 +674,32 @@ void SERVER_MASTER_SendBanlistReceipt ( void )
 void SERVERCONSOLE_UpdateBroadcasting( void );
 void SERVERCONSOLE_UpdateTitleString( const char *pszString );
 // Should the server inform the master server of its existence?
-CUSTOM_CVAR( Bool, sv_updatemaster, true, CVAR_SERVERINFO )
+CUSTOM_CVAR( Bool, sv_updatemaster, true, CVAR_SERVERINFO|CVAR_NOSETBYACS )
 {
 	SERVERCONSOLE_UpdateBroadcasting( );
 }
 
 // Should the server broadcast so LAN clients can hear it?
-CUSTOM_CVAR( Bool, sv_broadcast, true, CVAR_ARCHIVE )
+CUSTOM_CVAR( Bool, sv_broadcast, true, CVAR_ARCHIVE|CVAR_NOSETBYACS )
 {
 	SERVERCONSOLE_UpdateBroadcasting( );
 }
 
 // Name of this server on launchers.
-CUSTOM_CVAR( String, sv_hostname, "Unnamed " GAMENAME " server", CVAR_ARCHIVE )
+CUSTOM_CVAR( String, sv_hostname, "Unnamed " GAMENAME " server", CVAR_ARCHIVE|CVAR_NOSETBYACS )
 {
 	SERVERCONSOLE_UpdateTitleString( (const char *)self );
 }
 
 // Website that has the wad this server is using, possibly with other info.
-CVAR( String, sv_website, "", CVAR_ARCHIVE )
+CVAR( String, sv_website, "", CVAR_ARCHIVE|CVAR_NOSETBYACS )
 
 // E-mail address of the person running this server.
-CVAR( String, sv_hostemail, "", CVAR_ARCHIVE )
+CVAR( String, sv_hostemail, "", CVAR_ARCHIVE|CVAR_NOSETBYACS )
 
 // IP address of the master server.
 // [BB] Client and server use this now, therefore the name doesn't begin with "sv_"
-CVAR( String, masterhostname, "master.zandronum.com", CVAR_ARCHIVE|CVAR_GLOBALCONFIG )
+CVAR( String, masterhostname, "master.zandronum.com", CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOSETBYACS )
 
 CCMD( wads )
 {

@@ -243,7 +243,7 @@ static	TArray<SECTORLINK_s>		g_SectorLinkList;
 static	FILE		*PacketLogFile = NULL;
 static	IPList		g_HackerIPList;
 
-CUSTOM_CVAR( String, sv_hackerlistfile, "hackerlist.txt", CVAR_ARCHIVE )
+CUSTOM_CVAR( String, sv_hackerlistfile, "hackerlist.txt", CVAR_ARCHIVE|CVAR_NOSETBYACS )
 {
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 		return;
@@ -259,11 +259,11 @@ CUSTOM_CVAR( String, sv_hackerlistfile, "hackerlist.txt", CVAR_ARCHIVE )
 
 CVAR( String, sv_motd, "", CVAR_ARCHIVE )
 CVAR( Bool, sv_defaultdmflags, true, 0 )
-CVAR( Bool, sv_forcepassword, false, CVAR_ARCHIVE )
-CVAR( Bool, sv_forcejoinpassword, false, CVAR_ARCHIVE )
+CVAR( Bool, sv_forcepassword, false, CVAR_ARCHIVE|CVAR_NOSETBYACS )
+CVAR( Bool, sv_forcejoinpassword, false, CVAR_ARCHIVE|CVAR_NOSETBYACS )
 CVAR( Bool, sv_showlauncherqueries, false, CVAR_ARCHIVE )
-CVAR( Bool, sv_timestamp, false, CVAR_ARCHIVE )
-CVAR( Int, sv_timestampformat, 0, CVAR_ARCHIVE )
+CVAR( Bool, sv_timestamp, false, CVAR_ARCHIVE|CVAR_NOSETBYACS )
+CVAR( Int, sv_timestampformat, 0, CVAR_ARCHIVE|CVAR_NOSETBYACS )
 CVAR( Int, sv_colorstripmethod, 0, CVAR_ARCHIVE )
 CVAR( Bool, sv_disallowbots, false, CVAR_ARCHIVE )
 CVAR( Bool, sv_minimizetosystray, true, CVAR_ARCHIVE )
@@ -318,7 +318,7 @@ CUSTOM_CVAR( Int, sv_maxplayers, MIN ( MAXPLAYERS, 32 ), CVAR_ARCHIVE )
 
 //*****************************************************************************
 //
-CUSTOM_CVAR( String, sv_password, "password", CVAR_ARCHIVE )
+CUSTOM_CVAR( String, sv_password, "password", CVAR_ARCHIVE|CVAR_NOSETBYACS )
 {
 	if ( strlen( self ) > 0 && strlen( self ) <= 4 )
 	{
@@ -329,7 +329,7 @@ CUSTOM_CVAR( String, sv_password, "password", CVAR_ARCHIVE )
 
 //*****************************************************************************
 //
-CUSTOM_CVAR( String, sv_joinpassword, "password", CVAR_ARCHIVE )
+CUSTOM_CVAR( String, sv_joinpassword, "password", CVAR_ARCHIVE|CVAR_NOSETBYACS )
 {
 	if ( strlen( self ) > 0 && strlen( self ) <= 4 )
 	{
@@ -340,7 +340,7 @@ CUSTOM_CVAR( String, sv_joinpassword, "password", CVAR_ARCHIVE )
 
 //*****************************************************************************
 //
-CUSTOM_CVAR( String, sv_rconpassword, "", CVAR_ARCHIVE )
+CUSTOM_CVAR( String, sv_rconpassword, "", CVAR_ARCHIVE|CVAR_NOSETBYACS )
 {
 	if ( strlen( self ) > 0 && strlen( self ) <= 4 )
 	{

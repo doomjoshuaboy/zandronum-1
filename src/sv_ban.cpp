@@ -82,12 +82,12 @@ static	time_t	serverban_CreateBanDate( LONG lAmount, ULONG ulUnitSize, time_t tN
 //-- CVARS -----------------------------------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 
-CVAR( Bool, sv_enforcebans, true, CVAR_ARCHIVE )
-CVAR( Int, sv_banfilereparsetime, 0, CVAR_ARCHIVE )
+CVAR( Bool, sv_enforcebans, true, CVAR_ARCHIVE|CVAR_NOSETBYACS )
+CVAR( Int, sv_banfilereparsetime, 0, CVAR_ARCHIVE|CVAR_NOSETBYACS )
 
 //*****************************************************************************
 //
-CUSTOM_CVAR( Bool, sv_enforcemasterbanlist, true, CVAR_ARCHIVE )
+CUSTOM_CVAR( Bool, sv_enforcemasterbanlist, true, CVAR_ARCHIVE|CVAR_NOSETBYACS )
 {
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 		return;
