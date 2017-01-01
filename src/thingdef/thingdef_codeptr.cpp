@@ -1505,7 +1505,7 @@ void A_CustomFireBullets( AActor *self,
 	if (Range == 0) Range = PLAYERMISSILERANGE;
 
 	// [BB] Allow to disable the execution of PlayAttacking2.
-	if ( pPlayAttacking )
+	if ( pPlayAttacking && !(Flags & FBF_NOFLASH))
 	{
 		// [BC] If we're the server, tell clients to update this player's state.
 		if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( player ))
@@ -1513,7 +1513,7 @@ void A_CustomFireBullets( AActor *self,
 
 		// [BB] Clients only do this for "their" player.
 		if ( NETWORK_IsConsolePlayerOrNotInClientMode( player ) )
-			if (!(Flags & FBF_NOFLASH)) static_cast<APlayerPawn *>(self)->PlayAttacking2 ();
+			static_cast<APlayerPawn *>(self)->PlayAttacking2 ();
 	}
 
 	if (!(Flags & FBF_NOPITCH)) bslope = P_BulletSlope(self);
