@@ -2003,6 +2003,8 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 	g_aClients[lClient].ulNumConsistencyWarnings = 0;
 	g_aClients[lClient].szSkin[0] = 0;
 	g_aClients[lClient].IgnoredAddresses.clear();
+	g_aClients[lClient].ScreenWidth = 0;
+	g_aClients[lClient].ScreenHeight = 0;
 	// [CK] Since the client is not up to date at all, the farthest the client
 	// should be able to go back is the gametic they connected with.
 	g_aClients[lClient].lLastServerGametic = gametic;
@@ -4675,6 +4677,20 @@ bool SERVER_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 			SERVER_GetClient( SERVER_GetCurrentClient() )->WantHideAccount = NETWORK_ReadByte( pByteStream );
 			SERVERCOMMANDS_SetPlayerUserInfo( g_lCurrentClient, USERINFO_ACCOUNTNAME );
+		}
+		return false;
+
+	case CLC_SETVIDEORESOLUTION:
+		// [TP] Client informs us of his video resolution.
+		{
+			// [TP] If the client is flooding the server with commands, the client is
+			// kicked and we don't need to handle the command.
+			if ( server_CheckForClientMinorCommandFlood ( g_lCurrentClient ) == true )
+				return ( true );
+
+			CLIENT_s *client = SERVER_GetClient( SERVER_GetCurrentClient() );
+			client->ScreenWidth = NETWORK_ReadShort( pByteStream );
+			client->ScreenHeight = NETWORK_ReadShort( pByteStream );
 		}
 		return false;
 

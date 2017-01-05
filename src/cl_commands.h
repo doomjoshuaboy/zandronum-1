@@ -101,5 +101,6 @@ void	CLIENTCOMMANDS_WarpCheat( fixed_t x, fixed_t y );
 void	CLIENTCOMMANDS_KillCheat( const char* what );
 void	CLIENTCOMMANDS_SpecialCheat( int special, const TArray<int>& args );
 void	CLIENTCOMMANDS_SetWantHideAccount( bool wantHideCountry );
+void	CLIENTCOMMANDS_SetVideoResolution();
 
 #endif	// __CL_COMMANDS_H__
