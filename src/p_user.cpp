@@ -1496,8 +1496,8 @@ void APlayerPawn::GiveDefaultInventory ()
 	// [GRB] Give inventory specified in DECORATE
 	player->health = GetDefault ()->health;
 
-	// [BB] Spectators are supposed to have no inventory, but they should get their health.
-	if ( player->bSpectating ) return;
+	// [BB] True spectators are supposed to have no inventory, but they should get their health.
+	if ( player->bSpectating && !player->bDeadSpectator ) return;
 
 	// [BC] Initialize the max. health bonus.
 	player->lMaxHealthBonus = 0;

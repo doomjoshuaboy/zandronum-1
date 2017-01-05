@@ -3255,22 +3255,10 @@ void ServerCommands::SpawnPlayer::Execute()
 		if ( pOldActor->CheckLocalView( consoleplayer ))
 			bWasWatchingPlayer = true;
 
-		if (( priorState == PST_REBORN ) ||
-			( priorState == PST_REBORNNOINVENTORY ) ||
-			( priorState == PST_ENTER ) ||
-			( priorState == PST_ENTERNOINVENTORY ))
-		{
-			// [BB] This will eventually free the player's body's network ID.
-			G_QueueBody (pOldActor);
-			pOldActor->player = NULL;
-			pOldActor->id = -1;
-		}
-		else
-		{
-			pOldActor->Destroy( );
-			pOldActor->player = NULL;
-			pOldActor = NULL;
-		}
+		// [BB] This will eventually free the player's body's network ID.
+		G_QueueBody (pOldActor);
+		pOldActor->player = NULL;
+		pOldActor->id = -1;
 	}
 
 	// [BB] We may not filter coop inventory if the player changed the player class.
@@ -3305,7 +3293,7 @@ void ServerCommands::SpawnPlayer::Execute()
 	g_NetIDList.useID ( netid, pPlayer->mo );
 
 	// Set the spectator variables [after G_PlayerReborn so our data doesn't get lost] [BB] Why?.
-	// [BB] To properly handle that spectators don't get default inventory, we need to set this
+	// [BB] To properly handle that true spectators don't get default inventory, we need to set this
 	// before calling G_PlayerReborn (which in turn calls GiveDefaultInventory).
 	pPlayer->bSpectating = isSpectating;
 	pPlayer->bDeadSpectator = isDeadSpectator;
@@ -3313,7 +3301,7 @@ void ServerCommands::SpawnPlayer::Execute()
 	if (( priorState == PST_REBORN ) ||
 		( priorState == PST_REBORNNOINVENTORY ) ||
 		( priorState == PST_ENTER ) ||
-		( priorState == PST_ENTERNOINVENTORY ))
+		( priorState == PST_ENTERNOINVENTORY ) || isDeadSpectator)
 	{
 		G_PlayerReborn( pPlayer - players );
 	}
@@ -3328,7 +3316,7 @@ void ServerCommands::SpawnPlayer::Execute()
 	// Special inventory handling for respawning in coop.
 	// [BB] Also don't do so if the player changed the player class.
 	else if (( teamgame == false ) &&
-			 ( priorState == PST_REBORN ) &&
+			 (( priorState == PST_REBORN ) || (pPlayer->bDeadSpectator)) &&
 			 ( oldPlayerClass == pPlayer->CurrentPlayerClass ) &&
 			 ( pOldActor ))
 	{

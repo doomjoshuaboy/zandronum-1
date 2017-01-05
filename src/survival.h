@@ -73,7 +73,8 @@ void	SURVIVAL_Tick( void );
 
 void	SURVIVAL_StartCountdown( ULONG ulTicks );
 void	SURVIVAL_DoFight( void );
-//void	SURVIVAL_DoMissionFailed( void );
+void	SURVIVAL_FailMission( void );
+void	SURVIVAL_RestartMission( void );
 
 // Access functions
 ULONG	SURVIVAL_GetCountdownTicks( void );

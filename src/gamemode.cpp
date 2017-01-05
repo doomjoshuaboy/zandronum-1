@@ -536,7 +536,7 @@ void GAMEMODE_GetTimeLeftString( FString &TimeLeftString )
 
 //*****************************************************************************
 //
-void GAMEMODE_RespawnDeadSpectatorsAndPopQueue( BYTE Playerstate )
+void GAMEMODE_RespawnDeadSpectators( BYTE Playerstate )
 {
 	// [BB] This is server side.
 	if ( NETWORK_InClientMode() )
@@ -577,18 +577,20 @@ void GAMEMODE_RespawnDeadSpectatorsAndPopQueue( BYTE Playerstate )
 		}
 		players[ulIdx].playerstate = Playerstate;
 
-		// [CK] Ice corpses that are persistent between rounds must not affect
-		// the client post-death in any gamemode with a countdown.
-		if (( players[ulIdx].mo ) && ( players[ulIdx].mo->health > 0 || players[ulIdx].mo->flags & MF_ICECORPSE ))
-		{
-			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_DestroyThing( players[ulIdx].mo );
-
-			players[ulIdx].mo->Destroy( );
-			players[ulIdx].mo = NULL;
-		}
+		APlayerPawn *oldactor = players[ulIdx].mo;
 
 		GAMEMODE_SpawnPlayer( ulIdx );
+
+		// [CK] Ice corpses that are persistent between rounds must not affect
+		// the client post-death in any gamemode with a countdown.
+		if (( oldactor ) && ( oldactor->health > 0 || oldactor->flags & MF_ICECORPSE ))
+		{
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_DestroyThing( oldactor );
+
+			oldactor->Destroy( );
+		}
+
 
 		// [BB] If he's a bot, tell him that he successfully joined.
 		if ( players[ulIdx].bIsBot && players[ulIdx].pSkullBot )
@@ -598,7 +600,11 @@ void GAMEMODE_RespawnDeadSpectatorsAndPopQueue( BYTE Playerstate )
 	// [BB] Dead spectators were allowed to use chasecam, but are not necessarily allowed to use it
 	// when alive again. Re-applying dmflags2 takes care of this.
 	dmflags2 = dmflags2;
+}
 
+void GAMEMODE_RespawnDeadSpectatorsAndPopQueue( BYTE Playerstate )
+{
+	GAMEMODE_RespawnDeadSpectators( Playerstate );
 	// Let anyone who's been waiting in line join now.
 	JOINQUEUE_PopQueue( -1 );
 }
