@@ -854,6 +854,9 @@ void CLIENT_RequestSnapshot( void )
 	NETWORK_WriteByte( &g_LocalBuffer.ByteStream, CLCC_REQUESTSNAPSHOT );
 	CLIENTCOMMANDS_UserInfo( USERINFO_ALL );
 
+	// [TP] Send video resolution for ACS scripting support.
+	CLIENTCOMMANDS_SetVideoResolution();
+
 	// Make sure all players are gone from the level.
 	CLIENT_ClearAllPlayers();
 

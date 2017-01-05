@@ -63,6 +63,7 @@
 #include "chat.h"
 #include "network_enums.h"
 #include "p_acs.h"
+#include "v_video.h"
 
 //*****************************************************************************
 //	VARIABLES
@@ -672,4 +673,13 @@ void CLIENTCOMMANDS_SetWantHideAccount( bool wantHideAccount )
 {
 	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_SETWANTHIDEACCOUNT );
 	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, wantHideAccount );
+}
+
+//*****************************************************************************
+// [TP]
+void CLIENTCOMMANDS_SetVideoResolution()
+{
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_SETVIDEORESOLUTION );
+	NETWORK_WriteShort( &CLIENT_GetLocalBuffer( )->ByteStream, SCREENWIDTH );
+	NETWORK_WriteShort( &CLIENT_GetLocalBuffer( )->ByteStream, SCREENHEIGHT );
 }

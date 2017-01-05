@@ -336,6 +336,10 @@ struct CLIENT_s
 	// [CK] The client communicates back to us with the last gametic from the server it saw
 	LONG			lLastServerGametic;
 
+	// [TP] The size of this client's screen, for ACS.
+	WORD			ScreenWidth;
+	WORD			ScreenHeight;
+
 	FString GetAccountName() const;
 };
 

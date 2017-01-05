@@ -65,6 +65,9 @@
 #include "menu/menu.h"
 #include "r_data/voxels.h"
 
+// [TP] New includes.
+#include "cl_commands.h"
+
 
 FRenderer *Renderer;
 
@@ -1385,6 +1388,10 @@ bool V_DoModeSetup (int width, int height, int bits)
 	Renderer->OnModeSet();
 	
 	M_RefreshModesList ();
+
+	// [TP] Inform the server of our new resolution.
+	if ( NETWORK_GetState() == NETSTATE_CLIENT )
+		CLIENTCOMMANDS_SetVideoResolution();
 
 	return true;
 }

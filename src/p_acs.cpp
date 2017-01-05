@@ -9777,18 +9777,44 @@ scriptwait:
 
 		case PCD_GETSCREENWIDTH:
 			// [BC] The server doesn't have a screen.
+			// [TP] But the server knows the clients' resolutions and can use that instead.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				PushToStack( 0 );
+			{
+				if ( activator && activator->player )
+				{
+					CLIENT_s *client = SERVER_GetClient( activator->player - players );
+					PushToStack( client ? client->ScreenWidth : 0 );
+				}
+				else
+				{
+					PushToStack( 0 );
+				}
+			}
 			else
+			{
 				PushToStack (SCREENWIDTH);
+			}
 			break;
 
 		case PCD_GETSCREENHEIGHT:
 			// [BC] The server doesn't have a screen.
+			// [TP] But the server knows the clients' resolutions and can use that instead.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				PushToStack( 0 );
+			{
+				if ( activator && activator->player )
+				{
+					CLIENT_s *client = SERVER_GetClient( activator->player - players );
+					PushToStack( client ? client->ScreenHeight : 0 );
+				}
+				else
+				{
+					PushToStack( 0 );
+				}
+			}
 			else
+			{
 				PushToStack (SCREENHEIGHT);
+			}
 			break;
 
 		case PCD_THING_PROJECTILE2:
