@@ -4844,6 +4844,10 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_ScaleVelocity)
 	ACTION_PARAM_START(1);
 	ACTION_PARAM_FIXED(scale, 0);
 
+	// [TP] This is handled by the server.
+	if ( NETWORK_InClientModeAndActorNotClientHandled( self ) )
+		return;
+
 	INTBOOL was_moving = self->velx | self->vely | self->velz;
 
 	self->velx = FixedMul(self->velx, scale);
@@ -4856,6 +4860,10 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_ScaleVelocity)
 	{
 		CheckStopped(self);
 	}
+
+	// [TP] Inform the clients about the velocity change.
+	if (( NETWORK_GetState() == NETSTATE_SERVER ) && ( NETWORK_IsActorClientHandled( self ) == false ))
+		SERVERCOMMANDS_MoveThingExact( self, CM_VELX|CM_VELY|CM_VELZ );
 }
 
 //===========================================================================
@@ -4871,6 +4879,10 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_ChangeVelocity)
 	ACTION_PARAM_FIXED(y, 1);
 	ACTION_PARAM_FIXED(z, 2);
 	ACTION_PARAM_INT(flags, 3);
+
+	// [TP] This is handled by the server.
+	if ( NETWORK_InClientModeAndActorNotClientHandled( self ) )
+		return;
 
 	INTBOOL was_moving = self->velx | self->vely | self->velz;
 
@@ -4900,6 +4912,10 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_ChangeVelocity)
 	{
 		CheckStopped(self);
 	}
+
+	// [TP] Inform the clients about the velocity change.
+	if (( NETWORK_GetState() == NETSTATE_SERVER ) && ( NETWORK_IsActorClientHandled( self ) == false ))
+		SERVERCOMMANDS_MoveThingExact( self, CM_VELX|CM_VELY|CM_VELZ );
 }
 
 //===========================================================================
