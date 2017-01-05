@@ -39,6 +39,7 @@
 +	- Added CCMD demo_pause that allows to pause/resume the currently played client side demo. In free spectate mode, the spectator can still move around while the demo is paused. [Torr Samaho]
 +	- Added cl_soundwhennotactive CVAR support to non-Windows clients. [Edward-san]
 +	- Added support to clientside ACS_ExecuteWithResult with four arguments. [Edward-san]
++	- Added sv_survival_nomapresetondeath Zandronum dmflag to modify survival game mode where the map will not be reset on all players death - the players will be able to continue with fresh amount of lives. Dead players will carry over their inventory in accordance to "keep inventory" flags. [Zalewa]
 -	- Fixed: Newly connecting clients were not properly informed about the secrets that were already revealed. [Torr Samaho]
 -	- Fixed: Resurrect cheat didn't work online. [Dusk]
 -	- Fixed: Turbo cheat didn't work online. [Dusk]
@@ -106,6 +107,7 @@
 -	- Fixed: "File|Join" from server console wouldn't load DeHackEd patches. [Zalewa]
 -	- Fixed: GetScreenWidth and GetScreenHeight ACS functions did not work online. [Dusk]
 -	- Fixed: the DamageFactor calculation was executed twice for armors. [Edward-san]
+-	- Fixed: body of the player who loses all lives no longer disappears into thin air. [Zalewa]
 !	- Changed: Spectators can now interact with gravity and use the fly/land commands. [Leonard]
 !	- Save games now contain information about the renderer used to create the save. This allows to print a proper error message when an incompatible save is tried to be loaded. [Torr Samaho]
 !	- Clients don't error out anymore when encountering a division by zero in a DECORATE expression. Instead, a one time warning is printed on the first occasion and the result is assumed to be zero. This is necessary since clients can encounter this in valid DECORATE code due to Zandronum's jump handling. [Torr Samaho]
@@ -122,6 +124,8 @@
 !	- The CVARs gl_render_things, gl_render_walls and gl_render_flats are now restricted to beta builds. [Torr Samaho]
 !	- Make newly connected clients wait before calling a vote. The wait time is controlled with the new CVAR 'sv_voteconnectwait'. [Ru5tK1ng]
 !	- Keys can now be used while a client side demo is played. This allows binds to CCMDs like demo_pause to be used during playback. [Torr Samaho]
+!	- Dead spectators will now preserve inventory so that they can be respawned with it. [Zalewa]
+!	- When alive players complete the map in survival, dead spectators will recover their inventory on the next map in accordance to SV_COOP_LOSE* flags [Zalewa]
 +	- The 'authhostname' DNS lookup is not done during startup anymore, but only if the IP address is needed. [Torr Samaho]
 
 

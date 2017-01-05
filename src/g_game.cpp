@@ -425,6 +425,10 @@ CCMD (weapnext)
 		return;
 	}
 
+	// [Zandronum] No weapnext when player is spectating.
+	if ( players[consoleplayer].bSpectating )
+		return;
+
 	SendItemUse = players[consoleplayer].weapons.PickNextWeapon (&players[consoleplayer]);
  	// [BC] Option to display the name of the weapon being cycled to.
  	if ((displaynametags & 2) && StatusBar && SmallFont && SendItemUse)
@@ -442,6 +446,10 @@ CCMD (weapprev)
 		Printf ( "You can't use weapprev during demo playback.\n" );
 		return;
 	}
+
+	// [Zandronum] No weapprev when player is spectating.
+	if ( players[consoleplayer].bSpectating )
+		return;
 
 	SendItemUse = players[consoleplayer].weapons.PickPrevWeapon (&players[consoleplayer]);
  	// [BC] Option to display the name of the weapon being cycled to.
@@ -1876,7 +1884,7 @@ void G_Ticker ()
 				}
 				else if ( survival )
 				{
-					SURVIVAL_SetState( SURVS_WAITINGFORPLAYERS );
+					SURVIVAL_RestartMission( );
 					SURVIVAL_Tick( );
 				}
 				else if ( invasion )

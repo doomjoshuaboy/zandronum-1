@@ -240,9 +240,25 @@ void JOINQUEUE_PlayerLeftGame( int player, bool pop )
 	if ( invasion && ( SERVER_CalcNumNonSpectatingPlayers( MAXPLAYERS ) < 1 ))
 		INVASION_SetState( IS_WAITINGFORPLAYERS );
 
-	// If we're in survival co-op mode, revert to the "waiting for players" state.
-	if ( survival && ( SERVER_CalcNumNonSpectatingPlayers( MAXPLAYERS ) < 1 ))
-		SURVIVAL_SetState( SURVS_WAITINGFORPLAYERS );
+	// If we're in survival co-op mode ...
+	if ( survival && (SERVER_CalcNumNonSpectatingPlayers( MAXPLAYERS ) < 1) )
+	{
+		if ( JOINQUEUE_GetSize( ) > 0 )
+		{
+			// ... if there are players waiting in queue allow them to continue
+			// the mission.
+			if ( !NETWORK_InClientMode( ) )
+			{
+				// Reset the map or not in accordance to the "no reset on death" dmflag.
+				SURVIVAL_FailMission( );
+			}
+		}
+		else
+		{
+			// ... if there are no more players left, revert to the "waiting for players" state.
+			SURVIVAL_SetState( SURVS_WAITINGFORPLAYERS );
+		}
+	}
 
 	// Potentially let one person join the game.
 	if ( pop )

@@ -2485,6 +2485,11 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 			if ( pPlayer->bDeadSpectator )
 			{
 				pPlayer->bDeadSpectator = false;
+				// As dead spectators preserve inventory, destroy it now.
+				if ( pPlayer->mo != NULL )
+				{
+					pPlayer->mo->DestroyAllInventory( );
+				}
 
 				// Run the disconnect scripts now that the player is leaving.
 				PLAYER_LeavesGame ( pPlayer - players );
@@ -2551,9 +2556,17 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 		if ( NETWORK_InClientMode() == false )
 			pPlayer->mo->DropImportantItems( false );
 
-		// Take away all of the player's inventory.
-		// [BB] Needs to be done before G_DoReborn is called for dead spectators. Otherwise ReadyWeapon is not NULLed.
-		pPlayer->mo->DestroyAllInventory( );
+		if ( !bDeadSpectator )
+		{
+			// Take away all of the player's inventory when they become true spectator.
+			// [BB] Needs to be done before G_DoReborn is called for dead spectators. Otherwise ReadyWeapon is not NULLed.
+			pPlayer->mo->DestroyAllInventory( );
+		}
+		else
+		{
+			// Dead spectators preserve inventory.
+			pPlayer->ReadyWeapon = NULL;
+		}
 
 		// Is this player tagged as a dead spectator, give him life.
 		pPlayer->playerstate = PST_LIVE;
@@ -2569,9 +2582,17 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 		// old body.
 		if ( bDeadSpectator )
 		{
-			// Save the player's old body, and respawn him or her.
+			// Save the player's old body and inventory, and respawn him or her.
+			APlayerPawn *inventoryPreserver = new APlayerPawn();
 			pOldBody = pPlayer->mo;
+			inventoryPreserver->ClearInventory( );
+			inventoryPreserver->ObtainInventory( pOldBody );
 			G_DoReborn( pPlayer - players, false );
+			if ( pPlayer->mo )
+			{
+				pPlayer->mo->ObtainInventory( inventoryPreserver );
+			}
+			inventoryPreserver->Destroy( );
 
 			// Set the player's new body to the position of his or her old body.
 			if (( pPlayer->mo ) &&
@@ -2871,7 +2892,9 @@ bool PLAYER_IsValidPlayer( const ULONG ulPlayer )
 //
 bool PLAYER_IsValidPlayerWithMo( const ULONG ulPlayer )
 {
-	return ( PLAYER_IsValidPlayer ( ulPlayer ) && players[ulPlayer].mo );
+	// Spectators cannot interact with the game so
+	// they're treated like players without a mo.
+	return ( PLAYER_IsValidPlayer ( ulPlayer ) && players[ulPlayer].mo && !players[ulPlayer].bSpectating );
 }
 
 //*****************************************************************************
