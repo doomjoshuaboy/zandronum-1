@@ -1319,7 +1319,7 @@ int NETWORK_AttenuationFloatToInt ( const float fAttenuation )
 	else if ( fAttenuation == ATTN_STATIC )
 		return ATTN_INT_STATIC;
 	else if ( fAttenuation > 0.f )
-		return ATTN_INT_COUNT + clamp<int>( fAttenuation * 25.f, 0, 255 - ATTN_INT_COUNT );
+		return ATTN_INT_COUNT + clamp<int>( static_cast<int> ( fAttenuation * 25.f ), 0, 255 - ATTN_INT_COUNT );
 	else {
 		Printf( "NETWORK_AttenuationFloatToInt: Negative attenuation value: %f\n", fAttenuation );
 		return 255; // Don't let the clients hear it, it could be dangerous.

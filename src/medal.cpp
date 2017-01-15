@@ -255,7 +255,7 @@ void MEDAL_Render( void )
 	ulTick	= g_MedalQueue[ulPlayer][0].ulTick;
 
 	if ( ulTick > ( 1 * TICRATE ))
-		lAlpha = OPAQUE * ((float) ulTick / TICRATE );
+		lAlpha = static_cast<long> ( OPAQUE * ((float) ulTick / TICRATE ) );
 
 	// Get the graphic from the global array.
 	patchName = g_Medals[ulMedal].szLumpName;
