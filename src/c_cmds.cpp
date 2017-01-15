@@ -1080,7 +1080,7 @@ CCMD (fov)
 	{
 		// Just do this here in client games.
 		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
-			player->DesiredFOV = clamp (atoi (argv[1]), 5, 179);
+			player->DesiredFOV = static_cast<float> ( clamp (atoi (argv[1]), 5, 179) );
 
 		Net_WriteByte (DEM_MYFOV);
 	}
