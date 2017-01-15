@@ -2727,8 +2727,10 @@ void D_DoomMain (void)
 	const char *wad;
 	DArgs *execFiles;
 	TArray<FString> pwads;
+	/* [BB] Zandronum uses different bot code and thus doesn't need these.
 	FString *args;
 	int argcount;
+	*/
 
 	// +logfile gets checked too late to catch the full startup log in the logfile so do some extra check for it here.
   /* [BB] Zandronum uses some cvars to configure the logfile, these are not loaded yet.

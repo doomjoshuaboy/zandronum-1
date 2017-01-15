@@ -168,7 +168,7 @@ bool D_ShouldOverridePlayerColors()
 	if ( NETWORK_GetState() == NETSTATE_SERVER )
 		return false;
 
-	bool withteams = GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS;
+	bool withteams = !!( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS );
 
 	switch ( OverridePlayerColorsValue ( (int) cl_overrideplayercolors ))
 	{
@@ -327,7 +327,8 @@ void D_GetPlayerColor (int player, float *h, float *s, float *v, FPlayerColorSet
 	userinfo_t *info = &players[player].userinfo;
 	FPlayerColorSet *colorset = NULL;
 	uint32 color;
-	int team;
+	// [BB] New team code by Karate Chris. Currently not used in ST.
+	//int team;
 
 	if (players[player].mo != NULL)
 	{

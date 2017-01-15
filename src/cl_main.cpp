@@ -2954,7 +2954,7 @@ void CLIENT_LogHUDMessage( const char *pszString, LONG lColor )
 	char				acLogColor[3];
 
 	acLogColor[0] = '\x1c';
-	acLogColor[1] = (( lColor >= CR_BRICK ) && ( lColor <= CR_YELLOW )) ? ( lColor + 'A' ) : ( '-' );
+	acLogColor[1] = static_cast<char> ( (( lColor >= CR_BRICK ) && ( lColor <= CR_YELLOW )) ? ( lColor + 'A' ) : ( '-' ) );
 	acLogColor[2] = '\0';
 
 	AddToConsole( -1, szBar );
@@ -7003,7 +7003,7 @@ static void client_GivePowerup( BYTESTREAM_s *pByteStream )
 	lAmount = NETWORK_ReadShort( pByteStream );
 
 	// [TP]
-	bool isRune = NETWORK_ReadByte( pByteStream );
+	bool isRune = !!NETWORK_ReadByte( pByteStream );
 
 	// Read in the amount of time left on this powerup.
 	lEffectTics = ( isRune == false ) ? NETWORK_ReadShort( pByteStream ) : 0;
@@ -7151,7 +7151,7 @@ static void client_DestroyAllInventory( BYTESTREAM_s *pByteStream )
 static void client_SetInventoryIcon( BYTESTREAM_s *pByteStream )
 {
 	const ULONG ulPlayer = NETWORK_ReadByte( pByteStream );
-	const ULONG usActorNetworkIndex = NETWORK_ReadShort( pByteStream );
+	const USHORT usActorNetworkIndex = NETWORK_ReadShort( pByteStream );
 	const FString iconTexName = NETWORK_ReadString( pByteStream );
 
 	// Check to make sure everything is valid. If not, break out.
@@ -7314,7 +7314,7 @@ static void client_DoFloor( BYTESTREAM_s *pByteStream )
 	Crush = static_cast<SBYTE>( NETWORK_ReadByte( pByteStream ) );
 
 	// Read in the floor's crush type.
-	Hexencrush = NETWORK_ReadByte( pByteStream );
+	Hexencrush = !!NETWORK_ReadByte( pByteStream );
 
 	// Read in the floor's network ID.
 	lFloorID = NETWORK_ReadShort( pByteStream );
@@ -7488,7 +7488,7 @@ static void client_BuildStair( BYTESTREAM_s *pByteStream )
 	int Crush = static_cast<SBYTE>( NETWORK_ReadByte( pByteStream ) );
 
 	// Read in the floor's crush type.
-	bool Hexencrush = NETWORK_ReadByte( pByteStream );
+	bool Hexencrush = !!NETWORK_ReadByte( pByteStream );
 
 	// Read in the floor's reset count.
 	int ResetCount = NETWORK_ReadLong( pByteStream );
@@ -7572,7 +7572,7 @@ static void client_DoCeiling( BYTESTREAM_s *pByteStream )
 	lCrush = static_cast<SBYTE>( NETWORK_ReadByte( pByteStream ) );
 
 	// Is this ceiling crush Hexen style?
-	Hexencrush = NETWORK_ReadByte( pByteStream );
+	Hexencrush = !!NETWORK_ReadByte( pByteStream );
 
 	// Does this ceiling make noise?
 	lSilent = NETWORK_ReadShort( pByteStream );
@@ -7979,7 +7979,7 @@ static void client_DoPillar( BYTESTREAM_s *pByteStream )
 
 	// Read in the crush info.
 	Crush = static_cast<SBYTE>( NETWORK_ReadByte( pByteStream ) );
-	Hexencrush = NETWORK_ReadByte( pByteStream );
+	Hexencrush = !!NETWORK_ReadByte( pByteStream );
 
 	// Read in the pillar ID.
 	lPillarID = NETWORK_ReadShort( pByteStream );
@@ -8414,7 +8414,7 @@ static void client_PlayPolyobjSound( BYTESTREAM_s *pByteStream )
 	lID = NETWORK_ReadShort( pByteStream );
 
 	// Read in the polyobject mode.
-	PolyMode = NETWORK_ReadByte( pByteStream );
+	PolyMode = !!NETWORK_ReadByte( pByteStream );
 
 	pPoly = PO_GetPolyobj( lID );
 	if ( pPoly == NULL )

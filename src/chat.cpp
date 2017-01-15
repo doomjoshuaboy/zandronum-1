@@ -607,7 +607,7 @@ bool CHAT_Input( event_t *pEvent )
 				chat_SetChatMode( CHATMODE_NONE );
 			}
 			else
-				g_ChatBuffer.Insert( pEvent->data1 );
+				g_ChatBuffer.Insert( static_cast<char> ( pEvent->data1 ) );
 
 			return ( true );
 		}
@@ -641,15 +641,15 @@ void CHAT_Render( void )
 		scaleX = static_cast<float>( *con_virtualwidth ) / SCREENWIDTH;
 		scaleY = static_cast<float>( *con_virtualheight ) / SCREENHEIGHT;
 		positionY = positionY - Scale( SCREENHEIGHT, SmallFont->GetHeight() + 1, con_virtualheight ) + 1;
-		positionY *= scaleY;
+		positionY = static_cast<int> ( positionY * scaleY );
 	}
 	else
 	{
 		positionY = positionY - SmallFont->GetHeight() + 1;
 	}
 
-	int chatWidth = SCREENWIDTH * scaleX;
-	chatWidth -= round( SmallFont->GetCharWidth( '_' ) * scaleX * 2 + SmallFont->StringWidth( prompt ));
+	int chatWidth = static_cast<int> ( SCREENWIDTH * scaleX );
+	chatWidth -= static_cast<int> ( round( SmallFont->GetCharWidth( '_' ) * scaleX * 2 + SmallFont->StringWidth( prompt )) );
 
 	// Build the message that we will display to clients.
 	FString displayString = g_ChatBuffer.GetMessage();
@@ -894,7 +894,7 @@ void chat_SendMessage( ULONG ulMode, const char *pszString )
 	else if ( demorecording )
 	{
 		Net_WriteByte( DEM_SAY );
-		Net_WriteByte( ulMode );
+		Net_WriteByte( static_cast<BYTE> ( ulMode ) );
 		Net_WriteString( ChatMessage.GetChars( ));
 	}
 	else

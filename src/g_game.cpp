@@ -1639,7 +1639,7 @@ void G_Ticker ()
 				if ( (players[i].mo) && (players[i].mo->Inventory) && (players[i].mo->Inventory->GetSpeedFactor() > FRACUNIT) )
 				{
 					float floatSpeedFactor = static_cast<float>(players[i].mo->Inventory->GetSpeedFactor())/static_cast<float>(FRACUNIT);
-					lMaxThreshold *= (6.*floatSpeedFactor-5.);
+					lMaxThreshold = static_cast<LONG> ( lMaxThreshold * (6.*floatSpeedFactor-5.) );
 				}
 
 				// Check for turbo cheats.
@@ -2592,7 +2592,7 @@ void G_TemporaryTeamSpawnPlayer( ULONG ulPlayer, bool bClientUpdate )
 	}
 
 	// SelectTemporaryTeamSpot should always return a valid spot. If not, we have a problem.
-	pSpot = SelectTemporaryTeamSpot( ulPlayer, ulNumSelections );
+	pSpot = SelectTemporaryTeamSpot( static_cast<USHORT> ( ulPlayer ), ulNumSelections );
 
 	// ANAMOLOUS HAPPENING!!!
 	if ( pSpot == NULL )
@@ -2622,7 +2622,7 @@ void G_TeamgameSpawnPlayer( ULONG ulPlayer, ULONG ulTeam, bool bClientUpdate )
 		I_Error( "No %s team starts!", TEAM_GetName( ulTeam ));
 
 	// SelectRandomTeamSpot should always return a valid spot. If not, we have a problem.
-	pSpot = SelectRandomTeamSpot( ulPlayer, ulTeam, ulNumSelections );
+	pSpot = SelectRandomTeamSpot( static_cast<USHORT> ( ulPlayer ), ulTeam, ulNumSelections );
 
 	// ANAMOLOUS HAPPENING!!!
 	if ( pSpot == NULL )
@@ -4216,7 +4216,7 @@ void GAME_SetLevelIntroTicks( USHORT usTicks )
 //
 USHORT GAME_GetLevelIntroTicks( void )
 {
-	return ( g_ulLevelIntroTicks );
+	return ( static_cast<USHORT> ( g_ulLevelIntroTicks ) );
 }
 
 //*****************************************************************************
