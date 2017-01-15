@@ -826,7 +826,7 @@ struct sector_t
 
 	// [BC] Has the light level changed?
 	bool	bLightChange;
-	BYTE	SavedLightLevel;
+	short	SavedLightLevel;
 
 	// [BC] Backup other numberous elements for resetting the map.
 	FDynamicColormap	*SavedColorMap;
