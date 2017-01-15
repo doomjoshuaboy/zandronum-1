@@ -403,7 +403,7 @@ void DHUDMessage::Draw (int bottom, int visibility)
 		}
 	}
 
-	lBottomDelta *= fYScale;
+	lBottomDelta = static_cast<LONG> ( lBottomDelta * fYScale );
 
 	if (HUDWidth == 0)
 	{

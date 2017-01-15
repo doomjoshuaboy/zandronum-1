@@ -283,7 +283,7 @@ static void M_StartSkirmishGame()
 		botskill.ForceSet( vval, CVAR_Int );
 	}
 
-	timelimit = menu_skirmishtimelimit;
+	timelimit = static_cast<float> ( menu_skirmishtimelimit );
 	fraglimit = menu_skirmishfraglimit;
 	pointlimit = menu_skirmishpointlimit;
 	duellimit = menu_skirmishduellimit;

@@ -994,7 +994,7 @@ void FGLRenderer::RenderView (player_t* player)
 			GLboolean valueFalse;
 			glGetBooleanv ( GL_DEPTH_TEST, &valueFalse );
 
-			if ( ( valueTrue == false ) || ( valueFalse == true ) )
+			if ( ( valueTrue == GL_FALSE ) || ( valueFalse == GL_TRUE ) )
 			{
 				I_FatalError ( "OpenGL malfunction encountered.\n" );
 			}
