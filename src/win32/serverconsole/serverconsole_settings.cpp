@@ -288,7 +288,7 @@ void settings_Dialog_SaveSettings( )
 	GetDlgItemText( hDlg, IDC_TIMELIMIT, szBuffer, 1024 );
 	// [BB] We shouldn't compare two floats with "!=".
 	if ( abs( timelimit - atof( szBuffer ) ) > 1e-8 )
-		timelimit = atof( szBuffer );
+		timelimit = static_cast<float> ( atof( szBuffer ) );
 
 	// Save game mode.
 	if ( (LONG) GAMEMODE_GetCurrentMode( ) != SendDlgItemMessage( hDlg, IDC_GAMEPLAYMODE, CB_GETCURSEL, 0, 0 ))

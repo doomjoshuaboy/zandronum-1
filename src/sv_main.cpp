@@ -552,10 +552,10 @@ void SERVER_Tick( void )
 	ULONG			ulIdx;
 
 	I_DoSelect();
-	lPreviousTics = g_lGameTime / (( 1.0 / (double)35.75 ) * 1000.0 );
+	lPreviousTics = static_cast<LONG> ( g_lGameTime / (( 1.0 / (double)35.75 ) * 1000.0 ) );
 
 	lNowTime = I_MSTime( );
-	lNewTics = lNowTime / (( 1.0 / (double)35.75 ) * 1000.0 );
+	lNewTics = static_cast<LONG> ( lNowTime / (( 1.0 / (double)35.75 ) * 1000.0 ) );
 
 	lCurTics = lNewTics - lPreviousTics;
 	while ( lCurTics <= 0 )
@@ -566,7 +566,7 @@ void SERVER_Tick( void )
 
 		I_Sleep( 1 );
 		lNowTime = I_MSTime( );
-		lNewTics = lNowTime / (( 1.0 / (double)35.75 ) * 1000.0 );
+		lNewTics = static_cast<LONG> ( lNowTime / (( 1.0 / (double)35.75 ) * 1000.0 ) );
 		lCurTics = lNewTics - lPreviousTics;
 	}
 
@@ -1890,7 +1890,7 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 	g_aClients[lClient].bWantHideCountry = !!( connectFlags & CCF_HIDECOUNTRY );
 
 	// [TP] Save whether or not the player wants to hide his account.
-	g_aClients[lClient].WantHideAccount = NETWORK_ReadByte( pByteStream );
+	g_aClients[lClient].WantHideAccount = !!NETWORK_ReadByte( pByteStream );
 
 	// Read in the client's network game version.
 	lClientNetworkGameVersion = NETWORK_ReadByte( pByteStream );
@@ -4675,7 +4675,7 @@ bool SERVER_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 			if ( server_CheckForClientMinorCommandFlood ( g_lCurrentClient ) == true )
 				return ( true );
 
-			SERVER_GetClient( SERVER_GetCurrentClient() )->WantHideAccount = NETWORK_ReadByte( pByteStream );
+			SERVER_GetClient( SERVER_GetCurrentClient() )->WantHideAccount = !!NETWORK_ReadByte( pByteStream );
 			SERVERCOMMANDS_SetPlayerUserInfo( g_lCurrentClient, USERINFO_ACCOUNTNAME );
 		}
 		return false;
@@ -6000,7 +6000,7 @@ static bool server_SummonCheat( BYTESTREAM_s *pByteStream, LONG lType )
 						INVASION_UpdateMonsterCount( pActor, true );
 					}
 
-					pActor->FriendPlayer = g_lCurrentClient + 1;
+					pActor->FriendPlayer = static_cast<BYTE> ( g_lCurrentClient + 1 );
 					pActor->flags |= MF_FRIENDLY;
 					pActor->LastHeard = players[g_lCurrentClient].mo;
 				}
