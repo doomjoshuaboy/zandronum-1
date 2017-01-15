@@ -176,7 +176,7 @@ class SourceWriter(SourceCodeWriter):
 				self.writecontext('''
 					bool ServerCommands::{commandname}::{methodname}() const
 					{{
-						return ( {condition} );
+						return !!( {condition} );
 					}}
 					'''.format(commandname = command.name, **locals()))
 
