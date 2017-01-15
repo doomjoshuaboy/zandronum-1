@@ -582,9 +582,7 @@ private:
 		const char *label;
 		int i;
 		AInventory *item;
-		// [BC] Changed x/yscale to a float for Skulltag's way of rendering things.
-		float xscale, yscale;
-		int left, top;
+		int xscale, yscale, left, top;
 		int bars = (CurrentPop == POP_Status) ? imgINVPOP : imgINVPOP2;
 		int back = (CurrentPop == POP_Status) ? imgINVPBAK : imgINVPBAK2;
 		// Extrapolate the height of the popscreen for smoother movement
