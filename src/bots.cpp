@@ -1990,9 +1990,9 @@ void CSkullBot::Tick( void )
 void CSkullBot::EndTick( void )
 {
 	if ( m_bForwardMovePersist )
-		m_pPlayer->cmd.ucmd.forwardmove = m_lForwardMove << 8;
+		m_pPlayer->cmd.ucmd.forwardmove = static_cast<short> ( m_lForwardMove << 8 );
 	if ( m_bSideMovePersist )
-		m_pPlayer->cmd.ucmd.sidemove = m_lSideMove << 8;
+		m_pPlayer->cmd.ucmd.sidemove = static_cast<short> ( m_lSideMove << 8 );
 	m_pPlayer->cmd.ucmd.buttons |= m_lButtons;
 
 	g_BotCycles.Unclock();

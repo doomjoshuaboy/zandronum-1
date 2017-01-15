@@ -1121,7 +1121,7 @@ static void botcmd_MoveLeft( CSkullBot *pBot )
 	if ( fSpeed > 100 )
 		fSpeed = 100;
 
-	pBot->m_lSideMove = ( -0x32 * ( fSpeed / 100.0f ));
+	pBot->m_lSideMove = static_cast<LONG>( -0x32 * ( fSpeed / 100.0f ));
 	pBot->m_bSideMovePersist = true;
 }
 
@@ -1139,7 +1139,7 @@ static void botcmd_MoveRight( CSkullBot *pBot )
 	if ( fSpeed > 100 )
 		fSpeed = 100;
 
-	pBot->m_lSideMove = ( 0x32 * ( fSpeed / 100.0f ));
+	pBot->m_lSideMove = static_cast<LONG>( 0x32 * ( fSpeed / 100.0f ));
 	pBot->m_bSideMovePersist = true;
 }
 
@@ -1157,7 +1157,7 @@ static void botcmd_MoveForward( CSkullBot *pBot )
 	if ( fSpeed > 100 )
 		fSpeed = 100;
 
-	pBot->m_lForwardMove = ( 0x32 * ( fSpeed / 100.0f ));
+	pBot->m_lForwardMove = static_cast<LONG>( 0x32 * ( fSpeed / 100.0f ));
 	pBot->m_bForwardMovePersist = true;
 }
 
@@ -1175,7 +1175,7 @@ static void botcmd_MoveBackwards( CSkullBot *pBot )
 	if ( fSpeed > 100 )
 		fSpeed = 100;
 
-	pBot->m_lForwardMove = ( -0x32 * ( fSpeed / 100.0f ));
+	pBot->m_lForwardMove = static_cast<LONG>( -0x32 * ( fSpeed / 100.0f ));
 	pBot->m_bForwardMovePersist = true;
 }
 
@@ -1311,7 +1311,7 @@ static void botcmd_PathToGoal( CSkullBot *pBot )
 							  GoalPos.y );
 
 	pBot->GetPlayer( )->mo->angle = Angle;
-	pBot->GetPlayer( )->cmd.ucmd.forwardmove = ( 0x32 << 8 ) * ( fSpeed / 100.0f );
+	pBot->GetPlayer( )->cmd.ucmd.forwardmove = static_cast<short> ( ( 0x32 << 8 ) * ( fSpeed / 100.0f ) );
 
 	// We don't need GoalPos anymore, so we can corrupt it! KEKE!
 	Angle = Angle >> ANGLETOFINESHIFT;
@@ -1418,7 +1418,7 @@ static void botcmd_PathToLastKnownEnemyPosition( CSkullBot *pBot )
 							  GoalPos.y );
 
 	pBot->GetPlayer( )->mo->angle = Angle;
-	pBot->GetPlayer( )->cmd.ucmd.forwardmove = ( 0x32 << 8 ) * ( fSpeed / 100.0f );
+	pBot->GetPlayer( )->cmd.ucmd.forwardmove = static_cast<short> ( ( 0x32 << 8 ) * ( fSpeed / 100.0f ) );
 
 	Distance = pBot->GetPlayer( )->mo->radius;
 	if (( abs( pBot->GetPlayer( )->mo->x - GoalPos.x ) >= Distance ) || ( abs( pBot->GetPlayer( )->mo->y - GoalPos.y ) >= Distance ))
@@ -1515,7 +1515,7 @@ static void botcmd_Roam( CSkullBot *pBot )
 		ASTAR_SelectRandomMapLocation( &pBot->m_PathGoalPos, pBot->GetPlayer( )->mo->x, pBot->GetPlayer( )->mo->y );
 	}
 
-	ReturnVal = ASTAR_Path( pBot->GetPlayer( ) - players, pBot->m_PathGoalPos, botdebug_maxsearchnodes, botdebug_maxroamgiveupnodes );
+	ReturnVal = ASTAR_Path( pBot->GetPlayer( ) - players, pBot->m_PathGoalPos, botdebug_maxsearchnodes, static_cast<LONG> ( botdebug_maxroamgiveupnodes ) );
 	if ( ReturnVal.ulFlags & PF_COMPLETE )
 	{
 		// If it wasn't possible to create a path to the goal, try again next tick.
@@ -1555,7 +1555,7 @@ static void botcmd_Roam( CSkullBot *pBot )
 							  GoalPos.y );
 
 	pBot->GetPlayer( )->mo->angle = Angle;
-	pBot->GetPlayer( )->cmd.ucmd.forwardmove = ( 0x32 << 8 ) * ( fSpeed / 100.0f );
+	pBot->GetPlayer( )->cmd.ucmd.forwardmove = static_cast<short> ( ( 0x32 << 8 ) * ( fSpeed / 100.0f ) );
 
 	Distance = pBot->GetPlayer( )->mo->radius;
 	if (( abs( pBot->GetPlayer( )->mo->x - GoalPos.x ) < Distance ) && ( abs( pBot->GetPlayer( )->mo->y - GoalPos.y ) < Distance ))
@@ -1629,7 +1629,7 @@ static void botcmd_GetPathingCostToItem( CSkullBot *pBot )
 
 	ASTAR_ClearPath(( pBot->GetPlayer( ) - players ) + MAXPLAYERS );
 
-	ReturnVal = ASTAR_Path(( pBot->GetPlayer( ) - players ) + MAXPLAYERS, GoalPos, 0, botdebug_maxgiveupnodes );
+	ReturnVal = ASTAR_Path(( pBot->GetPlayer( ) - players ) + MAXPLAYERS, GoalPos, 0, static_cast<LONG> ( botdebug_maxgiveupnodes ) );
 	if ( ReturnVal.ulFlags & PF_COMPLETE )
 	{
 		// If it wasn't possible to create a path to the goal, try again next tick.
@@ -2010,12 +2010,12 @@ static void botcmd_IsWeaponOwned( CSkullBot *pBot )
 	if ( pActor )
 	{
 		if ( pActor->GetClass( )->IsDescendantOf( RUNTIME_CLASS( AWeapon )) == false )
-			g_bReturnBool = -1;
+			g_bReturnBool = false;
 		else
 			g_bReturnBool = ( pBot->GetPlayer( )->mo->FindInventory( pActor->GetClass( )) != NULL );
 	}
 	else
-		g_bReturnBool = -1;
+		g_bReturnBool = false;
 }
 
 //*****************************************************************************
