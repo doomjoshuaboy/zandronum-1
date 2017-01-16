@@ -67,7 +67,7 @@ CVAR( Int, sv_coopunassignedvoodoodollsfornplayers, MAXPLAYERS, CVAR_SERVERINFO 
 //*****************************************************************************
 //	PRIVATE DATA DEFINITIONS
 
-player_t DummyPlayer;
+int dummyplayer = MAXPLAYERS;
 TMap<FName, int> UVDpickupMap;
 
 //*****************************************************************************
@@ -204,7 +204,7 @@ void COOP_SpawnVoodooDollsForPlayerIfNecessary ( const ULONG ulPlayer, const boo
 			// dummy player to get past all the ( player != NULL ) checks. This will require special
 			// handling wherever the code assumes that non-NULL player pointers have a valid mo.
 			if ( sv_coopunassignedvoodoodolls )
-				pDoll->player = &DummyPlayer;
+				pDoll->player = &players[dummyplayer];
 		}
 	}
 
@@ -239,14 +239,14 @@ bool COOP_VoodooDollsSelectedByGameMode ( void )
 //
 void COOP_InitVoodooDollDummyPlayer ( void )
 {
-	DummyPlayer.userinfo.Reset();
+	players[dummyplayer].userinfo.Reset();
 }
 
 //*****************************************************************************
 //
 const player_t* COOP_GetVoodooDollDummyPlayer ( void )
 {
-	return &DummyPlayer;
+	return &players[dummyplayer];
 }
 
 //*****************************************************************************
