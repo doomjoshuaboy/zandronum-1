@@ -767,7 +767,8 @@ public:
 };
 
 // Bookkeeping on players - state.
-extern player_t players[MAXPLAYERS];
+// [EP] Add 1 slot for the DummyPlayer
+extern player_t players[MAXPLAYERS + 1];
 
 FArchive &operator<< (FArchive &arc, player_t *&p);
 

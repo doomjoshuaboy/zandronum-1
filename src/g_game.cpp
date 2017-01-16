@@ -196,8 +196,8 @@ bool 			noblit; 				// for comparative timing purposes
 
 bool	 		viewactive;
 
-player_t		players[MAXPLAYERS];
-bool			playeringame[MAXPLAYERS];
+player_t		players[MAXPLAYERS + 1];	// [EP] Add 1 slot for the DummyPlayer
+bool			playeringame[MAXPLAYERS + 1];	// [EP] Add 1 slot for the DummyPlayer
 
 int 			consoleplayer;			// player taking events
 int 			gametic;
