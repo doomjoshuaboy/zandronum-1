@@ -395,7 +395,7 @@ BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WP
 					// Fill in the box with the command.
 					//===================================
 
-					if ( iSelection >= IDC_HISTORY_MENU && iSelection < IDC_HISTORY_MENU + g_RecentConsoleMessages.size() )
+					if ( iSelection >= IDC_HISTORY_MENU && iSelection < IDC_HISTORY_MENU + static_cast<int> ( g_RecentConsoleMessages.size() ) )
 					{
 						FString entry = g_RecentConsoleMessages[ g_RecentConsoleMessages.size() - ( iSelection - IDC_HISTORY_MENU ) - 1];
 
@@ -490,7 +490,7 @@ BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WP
 					}
 
 					const TArray<FString> &dehfiles = D_GetDehFiles( );
-					for ( int dehidx = 0; dehidx < dehfiles.Size( ); ++dehidx )
+					for ( unsigned int dehidx = 0; dehidx < dehfiles.Size( ); ++dehidx )
 					{
 						arguments.AppendFormat( "-deh \"%s\" ", dehfiles[dehidx] );
 					}

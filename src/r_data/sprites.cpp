@@ -1052,7 +1052,8 @@ static void R_CreateSkinTranslation (const char *palname)
 //
 void R_InitSprites ()
 {
-	int lump, lastlump;
+	// [BB] Zandronum's skin handling doesn't need this 'lump'.
+	int /*lump,*/ lastlump;
 	unsigned int i, j;
 
 	// [RH] Create a standard translation to map skins between Heretic and Doom
