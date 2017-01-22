@@ -73,7 +73,7 @@ typedef enum
 
 CVAR (Bool, wi_percents, true, CVAR_ARCHIVE)
 CVAR (Bool, wi_showtotaltime, true, CVAR_ARCHIVE)
-CVAR (Bool, wi_noautostartmap, false, CVAR_USERINFO|CVAR_ARCHIVE)
+CVAR (Bool, wi_noautostartmap, false, CVAR_USERINFO|CVAR_UNSYNCED_USERINFO|CVAR_ARCHIVE) // [TP] This CVar is not supported online and is thus not synced online. (Maybe we should just remove it entirely)
 CVAR (Int, wi_autoscreenshot, false, CVAR_ARCHIVE) // [CK]
 
 

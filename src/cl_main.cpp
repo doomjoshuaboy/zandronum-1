@@ -852,7 +852,7 @@ void CLIENT_RequestSnapshot( void )
 
 	// Send them a message to get data from the server, along with our userinfo.
 	NETWORK_WriteByte( &g_LocalBuffer.ByteStream, CLCC_REQUESTSNAPSHOT );
-	CLIENTCOMMANDS_UserInfo( USERINFO_ALL );
+	CLIENTCOMMANDS_SendAllUserInfo();
 
 	// [TP] Send video resolution for ACS scripting support.
 	CLIENTCOMMANDS_SetVideoResolution();
@@ -1420,10 +1420,6 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 					break;
 				}
-			case NETWORK_ERRORCODE_FAILEDTOSENDUSERINFO:
-
-				szErrorString = "Failed to send userinfo.";
-				break;
 			case NETWORK_ERRORCODE_TOOMANYCONNECTIONSFROMIP:
 
 				szErrorString = "Too many connections from your IP.";
@@ -3827,79 +3823,93 @@ void ServerCommands::SetPlayerState::Execute()
 //
 void ServerCommands::SetPlayerUserInfo::Execute()
 {
-	// Now that everything's been read in, actually set the player's userinfo properties.
-	// Player's name.
-	if ( ContainsName() )
+	for ( unsigned int i = 0; i < cvars.Size(); ++i )
 	{
-		if ( name.Len() > MAXPLAYERNAME )
-			name = name.Left( MAXPLAYERNAME );
-		player->userinfo.NameChanged ( name );
-	}
+		FName name = cvars[i].name;
+		FString value = cvars[i].value;
 
-	// Other info.
-	if ( ContainsGender() )
-		player->userinfo.GenderNumChanged ( gender );
-	if ( ContainsColor() )
-		player->userinfo.ColorChanged ( color );
-	if ( ContainsRailgunTrailColor() )
-		player->userinfo.RailColorChanged ( railgunTrailColor );
-
-	// Make sure the skin is valid.
-	if ( ContainsSkinName() )
-	{
-		int skin;
-		player->userinfo.SkinNumChanged ( R_FindSkin( skinName, player->CurrentPlayerClass ) );
-
-		// [BC] Handle cl_skins here.
-		if ( cl_skins <= 0 )
+		// Player's name.
+		if ( name == NAME_Name )
 		{
-			skin = R_FindSkin( "base", player->CurrentPlayerClass );
-			if ( player->mo )
-				player->mo->flags4 |= MF4_NOSKIN;
+			if ( value.Len() > MAXPLAYERNAME )
+				value = value.Left( MAXPLAYERNAME );
+			player->userinfo.NameChanged ( value );
 		}
-		else if ( cl_skins >= 2 )
+		// Other info.
+		else if ( name == NAME_Gender )
+			player->userinfo.GenderNumChanged ( value.ToLong() );
+		else if ( name == NAME_Color )
+			player->userinfo.ColorChanged ( value );
+		else if ( name == NAME_RailColor )
+			player->userinfo.RailColorChanged ( value.ToLong() );
+		// Make sure the skin is valid.
+		else if ( name == NAME_Skin )
 		{
-			if ( skins[player->userinfo.GetSkin()].bCheat )
+			int skin;
+			player->userinfo.SkinNumChanged ( R_FindSkin( value, player->CurrentPlayerClass ) );
+
+			// [BC] Handle cl_skins here.
+			if ( cl_skins <= 0 )
 			{
 				skin = R_FindSkin( "base", player->CurrentPlayerClass );
 				if ( player->mo )
 					player->mo->flags4 |= MF4_NOSKIN;
 			}
+			else if ( cl_skins >= 2 )
+			{
+				if ( skins[player->userinfo.GetSkin()].bCheat )
+				{
+					skin = R_FindSkin( "base", player->CurrentPlayerClass );
+					if ( player->mo )
+						player->mo->flags4 |= MF4_NOSKIN;
+				}
+				else
+					skin = player->userinfo.GetSkin();
+			}
 			else
 				skin = player->userinfo.GetSkin();
+
+			if (( skin < 0 ) || ( skin >= static_cast<signed>(skins.Size()) ))
+				skin = R_FindSkin( "base", player->CurrentPlayerClass );
+
+			if ( player->mo )
+			{
+				player->mo->sprite = skins[skin].sprite;
+			}
 		}
+		// Read in the player's handicap.
+		else if ( name == NAME_Handicap )
+			player->userinfo.HandicapChanged ( value.ToLong() );
+		else if ( name == NAME_CL_TicsPerUpdate )
+			player->userinfo.TicsPerUpdateChanged ( value.ToLong() );
+		else if ( name == NAME_CL_ConnectionType )
+			player->userinfo.ConnectionTypeChanged ( value.ToLong() );
+		// [CK] We do compressed bitfields now.
+		else if ( name == NAME_CL_ClientFlags )
+			player->userinfo.ClientFlagsChanged ( value.ToLong() );
 		else
-			skin = player->userinfo.GetSkin();
-
-		if (( skin < 0 ) || ( skin >= static_cast<signed>(skins.Size()) ))
-			skin = R_FindSkin( "base", player->CurrentPlayerClass );
-
-		if ( player->mo )
 		{
-			player->mo->sprite = skins[skin].sprite;
+			FBaseCVar **cvarPointer = player->userinfo.CheckKey( name );
+			FBaseCVar *cvar = cvarPointer ? *cvarPointer : nullptr;
+
+			if ( cvar )
+			{
+				UCVarValue cvarValue;
+				cvarValue.String = value;
+				cvar->SetGenericRep( cvarValue, CVAR_String );
+			}
 		}
 	}
 
-	// Read in the player's handicap.
-	if ( ContainsHandicap() )
-		player->userinfo.HandicapChanged ( handicap );
-
-	if ( ContainsTicsPerUpdate() )
-		player->userinfo.TicsPerUpdateChanged ( ticsPerUpdate );
-
-	if ( ContainsConnectionType() )
-		player->userinfo.ConnectionTypeChanged ( connectionType );
-
-	// [CK] We do compressed bitfields now.
-	if ( ContainsClientFlags() )
-		player->userinfo.ClientFlagsChanged ( clientFlags );
-
-	// [TP] Store the account name of this player.
-	if ( ContainsAccountName() )
-		g_PlayerAccountNames[player - players] = accountName;
-
 	// Build translation tables, always gotta do this!
 	R_BuildPlayerTranslation( player - players );
+}
+
+//*****************************************************************************
+//
+void ServerCommands::SetPlayerAccountName::Execute()
+{
+	g_PlayerAccountNames[player - players] = accountName;
 }
 
 //*****************************************************************************

@@ -51,6 +51,7 @@
 #ifndef __CL_COMMANDS_H__
 #define __CL_COMMANDS_H__
 
+#include <set>
 #include "doomtype.h"
 #include "a_pickups.h"
 
@@ -61,7 +62,8 @@ void	CLIENT_ResetFloodTimers( void );
 void	CLIENT_IgnoreWeaponSelect( bool bIgnore );
 bool	CLIENT_GetIgnoreWeaponSelect( void );
 bool	CLIENT_AllowSVCheatMessage( void );
-void	CLIENTCOMMANDS_UserInfo( ULONG ulFlags );
+void	CLIENTCOMMANDS_UserInfo( const std::set<FName> &cvarNames );
+void	CLIENTCOMMANDS_SendAllUserInfo();
 void	CLIENTCOMMANDS_StartChat( void );
 void	CLIENTCOMMANDS_EndChat( void );
 void	CLIENTCOMMANDS_Say( ULONG ulMode, const char *pszString );

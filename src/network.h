@@ -186,21 +186,6 @@ enum ActorScaleFlag
 #define	ACTORSOUND_DEATHSOUND		4
 #define	ACTORSOUND_ACTIVESOUND		5
 
-// Which userinfo categories are being updated?
-#define	USERINFO_NAME				1
-#define	USERINFO_GENDER				2
-#define	USERINFO_COLOR				4
-#define	USERINFO_AIMDISTANCE		8
-#define	USERINFO_SKIN				16
-#define	USERINFO_RAILCOLOR			32
-#define	USERINFO_HANDICAP			64
-#define	USERINFO_PLAYERCLASS		128
-#define	USERINFO_TICSPERUPDATE		256
-#define	USERINFO_CONNECTIONTYPE		512
-#define	USERINFO_CLIENTFLAGS		1024
-#define	USERINFO_ACCOUNTNAME		2048
-#define	USERINFO_ALL				( 4096 - 1 )
-
 // [BB]: Some optimization. For some actors that are sent in bunches, to reduce the size,
 // just send some key letter that identifies the actor, instead of the full name.
 #define NUMBER_OF_ACTOR_NAME_KEY_LETTERS	3

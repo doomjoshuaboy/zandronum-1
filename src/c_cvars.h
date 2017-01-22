@@ -75,6 +75,10 @@ enum
 
 	// [TP] The CVar is not present in release builds
 	CVAR_DEBUGONLY = 262144,
+
+	// [TP] Despite being userinfo this CVar is not synced between client and server.
+	// (These CVars ideally shouldn't be userinfo in the first place but that would cause a lot of delta.)
+	CVAR_UNSYNCED_USERINFO = 524288,
 };
 
 union UCVarValue
