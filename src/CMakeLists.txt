@@ -1238,6 +1238,7 @@ add_executable( zdoom WIN32
 	w_wad.cpp
 	wi_stuff.cpp
 	za_database.cpp #ZA
+	za_misc.cpp #ZA
 	zstrformat.cpp
 	zstring.cpp
 	# [BL] Huffman is ZAN

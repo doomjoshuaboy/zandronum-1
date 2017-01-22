@@ -63,6 +63,7 @@
 #include "cmdlib.h"
 #include "r_utility.h"
 #include "doomstat.h"
+#include "za_misc.h"
 
 // MACROS ------------------------------------------------------------------
 
@@ -248,8 +249,7 @@ int main (int argc, char **argv)
  	}
 #endif // !__APPLE__
  	
-	printf(GAMENAME" %s - %s - SDL version\nCompiled on %s\n",
-		GetVersionString(), GetGitTime(), __DATE__);
+	// [SB] Moved ZDoom's version info down below for Zan's --version
 
 	seteuid (getuid ());
     std::set_new_handler (NewFailure);
@@ -270,6 +270,15 @@ int main (int argc, char **argv)
 	setlocale (LC_ALL, "C");
 
 	Args = new DArgs(argc, argv);
+
+	// [SB] Zandronum version
+	if (ZA_PrintVersion())
+		return;
+
+ 	// [SB] I moved this below the ZA_PrintVersion call so it
+	//      doesn't get printed to stdout with --version's output.
+	printf(GAMENAME" %s - %s - SDL version\nCompiled on %s\n",
+		GetVersionString(), GetGitTime(), __DATE__);
 
 #ifdef SERVER_ONLY
 	Args->AppendArg( "-host" );

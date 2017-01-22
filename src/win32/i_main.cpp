@@ -84,6 +84,7 @@
 #include "serverconsole/serverconsole.h"
 #include "network.h"
 #include "p_acs.h"
+#include "za_misc.h"
 
 #include "stats.h"
 #include "st_start.h"
@@ -827,6 +828,10 @@ void DoMain (HINSTANCE hInstance)
 
 		Args = new DArgs(__argc, __argv);
 
+		// [SB] Zandronum version
+		if ( ZA_PrintVersion( ) )
+			return;
+
 		// Under XP, get our session ID so we can know when the user changes/locks sessions.
 		// Since we need to remain binary compatible with older versions of Windows, we
 		// need to extract the ProcessIdToSessionId function from kernel32.dll manually.
@@ -920,23 +925,6 @@ void DoMain (HINSTANCE hInstance)
 		FixPathSeperator(program);
 		progdir.Truncate((long)strlen(program));
 		progdir.UnlockBuffer();
-
-		// [BB] To allow an external program to check our version, output this info to a file.
-		{
-			FString *args;
-			if ( Args->CheckParmList( "--version", &args) == 1 )
-			{
-				FILE *file = fopen( args[0].GetChars(), "w" );
-				if ( file == NULL )
-					return;
-				fputs( GetVersionStringRev(), file );
-				fputs( "\n", file );
-				fputs( GetGitDescription(), file );
-
-				fclose( file );
-				return;
-			}
-		}
 
 		// [BC] When hosting, spawn a console dialog box instead of creating a window.
 		if ( Args->CheckParm( "-host" ))
