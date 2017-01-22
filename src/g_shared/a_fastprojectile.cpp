@@ -173,7 +173,7 @@ void AFastProjectile::Effect()
 		
 			const PClass *trail = PClass::FindClass(name);
 			// [BB] Check whether to spawn.
-			if ( (trail != NULL) && ( NETWORK_ShouldActorNotBeSpawned ( this, trail, true ) == false ) )
+			if ( (trail != NULL) && ( NETWORK_ShouldActorNotBeSpawned ( this, trail ) == false ) )
 			{
 				AActor *act = Spawn (trail, x, y, hitz, ALLOW_REPLACE);
 				if (act != NULL)
