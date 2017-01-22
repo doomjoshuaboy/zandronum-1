@@ -2905,10 +2905,13 @@ void SERVERCOMMANDS_SetLineTexture( ULONG ulLine, ULONG ulPlayerExtra, ServerCom
 //
 void SERVERCOMMANDS_SetLineTextureByID( ULONG ulLineID, ULONG ulSide, ULONG ulPosition, const char *pszTexName, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
+	if ( ulSide > 1 )
+		SERVER_PrintWarning( "SERVERCOMMANDS_SetLineTextureByID: invalid side: %d!\n", ulSide );
+
 	ServerCommands::SetLineTextureByID command;
 	command.SetLineID( ulLineID );
 	command.SetTextureName( pszTexName );
-	command.SetSide( ulSide );
+	command.SetSide( !!ulSide );
 	command.SetPosition( ulPosition );
 	command.sendCommandToClients ( ulPlayerExtra, flags );
 }

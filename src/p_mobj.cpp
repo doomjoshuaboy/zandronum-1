@@ -3968,7 +3968,8 @@ void AActor::Tick ()
 
 
 	AActor *onmo;
-	int i;
+	// [BB] Zandronum's bot handling doesn't need this 'i'.
+	//int i;
 
 	//assert (state != NULL);
 	if (state == NULL)
