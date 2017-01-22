@@ -273,7 +273,7 @@ int main (int argc, char **argv)
 
 	// [SB] Zandronum version
 	if (ZA_PrintVersion())
-		return;
+		return 0;
 
  	// [SB] I moved this below the ZA_PrintVersion call so it
 	//      doesn't get printed to stdout with --version's output.
