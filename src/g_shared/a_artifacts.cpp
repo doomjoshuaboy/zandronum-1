@@ -825,7 +825,8 @@ void APowerIronFeet::AbsorbDamage (int damage, FName damageType, int &newdamage)
 
 void APowerIronFeet::DoEffect ()
 {
-	if (Owner->player != NULL)
+	// [EP] Be careful with the dummy player
+	if (Owner->player != NULL && Owner->player->mo != NULL)
 	{
 		Owner->player->mo->ResetAirSupply ();
 	}
