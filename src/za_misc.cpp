@@ -79,6 +79,10 @@ bool ZA_PrintVersion()
 		{
 			fclose( file );
 		}
+		else
+		{
+			printf("\n");
+		}
 
 		return true;
 	}
