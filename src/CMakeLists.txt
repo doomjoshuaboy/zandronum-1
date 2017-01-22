@@ -1416,6 +1416,10 @@ add_executable( zdoom WIN32
 	zzautozend.cpp
 )
 
+# [BB] To keep the delta to ZDoom small, we keep the target name 'zdoom', but
+# change the label, so that it's displayed as 'Zandronum' in an IDE like VC++.
+SET_TARGET_PROPERTIES( zdoom PROPERTIES PROJECT_LABEL Zandronum )
+
 set_source_files_properties( xlat/parse_xlat.cpp PROPERTIES OBJECT_DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/xlat_parser.c" )
 set_source_files_properties( sc_man.cpp PROPERTIES OBJECT_DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/sc_man_scanner.h" )
 set_source_files_properties( ${NOT_COMPILED_SOURCE_FILES} PROPERTIES HEADER_FILE_ONLY TRUE )
