@@ -110,6 +110,7 @@
 -	- Fixed: body of the player who loses all lives no longer disappears into thin air. [Zalewa]
 -	- Fixed a certain number of server CVARs which weren't protected against the ConsoleCommand. [Edward-san]
 -	- Fixed: the server could crash if a morph powerup is taken away when the morphed player exhausts the ammo. [Edward-san]
+-	- Fixed crash with voodoo dolls and PowerIronFeet. [Edward-san]
 !	- Changed: Spectators can now interact with gravity and use the fly/land commands. [Leonard]
 !	- Save games now contain information about the renderer used to create the save. This allows to print a proper error message when an incompatible save is tried to be loaded. [Torr Samaho]
 !	- Clients don't error out anymore when encountering a division by zero in a DECORATE expression. Instead, a one time warning is printed on the first occasion and the result is assumed to be zero. This is necessary since clients can encounter this in valid DECORATE code due to Zandronum's jump handling. [Torr Samaho]
