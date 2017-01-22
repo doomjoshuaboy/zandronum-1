@@ -516,3 +516,16 @@ class ArrayParameter(SpecParameter):
 		writer.startscope()
 		self.elementType.writereadchecks(writer = writer, reference = reference + '[i]', **args)
 		writer.endscope()
+
+# ----------------------------------------------------------------------------------------------------------------------
+
+class NameParameter(SpecParameter):
+	def __init__(self, **args):
+		super().__init__(**args)
+		self.cxxtypename = 'FName'
+
+	def writeread(self, writer, command, reference, **args):
+		writer.writeline('command.{reference} = NETWORK_ReadName( bytestream );'.format(**locals()))
+
+	def writesend(self, writer, command, reference, **args):
+		writer.writeline('command.addName( this->{reference} );'.format(**locals()))

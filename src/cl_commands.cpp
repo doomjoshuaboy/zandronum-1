@@ -117,7 +117,23 @@ bool CLIENT_AllowSVCheatMessage( void )
 
 //*****************************************************************************
 //
-void CLIENTCOMMANDS_UserInfo( ULONG ulFlags )
+static void clientcommands_WriteCVarToUserinfo( FName name, FBaseCVar *cvar )
+{
+	// [BB] It's pointless to tell the server of the class, if only one class is available.
+	if (( name == NAME_PlayerClass ) && ( PlayerClasses.Size( ) == 1 ))
+		return;
+
+	// [TP] Don't bother sending these
+	if (( cvar == nullptr ) || ( cvar->GetFlags() & CVAR_UNSYNCED_USERINFO ))
+		return;
+
+	NETWORK_WriteName( &CLIENT_GetLocalBuffer( )->ByteStream, name );
+	NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, cvar->GetGenericRep( CVAR_String ).String );
+}
+
+//*****************************************************************************
+//
+void CLIENTCOMMANDS_SendAllUserInfo()
 {
 	// Temporarily disable userinfo for when the player setup menu updates our userinfo. Then
 	// we can just send all our userinfo in one big bulk, instead of each time it updates
@@ -125,50 +141,38 @@ void CLIENTCOMMANDS_UserInfo( ULONG ulFlags )
 	if ( CLIENT_GetAllowSendingOfUserInfo( ) == false )
 		return;
 
-	// [BB] It's pointless to tell the server of the class, if only one class is available.
-	if (( PlayerClasses.Size( ) == 1 ) && ( ulFlags & USERINFO_PLAYERCLASS ))
-		ulFlags  &= ~USERINFO_PLAYERCLASS;
+	const userinfo_t &userinfo = players[consoleplayer].userinfo;
+	userinfo_t::ConstPair *pair;
+	userinfo_t::ConstIterator iterator ( userinfo );
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_USERINFO );
 
-	// [BB] Nothing changed, nothing to send.
-	if ( ulFlags == 0 )
+	while ( iterator.NextPair( pair ) )
+		clientcommands_WriteCVarToUserinfo( pair->Key, pair->Value );
+
+	NETWORK_WriteName( &CLIENT_GetLocalBuffer( )->ByteStream, NAME_None );
+}
+
+//*****************************************************************************
+//
+void CLIENTCOMMANDS_UserInfo( const std::set<FName> &cvarNames )
+{
+	// Temporarily disable userinfo for when the player setup menu updates our userinfo. Then
+	// we can just send all our userinfo in one big bulk, instead of each time it updates
+	// a userinfo property.
+	if ( CLIENT_GetAllowSendingOfUserInfo( ) == false )
 		return;
 
 	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_USERINFO );
 
-	// Tell the server which items are being updated.
-	NETWORK_WriteShort( &CLIENT_GetLocalBuffer( )->ByteStream, ulFlags );
-
-	if ( ulFlags & USERINFO_NAME )
-	{ // [RC] Clean the name before we use it
-		// [BB] the name is already checked when storing it, so this shouldn't be necessary.
-		players[consoleplayer].userinfo.NameChanged ( players[consoleplayer].userinfo.GetName() );
-		NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, players[consoleplayer].userinfo.GetName() );
-	}
-	if ( ulFlags & USERINFO_GENDER )
-		NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, players[consoleplayer].userinfo.GetGender() );
-	if ( ulFlags & USERINFO_COLOR )
-		NETWORK_WriteLong( &CLIENT_GetLocalBuffer( )->ByteStream, players[consoleplayer].userinfo.GetColor() );
-	if ( ulFlags & USERINFO_AIMDISTANCE )
-		NETWORK_WriteLong( &CLIENT_GetLocalBuffer( )->ByteStream, players[consoleplayer].userinfo.GetAimDist() );
-	if ( ulFlags & USERINFO_SKIN )
-		NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, skins[players[consoleplayer].userinfo.GetSkin()].name );
-	if ( ulFlags & USERINFO_RAILCOLOR )
-		NETWORK_WriteLong( &CLIENT_GetLocalBuffer( )->ByteStream, players[consoleplayer].userinfo.GetRailColor() );
-	if ( ulFlags & USERINFO_HANDICAP )
-		NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, players[consoleplayer].userinfo.GetHandicap() );
-	if ( ulFlags & USERINFO_TICSPERUPDATE )
-		NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, players[consoleplayer].userinfo.GetTicsPerUpdate() );
-	if ( ulFlags & USERINFO_CONNECTIONTYPE )
-		NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, players[consoleplayer].userinfo.GetConnectionType() );
-	if ( ulFlags & USERINFO_CLIENTFLAGS )
-		NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, players[consoleplayer].userinfo.GetClientFlags() ); // [CK] Bitfields are used now.
-	if (( PlayerClasses.Size( ) > 1 ) && ( ulFlags & USERINFO_PLAYERCLASS ))
+	for ( std::set<FName>::const_iterator iterator = cvarNames.begin(); iterator != cvarNames.end(); ++iterator )
 	{
-		if ( players[consoleplayer].userinfo.GetPlayerClassNum() == -1 )
-			NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, "random" );
-		else
-			NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, PlayerClasses[players[consoleplayer].userinfo.GetPlayerClassNum()].Type->Meta.GetMetaString( APMETA_DisplayName ));
+		FName name = *iterator;
+		FBaseCVar **cvarPointer = players[consoleplayer].userinfo.CheckKey( name );
+		FBaseCVar *cvar = cvarPointer ? *cvarPointer : nullptr;
+		clientcommands_WriteCVarToUserinfo( name, cvar );
 	}
+
+	NETWORK_WriteName( &CLIENT_GetLocalBuffer( )->ByteStream, NAME_None );
 }
 
 //*****************************************************************************

@@ -484,30 +484,69 @@ void SERVERCOMMANDS_SetPlayerState( ULONG ulPlayer, PLAYERSTATE_e ulState, ULONG
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetPlayerUserInfo( ULONG ulPlayer, ULONG ulUserInfoFlags, ULONG ulPlayerExtra, ServerCommandFlags flags )
+void SERVERCOMMANDS_SetAllPlayerUserInfo( ULONG ulPlayer, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	ServerCommands::SetPlayerUserInfo command;
-	command.SetPlayer( &players[ulPlayer] );
-	command.SetFlags( ulUserInfoFlags );
-	command.SetName( players[ulPlayer].userinfo.GetName() );
-	command.SetGender( players[ulPlayer].userinfo.GetGender() );
-	command.SetColor( players[ulPlayer].userinfo.GetColor() );
-	command.SetRailgunTrailColor( players[ulPlayer].userinfo.GetRailColor() );
-	command.SetSkinName( SERVER_GetClient( ulPlayer )->szSkin );
-	command.SetHandicap( players[ulPlayer].userinfo.GetHandicap() );
-	command.SetTicsPerUpdate( players[ulPlayer].userinfo.GetTicsPerUpdate() );
-	command.SetConnectionType( players[ulPlayer].userinfo.GetConnectionType() );
-	command.SetClientFlags( players[ulPlayer].userinfo.GetClientFlags() );
+	TArray<ServerCommands::CVar> cvars;
+	userinfo_t &userinfo = players[ulPlayer].userinfo;
+	userinfo_t::Iterator iterator ( userinfo );
 
+	for ( userinfo_t::Pair *pair; iterator.NextPair( pair ); )
+	{
+		ServerCommands::CVar cvar;
+		cvar.name = pair->Key;
+		cvar.value = pair->Value->GetGenericRep( CVAR_String ).String;
+		cvars.Push( cvar );
+	}
+
+	command.SetPlayer( &players[ulPlayer] );
+	command.SetCvars( cvars );
+	command.sendCommandToClients( ulPlayerExtra, flags );
+}
+
+//*****************************************************************************
+//
+void SERVERCOMMANDS_SetPlayerUserInfo( ULONG ulPlayer, const std::set<FName> &names, ULONG ulPlayerExtra, ServerCommandFlags flags )
+{
+	if (( PLAYER_IsValidPlayer( ulPlayer ) == false ) || ( names.size() == 0 ))
+		return;
+
+	ServerCommands::SetPlayerUserInfo command;
+	TArray<ServerCommands::CVar> cvars;
+
+	for ( FName name : names )
+	{
+		FBaseCVar **cvarPointer = players[ulPlayer].userinfo.CheckKey( name );
+		FBaseCVar *cvar = cvarPointer ? *cvarPointer : nullptr;
+
+		if ( cvar )
+		{
+			ServerCommands::CVar element;
+			element.name = name;
+			element.value = cvar->GetGenericRep( CVAR_String ).String;
+			cvars.Push( element );
+		}
+	}
+
+	command.SetPlayer( &players[ulPlayer] );
+	command.SetCvars( cvars );
+	command.sendCommandToClients( ulPlayerExtra, flags );
+}
+
+//*****************************************************************************
+//
+void SERVERCOMMANDS_SetPlayerAccountName( ULONG ulPlayer, ULONG ulPlayerExtra, ServerCommandFlags flags )
+{
+	ServerCommands::SetPlayerAccountName command;
+	command.SetPlayer( &players[ulPlayer] );
 	// [TP] Redact the account name if the player so wishes.
 	if ( SERVER_GetClient( ulPlayer )->WantHideAccount )
 		command.SetAccountName( "" );
 	else
 		command.SetAccountName( SERVER_GetClient( ulPlayer )->GetAccountName() );
-
 	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 

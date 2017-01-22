@@ -83,9 +83,10 @@ CVAR (String,	skin,					"base",		CVAR_USERINFO | CVAR_ARCHIVE);
 //CVAR (Int,		team,					TEAM_NONE,	CVAR_USERINFO | CVAR_ARCHIVE);
 CVAR (String,	gender,					"male",		CVAR_USERINFO | CVAR_ARCHIVE);
 // [BC] Changed "neverswitchonpickup" to allow it to be set 3 different ways, instead of "on/off".
-CVAR (Int,		switchonpickup,			1,			CVAR_USERINFO | CVAR_ARCHIVE);
-CVAR (Float,	movebob,				0.25f,		CVAR_USERINFO | CVAR_ARCHIVE);
-CVAR (Float,	stillbob,				0.f,		CVAR_USERINFO | CVAR_ARCHIVE);
+// [TP] switchonpickup, movebob and stillbob are not synced to other clients.
+CVAR (Int,		switchonpickup,			1,			CVAR_USERINFO | CVAR_UNSYNCED_USERINFO | CVAR_ARCHIVE);
+CVAR (Float,	movebob,				0.25f,		CVAR_USERINFO | CVAR_UNSYNCED_USERINFO | CVAR_ARCHIVE);
+CVAR (Float,	stillbob,				0.f,		CVAR_USERINFO | CVAR_UNSYNCED_USERINFO | CVAR_ARCHIVE);
 CVAR (String,	playerclass,			"Fighter",	CVAR_USERINFO | CVAR_ARCHIVE);
 // [BC] New userinfo entries for Skulltag.
 CVAR (Int,		railcolor,				0,			CVAR_USERINFO | CVAR_ARCHIVE);
@@ -104,7 +105,7 @@ CVAR (Int,		cl_connectiontype,			1,		CVAR_USERINFO | CVAR_ARCHIVE);
 CVAR (Flag,		cl_clientsidepuffs,			cl_clientflags, CLIENTFLAGS_CLIENTSIDEPUFFS );
 
 // [TP] Userinfo changes yet to be sent.
-static DWORD PendingUserinfoChanges = 0;
+static std::set<FName> PendingUserinfoChanges;
 
 // [CK] CVARs that affect cl_clientflags
 CUSTOM_CVAR ( Int, cl_clientflags, CLIENTFLAGS_DEFAULT, CVAR_USERINFO | CVAR_ARCHIVE )
@@ -645,7 +646,8 @@ void userinfo_t::Reset()
 			case NAME_PlayerClass:	type = CVAR_Int; break;
 			default:				type = cvar->GetRealType(); break;
 			}
-			newcvar = C_CreateCVar(NULL, type, cvar->GetFlags() & CVAR_MOD);
+			// [TP] Also respect CVAR_UNSYNCED_USERINFO
+			newcvar = C_CreateCVar(NULL, type, cvar->GetFlags() & ( CVAR_MOD | CVAR_UNSYNCED_USERINFO ));
 			newcvar->SetGenericRepDefault(cvar->GetGenericRepDefault(CVAR_String), CVAR_String);
 			Insert(cvarname, newcvar);
 		}
@@ -828,7 +830,6 @@ void D_UserInfoChanged (FBaseCVar *cvar)
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		return;
 
-	ulUpdateFlags = 0;
 	if (cvar == &autoaim)
 	{
 		if (autoaim < 0.0f)
@@ -841,8 +842,6 @@ void D_UserInfoChanged (FBaseCVar *cvar)
 			autoaim = 5000.f;
 			return;
 		}
-
-		ulUpdateFlags |= USERINFO_AIMDISTANCE;
 	}
 	// Allow users to colorize their name.
 	else if ( cvar == &name )
@@ -868,15 +867,12 @@ void D_UserInfoChanged (FBaseCVar *cvar)
 		// [BB] Get rid of this cast.
 		V_ColorizeString( const_cast<char *> ( val.String ) );
 
-		ulUpdateFlags |= USERINFO_NAME;
-
 		// [BB] We don't want clients to change their name too often.
 		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
 		{
 			// [BB] The name was not actually changed, so no need to do anything.
 			if ( strcmp ( g_oldPlayerName.GetChars(), val.String ) == 0 )
 			{
-				ulUpdateFlags &= ~USERINFO_NAME;
 				// [BB] The client insists on changing to a name already in use.
 				if ( stricmp ( val.String, players[consoleplayer].userinfo.GetName() ) != 0 )
 				{
@@ -901,14 +897,6 @@ void D_UserInfoChanged (FBaseCVar *cvar)
 			}
 		}
 	}
-	else if ( cvar == &gender )
-		ulUpdateFlags |= USERINFO_GENDER;
-	else if ( cvar == &color )
-		ulUpdateFlags |= USERINFO_COLOR;
-	else if ( cvar == &skin )
-		ulUpdateFlags |= USERINFO_SKIN;
-	else if ( cvar == &railcolor )
-		ulUpdateFlags |= USERINFO_RAILCOLOR;
 	else if ( cvar == &handicap )
 	{
 		if ( handicap < 0 )
@@ -921,11 +909,7 @@ void D_UserInfoChanged (FBaseCVar *cvar)
 			handicap = 200;
 			return;
 		}
-
-		ulUpdateFlags |= USERINFO_HANDICAP;
 	}
-	else if (( cvar == &playerclass ) && ( (gameinfo.gametype == GAME_Hexen) || (PlayerClasses.Size() > 1) ))
-		ulUpdateFlags |= USERINFO_PLAYERCLASS;
 	// [BB] Negative movebob values cause graphic glitches.
 	else if ( cvar == &movebob )
 	{
@@ -949,11 +933,6 @@ void D_UserInfoChanged (FBaseCVar *cvar)
 			return;
 		}
 	}
-	// [CK] Multiple CVARs are controlled by this now.
-	else if ( cvar == &cl_clientflags )
-	{
-		ulUpdateFlags |= USERINFO_CLIENTFLAGS;
-	}
 	// [BB]
 	else if ( cvar == &cl_ticsperupdate )
 	{
@@ -967,8 +946,6 @@ void D_UserInfoChanged (FBaseCVar *cvar)
 			cl_ticsperupdate = 3;
 			return;
 		}
-
-		ulUpdateFlags |= USERINFO_TICSPERUPDATE;
 	}
 	// [BB]
 	else if ( cvar == &cl_connectiontype )
@@ -983,8 +960,6 @@ void D_UserInfoChanged (FBaseCVar *cvar)
 			cl_connectiontype = 1;
 			return;
 		}
-
-		ulUpdateFlags |= USERINFO_CONNECTIONTYPE;
 	}
 
 	val = cvar->GetGenericRep (CVAR_String);
@@ -1015,7 +990,8 @@ void D_UserInfoChanged (FBaseCVar *cvar)
 		Net_WriteString (foo);
 	}
 
-	PendingUserinfoChanges |= ulUpdateFlags;
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		PendingUserinfoChanges.insert( FName ( cvar->GetName() ) );
 
 	// [TP] Send pending changes but only if we're not in a menu
 	if ( DMenu::CurrentMenu == NULL )
@@ -1027,14 +1003,14 @@ void D_SendPendingUserinfoChanges()
 	// Send updated userinfo to the server.
 	if (( NETWORK_GetState() == NETSTATE_CLIENT )
 		&& ( CLIENT_GetConnectionState() >= CTS_REQUESTINGSNAPSHOT )
-		&& ( PendingUserinfoChanges != 0 ))
+		&& ( PendingUserinfoChanges.size() > 0 ))
 	{
 		CLIENTCOMMANDS_UserInfo( PendingUserinfoChanges );
 
 		if ( CLIENTDEMO_IsRecording( ))
 			CLIENTDEMO_WriteUserInfo( );
 
-		PendingUserinfoChanges = 0;
+		PendingUserinfoChanges.clear();
 	}
 }
 
@@ -1619,12 +1595,9 @@ CCMD (playerinfo)
 
 		while (it.NextPair(pair))
 		{
-			// [TP] The server doesn't know about a number of certain userinfo settings of this player
-			if (( NETWORK_GetState() == NETSTATE_SERVER )
-				&& ( pair->Key == NAME_MoveBob
-					|| pair->Key == NAME_StillBob
-					|| pair->Key == NAME_SwitchOnPickup
-					|| pair->Key == NAME_Wi_NoAutostartMap ))
+			// [TP] Some userinfo settings are unsynced.
+			if ((( NETWORK_GetState() == NETSTATE_SERVER ) || ( i != consoleplayer ))
+				&& ( pair->Value->GetFlags() & CVAR_UNSYNCED_USERINFO ))
 			{
 				Printf( "%20s: <unknown>\n", pair->Key.GetChars() );
 				continue;

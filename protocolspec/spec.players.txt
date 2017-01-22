@@ -74,49 +74,21 @@ Command SetPlayerState
 	Byte state
 EndCommand
 
+Struct CVar
+	Name name
+	String value
+EndStruct
+
 Command SetPlayerUserInfo
 	# We actually send the player's userinfo before he gets spawned, thus putting him in the game.
 	Player player with IndexTestOnly
-	Short flags
-	If (flags & USERINFO_NAME)
-		String name
-	EndIf
+	Struct<CVar>[] cvars
+EndCommand
 
-	If (flags & USERINFO_GENDER)
-		Byte gender
-	EndIf
-
-	If (flags & USERINFO_COLOR)
-		Long color
-	EndIf
-
-	If (flags & USERINFO_RAILCOLOR)
-		Byte railgunTrailColor
-	EndIf
-
-	If (flags & USERINFO_SKIN)
-		String skinName
-	EndIf
-
-	If (flags & USERINFO_HANDICAP)
-		Byte handicap
-	EndIf
-
-	If (flags & USERINFO_TICSPERUPDATE)
-		Byte ticsPerUpdate
-	EndIf
-
-	If (flags & USERINFO_CONNECTIONTYPE)
-		Byte connectionType
-	EndIf
-
-	If (flags & USERINFO_CLIENTFLAGS)
-		Byte clientFlags
-	EndIf
-
-	If (flags & USERINFO_ACCOUNTNAME)
-		String accountName
-	EndIf
+Command SetPlayerAccountName
+	ExtendedCommand
+	Player player with IndexTestOnly
+	String accountName
 EndCommand
 
 Command SetPlayerFrags

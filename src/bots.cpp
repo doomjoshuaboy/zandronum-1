@@ -1873,7 +1873,7 @@ CSkullBot::CSkullBot( char *pszName, char *pszTeamName, ULONG ulPlayerNum )
 		SERVER_RCON_UpdateInfo( SVRCU_PLAYERDATA );
 
 		// Now send out the player's userinfo out to other players.
-		SERVERCOMMANDS_SetPlayerUserInfo( ulPlayerNum, USERINFO_ALL );
+		SERVERCOMMANDS_SetAllPlayerUserInfo( ulPlayerNum );
 
 		// If this player is on a team, tell all the other clients that a team has
 		// been selected for him.

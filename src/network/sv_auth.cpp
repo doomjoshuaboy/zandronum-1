@@ -354,7 +354,7 @@ void SERVER_AUTH_ParsePacket( BYTESTREAM_s *pByteStream )
 					SERVERCOMMANDS_SRPUserVerifySession ( clientID );
 					// [TP] Inform the players of this, if the player does not want to hide his account name.
 					if ( SERVER_GetClient( clientID )->WantHideAccount == false )
-						SERVERCOMMANDS_SetPlayerUserInfo( clientID, USERINFO_ACCOUNTNAME );
+						SERVERCOMMANDS_SetPlayerAccountName( clientID );
 				}
 				else
 					Printf ( "AUTH_SERVER_SRP_STEP_FOUR: Can't find client with session ID '%d'.\n", sessionID );
