@@ -3220,6 +3220,11 @@ void D_DoomMain (void)
 			D_StartTitle ();				// start up intro loop
 			setmodeneeded = false;			// This may be set to true here, but isn't needed for a restart
 		}
+		// [BB] .. but the server needs to load the new startmap.
+		else
+		{
+			G_InitNew( startmap, false );
+		}
 
 		// Client mode starts off in the full console!
 		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
