@@ -1963,6 +1963,12 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomRailgun)
 
 	self->flags &= ~MF_AMBUSH;
 
+	// [BB] Don't actually do the attack in client mode, unless necessary for unlagged.
+	if ( NETWORK_InClientModeAndActorNotClientHandled( self )
+		&& !UNLAGGED_DrawRailClientside( self ) )
+	{
+		return;
+	}
 
 	if (aim)
 	{
