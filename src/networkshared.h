@@ -71,9 +71,6 @@
 // [BB] Number of packets that are stored to recover from packet loss.
 #define PACKET_BUFFER_SIZE			2048
 
-// [RC] A security debug feature to catch malicious packets.
-// #define CREATE_PACKET_LOG
-
 //*****************************************************************************
 enum BUFFERTYPE_e
 {

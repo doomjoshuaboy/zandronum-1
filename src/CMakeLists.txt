@@ -1420,6 +1420,12 @@ add_executable( zdoom WIN32
 # change the label, so that it's displayed as 'Zandronum' in an IDE like VC++.
 SET_TARGET_PROPERTIES( zdoom PROPERTIES PROJECT_LABEL Zandronum )
 
+# [BB/RC] Added CREATE_PACKET_LOG
+OPTION( CREATE_PACKET_LOG "A security debug feature to catch malicious packets." OFF )
+IF ( CREATE_PACKET_LOG )
+	ADD_DEFINITIONS( -DCREATE_PACKET_LOG )
+ENDIF ( CREATE_PACKET_LOG )
+
 set_source_files_properties( xlat/parse_xlat.cpp PROPERTIES OBJECT_DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/xlat_parser.c" )
 set_source_files_properties( sc_man.cpp PROPERTIES OBJECT_DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/sc_man_scanner.h" )
 set_source_files_properties( ${NOT_COMPILED_SOURCE_FILES} PROPERTIES HEADER_FILE_ONLY TRUE )
