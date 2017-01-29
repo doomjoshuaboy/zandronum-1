@@ -2144,7 +2144,7 @@ bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick )
 		else if ( name == NAME_Color )
 			pPlayer->userinfo.ColorChanged ( value );
 		else if ( name == NAME_Autoaim )
-			*static_cast<FFloatCVar *>(pPlayer->userinfo[NAME_Autoaim]) = value.ToDouble();
+			*static_cast<FFloatCVar *>(pPlayer->userinfo[NAME_Autoaim]) = static_cast<float> ( value.ToDouble() );
 		else if ( name == NAME_Skin )
 			szSkin = value;
 		else if ( name == NAME_RailColor )
