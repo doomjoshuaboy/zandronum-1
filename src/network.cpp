@@ -87,6 +87,7 @@
 #include "cmdlib.h"
 #include "templates.h"
 #include "p_acs.h"
+#include "d_netinf.h"
 
 #include "md5.h"
 #include "network/sv_auth.h"
@@ -1363,6 +1364,10 @@ void NETWORK_SetState( LONG lState )
 {
 	if ( lState >= NUM_NETSTATES || lState < 0 )
 		return;
+
+	// [BB] A client may have renamed itself while being disconnected in full console mode.
+	if ( ( gamestate == GS_FULLCONSOLE ) && ( lState == NETSTATE_CLIENT ) && ( g_lNetworkState != NETSTATE_CLIENT ) )
+		D_SetupUserInfo();
 
 	g_lNetworkState = lState;
 
