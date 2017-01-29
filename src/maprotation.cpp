@@ -110,12 +110,13 @@ static void MAPROTATION_CalcNextMap( void )
 		}
 
 		// Select a new map.
-		do
+		std::vector<unsigned int> unusedEntries;
+		for ( unsigned int i = 0; i < g_MapRotationEntries.size( ); ++i )
 		{
-			g_ulNextMapInList = M_Random.Random( ) % g_MapRotationEntries.size( );
+			if ( g_MapRotationEntries[i].bUsed == false )
+				unusedEntries.push_back ( i );
 		}
-		while (( g_MapRotationEntries[g_ulNextMapInList].bUsed == true ) ||
-				 ( g_ulNextMapInList == g_ulCurMapInList ));
+		g_ulNextMapInList = unusedEntries[ M_Random ( unusedEntries.size() ) ];
 	}
 	else
 	{
