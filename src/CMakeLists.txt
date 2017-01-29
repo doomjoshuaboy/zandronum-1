@@ -1592,3 +1592,11 @@ source_group("Versioning" FILES version.h win32/zdoom.rc)
 source_group("Win32 Files" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/win32/.+")
 source_group("Xlat" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/xlat/.+" FILES ${CMAKE_CURRENT_BINARY_DIR}/xlat_parser.c ${CMAKE_CURRENT_BINARY_DIR}/xlat_parser.h)
 source_group("Source Files" FILES ${CMAKE_CURRENT_BINARY_DIR}/sc_man_scanner.h sc_man_scanner.re)
+
+# [BB] Zandronum specific source groups
+source_group("Bots" FILES astar.cpp astar.h REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/bot.+")
+source_group("Network\\Client" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/cl_.+")
+source_group("Network\\Misc" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/network.+")
+source_group("Network\\Server" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/sv_.+")
+source_group("Network\\Protocol\\Specs" REGULAR_EXPRESSION "^${CMAKE_SOURCE_DIR}/protocolspec/.+\\.txt$")
+source_group("Network\\Protocol\\Generator" REGULAR_EXPRESSION "^${CMAKE_SOURCE_DIR}/protocolspec/generator/.+")
