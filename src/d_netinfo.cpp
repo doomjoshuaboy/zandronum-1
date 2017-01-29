@@ -824,7 +824,6 @@ void D_UserInfoChanged (FBaseCVar *cvar)
 	UCVarValue val;
 	FString escaped_val;
 	char foo[256];
-	ULONG	ulUpdateFlags;
 
 	// Server doesn't do this.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
