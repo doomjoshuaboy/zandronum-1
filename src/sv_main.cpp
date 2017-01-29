@@ -6958,7 +6958,7 @@ static void	server_LogPacket( BYTESTREAM_s *pByteStream, NETADDRESS_s Address, c
 		itoa( Address.abIP[3], szAddress[3], 10 );
 		std::string reason;
 		reason = "Hacker";
-		g_HackerIPList.addEntry( szAddress[0], szAddress[1], szAddress[2],  szAddress[3], "", pszReason, reason);
+		g_HackerIPList.addEntry( szAddress[0], szAddress[1], szAddress[2],  szAddress[3], "", pszReason, reason, SERVERBAN_ParseBanLength ( "perm" ) );
 	}
 
 	// Write the start of the log entry.
