@@ -657,17 +657,16 @@ static void DoJump(AActor * self, FState * CallingState, FState *jumpto, StateCa
 		if (( clientUpdateFlags & CLIENTUPDATE_FRAME ) &&
 			( NETWORK_GetState( ) == NETSTATE_SERVER ))
 		{
-			// [BB] For some reason calling SERVERCOMMANDS_SetThingFrame normally here causes clients
-			// to crash when exiting from tnt03a1 to tnt03a2. The crash seems to be caused by calling
-			// SetState on the clients. Just calling SetStateNF instead seems to fix the problem. This
-			// is done by the "false" argument.
+			// [BB] The server calls the state function, so must the client. Otherwise
+			// things like SXF_CLIENTSIDE wouldn't work if the corresponding call is 
+			// right where we jump to.
 			if (( clientUpdateFlags & CLIENTUPDATE_SKIPPLAYER ) &&
 				( self->player ))
 			{
-				SERVERCOMMANDS_SetThingFrame( self, jumpto, ULONG( self->player - players ), SVCF_SKIPTHISCLIENT, false );
+				SERVERCOMMANDS_SetThingFrame( self, jumpto, ULONG( self->player - players ), SVCF_SKIPTHISCLIENT );
 			}
 			else
-				SERVERCOMMANDS_SetThingFrame( self, jumpto, MAXPLAYERS, 0, false );
+				SERVERCOMMANDS_SetThingFrame( self, jumpto );
 
 			if ( clientUpdateFlags & CLIENTUPDATE_POSITION )
 				SERVERCOMMANDS_MoveThing( self, CM_X|CM_Y|CM_Z );
