@@ -5083,6 +5083,14 @@ static void client_SetThingFrame( AActor* pActor, const PClass *stateOwner, int 
 	// [BB] The offset is only guaranteed to work if the actor owns the state.
 	if ( stateOwner->ActorInfo->OwnsState( state ))
 	{
+		// [BB] Workaround for actors whose spawn state has NoDelay. Make them execute the
+		// spawn state function before jumping to the new state.
+		if ( (pActor->ObjectFlags & OF_JustSpawned) && pActor->state && pActor->state->GetNoDelay() )
+		{
+			pActor->PostBeginPlay();
+			pActor->Tick();
+		}
+
 		pActor->SetState( state, ( bCallStateFunction == false ));
 	}
 	else
