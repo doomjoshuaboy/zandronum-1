@@ -67,7 +67,8 @@ bool AHolySpirit::Slam (AActor *thing)
 {
 	if (thing->flags&MF_SHOOTABLE && thing != target)
 	{
-		if (( NETWORK_GetState( ) != NETSTATE_SINGLE ) && !deathmatch && thing->player && target->player)
+		// [BB] Added "( target != NULL )" check.
+		if (( NETWORK_GetState( ) != NETSTATE_SINGLE ) && !deathmatch && thing->player && ( target != NULL ) && target->player)
 		{ // don't attack other co-op players
 			return true;
 		}
