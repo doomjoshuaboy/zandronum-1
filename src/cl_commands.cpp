@@ -128,7 +128,11 @@ static void clientcommands_WriteCVarToUserinfo( FName name, FBaseCVar *cvar )
 		return;
 
 	NETWORK_WriteName( &CLIENT_GetLocalBuffer( )->ByteStream, name );
-	NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, cvar->GetGenericRep( CVAR_String ).String );
+	// [BB] Skin needs special treatment, so that the clients can use skins the server doesn't have.
+	if ( name == NAME_Skin )
+		NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, skins[players[consoleplayer].userinfo.GetSkin()].name );
+	else
+		NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, cvar->GetGenericRep( CVAR_String ).String );
 }
 
 //*****************************************************************************
