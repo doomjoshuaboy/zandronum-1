@@ -498,7 +498,11 @@ void SERVERCOMMANDS_SetAllPlayerUserInfo( ULONG ulPlayer, ULONG ulPlayerExtra, S
 	{
 		ServerCommands::CVar cvar;
 		cvar.name = pair->Key;
-		cvar.value = pair->Value->GetGenericRep( CVAR_String ).String;
+		// [BB] Skin needs special treatment, so that the clients can use skins the server doesn't have.
+		if ( pair->Key == NAME_Skin )
+			cvar.value = SERVER_GetClient( ulPlayer )->szSkin;
+		else
+			cvar.value = pair->Value->GetGenericRep( CVAR_String ).String;
 		cvars.Push( cvar );
 	}
 
@@ -526,7 +530,11 @@ void SERVERCOMMANDS_SetPlayerUserInfo( ULONG ulPlayer, const std::set<FName> &na
 		{
 			ServerCommands::CVar element;
 			element.name = name;
-			element.value = cvar->GetGenericRep( CVAR_String ).String;
+			// [BB] Skin needs special treatment, so that the clients can use skins the server doesn't have.
+			if ( name == NAME_Skin )
+				element.value = SERVER_GetClient( ulPlayer )->szSkin;
+			else
+				element.value = cvar->GetGenericRep( CVAR_String ).String;
 			cvars.Push( element );
 		}
 	}
