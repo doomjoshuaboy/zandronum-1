@@ -992,21 +992,6 @@ void NETWORK_AddLumpForAuthentication( const LONG LumpNumber )
 
 //*****************************************************************************
 //
-void NETWORK_GenerateMapLumpMD5Hash( MapData *Map, const LONG LumpNumber, FString &MD5Hash )
-{
-	LONG lLumpSize = Map->Size( LumpNumber );
-	BYTE *pbData = new BYTE[lLumpSize];
-
-	// Dump the data from the lump into our data buffer.
-	Map->Read( LumpNumber, pbData );
-
-	// Perform the checksum on our buffer, and free it.
-	CMD5Checksum::GetMD5( pbData, lLumpSize, MD5Hash );
-	delete[] pbData;
-}
-
-//*****************************************************************************
-//
 void NETWORK_GenerateLumpMD5Hash( const int LumpNum, FString &MD5Hash )
 {
 	const int lumpSize = Wads.LumpLength (LumpNum);
