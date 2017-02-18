@@ -1549,6 +1549,23 @@ add_custom_target( protocolspec ALL
 		--header "network/servercommands.h"
 	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
 
+# [BB]
+if ( WIN32 )
+	option( USE_G15 "Logitech G15 support" OFF )
+	if ( USE_G15 )
+		add_definitions( -DUSE_G15 )
+		find_library( LGLCD_LIBRARY lgLcd )
+		if ( NOT LGLCD_LIBRARY )
+			message( SEND_ERROR "Could not find lgLcd library" )
+		endif ( NOT NO_SOUND )
+		target_link_libraries( zdoom ${LGLCD_LIBRARY} )
+		if ( MSVC )
+			# [BB] My lgLcd library version is not compatible with SAFESEH.
+			set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SAFESEH:NO" )
+		endif ( MSVC )
+	endif ( USE_G15 )
+endif ( WIN32 )
+
 source_group("Assembly Files\\ia32" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/asm_ia32/.+")
 source_group("Assembly Files\\x86_64" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/asm_x86_64/.+")
 source_group("Audio Files" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/sound/.+")

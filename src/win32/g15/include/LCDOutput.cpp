@@ -17,8 +17,6 @@
 #include "lcdwin32.h"
 #include "LCDOutput.h"
 
-#pragma comment(lib, "lgLcd.lib")
-
 // to keep track of clients that use multiple CLCDOutput instances
 // within the same app
 static LONG lInitCount = 0;
