@@ -247,7 +247,6 @@ struct NetworkPWAD
 const TArray<NetworkPWAD>&	NETWORK_GetPWADList( void ); // [RC]
 const char		*NETWORK_GetIWAD( void );
 void			NETWORK_AddLumpForAuthentication( const LONG LumpNumber );
-void			NETWORK_GenerateMapLumpMD5Hash( MapData *Map, const LONG LumpNumber, FString &MD5Hash );
 void			NETWORK_GenerateLumpMD5Hash( const int LumpNum, FString &MD5Hash );
 FString			NETWORK_MapCollectionChecksum( ); // [Dusk]
 void			NETWORK_MakeMapCollectionChecksum( ); // [Dusk]

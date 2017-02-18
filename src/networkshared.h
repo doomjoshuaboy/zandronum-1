@@ -284,6 +284,7 @@ struct NETBUFFER_s
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 
 void			NETWORK_WriteBuffer( BYTESTREAM_s *pByteStream, const void *pvBuffer, int nLength );
+void			NETWORK_ReadBuffer( BYTESTREAM_s *byteStream, void* buffer, size_t length );
 
 void			NETWORK_StartTrafficMeasurement ( );
 int				NETWORK_StopTrafficMeasurement ( );

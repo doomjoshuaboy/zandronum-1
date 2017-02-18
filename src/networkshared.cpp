@@ -362,6 +362,21 @@ int NETWORK_ReadShortByte ( BYTESTREAM_s* byteStream, int bits )
 	}
 }
 
+//*****************************************************************************
+//
+void NETWORK_ReadBuffer( BYTESTREAM_s *byteStream, void *buffer, size_t length )
+{
+	if (( byteStream->pbStream + length ) > byteStream->pbStreamEnd )
+	{
+		Printf( "NETWORK_WriteLBuffer: Overflow!\n" );
+	}
+	else
+	{
+		memcpy( buffer, byteStream->pbStream, length );
+		byteStream->pbStream += length;
+	}
+}
+
 //================================================================================
 // IO write functions
 //================================================================================
