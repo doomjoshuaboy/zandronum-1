@@ -441,7 +441,7 @@ void g15_SetUpModes( void )
 	// Version string.
 	g_hLogo_text = g_LCD->AddText(LG_STATIC_TEXT, LG_MEDIUM, DT_CENTER, 120);
 	g_LCD->SetOrigin(g_hLogo_text, 51, 29);
-	g_LCD->SetText(g_hLogo_text,DOTVERSIONSTR_REV);
+	g_LCD->SetText(g_hLogo_text,GetVersionStringRev());
 
 	//=============================
 	// Set up the in-game HUD mode.

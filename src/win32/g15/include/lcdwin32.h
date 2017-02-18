@@ -13,7 +13,4 @@
 #include <tchar.h>
 #include <assert.h>
 
-// Also include the LCD .lib.
-#pragma comment(lib, "lgLcd.lib")
-
 #endif
