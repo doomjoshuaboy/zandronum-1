@@ -1557,7 +1557,7 @@ if ( WIN32 )
 		find_library( LGLCD_LIBRARY lgLcd )
 		if ( NOT LGLCD_LIBRARY )
 			message( SEND_ERROR "Could not find lgLcd library" )
-		endif ( NOT NO_SOUND )
+		endif ( NOT LGLCD_LIBRARY )
 		target_link_libraries( zdoom ${LGLCD_LIBRARY} )
 		if ( MSVC )
 			# [BB] My lgLcd library version is not compatible with SAFESEH.
