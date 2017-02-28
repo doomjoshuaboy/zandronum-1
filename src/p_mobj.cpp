@@ -6868,6 +6868,10 @@ foundone:
 	{
 		mo = Spawn (splash->SmallSplash, x, y, z, ALLOW_REPLACE);
 		if (mo) mo->floorclip += splash->SmallSplashClip;
+
+		// [BC/BB] Tell clients to spawn the splash.
+		if ( mo && ( NETWORK_GetState( ) == NETSTATE_SERVER ) )
+			SERVERCOMMANDS_SpawnThing( mo );
 	}
 	else
 	{
@@ -6884,10 +6888,21 @@ foundone:
 				mo->vely = pr_chunk.Random2() << splash->ChunkYVelShift;
 			}
 			mo->velz = splash->ChunkBaseZVel + (pr_chunk() << splash->ChunkZVelShift);
+
+			// [BC/BB] Tell clients to spawn the splash.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			{
+				SERVERCOMMANDS_SpawnThing( mo );
+				SERVERCOMMANDS_MoveThing( mo, CM_VELX|CM_VELY|CM_VELZ );
+			}
 		}
 		if (splash->SplashBase)
 		{
 			mo = Spawn (splash->SplashBase, x, y, z, ALLOW_REPLACE);
+
+			// [BC/BB] Tell clients to spawn the splash.
+			if ( mo && ( NETWORK_GetState( ) == NETSTATE_SERVER ) )
+				SERVERCOMMANDS_SpawnThing( mo );
 		}
 		if (thing->player && !splash->NoAlert && alert)
 		{
@@ -6896,12 +6911,6 @@ foundone:
 	}
 	if (mo)
 	{
-		// [BC] Tell clients to spawn the splash.
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		{
-			SERVERCOMMANDS_SpawnThing( mo );
-		}
-
 		S_Sound (mo, CHAN_ITEM, smallsplash ?
 			splash->SmallSplashSound : splash->NormalSplashSound,
 			1, ATTN_IDLE, true );	// [BC] Inform the clients.
