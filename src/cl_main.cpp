@@ -3251,10 +3251,22 @@ void ServerCommands::SpawnPlayer::Execute()
 		if ( pOldActor->CheckLocalView( consoleplayer ))
 			bWasWatchingPlayer = true;
 
-		// [BB] This will eventually free the player's body's network ID.
-		G_QueueBody (pOldActor);
-		pOldActor->player = NULL;
-		pOldActor->id = -1;
+		if (( priorState == PST_REBORN ) ||
+			( priorState == PST_REBORNNOINVENTORY ) ||
+			( priorState == PST_ENTER ) ||
+			( priorState == PST_ENTERNOINVENTORY ) || isDeadSpectator)
+		{
+			// [BB] This will eventually free the player's body's network ID.
+			G_QueueBody (pOldActor);
+			pOldActor->player = NULL;
+			pOldActor->id = -1;
+		}
+		else
+		{
+			pOldActor->Destroy( );
+			pOldActor->player = NULL;
+			pOldActor = NULL;
+		}
 	}
 
 	// [BB] We may not filter coop inventory if the player changed the player class.
