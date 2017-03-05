@@ -5260,7 +5260,7 @@ bool ClientMoveCommand::process( const ULONG ulClient ) const
 			if (SERVER_GetClient(ulClient)->State == CLS_SPAWNED) {
 				pPlayer->mo->pitch = moveCmd.pitch;
 				// [HYP] Lock angle if speed is above sr40
-				if (pCmd->ucmd.sidemove > ( sidemove[1] << 8 ) || pCmd->ucmd.sidemove < -(sidemove[1] << 8))
+				if ( !sv_cheats && ( pCmd->ucmd.sidemove > ( sidemove[1] << 8 ) || pCmd->ucmd.sidemove < -(sidemove[1] << 8) ) )
 				{
 					pCmd->ucmd.yaw = 0;
 				}
