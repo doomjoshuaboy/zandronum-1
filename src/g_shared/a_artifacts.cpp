@@ -1310,6 +1310,19 @@ void APowerSpeed::DoEffect ()
 		speedMo->scaleX = Owner->scaleX;
 		speedMo->scaleY = Owner->scaleY;
 
+		// [BB] If the owner is a player, we also have to take into account the scaling of the skin.
+		if ( Owner->player )
+		{
+			const int skinidx = Owner->player->userinfo.GetSkin();
+
+			if (0 != skinidx && !(Owner->flags4 & MF4_NOSKIN))
+			{
+				// Apply skin's scale to actor's scale, it will be lost otherwise
+				speedMo->scaleX = Scale(Owner->scaleX, skins[skinidx].ScaleX, Owner->scaleX);
+				speedMo->scaleY = Scale(Owner->scaleY, skins[skinidx].ScaleY, Owner->scaleY);
+			}
+		}
+
 		if (Owner == players[consoleplayer].camera &&
 			!(Owner->player->cheats & CF_CHASECAM))
 		{
