@@ -734,6 +734,11 @@ void P_DrawRailTrail (AActor *source, const FVector3 &start, const FVector3 &end
 			// The railgun's sound is special. It gets played from the
 			// point on the slug's trail that is closest to the hearing player.
 			AActor *mo = players[consoleplayer].camera;
+
+			// [BB] The camera can be NULL on the client, so provide a fall back.
+			if ( mo == NULL )
+				mo = source;
+
 			FVector3 point;
 			double r;
 			float dirz;
