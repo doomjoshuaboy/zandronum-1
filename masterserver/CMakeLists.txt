@@ -2,6 +2,7 @@ project( Masterserver )
 cmake_minimum_required( VERSION 2.4 )
 
 include( CheckFunctionExists )
+include( CheckCXXCompilerFlag )
 
 # Use the highest C++ standard available since VS2015 compiles with C++14
 # but we only require C++11.  The recommended way to do this in CMake is to
