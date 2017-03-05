@@ -2228,6 +2228,13 @@ static FString ParseGameInfo(TArray<FString> &pwads, const char *fn, const char 
 				{
 					checkpath = sc.String;
 				}
+
+				// [BB] The server informs the launcher about all pwads loaded here,
+				// so the client simply ignores the auto loading and relies on the 
+				// information from the launcher instead.
+				if ( Args->CheckParm ( "-connect" ) )
+					continue;
+
 				if (!FileExists(checkpath))
 				{
 					pos += D_AddFile(pwads, sc.String, true, pos);
