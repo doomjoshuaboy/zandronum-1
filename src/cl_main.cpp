@@ -2428,6 +2428,11 @@ AActor *CLIENT_SpawnThing( const PClass *pType, fixed_t X, fixed_t Y, fixed_t Z,
 	pActor = AActor::StaticSpawn( pType, X, Y, Z, NO_REPLACE, levelThing );
 	if ( pActor )
 	{
+		// [BB] Calling StaticSpawn with "levelThing == true" will prevent
+		// BeginPlay from being called on pActor, so we have to do this manually.
+		if ( levelThing )
+			pActor->BeginPlay ();
+
 		pActor->lNetID = lNetID;
 		g_NetIDList.useID ( lNetID, pActor );
 
