@@ -1795,7 +1795,7 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 	FString			clientVersion;
 	FString			clientPassword;
 	char			szServerPassword[MAX_NETWORK_STRING];
-	LONG			lClientNetworkGameVersion;
+	unsigned int	clientNetworkGameVersion;
 	char			szAddress[4][4];
 	ULONG			ulIdx;
 	NETADDRESS_s	AddressFrom;
@@ -1888,7 +1888,7 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 	g_aClients[lClient].WantHideAccount = !!NETWORK_ReadByte( pByteStream );
 
 	// Read in the client's network game version.
-	lClientNetworkGameVersion = NETWORK_ReadByte( pByteStream );
+	clientNetworkGameVersion = NETWORK_ReadByte( pByteStream );
 
 	g_aClients[lClient].SavedPackets.Clear();
 	g_aClients[lClient].PacketBuffer.Clear();
@@ -1914,7 +1914,7 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 	}
 
 	// Make sure the network game version matches.
-	if ( NETGAMEVERSION != lClientNetworkGameVersion )
+	if ( NETGAMEVERSION != clientNetworkGameVersion )
 	{
 		SERVER_ClientError( lClient, NETWORK_ERRORCODE_WRONGPROTOCOLVERSION );
 #ifdef CREATE_PACKET_LOG
