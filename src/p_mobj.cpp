@@ -6621,6 +6621,15 @@ void P_BloodSplatter (fixed_t x, fixed_t y, fixed_t z, AActor *originator)
 		mo->vely = pr_splatter.Random2 () << 10;
 		mo->velz = 3*FRACUNIT;
 
+		// [BB] This is not fully synced, but handled with SERVERCOMMANDS_SpawnBloodSplatter.
+		// In order to prevent the server from printing warnings when the server calls P_ExplodeMissile,
+		// we also mark this as SERVERSIDEONLY.
+		if ( NETWORK_GetState () == NETSTATE_SERVER )
+		{
+			mo->ulNetworkFlags |= NETFL_SERVERSIDEONLY;
+			mo->FreeNetID ();
+		}
+
 		// colorize the blood!
 		if (bloodcolor!=0 && !(mo->flags2 & MF2_DONTTRANSLATE)) 
 		{
