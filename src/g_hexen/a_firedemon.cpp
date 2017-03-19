@@ -61,6 +61,15 @@ void A_FiredSpawnRock (AActor *actor)
 	mo = Spawn (rtype, x, y, z, ALLOW_REPLACE);
 	if (mo)
 	{
+		// [BB] Clients spawn these on their own. In order to prevent the 
+		// server from printing warnings when the server calls P_ExplodeMissile,
+		// we also mark this as SERVERSIDEONLY.
+		if ( NETWORK_GetState () == NETSTATE_SERVER )
+		{
+			mo->ulNetworkFlags |= NETFL_SERVERSIDEONLY;
+			mo->FreeNetID ();
+		}
+
 		mo->target = actor;
 		mo->velx = (pr_firedemonrock() - 128) <<10;
 		mo->vely = (pr_firedemonrock() - 128) <<10;
@@ -266,6 +275,15 @@ DEFINE_ACTION_FUNCTION(AActor, A_FiredSplotch)
 	mo = Spawn ("FireDemonSplotch1", self->x, self->y, self->z, ALLOW_REPLACE);
 	if (mo)
 	{
+		// [BB] Clients spawn these on their own. In order to prevent the 
+		// server from printing warnings when the server calls P_ExplodeMissile,
+		// we also mark this as SERVERSIDEONLY.
+		if ( NETWORK_GetState () == NETSTATE_SERVER )
+		{
+			mo->ulNetworkFlags |= NETFL_SERVERSIDEONLY;
+			mo->FreeNetID ();
+		}
+
 		mo->velx = (pr_firedemonsplotch() - 128) << 11;
 		mo->vely = (pr_firedemonsplotch() - 128) << 11;
 		mo->velz = (pr_firedemonsplotch() << 10) + FRACUNIT*3;
@@ -273,6 +291,15 @@ DEFINE_ACTION_FUNCTION(AActor, A_FiredSplotch)
 	mo = Spawn ("FireDemonSplotch2", self->x, self->y, self->z, ALLOW_REPLACE);
 	if (mo)
 	{
+		// [BB] Clients spawn these on their own. In order to prevent the 
+		// server from printing warnings when the server calls P_ExplodeMissile,
+		// we also mark this as SERVERSIDEONLY.
+		if ( NETWORK_GetState () == NETSTATE_SERVER )
+		{
+			mo->ulNetworkFlags |= NETFL_SERVERSIDEONLY;
+			mo->FreeNetID ();
+		}
+
 		mo->velx = (pr_firedemonsplotch() - 128) << 11;
 		mo->vely = (pr_firedemonsplotch() - 128) << 11;
 		mo->velz = (pr_firedemonsplotch() << 10) + FRACUNIT*3;
