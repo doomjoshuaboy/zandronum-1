@@ -3436,14 +3436,6 @@ void SERVERCOMMANDS_GiveWeaponHolder( ULONG ulPlayer, AWeaponHolder *pHolder, UL
 //
 void SERVERCOMMANDS_DoInventoryPickup( ULONG ulPlayer, const char *pszClassName, const char *pszPickupMessage, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
-	LONG	lLength;
-
-	lLength = 0;
-	if ( pszClassName )
-		lLength += (LONG)strlen( pszClassName );
-	if ( pszPickupMessage )
-		lLength += (LONG)strlen( pszPickupMessage );
-
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
