@@ -3174,10 +3174,10 @@ void P_LoadBlockMap (MapData * map)
 	blockmap = blockmaplump+4;
 
 	// [BC] Also, build the node list for the bot pathing module.
-	// [K6] For the server, this is handled in CSkullBot(), unless we already have bots in game (from the previous map).
+	// [K6/BB] This is handled in CSkullBot(), unless we already have bots in game (from the previous map).
 	if (( NETWORK_InClientMode() == false ) &&
 		(( level.flagsZA & LEVEL_ZA_NOBOTNODES ) == false ) &&
-		(( NETWORK_GetState( ) != NETSTATE_SERVER ) || ( BOTS_CountBots( ) > 0 )))
+		( BOTS_CountBots( ) > 0 ))
 	{
 		ASTAR_BuildNodes( );
 	}
