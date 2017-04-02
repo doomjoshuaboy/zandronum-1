@@ -660,6 +660,10 @@ void BOTS_RemoveBot( ULONG ulPlayerIdx, bool bExitMsg )
 
 	// Refresh the HUD since the number of players in the game is potentially changing.
 	SCOREBOARD_RefreshHUD( );
+
+	// [K6] If there are no more bots left, clear the bot nodes.
+	if ( BOTS_CountBots( ) == 0 && ASTAR_IsInitialized( ) )
+		ASTAR_ClearNodes( );
 }
 
 //*****************************************************************************
@@ -1573,6 +1577,10 @@ CSkullBot::CSkullBot( char *pszName, char *pszTeamName, ULONG ulPlayerNum )
 	ULONG	ulIdx;
 
 	g_bBotIsInitialized[ulPlayerNum] = false;
+
+	// [BB/K6] Make sure that the bot nodes are initialized.
+	if ( ASTAR_IsInitialized( ) == false )
+		ASTAR_BuildNodes( );
 
 	// First, initialize all variables.
 	m_posTarget.x = 0;
@@ -3781,15 +3789,9 @@ CCMD( addbot )
 		return;
 	}
 
-	if ( ASTAR_IsInitialized( ) == false )
+	if ( level.flagsZA & LEVEL_ZA_NOBOTNODES )
 	{
-		if ( sv_disallowbots )
-			Printf( "The bot pathing nodes have not been set up. Please set \"sv_disallowbots\" to \"false\" if you wish to use bots.\n" );
-		else if ( level.flagsZA & LEVEL_ZA_NOBOTNODES )
-			Printf( "The bot pathing nodes have not been set up. This level has disabled the ability to do so.\n" );
-		else
-			Printf( "The bot pathing nodes have not been set up. Please reload the level if you wish to use bots.\n" );
-
+		Printf( "The bot pathing nodes have not been set up. This level has disabled the ability to do so.\n" );
 		// Don't allow the bot to spawn.
 		return;
 	}
