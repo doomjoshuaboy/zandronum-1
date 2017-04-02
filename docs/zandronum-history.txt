@@ -141,7 +141,7 @@
 !	- Dead spectators will now preserve inventory so that they can be respawned with it. [Zalewa]
 !	- When alive players complete the map in survival, dead spectators will recover their inventory on the next map in accordance to SV_COOP_LOSE* flags [Zalewa]
 +	- The 'authhostname' DNS lookup is not done during startup anymore, but only if the IP address is needed. [Torr Samaho]
-!	- The memory required for the bot nodes is now dynamically allocated when the first bot is added and freed when the last bot is removed. Thus, the CVAR sv_disallowbots is obsolete and was removed (adapted form Konar6's kpatch). [Torr Samaho]
+!	- The memory required for the bot nodes is now dynamically allocated when the first bot is added and freed when the last bot is removed. Thus, the CVAR sv_disallowbots is obsolete and was removed (adapted form Konar6's kpatch). This also fixes that offline, the memory required for the bot nodes was always allocated. [Torr Samaho]
 
 
 2.2
