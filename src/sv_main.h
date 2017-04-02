@@ -518,7 +518,6 @@ EXTERN_CVAR( Int, sv_maxpacketsize );
 EXTERN_CVAR( Bool, sv_timestamp );
 EXTERN_CVAR( Int, sv_timestampformat );
 EXTERN_CVAR( Int, sv_colorstripmethod );
-EXTERN_CVAR( Bool, sv_disallowbots );
 EXTERN_CVAR( Bool, sv_minimizetosystray )
 EXTERN_CVAR( Int, sv_queryignoretime )
 EXTERN_CVAR( Bool, sv_forcelogintojoin )
