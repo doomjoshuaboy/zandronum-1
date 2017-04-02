@@ -4912,6 +4912,9 @@ enum EACSFunctions
 	-106 : KickFromGame(2),
 	*/
 
+	// [BB] Out of order ZDoom backport.
+	ACSF_GetActorFloorTexture = 204,
+
 	// [BB] Skulltag functions
 	ACSF_ResetMap = 100,
 	ACSF_PlayerIsSpectator,
@@ -6575,6 +6578,20 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 
 				return ACS_PushAndReturnDynamicString( buffer, stack, stackdepth );
 			}
+
+		case ACSF_GetActorFloorTexture:
+		{
+			auto a = SingleActorFromTID(args[0], activator);
+			if (a != nullptr)
+			{
+				return GlobalACSStrings.AddString(TexMan[a->floorpic]->Name, stack, stackdepth);
+			}
+			else
+			{
+				return GlobalACSStrings.AddString("", stack, stackdepth);
+			}
+			break;
+		}
 
 		default:
 			break;
