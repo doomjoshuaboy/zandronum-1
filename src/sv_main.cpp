@@ -2795,16 +2795,20 @@ void SERVER_WriteCommands( void )
 		}
 
 		// See if any players need to be updated to clients.
-		for ( ULONG ulPlayer = 0; ulPlayer < MAXPLAYERS; ulPlayer++ )
+		// [BB] Only necessary if we are in a level.
+		if ( gamestate == GS_LEVEL )
 		{
-			if ( ( playeringame[ulPlayer] == false ) || players[ulPlayer].bSpectating )
-				continue;
+			for ( ULONG ulPlayer = 0; ulPlayer < MAXPLAYERS; ulPlayer++ )
+			{
+				if ( ( playeringame[ulPlayer] == false ) || players[ulPlayer].bSpectating )
+					continue;
 
-			// [BB] The consoleplayer on a client has to be moved differently.
-			if ( ulPlayer == ulIdx )
-				continue;
+				// [BB] The consoleplayer on a client has to be moved differently.
+				if ( ulPlayer == ulIdx )
+					continue;
 
-			SERVERCOMMANDS_MovePlayer( ulPlayer, ulIdx, SVCF_ONLYTHISCLIENT );
+				SERVERCOMMANDS_MovePlayer( ulPlayer, ulIdx, SVCF_ONLYTHISCLIENT );
+			}
 		}
 
 		// Spectators can move around freely, without us telling it what to do (lag-less).
