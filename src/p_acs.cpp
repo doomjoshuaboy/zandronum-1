@@ -4924,6 +4924,9 @@ enum EACSFunctions
 	ACSF_IsPointerEqual,
 	ACSF_CanRaiseActor,
 
+	// [BB] Out of order ZDoom backport.
+	ACSF_Warp = 92,
+
 	/* Zandronum's - these must be skipped when we reach 99!
 	-100:ResetMap(0),
 	-101 : PlayerIsSpectator(1),
@@ -4933,9 +4936,6 @@ enum EACSFunctions
 	-105 : SetPlayerLivesLeft(2),
 	-106 : KickFromGame(2),
 	*/
-	
-	// GLOOME
-	ACSF_Warp = 11201,
 
 	// [BB] Out of order ZDoom backport.
 	ACSF_GetActorFloorTexture = 204,
@@ -6448,6 +6448,10 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 				{
 					activator->SetState(state);
 				}
+
+				// [BB] Inform the clients.
+				if ( NETWORK_GetState() == NETSTATE_SERVER )
+					SERVERCOMMANDS_MoveThing( caller, CM_X|CM_Y|CM_Z|CM_ANGLE );
 
 				return true;
 			}
