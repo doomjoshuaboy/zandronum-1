@@ -47,6 +47,8 @@
 
 #include "za_database.h"
 #include "i_system.h"
+#include "g_game.h"
+#include "p_acs.h"
 #include <sqlite3.h>
 
 //*****************************************************************************
@@ -584,10 +586,18 @@ CCMD ( dumpdb )
 
 CCMD ( db_enable_wal )
 {
+	// [BB] This function may not be used by ConsoleCommand.
+	if ( ACS_IsCalledFromConsoleCommand( ))
+		return;
+
 	DATABASE_EnableWAL();
 }
 
 CCMD ( db_disable_wal )
 {
+	// [BB] This function may not be used by ConsoleCommand.
+	if ( ACS_IsCalledFromConsoleCommand( ))
+		return;
+
 	DATABASE_DisableWAL();
 }
