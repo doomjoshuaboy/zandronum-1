@@ -656,7 +656,12 @@ void SERVER_Tick( void )
 
 		// [BB] Send out sheduled packets, respecting sv_maxpacketspertick.
 		for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+		{
+			if ( SERVER_IsValidClient( ulIdx ) == false )
+				continue;
+
 			SERVER_GetClient ( ulIdx )->SavedPackets.Tick ( );
+		}
 
 		// Potentially send an update to the master server.
 		SERVER_MASTER_Tick( );
