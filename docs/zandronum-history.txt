@@ -41,6 +41,7 @@
 +	- Added support to clientside ACS_ExecuteWithResult with four arguments. [Edward-san]
 +	- Added sv_survival_nomapresetondeath Zandronum dmflag to modify survival game mode where the map will not be reset on all players death - the players will be able to continue with fresh amount of lives. Dead players will carry over their inventory in accordance to "keep inventory" flags. [Zalewa]
 +	- Backported ZDoom's ACS function GetActorFloorTexture. [Torr Samaho]
++	- The SQLite3 database can now be used in WAL mode. This mode is enabled / disabled with the new CCMDs 'db_enable_wal' / 'db_disable_wal'. [Torr Samaho]
 -	- Fixed: Newly connecting clients were not properly informed about the secrets that were already revealed. [Torr Samaho]
 -	- Fixed: Resurrect cheat didn't work online. [Dusk]
 -	- Fixed: Turbo cheat didn't work online. [Dusk]
