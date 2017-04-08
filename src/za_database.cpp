@@ -334,6 +334,26 @@ void DATABASE_DumpTable ( )
 
 //*****************************************************************************
 //
+void DATABASE_EnableWAL ( )
+{
+	if ( DATABASE_IsAvailable ( "DATABASE_EnableWAL" ) == false )
+		return;
+
+	database_ExecuteCommand ( "PRAGMA journal_mode=WAL" );
+}
+
+//*****************************************************************************
+//
+void DATABASE_DisableWAL ( )
+{
+	if ( DATABASE_IsAvailable ( "DATABASE_DisableWAL" ) == false )
+		return;
+
+	database_ExecuteCommand ( "PRAGMA journal_mode=DELETE" );
+}
+
+//*****************************************************************************
+//
 void DATABASE_DumpNamespace ( const char *Namespace )
 {
 	if ( DATABASE_IsAvailable ( "DATABASE_DumpNamespace" ) == false )
@@ -560,4 +580,14 @@ int DATABASE_GetEntries ( const char *Namespace, TArray<std::pair<FString, FStri
 CCMD ( dumpdb )
 {
 	DATABASE_DumpTable();
+}
+
+CCMD ( db_enable_wal )
+{
+	DATABASE_EnableWAL();
+}
+
+CCMD ( db_disable_wal )
+{
+	DATABASE_DisableWAL();
 }
