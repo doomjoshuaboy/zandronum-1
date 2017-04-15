@@ -4966,6 +4966,7 @@ enum EACSFunctions
 	ACSF_SystemTime,
 	ACSF_GetTimeProperty,
 	ACSF_Strftime,
+	ACSF_SetDeadSpectator,
 
 	// ZDaemon
 	ACSF_GetTeamScore = 19620,	// (int team)
@@ -6766,6 +6767,56 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 					buffer[0] = '\0'; // Zero the result if strftime fails
 
 				return ACS_PushAndReturnDynamicString( buffer, stack, stackdepth );
+			}
+
+		case ACSF_SetDeadSpectator:
+			{
+				const ULONG ulPlayer = static_cast<ULONG> ( args[0] );
+				const bool bDeadSpectator = !!args[1];
+
+				// [BB] Clients are not allowed to change the status of players.
+				if ( NETWORK_InClientMode() )
+					return 0;
+
+				// [BB] Only available in game modes that support dead spectators.
+				if ( ( GAMEMODE_GetCurrentFlags() & GMF_DEADSPECTATORS ) == false )
+					return 0;
+
+				if ( PLAYER_IsValidPlayer ( ulPlayer ) == false )
+					return 0;
+
+				// [BB] Mods are not allowed to force spectators to join the game.
+				if ( PLAYER_IsTrueSpectator ( &players[ulPlayer] ) )
+					return 0;
+
+				if ( bDeadSpectator )
+				{
+					// [BB] Already a dead spectator.
+					if ( players[ulPlayer].bDeadSpectator )
+						return 0;
+
+					// [BB] Turn this player into a dead spectator.
+					PLAYER_SetSpectator( &players[ulPlayer], false, true );
+
+					// [BB] Inform the clients.
+					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+						SERVERCOMMANDS_PlayerIsSpectator( ulPlayer );
+				}
+				else
+				{
+					// [BB] Not a dead spectator.
+					if ( players[ulPlayer].bDeadSpectator == false )
+						return 0;
+
+					// [BB] Revive the player.
+					players[ulPlayer].bSpectating = false;
+					players[ulPlayer].bDeadSpectator = false;
+					if ( GAMEMODE_GetCurrentFlags() & GMF_USEMAXLIVES )
+						PLAYER_SetLivesLeft ( &players[ulPlayer], GAMEMODE_GetMaxLives() - 1 );
+					players[ulPlayer].playerstate = PST_REBORN;
+					GAMEMODE_SpawnPlayer( ulPlayer );
+				}
+				return 1;
 			}
 
 		case ACSF_GetActorFloorTexture:
