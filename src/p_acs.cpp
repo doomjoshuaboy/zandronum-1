@@ -5160,6 +5160,11 @@ static int GetCVar(AActor *activator, const char *cvarname, bool is_string, cons
 		{
 			if (activator == NULL || activator->player == NULL)
 			{
+				// [BB] Compatibility with Zandronum 2.x: In CLIENTSIDE scripts,
+				// return the value belonging to the consoleplayer
+				if ( NETWORK_InClientMode() ) 
+					return GetUserCVar(consoleplayer, cvarname, is_string, stack, stackdepth);
+
 				return 0;
 			}
 			return GetUserCVar(int(activator->player - players), cvarname, is_string, stack, stackdepth);
