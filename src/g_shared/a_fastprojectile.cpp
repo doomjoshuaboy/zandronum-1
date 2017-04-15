@@ -172,8 +172,8 @@ void AFastProjectile::Effect()
 			hitz += GetClass()->Meta.GetMetaFixed (ACMETA_MissileHeight);
 		
 			const PClass *trail = PClass::FindClass(name);
-			// [BB] Check whether to spawn.
-			if ( (trail != NULL) && ( NETWORK_ShouldActorNotBeSpawned ( this, trail ) == false ) )
+			// [BB] Check whether to spawn, but have the client always spawn it.
+			if ( (trail != NULL) && ( NETWORK_ShouldActorNotBeSpawned ( this, trail, NETWORK_InClientMode() ) == false ) )
 			{
 				AActor *act = Spawn (trail, x, y, hitz, ALLOW_REPLACE);
 				if (act != NULL)
@@ -184,6 +184,13 @@ void AFastProjectile::Effect()
 					// client spawn it on its own.
 					if ( NETWORK_InClientMode() )
 						act->ulNetworkFlags |= NETFL_CLIENTSIDEONLY;
+					// [BB] Since clients spawn these on their own, prevent the 
+					// server from printing warnings by marking this as SERVERSIDEONLY.
+					else if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					{
+						act->ulNetworkFlags |= NETFL_SERVERSIDEONLY;
+						act->FreeNetID ();
+					}
 				}
 			}
 		}
