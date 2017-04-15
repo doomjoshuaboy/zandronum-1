@@ -2292,11 +2292,6 @@ static bool InitSpawnedItem(AActor *self, AActor *mo, int flags)
 		{
 			// The monster is blocked so don't spawn it at all!
 			mo->ClearCounters();
-				if (mo->CountsAsKill())
-				{
-					// [BB] The monster didn't spawn at all, so we need to correct the number of monsters in invasion mode.
-					INVASION_UpdateMonsterCount( mo, true );
-				}
 			mo->Destroy();
 			return false;
 		}
