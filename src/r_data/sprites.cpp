@@ -1246,7 +1246,7 @@ void R_InitSprites ()
 			const fixed_t oldScaleY = skin.ScaleY;
 			skin.ScaleY = maxAllowedHeight / maxheight;
 			// [BB] Preserve the aspect ration of the sprites.
-			skin.ScaleX *= FIXED2FLOAT( skin.ScaleY ) / FIXED2FLOAT( oldScaleY );
+			skin.ScaleX = static_cast<fixed_t> ( skin.ScaleX * ( FIXED2FLOAT( skin.ScaleY ) / FIXED2FLOAT( oldScaleY ) ) );
 		}
 
 		if ( maxwidth * skin.ScaleX > maxAllowedWidth + FRACUNIT )
@@ -1260,7 +1260,7 @@ void R_InitSprites ()
 			const fixed_t oldScaleX = skin.ScaleX;
 			skin.ScaleX = maxAllowedWidth / maxwidth;
 			// [BB] Preserve the aspect ration of the sprites.
-			skin.ScaleY *= FIXED2FLOAT( skin.ScaleX ) / FIXED2FLOAT( oldScaleX );
+			skin.ScaleY = static_cast<fixed_t> ( skin.ScaleY * ( FIXED2FLOAT( skin.ScaleX ) / FIXED2FLOAT( oldScaleX ) ) );
 		}
 
 		// [BB] Don't allow the base skin sprites of the player classes to exceed the limits.
