@@ -511,23 +511,6 @@ void P_RemoveThing(AActor * actor)
 
 		// be friendly to the level statistics. ;)
 		actor->ClearCounters();
-		// [BB] Added client update.
-		if (actor->CountsAsKill() && actor->health > 0)
-		{
-			// [BB] Since a monster was removed, we also need to correct the number of monsters in invasion mode.
-			INVASION_UpdateMonsterCount( actor, true );
-
-			// [BB] Inform the clients.
-			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SetMapNumTotalMonsters( );
-		}
-		// [BB] Added client update.
-		if (actor->flags&MF_COUNTITEM)
-		{
-			// [BB] Inform the clients.
-			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SetMapNumTotalItems( );
-		}
 
 		// [BB] Only destroy the actor if it's not needed for a map reset. Otherwise just hide it.
 		actor->HideOrDestroyIfSafe ();

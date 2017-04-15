@@ -7921,12 +7921,25 @@ void AActor::ClearCounters()
 	if (CountsAsKill() && health > 0)
 	{
 		level.total_monsters--;
+
+		// [BB] Since a monster was removed, we also need to correct the number of monsters in invasion mode.
+		INVASION_UpdateMonsterCount( this, true );
+
+		// [BB] Inform the clients.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetMapNumTotalMonsters( );
+
 		flags &= ~MF_COUNTKILL;
 	}
 	// Same, for items
 	if (flags & MF_COUNTITEM)
 	{
 		level.total_items--;
+
+		// [BB] Inform the clients.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetMapNumTotalItems( );
+
 		flags &= ~MF_COUNTITEM;
 	}
 	// And finally for secrets

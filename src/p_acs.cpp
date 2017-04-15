@@ -3794,11 +3794,6 @@ int DLevelScript::DoSpawn (int type, fixed_t x, fixed_t y, fixed_t z, int tid, i
 				// If this is a monster, subtract it from the total monster
 				// count, because it already added to it during spawning.
 				actor->ClearCounters();
-
-				// [BB] The monster didn't spawn at all, so we need to correct the number of monsters in invasion mode.
-				if (actor->CountsAsKill())
-					INVASION_UpdateMonsterCount( actor, true );
-
 				actor->Destroy ();
 				actor = NULL;
 			}
