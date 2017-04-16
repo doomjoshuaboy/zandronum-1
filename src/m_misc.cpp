@@ -422,6 +422,10 @@ void M_SaveDefaultsFinal ()
 
 CCMD (writeini)
 {
+	// [BB] This function may not be used by ConsoleCommand.
+	if ( ACS_IsCalledFromConsoleCommand( ))
+		return;
+
 	const char *filename = (argv.argc() == 1) ? NULL : argv[1];
 	if (!M_SaveDefaults (filename))
 	{
