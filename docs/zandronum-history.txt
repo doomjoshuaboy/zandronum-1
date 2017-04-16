@@ -111,7 +111,7 @@
 -	- Fixed: GetScreenWidth and GetScreenHeight ACS functions did not work online. [Dusk]
 -	- Fixed: the DamageFactor calculation was executed twice for armors. [Edward-san]
 -	- Fixed: body of the player who loses all lives no longer disappears into thin air. [Zalewa]
--	- Fixed a certain number of server CVARs which weren't protected against the ConsoleCommand. [Edward-san]
+-	- Fixed a certain number of commands and server CVARs which weren't protected against the ConsoleCommand. [Edward-san, Torr Samaho]
 -	- Fixed: the server could crash if a morph powerup is taken away when the morphed player exhausts the ammo. [Edward-san]
 -	- Fixed crash with voodoo dolls and PowerIronFeet. [Edward-san]
 -	- Fixed: Under rare circumstances, the server could freeze when selecting a random map from the map rotation. [Torr Samaho]
