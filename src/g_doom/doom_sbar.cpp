@@ -1060,11 +1060,8 @@ void DrawFullHUD_GameInformation()
 
 		// [BC] Draw rune.
 		{
-			pRune = CPlayer->mo->Inventory;
-			while (( pRune ) && ( pRune->GetClass( )->IsDescendantOf( PClass::FindClass( "Rune" )) == false ))
-				pRune = pRune->Inventory;
-
-			if ( pRune )
+			pRune = CPlayer->mo->Rune;
+			if ( pRune && pRune->Icon.isValid() )
 			{
 				screen->DrawTexture( TexMan( pRune->Icon ), -76, -2,
 					DTA_HUDRules, HUD_Normal,
