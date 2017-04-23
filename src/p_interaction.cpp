@@ -2582,17 +2582,11 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 		// old body.
 		if ( bDeadSpectator )
 		{
-			// Save the player's old body and inventory, and respawn him or her.
-			APlayerPawn *inventoryPreserver = new APlayerPawn();
+			// Save the player's old body, and respawn him or her.
 			pOldBody = pPlayer->mo;
-			inventoryPreserver->ClearInventory( );
-			inventoryPreserver->ObtainInventory( pOldBody );
-			G_DoReborn( pPlayer - players, false );
-			if ( pPlayer->mo )
-			{
-				pPlayer->mo->ObtainInventory( inventoryPreserver );
-			}
-			inventoryPreserver->Destroy( );
+			// [BB] This also transfers the inventory from the old to the new body.
+			players[pPlayer - players].playerstate = PST_REBORN;
+			GAMEMODE_SpawnPlayer( pPlayer - players );
 
 			// Set the player's new body to the position of his or her old body.
 			if (( pPlayer->mo ) &&

@@ -88,6 +88,7 @@
 #include "network/nettraffic.h"
 #include "za_database.h"
 #include "cl_commands.h"
+#include "cl_main.h"
 
 #include "g_shared/a_pickups.h"
 
@@ -6800,7 +6801,11 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 
 					// [BB] If still alive, kill the player before turning him into a dead spectator.
 					if ( players[ulPlayer].mo && players[ulPlayer].mo->health > 0 )
+					{
 						P_DamageMobj(players[ulPlayer].mo, NULL, NULL, TELEFRAG_DAMAGE, NAME_Telefrag, DMG_THRUSTLESS);
+						// [BB] The name prefix is misleading, this function is not client specific.
+						CLIENT_SetActorToLastDeathStateFrame ( players[ulPlayer].mo );
+					}
 
 					// [BB] Turn this player into a dead spectator.
 					PLAYER_SetSpectator( &players[ulPlayer], false, true );

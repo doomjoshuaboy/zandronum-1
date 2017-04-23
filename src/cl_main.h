@@ -176,6 +176,7 @@ LONG				CLIENT_AdjustCeilingDirection( LONG lDirection );
 LONG				CLIENT_AdjustElevatorDirection( LONG lDirection );
 void				CLIENT_LogHUDMessage( const char *pszString, LONG lColor );
 void				CLIENT_UpdatePendingWeapon( const player_t *pPlayer );
+void				CLIENT_SetActorToLastDeathStateFrame ( AActor *pActor );
 void				CLIENT_ClearAllPlayers( void );
 void				CLIENT_LimitProtectedCVARs( void );
 bool				CLIENT_CanClipMovement( AActor *pActor );
