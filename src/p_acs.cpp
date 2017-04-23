@@ -6795,6 +6795,10 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 					if ( players[ulPlayer].bDeadSpectator )
 						return 0;
 
+					// [BB] If still alive, kill the player before turning him into a dead spectator.
+					if ( players[ulPlayer].mo && players[ulPlayer].mo->health > 0 )
+						P_DamageMobj(players[ulPlayer].mo, NULL, NULL, TELEFRAG_DAMAGE, NAME_Telefrag, DMG_THRUSTLESS);
+
 					// [BB] Turn this player into a dead spectator.
 					PLAYER_SetSpectator( &players[ulPlayer], false, true );
 
