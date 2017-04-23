@@ -3659,11 +3659,6 @@ void ServerCommands::DamagePlayer::Execute()
 
 		I_Tactile( 40,10,40 + damage * 2 );
 	}
-
-	// Also, make sure they get put into the pain state.
-	FState *painState = player->mo->FindState( NAME_Pain );
-	if ( painState )
-		player->mo->SetState( painState );
 }
 
 //*****************************************************************************
