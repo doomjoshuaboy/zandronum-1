@@ -336,11 +336,9 @@ void SERVERCOMMANDS_DamagePlayer( ULONG ulPlayer )
 	for ( ClientIterator it; it.notAtEnd(); ++it )
 	{
 		// [EP] Send the updated health and armor of the player who's being damaged to this client
-		// only if this client is allowed to know (still, don't forget the pain state!).
+		// only if this client is allowed to know.
 		if ( SERVER_IsPlayerAllowedToKnowHealth( *it, ulPlayer ))
 			fullCommand.sendCommandToClients( *it, SVCF_ONLYTHISCLIENT );
-		else
-			SERVERCOMMANDS_SetThingState( players[ulPlayer].mo, STATE_PAIN, *it, SVCF_ONLYTHISCLIENT );
 	}
 }
 
