@@ -1611,7 +1611,9 @@ CCMD (playerinfo)
 		}
 		if (argv.argc() > 2)
 		{
-			PrintMiscActorInfo(players[i].mo);
+			// [BB] The extended info is only available if cheats are allowed.
+			if ( CheckCheatmode() == false )
+				PrintMiscActorInfo(players[i].mo);
 		}
 	}
 }
