@@ -155,6 +155,10 @@ CVAR (Bool, snd_flipstereo, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 
 void S_NoiseDebug (void)
 {
+	// [BB] On clients, only allow this when cheats are on.
+	if ( NETWORK_InClientMode() && ( sv_cheats == false ) )
+		return;
+
 	FSoundChan *chan;
 	FVector3 listener;
 	FVector3 origin;
