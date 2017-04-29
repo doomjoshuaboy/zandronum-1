@@ -3293,9 +3293,7 @@ void PLAYER_JoinGameFromSpectators( int iChar )
 	if ( ( NETWORK_GetState( ) == NETSTATE_SINGLE ) || ( NETWORK_GetState( ) == NETSTATE_SINGLE_MULTIPLAYER ) )
 		SinglePlayerClass[consoleplayer] = players[consoleplayer].userinfo.GetPlayerClassNum();
 
-	players[consoleplayer].playerstate = PST_ENTERNOINVENTORY;
-	players[consoleplayer].bSpectating = false;
-	players[consoleplayer].bDeadSpectator = false;
+	PLAYER_SpectatorJoinsGame( &players[consoleplayer] );
 	players[consoleplayer].camera = players[consoleplayer].mo;
 	Printf( "%s \\c-joined the game.\n", players[consoleplayer].userinfo.GetName() );
 
