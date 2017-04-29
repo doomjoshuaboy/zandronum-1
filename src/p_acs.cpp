@@ -6827,6 +6827,10 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 						PLAYER_SetLivesLeft ( &players[ulPlayer], GAMEMODE_GetMaxLives() - 1 );
 					players[ulPlayer].playerstate = PST_REBORN;
 					GAMEMODE_SpawnPlayer( ulPlayer );
+
+					// [BB] If he's a bot, tell him that he successfully joined.
+					if ( players[ulPlayer].bIsBot && players[ulPlayer].pSkullBot )
+						players[ulPlayer].pSkullBot->PostEvent( BOTEVENT_JOINEDGAME );
 				}
 				return 1;
 			}
