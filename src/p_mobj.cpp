@@ -5799,7 +5799,9 @@ APlayerPawn *P_SpawnPlayer (FPlayerStart *mthing, int playernum, int flags)
 					if (bodyque[ii] == p->mo)
 						bodyque[ii] = oldactor;
 			}
-			FBehavior::StaticStartTypedScripts (SCRIPT_Respawn, p->mo, true);
+			// [BB] Don't run respawn scripts if we're spawning a dead spectator body.
+			if ( p->bDeadSpectator == false )
+				FBehavior::StaticStartTypedScripts (SCRIPT_Respawn, p->mo, true);
 		}
 	}
 
