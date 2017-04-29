@@ -256,7 +256,6 @@ static FFlagDef ActorFlags[]=
 	// [BC] New DECORATE flag defines here.
 	DEFINE_FLAG(STFL, BLUETEAM, AActor, ulSTFlags),
 	DEFINE_FLAG(STFL, REDTEAM, AActor, ulSTFlags),
-	DEFINE_FLAG(STFL, USESPECIAL, AActor, ulSTFlags),
 	DEFINE_FLAG(STFL, BASEHEALTH, AActor, ulSTFlags),
 	DEFINE_FLAG(STFL, SUPERHEALTH, AActor, ulSTFlags),
 	DEFINE_FLAG(STFL, BASEARMOR, AActor, ulSTFlags),

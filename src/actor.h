@@ -363,7 +363,7 @@ enum
 	//STFL_PULLABLE		= 0x00000004,
 
 	// Execute this object's special when player hits the use key in front of it.
-	STFL_USESPECIAL		= 0x00000008,
+	//STFL_USESPECIAL		= 0x00000008,
 
 	// Object impales players that fall on it.
 	//STFL_IMPALE			= 0x00000010,
