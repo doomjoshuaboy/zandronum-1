@@ -4129,14 +4129,20 @@ void ServerCommands::SetPlayerPSprite::Execute()
 	FState *pNewState = stateOwner->ActorInfo->OwnedStates + offset;
 
 	// [BB] The offset is only guaranteed to work if the actor owns the state.
-	if ( stateOwner->ActorInfo->OwnsState( pNewState ))
-	{
-		P_SetPsprite( player, position, pNewState );
-	}
-	else
+	if ( stateOwner->ActorInfo->OwnsState( pNewState ) == false )
 	{
 		CLIENT_PrintWarning( "SetPlayerPSprite: %s does not own its state at offset %d\n",
 		                     stateOwner->TypeName.GetChars(), offset );
+	}
+	// [BB] Don't switch to a state belonging to a completely unrelated actor.
+	else if ( player->ReadyWeapon->GetClass()->IsDescendantOf ( stateOwner ) == false )
+	{
+		CLIENT_PrintWarning( "SetPlayerPSprite: %s is not a descendant of %s\n",
+		                     player->ReadyWeapon->GetClass()->TypeName.GetChars(), stateOwner->TypeName.GetChars(), offset );
+	}
+	else
+	{
+		P_SetPsprite( player, position, pNewState );
 	}
 }
 
@@ -5093,7 +5099,19 @@ static void client_SetThingFrame( AActor* pActor, const PClass *stateOwner, int 
 	FState *state = stateOwner->ActorInfo->OwnedStates + offset;
 
 	// [BB] The offset is only guaranteed to work if the actor owns the state.
-	if ( stateOwner->ActorInfo->OwnsState( state ))
+	if ( stateOwner->ActorInfo->OwnsState( state ) == false )
+	{
+		CLIENT_PrintWarning( "client_SetThingFrame: %s does not own its state at offset %d\n",
+		                     stateOwner->TypeName.GetChars(), offset );
+		return;
+	}
+	// [BB] Don't switch to a state belonging to a completely unrelated actor.
+	else if ( pActor->GetClass()->IsDescendantOf ( stateOwner ) == false )
+	{
+		CLIENT_PrintWarning( "client_SetThingFrame: %s is not a descendant of %s\n",
+		                     pActor->GetClass()->TypeName.GetChars(), stateOwner->TypeName.GetChars(), offset );
+	}
+	else
 	{
 		// [BB] Workaround for actors whose spawn state has NoDelay. Make them execute the
 		// spawn state function before jumping to the new state.
@@ -5104,12 +5122,6 @@ static void client_SetThingFrame( AActor* pActor, const PClass *stateOwner, int 
 		}
 
 		pActor->SetState( state, ( bCallStateFunction == false ));
-	}
-	else
-	{
-		CLIENT_PrintWarning( "client_SetThingFrame: %s does not own its state at offset %d\n",
-		                     stateOwner->TypeName.GetChars(), offset );
-		return;
 	}
 }
 
