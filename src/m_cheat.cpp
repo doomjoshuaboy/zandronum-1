@@ -1199,16 +1199,20 @@ public:
 
 	void Tick()
 	{
-		Pawn->flags |= MF_SHOOTABLE;
-		Pawn->flags2 &= ~MF2_INVULNERABLE;
-		// Store the player's current damage factor, to restore it later.
-		fixed_t plyrdmgfact = Pawn->DamageFactor;
-		Pawn->DamageFactor = 65536;
-		P_DamageMobj (Pawn, Pawn, Pawn, TELEFRAG_DAMAGE, NAME_Suicide);
-		Pawn->DamageFactor = plyrdmgfact;
-		if (Pawn->health <= 0)
+		// [BB] Added safety check.
+		if ( Pawn )
 		{
-			Pawn->flags &= ~MF_SHOOTABLE;
+			Pawn->flags |= MF_SHOOTABLE;
+			Pawn->flags2 &= ~MF2_INVULNERABLE;
+			// Store the player's current damage factor, to restore it later.
+			fixed_t plyrdmgfact = Pawn->DamageFactor;
+			Pawn->DamageFactor = 65536;
+			P_DamageMobj (Pawn, Pawn, Pawn, TELEFRAG_DAMAGE, NAME_Suicide);
+			Pawn->DamageFactor = plyrdmgfact;
+			if (Pawn->health <= 0)
+			{
+				Pawn->flags &= ~MF_SHOOTABLE;
+			}
 		}
 		Destroy();
 	}
