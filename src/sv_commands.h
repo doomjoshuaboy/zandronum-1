@@ -300,6 +300,8 @@ void	SERVERCOMMANDS_MapLoad( ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlag
 void	SERVERCOMMANDS_MapNew( const char *pszMapName, ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
 void	SERVERCOMMANDS_MapExit( LONG lPosition, const char *pszNextMap, ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
 void	SERVERCOMMANDS_MapAuthenticate( const char *pszMapName, ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
+void	SERVERCOMMANDS_SecretFound( AActor *actor, BYTE secretFlags, ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
+void	SERVERCOMMANDS_SecretMarkSectorFound( sector_t *sector, ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0);
 void	SERVERCOMMANDS_SetMapTime( ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
 void	SERVERCOMMANDS_SetMapNumKilledMonsters( ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
 void	SERVERCOMMANDS_SetMapNumFoundItems( ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );

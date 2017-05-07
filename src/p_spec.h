@@ -185,7 +185,9 @@ void	P_PlayerOnSpecialFlat (player_t *player, int floorType);
 void	P_SectorDamage(int tag, int amount, FName type, const PClass *protectClass, int flags);
 void	P_SetSectorFriction (int tag, int amount, bool alterFlag);
 
-void P_GiveSecret(AActor *actor, bool printmessage, bool playsound);
+// [Zandronum] `allowclient` is Zandronum extension to prevent accidental execution
+// by clients unless explicitly allowed to do so.
+void P_GiveSecret(AActor *actor, bool printmessage, bool playsound, bool allowclient = false);
 
 //
 // getSide()

@@ -87,6 +87,7 @@
 #include "doomdata.h"
 #include "invasion.h"
 #include "unlagged.h"
+#include "network_enums.h"
 
 static FRandom pr_playerinspecialsector ("PlayerInSpecialSector");
 void P_SetupPortals();
@@ -792,10 +793,12 @@ void P_SectorDamage(int tag, int amount, FName type, const PClass *protectClass,
 //
 //============================================================================
 
-void P_GiveSecret(AActor *actor, bool printmessage, bool playsound)
+// [Zandronum] `allowclient` is Zandronum extension to prevent accidental execution
+// by clients unless explicitly allowed to do so.
+void P_GiveSecret(AActor *actor, bool printmessage, bool playsound, bool allowclient)
 {
-	// [BB] The server handles this.
-	if ( NETWORK_InClientMode() )
+	// [Zandronum] client must bail out if not allowed to give secret.
+	if ( !allowclient && NETWORK_InClientMode() )
 		return;
 
 	if (actor != NULL)
@@ -804,17 +807,22 @@ void P_GiveSecret(AActor *actor, bool printmessage, bool playsound)
 		{
 			actor->player->secretcount++;
 		}
-		// [BB] The server needs to do this for every client.
+		// [Zandronum] The server needs to inform all clients (even foes) - ZDoom does so.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		{
-			for ( int i = 0; i < MAXPLAYERS; ++i )
-			{
-				if ( actor->CheckLocalView ( i ) )
-				{
-					if (playsound) SERVERCOMMANDS_Sound( CHAN_AUTO | CHAN_UI, "misc/secret", 1, ATTN_NORM, i, SVCF_ONLYTHISCLIENT );
-					if (printmessage) SERVERCOMMANDS_PrintMid( secretmessage, false, i, SVCF_ONLYTHISCLIENT );
-				}
-			}
+			BYTE secretFlags = 0;
+			if ( printmessage )
+				secretFlags |= SECRETFOUND_MESSAGE;
+			if ( playsound )
+				secretFlags |= SECRETFOUND_SOUND;
+			// [Zandronum] Check if sector was secret but is not anymore.
+			// We can send this even if player triggers P_GiveSecret
+			// by picking up +COUNTSECRET actors in a secret sector
+			// as the client-side reaction is a no-op if client
+			// already knows that the sector was discovered.
+			if ( actor->Sector != NULL && (actor->Sector->special & SECRET_MASK) == 0 && actor->Sector->secretsector)
+				SERVERCOMMANDS_SecretMarkSectorFound( actor->Sector );
+			SERVERCOMMANDS_SecretFound( actor, secretFlags );
 		}
 		else if (actor->CheckLocalView (consoleplayer))
 		{

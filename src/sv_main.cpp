@@ -3267,6 +3267,10 @@ void SERVER_UpdateSectors( ULONG ulClient )
 		{
 			SERVERCOMMANDS_SetSectorReflection( ulIdx );
 		}
+
+		// Tell client to mark all discovered secret sectors.
+		if ((pSector->special & SECRET_MASK) == 0 && pSector->secretsector)
+			SERVERCOMMANDS_SecretMarkSectorFound( pSector, ulClient, SVCF_ONLYTHISCLIENT );
 	}
 
 	for ( ulIdx = 0; static_cast<signed> (ulIdx) <= po_NumPolyobjs; ulIdx++ )
