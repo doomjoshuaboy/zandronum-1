@@ -1702,7 +1702,7 @@ void G_DoWorldDone (void)
 		strncpy (level.mapname, nextlevel, 255);
 	}
 
-	// Respawn dead spectators now so their inventory can travel.
+	// [Zandronum] Respawn dead spectators now so their inventory can travel.
 	GAMEMODE_RespawnDeadSpectators( PST_REBORN );
 
 	G_StartTravel ();

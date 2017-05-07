@@ -1503,7 +1503,7 @@ void APlayerPawn::GiveDefaultInventory ()
 	player->health = GetDefault ()->health;
 
 	// [BB] True spectators are supposed to have no inventory, but they should get their health.
-	if ( player->bSpectating && !player->bDeadSpectator ) return;
+	if ( player->bSpectating && (!player->bDeadSpectator || !( zadmflags & ZADF_DEAD_PLAYERS_CAN_KEEP_INVENTORY ) ) ) return;
 
 	// [BC] Initialize the max. health bonus.
 	player->lMaxHealthBonus = 0;

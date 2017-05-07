@@ -280,7 +280,7 @@ static void SURVIVAL_RefreshLives( void )
 
 	// First let all players who died to respawn and keep their inventory.
 	// This will not pop awaiting players from the join queue.
-	GAMEMODE_RespawnDeadSpectators( PST_REBORN );
+	GAMEMODE_RespawnDeadSpectators( zadmflags & ZADF_DEAD_PLAYERS_CAN_KEEP_INVENTORY ? PST_REBORN : PST_REBORNNOINVENTORY );
 
 	// Next let all players in queue to join the game.
 	// JOINQUEUE_PopQueue will not join players unless the game
