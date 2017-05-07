@@ -4969,6 +4969,7 @@ enum EACSFunctions
 	ACSF_GetTimeProperty,
 	ACSF_Strftime,
 	ACSF_SetDeadSpectator,
+	ACSF_SetActivatorToPlayer,
 
 	// ZDaemon
 	ACSF_GetTeamScore = 19620,	// (int team)
@@ -6834,6 +6835,15 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 				}
 				return 1;
 			}
+
+		// [TP]
+		case ACSF_SetActivatorToPlayer:
+			if (( argCount >= 1 ) && PLAYER_IsValidPlayer( args[0] ))
+			{
+				activator = players[args[0]].mo;
+				return 1;
+			}
+			break;
 
 		case ACSF_GetActorFloorTexture:
 		{
