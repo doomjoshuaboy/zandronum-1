@@ -4304,6 +4304,21 @@ void ServerCommands::DisconnectPlayer::Execute()
 
 //*****************************************************************************
 //
+void ServerCommands::SecretFound::Execute()
+{
+	const bool allowclient = true;
+	P_GiveSecret( actor, secretFlags & SECRETFOUND_MESSAGE, secretFlags & SECRETFOUND_SOUND, allowclient );
+}
+
+//*****************************************************************************
+//
+void ServerCommands::SecretMarkSectorFound::Execute()
+{
+	sector->special &= ~SECRET_MASK;
+}
+
+//*****************************************************************************
+//
 void ServerCommands::SetConsolePlayer::Execute()
 {
 	// If this index is invalid, break out.

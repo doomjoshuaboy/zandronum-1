@@ -260,7 +260,11 @@ static void DrawStatus(player_t * CPlayer, int x, int y)
 		// work in cooperative hub games
 		if (hud_showsecrets)
 		{
-			mysnprintf(tempstr, countof(tempstr), "%i/%i ", (NETWORK_GetState( ) != NETSTATE_SINGLE) ? CPlayer->secretcount : level.found_secrets, level.total_secrets);
+			// [Zandronum]
+			// instead of ZDoom's
+			//   mysnprintf(tempstr, countof(tempstr), "%i/%i ", multiplayer? CPlayer->secretcount : level.found_secrets, level.total_secrets);
+			// display the total amount of discovered secrets by everyone
+			mysnprintf(tempstr, countof(tempstr), "%i/%i ", level.found_secrets, level.total_secrets);
 			DrawStatLine(x, y, "S:", tempstr);
 		}
 		

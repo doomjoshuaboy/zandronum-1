@@ -53,3 +53,14 @@ Command SetMapSky
 	String sky1
 	String sky2
 EndCommand
+
+Command SecretFound
+	ExtendedCommand
+	Actor actor
+	Byte secretFlags
+EndCommand
+
+Command SecretMarkSectorFound
+	ExtendedCommand
+	Sector sector
+EndCommand

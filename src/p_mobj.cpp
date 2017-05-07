@@ -5043,7 +5043,11 @@ AActor *AActor::StaticSpawn (const PClass *type, fixed_t ix, fixed_t iy, fixed_t
 	// And for secrets
 	if (actor->flags5 & MF5_COUNTSECRET)
 	{
-		level.total_secrets++;
+		// [Zandronum] The total amount of secrets counter should be synched with server.
+		if ( !NETWORK_InClientMode( ) )
+			level.total_secrets++;
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetMapNumTotalSecrets();
 	}
 
 	if ((( actor->ulNetworkFlags & NETFL_NONETID ) == false ) && ( ( actor->ulNetworkFlags & NETFL_SERVERSIDEONLY ) == false ) &&

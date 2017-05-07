@@ -3226,6 +3226,25 @@ void SERVERCOMMANDS_MapAuthenticate( const char *pszMapName, ULONG ulPlayerExtra
 
 //*****************************************************************************
 //
+void SERVERCOMMANDS_SecretFound( AActor *actor, BYTE secretFlags, ULONG ulPlayerExtra, ServerCommandFlags flags )
+{
+	ServerCommands::SecretFound command;
+	command.SetActor( actor );
+	command.SetSecretFlags( (BYTE)secretFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
+}
+
+//*****************************************************************************
+//
+void SERVERCOMMANDS_SecretMarkSectorFound( sector_t *sector, ULONG ulPlayerExtra, ServerCommandFlags flags )
+{
+	ServerCommands::SecretMarkSectorFound command;
+	command.SetSector( sector );
+	command.sendCommandToClients( ulPlayerExtra, flags );
+}
+
+//*****************************************************************************
+//
 void SERVERCOMMANDS_SetMapTime( ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	ServerCommands::SetMapTime command;
