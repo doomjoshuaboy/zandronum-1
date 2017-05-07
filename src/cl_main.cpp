@@ -4138,7 +4138,7 @@ void ServerCommands::SetPlayerPSprite::Execute()
 	else if ( player->ReadyWeapon->GetClass()->IsDescendantOf ( stateOwner ) == false )
 	{
 		CLIENT_PrintWarning( "SetPlayerPSprite: %s is not a descendant of %s\n",
-		                     player->ReadyWeapon->GetClass()->TypeName.GetChars(), stateOwner->TypeName.GetChars(), offset );
+		                     player->ReadyWeapon->GetClass()->TypeName.GetChars(), stateOwner->TypeName.GetChars() );
 	}
 	else
 	{
@@ -5124,7 +5124,7 @@ static void client_SetThingFrame( AActor* pActor, const PClass *stateOwner, int 
 	else if ( pActor->GetClass()->IsDescendantOf ( stateOwner ) == false )
 	{
 		CLIENT_PrintWarning( "client_SetThingFrame: %s is not a descendant of %s\n",
-		                     pActor->GetClass()->TypeName.GetChars(), stateOwner->TypeName.GetChars(), offset );
+		                     pActor->GetClass()->TypeName.GetChars(), stateOwner->TypeName.GetChars() );
 	}
 	else
 	{
