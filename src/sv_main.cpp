@@ -4085,8 +4085,20 @@ void SERVER_ErrorCleanup( void )
 	// [BC] Remove all the bots from this game.
 	BOTS_RemoveAllBots( false );
 
+	FString map;
 	// Reload the map, [BB] but make sure the current map is valid.
-	sprintf( szString, "map %s", P_CheckMapData ( level.mapname ) ? level.mapname : CalcMapName ( 1, 1 ).GetChars() );
+	if ( P_CheckMapData ( level.mapname ) )
+		map = level.mapname;
+	// [BB] Try the first map of the first episode as fallback.
+	else if ( ( AllEpisodes.Size() > 0 ) && P_CheckMapData ( AllEpisodes[0].mEpisodeMap ) )
+		map = AllEpisodes[0].mEpisodeMap;
+	// [BB] If that still doesn't work try to use CalcMapName.
+	else if ( P_CheckMapData ( CalcMapName ( 1, 1 ) ) )
+		map = CalcMapName ( 1, 1 ).GetChars();
+	// [BB] If we can't find a valid map, we have to error out.
+	else
+		I_FatalError ( "Can't determine a valid starting map." );
+	sprintf( szString, "map %s", map.GetChars() );
 	AddCommandString( szString );
 }
 
