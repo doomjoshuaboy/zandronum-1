@@ -2571,9 +2571,10 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 		if ( NETWORK_InClientMode() == false )
 			pPlayer->mo->DropImportantItems( false );
 
-		if ( !bDeadSpectator )
+		if ( !bDeadSpectator || !( zadmflags & ZADF_DEAD_PLAYERS_CAN_KEEP_INVENTORY ) )
 		{
-			// Take away all of the player's inventory when they become true spectator.
+			// Take away all of the player's inventory when they become true spectator
+			// or when dead spectators are not allowed to keep inventory.
 			// [BB] Needs to be done before G_DoReborn is called for dead spectators. Otherwise ReadyWeapon is not NULLed.
 			pPlayer->mo->DestroyAllInventory( );
 		}
@@ -2600,7 +2601,7 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 			// Save the player's old body, and respawn him or her.
 			pOldBody = pPlayer->mo;
 			// [BB] This also transfers the inventory from the old to the new body.
-			players[pPlayer - players].playerstate = PST_REBORN;
+			players[pPlayer - players].playerstate = ( zadmflags & ZADF_DEAD_PLAYERS_CAN_KEEP_INVENTORY ) ? PST_REBORN : PST_REBORNNOINVENTORY;
 			GAMEMODE_SpawnPlayer( pPlayer - players );
 
 			// Set the player's new body to the position of his or her old body.

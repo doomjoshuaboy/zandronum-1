@@ -365,6 +365,13 @@ enum
 	// Just respawn the players with fresh set of lives and allow
 	// the ones in queue to join.
 	ZADF_SURVIVAL_NO_MAP_RESET_ON_DEATH = 1 << 16,
+
+	// Affects game modes where sv_maxlives is honored by the game.
+	// If set, players who become dead spectators (run out of lives) will still
+	// keep inventory in accordance to DF_COOP_LOSE_* and DF_COOP_HALVE_AMMO flags.
+	// If unset, players who lose all lives will lose entire inventory
+	// regardless of the DF_COOP_* flags.
+	ZADF_DEAD_PLAYERS_CAN_KEEP_INVENTORY = 1 << 17,
 };
 
 // [RH] Compatibility flags.

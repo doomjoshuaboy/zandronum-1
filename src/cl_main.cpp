@@ -3329,7 +3329,7 @@ void ServerCommands::SpawnPlayer::Execute()
 	// Special inventory handling for respawning in coop.
 	// [BB] Also don't do so if the player changed the player class.
 	else if (( teamgame == false ) &&
-			 (( priorState == PST_REBORN ) || (pPlayer->bDeadSpectator)) &&
+			 ( priorState == PST_REBORN ) &&
 			 ( oldPlayerClass == pPlayer->CurrentPlayerClass ) &&
 			 ( pOldActor ))
 	{
