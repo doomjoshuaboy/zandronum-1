@@ -476,7 +476,9 @@ void AActor::Die (AActor *source, AActor *inflictor, int dmgflags)
 	// [JM] Fire KILL type scripts for actor. Not needed for players, since they have the "DEATH" script type.
 	if (!player && !(flags7 & MF7_NOKILLSCRIPTS) && ((flags7 & MF7_USEKILLSCRIPTS) || gameinfo.forcekillscripts))
 	{
-		FBehavior::StaticStartTypedScripts(SCRIPT_Kill, this, true, 0, true);
+		// [BB] Clients should only do this for client handled actors.
+		if ( NETWORK_InClientModeAndActorNotClientHandled( this ) == false )
+			FBehavior::StaticStartTypedScripts(SCRIPT_Kill, this, true, 0, true);
 	}
 
 	flags &= ~(MF_SHOOTABLE|MF_FLOAT|MF_SKULLFLY);
