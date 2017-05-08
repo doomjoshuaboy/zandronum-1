@@ -3172,6 +3172,20 @@ void P_DeathThink (player_t *player)
 		return;
 	}
 
+	// [RK] Handle player respawn time when force respawn is on
+	// normally players can't respawn manually until the level time is larger than respawn time
+	// since sv_forcerespawntime adds onto a player's respawn time, we'll set the time to 0 when they press use
+	// this statement factors in compat_instantrespawn and determines whether a player can respawn instantly or has to wait
+	if ( dmflags & DF_FORCE_RESPAWN )
+	{
+		if (( level.time >= ( player->respawn_time - ( sv_forcerespawntime*TICRATE )) && (( zacompatflags & ZACOMPATF_INSTANTRESPAWN ) == false ))
+			|| ( level.time < player->respawn_time && ( zacompatflags & ZACOMPATF_INSTANTRESPAWN )))
+		{
+			if (( player->cmd.ucmd.buttons & BT_USE ) || (( player->userinfo.GetClientFlags() & CLIENTFLAGS_RESPAWNONFIRE ) && ( player->cmd.ucmd.buttons & BT_ATTACK ) && (( player->oldbuttons & BT_ATTACK ) == false )))
+				player->respawn_time = 0;
+		}
+	}
+
 	// [BB] If lives are limited and the game is in progess, possibly put the player in dead spectator mode.
 	if ( GAMEMODE_AreLivesLimited ( ) && GAMEMODE_IsGameInProgress ( ) )
 	{
