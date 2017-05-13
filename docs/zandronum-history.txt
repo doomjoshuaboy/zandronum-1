@@ -150,6 +150,7 @@
 !	- The memory required for the bot nodes is now dynamically allocated when the first bot is added and freed when the last bot is removed. Thus, the CVAR sv_disallowbots is obsolete and was removed (adapted form Konar6's kpatch). This also fixes that offline, the memory required for the bot nodes was always allocated. [Torr Samaho]
 !	- To stay compatible with Zandronum 2.x, GetCVar still returns the consoleplayer's value if called in a non-player activated CLIENTSIDE script to get the value of a user cvar. [Torr Samaho]
 !	- Althud's discovered secret counter now shows global discovered secret count in netgames. [Zalewa]
+!	- Changed the default value of sv_defaultdmflags to false. [Torr Samaho]
 
 
 2.2

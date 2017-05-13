@@ -260,7 +260,7 @@ CUSTOM_CVAR( String, sv_hackerlistfile, "hackerlist.txt", CVAR_ARCHIVE|CVAR_NOSE
 //	CONSOLE VARIABLES
 
 CVAR( String, sv_motd, "", CVAR_ARCHIVE )
-CVAR( Bool, sv_defaultdmflags, true, 0 )
+CVAR( Bool, sv_defaultdmflags, false, 0 )
 CVAR( Bool, sv_forcepassword, false, CVAR_ARCHIVE|CVAR_NOSETBYACS )
 CVAR( Bool, sv_forcejoinpassword, false, CVAR_ARCHIVE|CVAR_NOSETBYACS )
 CVAR( Int, sv_forcerespawntime, 0, CVAR_ARCHIVE ) // [RK]
