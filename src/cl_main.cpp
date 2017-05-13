@@ -6704,6 +6704,11 @@ void ServerCommands::MapLoad::Execute()
 		// Start new level.
 		G_InitNew( mapName, false );
 
+		// [BB] Make sure there is no old player information left. Since the full update
+		// may be distributed over multiple tics, we can start ticking the world before
+		// all player bodies are spawned, causing "no body for player" warnings.
+		CLIENT_ClearAllPlayers();
+
 		// Restore our demo recording status.
 		CLIENTDEMO_SetPlaying( playing );
 
