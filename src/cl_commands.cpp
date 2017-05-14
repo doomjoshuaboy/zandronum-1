@@ -166,6 +166,23 @@ void CLIENTCOMMANDS_UserInfo( const std::set<FName> &cvarNames )
 	if ( CLIENT_GetAllowSendingOfUserInfo( ) == false )
 		return;
 
+	// [BB] Make sure that we only send anything to the server, if cvarNames actually
+	// contains cvars that we want to send.
+	bool sendUserinfo = false;
+
+	for ( std::set<FName>::const_iterator iterator = cvarNames.begin(); iterator != cvarNames.end(); ++iterator )
+	{
+		FBaseCVar **cvarPointer = players[consoleplayer].userinfo.CheckKey( *iterator );
+		if ( cvarPointer && ( (*cvarPointer)->GetFlags() & CVAR_UNSYNCED_USERINFO ) == false )
+		{
+			sendUserinfo = true;
+			break;
+		}
+	}
+
+	if ( sendUserinfo == false )
+		return;
+
 	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_USERINFO );
 
 	for ( std::set<FName>::const_iterator iterator = cvarNames.begin(); iterator != cvarNames.end(); ++iterator )
