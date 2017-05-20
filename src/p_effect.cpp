@@ -340,7 +340,8 @@ static void GenerateShowSpawnFountain ( FPlayerStart &ts, const int color, const
 		{
 			// [TP] Take useplayerstartz into account here
 			fixed_t floorZ = sector->floorplane.ZatPoint( ts.x, ts.y );
-			fixed_t z = ( level.flags & LEVEL_USEPLAYERSTARTZ ) ? ts.z : floorZ;
+			// [RK] Prevent the fountains from being shifted incorrectly; add the floor and offset.
+			fixed_t z = ( level.flags & LEVEL_USEPLAYERSTARTZ ) ? ( floorZ + ts.z ) : floorZ;
 			MakeFountain( ts.x, ts.y, z, 16 << FRACBITS, 0, color, color );
 		}
 	}
