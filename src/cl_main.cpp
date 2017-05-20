@@ -3293,6 +3293,12 @@ void ServerCommands::SpawnPlayer::Execute()
 	// Spawn the body.
 	pActor = static_cast<APlayerPawn *>( Spawn( pPlayer->cls, x, y, z, NO_REPLACE ));
 
+	// [BB] If the player was morphed or unmorphed, we to substitute all pointers
+	// to the old body to the new one. Otherwise (among other things) CLIENTSIDE
+	// scripts will lose track of the player body as activator.
+	if (pPlayer->mo && ( priorState == PST_LIVE ) && ( isMorphed != ( pPlayer->morphTics != 0 ) ) )
+		DObject::StaticPointerSubstitution (pPlayer->mo, pActor);
+
 	pPlayer->mo = pActor;
 	pActor->player = pPlayer;
 	pPlayer->playerstate = playerState;
