@@ -4313,7 +4313,7 @@ void ServerCommands::DisconnectPlayer::Execute()
 void ServerCommands::SecretFound::Execute()
 {
 	const bool allowclient = true;
-	P_GiveSecret( actor, secretFlags & SECRETFOUND_MESSAGE, secretFlags & SECRETFOUND_SOUND, allowclient );
+	P_GiveSecret( actor, !!(secretFlags & SECRETFOUND_MESSAGE), secretFlags & SECRETFOUND_SOUND, allowclient );
 }
 
 //*****************************************************************************
