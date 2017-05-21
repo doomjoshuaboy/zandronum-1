@@ -1734,6 +1734,7 @@ void ParseCVarInfo()
 			ECVarType cvartype = CVAR_Dummy;
 			int cvarflags = CVAR_MOD|CVAR_ARCHIVE;
 			FBaseCVar *cvar;
+			bool local = false; // [TP] true for local cvars
 
 			// Check for flag tokens.
 			while (sc.TokenType == TK_Identifier)
@@ -1750,6 +1751,11 @@ void ParseCVarInfo()
 				{
 					cvarflags &= ~CVAR_ARCHIVE;
 				}
+				// [TP]
+				else if ( stricmp(sc.String, "local" ) == 0 )
+				{
+					local = true;
+				}
 				else
 				{
 					sc.ScriptError("Unknown cvar attribute '%s'", sc.String);
@@ -1760,7 +1766,9 @@ void ParseCVarInfo()
 			if ((cvarflags & (CVAR_SERVERINFO|CVAR_USERINFO)) == 0 ||
 				(cvarflags & (CVAR_SERVERINFO|CVAR_USERINFO)) == (CVAR_SERVERINFO|CVAR_USERINFO))
 			{
-				sc.ScriptError("One of 'server' or 'user' must be specified");
+				// [TP] Allow local cvars if given explicitly
+				if ( local == false )
+					sc.ScriptError("One of 'server', 'user' or 'local' must be specified");
 			}
 			// The next token must be the cvar type.
 			if (sc.TokenType == TK_Bool)
