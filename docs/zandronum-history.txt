@@ -125,7 +125,7 @@
 -	- Fixed: Angle arguments in DECORATE didn't work properly on ARM devices like the Raspberry Pi (adapted from the corresponding ZDoom fix). [Torr Samaho]
 -	- Fixed: The server informed the clients about the position of the other players during intermission, which generated unnecessary network traffic. [Torr Samaho]
 -	- Fixed: the server erroneously told clients that some slamming actors changed their state to the Spawn state instead of the Idle state. [Edward-san]
--	- Fixed: The MinotaurFriend was not handled properly online. [Edward-san]
+-	- Slightly improved how the MinotaurFriend is handled online. [Edward-san]
 -	- Fixed: When a player was damaged, clients always executed the first state function of the standard pain state. [Torr Samaho]
 -	- Fixed: The server didn't inform the clients about changes made with A_ChangeFlag to the special Zandronum flags, like DONTIDENTIFYTARGET. [Torr Samaho]
 -	- Fixed: CLIENTSIDE scripts lost track of the player as activator when the player was morphed or unmorphed. [Torr Samaho]
