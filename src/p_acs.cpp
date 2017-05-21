@@ -10389,8 +10389,8 @@ scriptwait:
 			{
 				int playernum = STACK(1);
 
-				// [BB] Zandronum allows this in CLIENTSIDE scripts even when coop spying, since the server takes care of the sync.
-				if (playernum < 0 || playernum >= MAXPLAYERS || !playeringame[playernum] || players[playernum].camera == NULL || ( players[playernum].camera->player != NULL && !NETWORK_InClientMode() ) )
+				// [BB] Zandronum allows this even when coop spying, since the server takes care of the sync.
+				if (playernum < 0 || playernum >= MAXPLAYERS || !playeringame[playernum] || players[playernum].camera == NULL /*|| players[playernum].camera->player != NULL*/)
 				{
 					STACK(1) = -1;
 				}
