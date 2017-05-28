@@ -487,26 +487,14 @@ void SERVERCOMMANDS_SetAllPlayerUserInfo( ULONG ulPlayer, ULONG ulPlayerExtra, S
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
-	ServerCommands::SetPlayerUserInfo command;
-	TArray<ServerCommands::CVar> cvars;
 	userinfo_t &userinfo = players[ulPlayer].userinfo;
 	userinfo_t::Iterator iterator ( userinfo );
+	std::set<FName> cvarNames;
 
 	for ( userinfo_t::Pair *pair; iterator.NextPair( pair ); )
-	{
-		ServerCommands::CVar cvar;
-		cvar.name = pair->Key;
-		// [BB] Skin needs special treatment, so that the clients can use skins the server doesn't have.
-		if ( pair->Key == NAME_Skin )
-			cvar.value = SERVER_GetClient( ulPlayer )->szSkin;
-		else
-			cvar.value = pair->Value->GetGenericRep( CVAR_String ).String;
-		cvars.Push( cvar );
-	}
+		cvarNames.insert( pair->Key );
 
-	command.SetPlayer( &players[ulPlayer] );
-	command.SetCvars( cvars );
-	command.sendCommandToClients( ulPlayerExtra, flags );
+	SERVERCOMMANDS_SetPlayerUserInfo( ulPlayer, cvarNames, ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
