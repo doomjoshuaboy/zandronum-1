@@ -293,10 +293,10 @@ void NetCommand::sendCommandToOneClient( ULONG i )
 	{
 		// [BB] This should never happen.
 		if ( getBufferForClient( i ).CalcSize() > 0 )
-			SERVER_PrintWarning ( "NetCommand %s didn't create a new packet to client %d even though the command doesn't fit within the current packet!\n", getHeaderAsString(), i );
+			SERVER_PrintWarning ( "NetCommand %s didn't create a new packet to client %lu even though the command doesn't fit within the current packet!\n", getHeaderAsString(), i );
 		// [BB] This happens if the current command alone is already too big for one packet.
 		else
-			SERVER_PrintWarning ( "NetCommand %s created a packet to client %d exceeding sv_maxpacketsize (%d >= %d)!\n", getHeaderAsString(), i, estimateSize, SERVER_GetMaxPacketSize( ));
+			SERVER_PrintWarning ( "NetCommand %s created a packet to client %lu exceeding sv_maxpacketsize (%d >= %lu)!\n", getHeaderAsString(), i, estimateSize, SERVER_GetMaxPacketSize( ));
 	}
 
 	writeCommandToStream( getBytestreamForClient( i ));
