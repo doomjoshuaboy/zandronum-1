@@ -101,6 +101,7 @@ public:
 	void addVariable ( const int value );
 	void addShortByte ( int value, int bits );
 	void writeCommandToStream ( BYTESTREAM_s &ByteStream ) const;
+	NETBUFFER_s& getBufferForClient( ULONG i ) const;
 	BYTESTREAM_s& getBytestreamForClient( ULONG i ) const;
 	void sendCommandToClients ( ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
 	void sendCommandToOneClient( ULONG i );
