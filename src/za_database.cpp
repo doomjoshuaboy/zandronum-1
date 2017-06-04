@@ -452,13 +452,13 @@ void DATABASE_SaveSetEntry ( const char *Namespace, const char *EntryName, const
 	if ( DATABASE_EntryExists ( Namespace, EntryName ) )
 	{
 		// [BB] Setting an entry to the empty string deletes the entry.
-		if ( strlen ( EntryValue ) > 0 )
+		if ( EntryValue && ( strlen ( EntryValue ) > 0 ) )
 			DATABASE_SetEntry ( Namespace, EntryName, EntryValue );
 		else
 			DATABASE_DeleteEntry ( Namespace, EntryName );
 	}
 	// [BB] Don't store empty string entries.
-	else if ( strlen ( EntryValue ) > 0 )
+	else if ( EntryValue && ( strlen ( EntryValue ) > 0 ) )
 		DATABASE_AddEntry ( Namespace, EntryName, EntryValue );
 }
 
