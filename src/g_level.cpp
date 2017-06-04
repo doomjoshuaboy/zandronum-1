@@ -621,7 +621,11 @@ void G_ChangeLevel(const char *levelname, int position, int flags, int nextSkill
 		}
 		else 
 		{
-			nextlevel.Format("enDSeQ%04x", int(gameinfo.DefaultEndSequence));
+			// [BB] The server doesn't support end sequences, so just return to the current map.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				nextlevel = level.mapname;
+			else
+				nextlevel.Format("enDSeQ%04x", int(gameinfo.DefaultEndSequence));
 		}
 	}
 	else if (strncmp(levelname, "enDSeQ", 6) != 0)
