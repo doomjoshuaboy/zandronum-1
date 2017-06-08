@@ -45,6 +45,9 @@ def getParameterClass(typename):
 	classname = capwords(typename.lower()) + 'Parameter'
 	return getattr(modules[__name__], classname)
 
+def uppercasify(name):
+	return name[:1].upper() + name[1:]
+
 # ----------------------------------------------------------------------------------------------------------------------
 
 class SpecParameter:
@@ -66,6 +69,9 @@ class SpecParameter:
 		raise Exception('BUG: %s does not define writesend!' % type(self).__name__)
 
 	def writereadchecks(self, **args):
+		pass
+
+	def writespecialmethods(self, **args):
 		pass
 
 	@property
@@ -515,6 +521,32 @@ class ArrayParameter(SpecParameter):
 		writer.writeline('for ( unsigned int i = 0; i < command.%s.Size(); ++i )' % reference)
 		writer.startscope()
 		self.elementType.writereadchecks(writer = writer, reference = reference + '[i]', **args)
+		writer.endscope()
+
+	def writespecialmethods(self, writer, **args):
+		# Add a method to push to this parameter.
+		writer.writeline('void PushTo{name}({type} value)'.format(
+			name = uppercasify(self.name),
+			type = self.elementType.constreference,
+		))
+		writer.startscope()
+		writer.writeline('{name}.Push(value);'.format(name = self.name))
+		writer.writeline('_{name}Initialized = true;'.format(name = self.name))
+		writer.endscope()
+		# Add a method to pop from this parameter.
+		writer.writeline('bool PopFrom{name}({type}& value)'.format(
+			name = uppercasify(self.name),
+			type = self.elementType.cxxtypename,
+		))
+		writer.startscope()
+		writer.writeline('return {name}.Pop(value);'.format(name = self.name))
+		writer.endscope()
+		# Add a method to clear this parameter.
+		writer.writeline('void Clear{name}()'.format(
+			name = uppercasify(self.name),
+		))
+		writer.startscope()
+		writer.writeline('{name}.Clear();'.format(name = self.name))
 		writer.endscope()
 
 # ----------------------------------------------------------------------------------------------------------------------
