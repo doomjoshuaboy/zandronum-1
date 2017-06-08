@@ -505,10 +505,7 @@ void SERVERCOMMANDS_SetPlayerUserInfo( ULONG ulPlayer, const std::set<FName> &na
 		return;
 
 	ServerCommands::SetPlayerUserInfo command;
-	TArray<ServerCommands::CVar> cvars;
 	command.SetPlayer( &players[ulPlayer] );
-
-	unsigned int commandSize = 0;
 
 	for ( FName name : names )
 	{
@@ -525,33 +522,20 @@ void SERVERCOMMANDS_SetPlayerUserInfo( ULONG ulPlayer, const std::set<FName> &na
 			else
 				element.value = cvar->GetGenericRep( CVAR_String ).String;
 
-			unsigned int elementNetSize = element.value.Len() + 1;
-
-			// [BB] Name will be transferred as short.
-			if ( element.name.IsPredefined() )
-				elementNetSize += 2;
-			// [BB] Name will be transferred as short (-1) + string + terminating 0.
-			else
-				elementNetSize += strlen ( element.name.GetChars() ) + 2 + 1;
+			command.PushToCvars( element );
 
 			// [BB] The new element won't fit in a single packet. Send what we have so far
 			// and put the new command into the next packet.
-			// 3 = SVC_SETPLAYERUSERINFO + playerNum + numCvars
-			// 5 = 1 + 4 (SVC_HEADER + packet number)
-			if ( ( commandSize + elementNetSize + 3 + 5 ) >= SERVER_GetMaxPacketSize( ) )
+			if ( static_cast<ULONG>( command.BuildNetCommand().calcSize() ) + PACKET_HEADER_SIZE >= SERVER_GetMaxPacketSize( ) )
 			{
-				command.SetCvars( cvars );
+				command.PopFromCvars( element );
 				command.sendCommandToClients( ulPlayerExtra, flags );
-				cvars.Clear();
-				commandSize = 0;
+				command.ClearCvars();
+				command.PushToCvars( element );
 			}
-
-			commandSize += elementNetSize;
-			cvars.Push( element );
 		}
 	}
 
-	command.SetCvars( cvars );
 	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 

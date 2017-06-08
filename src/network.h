@@ -191,6 +191,9 @@ enum ActorScaleFlag
 #define NUMBER_OF_ACTOR_NAME_KEY_LETTERS	3
 #define NUMBER_OF_WEAPON_NAME_KEY_LETTERS	10
 
+// [BB] 5 = 1 + 4 (SVC_HEADER + packet number)
+const int PACKET_HEADER_SIZE = 5;
+
 //*****************************************************************************
 enum
 {
