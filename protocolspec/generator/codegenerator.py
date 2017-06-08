@@ -404,6 +404,7 @@ class HeaderWriter(SourceCodeWriter):
 			# Add setter methods for each parameter
 			for parameter in command.ownedParameters:
 				self.writeline('void %s( %s value );' % (parameter.setter, parameter.constreference))
+				parameter.writespecialmethods(writer = self)
 
 			# Add condition check methods. The values must be sorted first, or the order of the methods changes
 			# every time the header is generated, which causes the header to change every time this script is run and
