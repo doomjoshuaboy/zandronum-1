@@ -281,13 +281,13 @@ class SourceWriter(SourceCodeWriter):
 
 	def writesender(self, command):
 		'''
-			Generates the sendCommandToClients method of a ServerCommand
+			Generates the BuildNetCommand method of a ServerCommand
 		'''
 		commandname = command.name
 		enumname = command.enumname
 
 		# Write the function signature.
-		self.writecontext('void ServerCommands::{commandname}::sendCommandToClients( int playerExtra, ServerCommandFlags flags )'.format(**locals()))
+		self.writecontext('NetCommand ServerCommands::{commandname}::BuildNetCommand() const'.format(**locals()))
 		self.writingsender = True
 		self.startscope()
 
@@ -295,7 +295,7 @@ class SourceWriter(SourceCodeWriter):
 		if command.parameters:
 			self.writeline('if ( AllParametersInitialized() == false )')
 			self.startscope()
-			self.writeline('Printf( "WARNING: {commandname}::sendCommandToClients: not all parameters were initialized:\\n" );'.format(**locals()))
+			self.writeline('Printf( "WARNING: {commandname}::BuildNetCommand: not all parameters were initialized:\\n" );'.format(**locals()))
 
 			# Be more specific about which parameters in particular were left out.
 			self.writeline('PrintMissingParameters();')
@@ -310,8 +310,8 @@ class SourceWriter(SourceCodeWriter):
 		# Let parameters write their senders in.
 		self.handleparameters(command, 'writesend')
 
-		# Write the code to send this command, and finish the function.
-		self.writeline('command.sendCommandToClients( playerExtra, flags );')
+		# Return the finished command.
+		self.writeline('return command;')
 		self.endscope()
 		self.writingsender = False
 
@@ -333,6 +333,7 @@ class HeaderWriter(SourceCodeWriter):
 		self.writeline('#include "networkshared.h"')
 		self.writeline('#include "sv_commands.h"')
 		self.writeline('#include "joinqueue.h"')
+		self.writeline('#include "network/netcommand.h"')
 
 		# Add any includes from the spec
 		for include in self.spec.includes:
@@ -369,8 +370,13 @@ class HeaderWriter(SourceCodeWriter):
 			public:
 				virtual void PrintMissingParameters() const = 0;
 				virtual bool AllParametersInitialized() const = 0;
-				virtual void sendCommandToClients( int playerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 ) = 0;
+				virtual NetCommand BuildNetCommand() const = 0;
 				virtual void Execute() = 0;
+
+				inline void sendCommandToClients( int playerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 )
+				{
+					BuildNetCommand().sendCommandToClients( playerExtra, flags );
+				}
 			};
 		''')
 
@@ -408,8 +414,8 @@ class HeaderWriter(SourceCodeWriter):
 			# Add the Execute() method, that cl_main.cpp will define.
 			self.writeline('void Execute();')
 
-			# Add the sendCommandToClients() method for sv_commands.cpp
-			self.writeline('void sendCommandToClients( int playerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );')
+			# Add the BuildNetCommand() method
+			self.writeline('NetCommand BuildNetCommand() const;')
 
 			# The parser function must be a friend of this command, so that it can fill in parameters.
 			if command.extended:
