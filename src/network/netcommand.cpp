@@ -317,3 +317,11 @@ void NetCommand::setUnreliable ( bool a )
 {
 	_unreliable = a;
 }
+
+//*****************************************************************************
+// [TP] Returns the size of this net command.
+//
+int NetCommand::calcSize() const
+{
+	return _buffer.CalcSize();
+}

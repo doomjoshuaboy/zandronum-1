@@ -107,4 +107,5 @@ public:
 	void sendCommandToOneClient( ULONG i );
 	bool isUnreliable() const;
 	void setUnreliable ( bool a );
+	int calcSize() const;
 };
