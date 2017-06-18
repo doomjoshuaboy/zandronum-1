@@ -1318,8 +1318,8 @@ void APowerSpeed::DoEffect ()
 			if (0 != skinidx && !(Owner->flags4 & MF4_NOSKIN))
 			{
 				// Apply skin's scale to actor's scale, it will be lost otherwise
-				speedMo->scaleX = Scale(Owner->scaleX, skins[skinidx].ScaleX, Owner->scaleX);
-				speedMo->scaleY = Scale(Owner->scaleY, skins[skinidx].ScaleY, Owner->scaleY);
+				speedMo->scaleX = Scale(speedMo->scaleX, skins[skinidx].ScaleX, Owner->scaleX);
+				speedMo->scaleY = Scale(speedMo->scaleY, skins[skinidx].ScaleY, Owner->scaleY);
 			}
 		}
 
