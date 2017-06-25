@@ -305,7 +305,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FreezeDeathChunks)
 			mo->alpha = self->alpha;
 		}
 	}
-	if (self->player)
+	if (self->player && self->player->mo) // [BB] Added mo check.
 	{ // attach the player's view to a chunk of ice
 		AActor *head = Spawn("IceChunkHead", self->x, self->y, 
 													self->z + self->player->mo->ViewHeight, ALLOW_REPLACE);
