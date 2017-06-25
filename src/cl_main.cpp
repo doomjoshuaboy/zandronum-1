@@ -4073,6 +4073,10 @@ void ServerCommands::SetPlayerAmmoCapacity::Execute()
 //
 void ServerCommands::SetPlayerCheats::Execute()
 {
+	// [TP] If we're setting the cheats of the consoleplayer and we're spectating, don't let this command modify the noclip cheats.
+	if ( player == &players[consoleplayer] && player->bSpectating )
+		cheats = ( cheats & ~( CF_NOCLIP | CF_NOCLIP2 )) | ( player->cheats & ( CF_NOCLIP | CF_NOCLIP2 ));
+
 	player->cheats = cheats;
 }
 
