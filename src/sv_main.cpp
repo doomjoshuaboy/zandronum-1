@@ -658,7 +658,7 @@ void SERVER_Tick( void )
 		// [BB] Send out sheduled packets, respecting sv_maxpacketspertick.
 		for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 		{
-			if ( SERVER_IsValidClient( ulIdx ) == false )
+			if ( g_aClients[ulIdx].State == CLS_FREE )
 				continue;
 
 			SERVER_GetClient ( ulIdx )->SavedPackets.Tick ( );
@@ -1181,6 +1181,9 @@ void SERVER_AuthenticateClientLevel( BYTESTREAM_s *pByteStream )
 		SERVER_ClientError( g_lCurrentClient, NETWORK_ERRORCODE_AUTHENTICATIONFAILED );
 		return;
 	}
+
+	// [BB] Don't timeout.
+	g_aClients[g_lCurrentClient].ulLastCommandTic = gametic;
 
 	// The client has now had his level authenticated.
 	// [BB] Don't set the state for clients already spawned. They already have a body
