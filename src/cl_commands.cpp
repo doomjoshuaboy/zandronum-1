@@ -127,12 +127,36 @@ static void clientcommands_WriteCVarToUserinfo( FName name, FBaseCVar *cvar )
 	if (( cvar == nullptr ) || ( cvar->GetFlags() & CVAR_UNSYNCED_USERINFO ))
 		return;
 
-	NETWORK_WriteName( &CLIENT_GetLocalBuffer( )->ByteStream, name );
+	FString value;
 	// [BB] Skin needs special treatment, so that the clients can use skins the server doesn't have.
 	if ( name == NAME_Skin )
-		NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, skins[players[consoleplayer].userinfo.GetSkin()].name );
+		value = skins[players[consoleplayer].userinfo.GetSkin()].name;
 	else
-		NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, cvar->GetGenericRep( CVAR_String ).String );
+		value = cvar->GetGenericRep( CVAR_String ).String;
+
+	unsigned int elementNetSize = value.Len() + 1;
+
+	// [BB] Name will be transferred as short.
+	if ( name.IsPredefined() )
+		elementNetSize += 2;
+	// [BB] Name will be transferred as short (-1) + string + terminating 0.
+	else
+		elementNetSize += strlen ( name.GetChars() ) + 2 + 1;
+
+	// [BB] If the this cvar doesn't fit into the packet anymore, send what we have
+	// and start a new packet.
+	// NAME_None is transferred as short and the maximum packet size is intentionally
+	// hard coded to 1024. The clients shouldn't mess with this setting.
+	if ( ( CLIENT_GetLocalBuffer( )->CalcSize() + elementNetSize + 2 ) >= 1024 )
+	{
+		// [BB] Terminate the current CLC_USERINFO command.
+		NETWORK_WriteName( &CLIENT_GetLocalBuffer( )->ByteStream, NAME_None );
+		CLIENT_SendServerPacket();
+		NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_USERINFO );
+	}
+
+	NETWORK_WriteName( &CLIENT_GetLocalBuffer( )->ByteStream, name );
+	NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, value );
 }
 
 //*****************************************************************************
