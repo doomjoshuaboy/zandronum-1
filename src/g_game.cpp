@@ -1536,7 +1536,7 @@ void G_Ticker ()
 
 		// Now that we're done parsing the multiple packets the server has sent our way, check
 		// to see if any packets are missing.
-		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( CLIENT_GetConnectionState( ) >= CTS_REQUESTINGSNAPSHOT ))
+		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( CLIENT_GetConnectionState( ) >= CTS_ATTEMPTINGAUTHENTICATION ))
 			CLIENT_CheckForMissingPackets( );
 	}
 
