@@ -146,14 +146,13 @@ void CLIENTCOMMANDS_SendAllUserInfo()
 		return;
 
 	const userinfo_t &userinfo = players[consoleplayer].userinfo;
-	userinfo_t::ConstPair *pair;
 	userinfo_t::ConstIterator iterator ( userinfo );
-	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_USERINFO );
+	std::set<FName> cvarNames;
 
-	while ( iterator.NextPair( pair ) )
-		clientcommands_WriteCVarToUserinfo( pair->Key, pair->Value );
+	for ( userinfo_t::ConstPair *pair; iterator.NextPair( pair ); )
+		cvarNames.insert( pair->Key );
 
-	NETWORK_WriteName( &CLIENT_GetLocalBuffer( )->ByteStream, NAME_None );
+	CLIENTCOMMANDS_UserInfo ( cvarNames );
 }
 
 //*****************************************************************************
