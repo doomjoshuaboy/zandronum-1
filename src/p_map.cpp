@@ -4542,7 +4542,7 @@ AActor *P_LinePickActor(AActor *t1, angle_t angle, fixed_t distance, int pitch,
 	vz = -finesine[pitch];
 
 	shootz = t1->z - t1->floorclip + (t1->height >> 1);
-	if (t1->player != NULL)
+	if (t1->player != NULL && t1->player->mo) // [BB] Added mo check.
 	{
 		shootz += FixedMul(t1->player->mo->AttackZOffset, t1->player->crouchfactor);
 	}
