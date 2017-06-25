@@ -6826,7 +6826,7 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 					players[ulPlayer].bDeadSpectator = false;
 					if ( GAMEMODE_GetCurrentFlags() & GMF_USEMAXLIVES )
 						PLAYER_SetLivesLeft ( &players[ulPlayer], GAMEMODE_GetMaxLives() - 1 );
-					players[ulPlayer].playerstate = PST_REBORN;
+					players[ulPlayer].playerstate = ( zadmflags & ZADF_DEAD_PLAYERS_CAN_KEEP_INVENTORY ) ? PST_REBORN : PST_REBORNNOINVENTORY;
 					GAMEMODE_SpawnPlayer( ulPlayer );
 
 					// [BB] If he's a bot, tell him that he successfully joined.
