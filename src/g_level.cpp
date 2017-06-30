@@ -1707,7 +1707,7 @@ void G_DoWorldDone (void)
 	}
 
 	// [Zandronum] Respawn dead spectators now so their inventory can travel.
-	GAMEMODE_RespawnDeadSpectators( PST_REBORN );
+	GAMEMODE_RespawnDeadSpectators( zadmflags & ZADF_DEAD_PLAYERS_CAN_KEEP_INVENTORY ? PST_REBORN : PST_REBORNNOINVENTORY );
 
 	G_StartTravel ();
 	G_DoLoadLevel (startpos, true);
