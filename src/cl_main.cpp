@@ -740,6 +740,13 @@ void CLIENT_SetLatestServerGametic( int latestServerGametic )
 
 //*****************************************************************************
 //
+unsigned int CLIENT_GetEndFullUpdateTic( void )
+{
+	return g_ulEndFullUpdateTic;
+}
+
+//*****************************************************************************
+//
 const FString &CLIENT_GetPlayerAccountName( int player )
 {
 	static FString empty;
