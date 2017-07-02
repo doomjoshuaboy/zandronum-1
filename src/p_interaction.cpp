@@ -2693,6 +2693,9 @@ void PLAYER_SetDefaultSpectatorValues( player_t *pPlayer )
 	pPlayer->mo->flags5 = 0;
 	pPlayer->mo->RenderStyle = STYLE_None;
 
+	// [RK] Clear the frozen flags so the spectator can move.
+	pPlayer->cheats &= ~(CF_FROZEN | CF_TOTALLYFROZEN);
+
 	// [BB] Speed and viewheight of spectators should be independent of the player class.
 	pPlayer->mo->Speed = FRACUNIT;
 	pPlayer->mo->ForwardMove1 = pPlayer->mo->ForwardMove2 = FRACUNIT;
