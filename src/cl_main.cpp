@@ -304,6 +304,9 @@ static	bool				g_bServerLagging;
 // What's the time of the last message the server got from us?
 static	bool				g_bClientLagging;
 
+// [BB] Are we currently receiving a full update?
+static	bool				g_bFullUpdateIncomplete = false;
+
 // [BB] Time we received the end of the last full update from the server.
 static ULONG				g_ulEndFullUpdateTic = 0;
 
@@ -736,6 +739,13 @@ void CLIENT_SetLatestServerGametic( int latestServerGametic )
 {
 	if ( latestServerGametic >= 0 )
 		g_lLatestServerGametic = latestServerGametic;
+}
+
+//*****************************************************************************
+//
+bool CLIENT_GetFullUpdateIncomplete ( void )
+{
+	return g_bFullUpdateIncomplete;
 }
 
 //*****************************************************************************
@@ -1311,6 +1321,9 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 				// Start new level.
 				G_InitNew( g_szMapName, false );
+
+				// [BB] We'll receive a full update for the new map from the server.
+				g_bFullUpdateIncomplete = true;
 
 				// For right now, the view is not active.
 				viewactive = false;
@@ -3172,6 +3185,7 @@ void ServerCommands::FullUpdateCompleted::Execute()
 	// [BB] The server doesn't send any info with this packet, it's just there to allow us
 	// keeping track of the current time so that we don't think we are lagging immediately after receiving a full update.
 	g_ulEndFullUpdateTic = gametic;
+	g_bFullUpdateIncomplete = false;
 	g_bClientLagging = false;
 	// [BB] Tell the server that we received the full update.
 	CLIENTCOMMANDS_FullUpdateReceived();
@@ -6721,10 +6735,8 @@ void ServerCommands::MapLoad::Execute()
 		// Start new level.
 		G_InitNew( mapName, false );
 
-		// [BB] Make sure there is no old player information left. Since the full update
-		// may be distributed over multiple tics, we can start ticking the world before
-		// all player bodies are spawned, causing "no body for player" warnings.
-		CLIENT_ClearAllPlayers();
+		// [BB] We'll receive a full update for the new map from the server.
+		g_bFullUpdateIncomplete = true;
 
 		// Restore our demo recording status.
 		CLIENTDEMO_SetPlaying( playing );
