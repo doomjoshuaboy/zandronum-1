@@ -3408,7 +3408,10 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 					(( player - players ) != consoleplayer ))
 				{
 					//PLAYER_SetSpectator(player, true, false);
-					Printf( "P_PlayerThink: No body for player %td!\n", player - players + 1 );
+					// [BB] Since the full update may be distributed over multiple tics, we
+					// can start ticking the world before all player bodies are spawned.
+					if ( CLIENT_GetFullUpdateIncomplete() == false )
+						Printf( "P_PlayerThink: No body for player %td!\n", player - players + 1 );
 					return;
 				}
 				else
