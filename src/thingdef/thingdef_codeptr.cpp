@@ -5398,6 +5398,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Warp)
 		return;
 
 	AActor *reference = COPY_AAPTR(self, destination_selector);
+	const MoveThingData oldPositionData ( self ); // [TP]
 
 	if (!reference)
 	{
@@ -5503,7 +5504,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Warp)
 
 		// [BB] Inform the clients.
 		if (( NETWORK_GetState() == NETSTATE_SERVER ) && ( NETWORK_IsActorClientHandled( self ) == false ))
-			SERVERCOMMANDS_MoveThing( self, CM_X|CM_Y|CM_Z|CM_ANGLE );
+			SERVERCOMMANDS_MoveThingIfChanged( self, oldPositionData );
 
 		if (success_state)
 		{
