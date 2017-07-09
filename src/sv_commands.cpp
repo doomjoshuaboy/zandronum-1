@@ -1224,6 +1224,47 @@ void SERVERCOMMANDS_LevelSpawnThingNoNetID( AActor *pActor, ULONG ulPlayerExtra,
 	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
+/*
+ * [TP] Compares actor position data to a previous state and calls SERVERCOMMANDS_MoveThing to send appropriate updates.
+ */
+void SERVERCOMMANDS_MoveThingIfChanged( AActor *actor, const MoveThingData &oldData, ULONG ulPlayerExtra, ServerCommandFlags flags )
+{
+	if ( EnsureActorHasNetID( actor ) )
+	{
+		ULONG bits = 0;
+
+		if ( actor->x != oldData.x )
+			bits |= CM_X;
+
+		if ( actor->y != oldData.y )
+			bits |= CM_Y;
+
+		if ( actor->z != oldData.z )
+			bits |= CM_Z;
+
+		if ( actor->velx != oldData.velx )
+			bits |= CM_VELX;
+
+		if ( actor->vely != oldData.vely )
+			bits |= CM_VELY;
+
+		if ( actor->velz != oldData.velz )
+			bits |= CM_VELZ;
+
+		if ( actor->angle != oldData.angle )
+			bits |= CM_ANGLE;
+
+		if ( actor->pitch != oldData.pitch )
+			bits |= CM_PITCH;
+
+		if ( actor->movedir != oldData.movedir )
+			bits |= CM_MOVEDIR;
+
+		if ( bits != 0 )
+			SERVERCOMMANDS_MoveThing( actor, bits, ulPlayerExtra, flags );
+	}
+}
+
 //*****************************************************************************
 //
 void SERVERCOMMANDS_MoveThing( AActor *actor, ULONG bits, ULONG ulPlayerExtra, ServerCommandFlags flags )

@@ -6345,6 +6345,7 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 			fixed_t	oldx = caller->x;
 			fixed_t	oldy = caller->y;
 			fixed_t	oldz = caller->z;
+			const MoveThingData oldPositionData ( caller ); // [TP]
 
 			if (!(flags & WARPF_ABSOLUTEANGLE))
 			{
@@ -6457,7 +6458,7 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 
 				// [BB] Inform the clients.
 				if ( NETWORK_GetState() == NETSTATE_SERVER )
-					SERVERCOMMANDS_MoveThing( caller, CM_X|CM_Y|CM_Z|CM_ANGLE );
+					SERVERCOMMANDS_MoveThingIfChanged( caller, oldPositionData );
 
 				return true;
 			}
