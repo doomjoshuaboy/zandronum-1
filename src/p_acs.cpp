@@ -6829,6 +6829,14 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 					players[ulPlayer].playerstate = ( zadmflags & ZADF_DEAD_PLAYERS_CAN_KEEP_INVENTORY ) ? PST_REBORN : PST_REBORNNOINVENTORY;
 					GAMEMODE_SpawnPlayer( ulPlayer );
 
+					// [BB] As spectator, the player was allowed to use chasecam.
+					if ( players[ulPlayer].cheats & CF_CHASECAM )
+					{
+						players[ulPlayer].cheats &= ~CF_CHASECAM;
+						if ( NETWORK_GetState() == NETSTATE_SERVER  )
+							SERVERCOMMANDS_SetPlayerCheats( ulPlayer, ulPlayer, SVCF_ONLYTHISCLIENT );
+					}
+
 					// [BB] If he's a bot, tell him that he successfully joined.
 					if ( players[ulPlayer].bIsBot && players[ulPlayer].pSkullBot )
 						players[ulPlayer].pSkullBot->PostEvent( BOTEVENT_JOINEDGAME );
