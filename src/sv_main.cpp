@@ -1448,7 +1448,7 @@ void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 	// Read in the user's userinfo. If it returns false, the player was kicked for flooding
 	// (though this shouldn't happen anymore).
 	players[g_lCurrentClient].userinfo.Reset();
-	if ( SERVER_GetUserInfo( pByteStream, false ) == false )
+	if ( SERVER_GetUserInfo( pByteStream, false, true ) == false )
 		return;
 
 	// Apparently, we know the client is in the game, but the 
@@ -2020,7 +2020,7 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 
 //*****************************************************************************
 //
-bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick )
+bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick, bool bEnforceRequiered )
 {
 	player_t	*pPlayer;
 	FString		szSkin;
@@ -2206,7 +2206,7 @@ bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick )
 	}
 
 	// [BB] Make sure that the joining client sends the full user info (sending player class is not mandatory though).
-	if ( g_aClients[g_lCurrentClient].State < CLS_SPAWNED )
+	if ( bEnforceRequiered )
 	{
 		static const std::set<FName> required = {
 			NAME_Name, NAME_Autoaim, NAME_Gender, NAME_Skin, NAME_RailColor,
