@@ -1252,13 +1252,17 @@ void AM_initVariables ()
 	m_h = FTOM(SCREENHEIGHT);
 
 	// find player to center on initially
-	if (!playeringame[pnum = consoleplayer])
+	if (!playeringame[pnum = consoleplayer] || (players[consoleplayer].camera == NULL ) ) // [BB] Added camera check.
 		for (pnum=0;pnum<MAXPLAYERS;pnum++)
-			if (playeringame[pnum])
+			if (playeringame[pnum] && ( players[pnum].camera != NULL ) ) // [BB] Added camera check.
 				break;
   
-	m_x = (players[pnum].camera->x >> FRACTOMAPBITS) - m_w/2;
-	m_y = (players[pnum].camera->y >> FRACTOMAPBITS) - m_h/2;
+	// [BB] Added check.
+	if ( pnum < MAXPLAYERS )
+	{
+		m_x = (players[pnum].camera->x >> FRACTOMAPBITS) - m_w/2;
+		m_y = (players[pnum].camera->y >> FRACTOMAPBITS) - m_h/2;
+	}
 	AM_changeWindowLoc();
 
 	// for saving & restoring
