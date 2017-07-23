@@ -55,6 +55,17 @@
 #include "doomtype.h"
 #include "a_pickups.h"
 
+// [TP] UserInfoChanges is a set of cvar names, ordered such that built-in cvars are listed
+// before any mod ones. This ensures that, in the event that the client needs to split the
+// userinfo command into multiple packets, the built-in cvars are guaranteed to go in the
+// first one. The server expects the first packet to contain all built-in cvars.
+struct UserInfoSortingFunction
+{
+	bool operator()( FName cvar1Name, FName cvar2Name ) const;
+};
+
+typedef std::set<FName, UserInfoSortingFunction> UserInfoChanges;
+
 //*****************************************************************************
 //	PROTOTYPES
 
@@ -62,7 +73,7 @@ void	CLIENT_ResetFloodTimers( void );
 void	CLIENT_IgnoreWeaponSelect( bool bIgnore );
 bool	CLIENT_GetIgnoreWeaponSelect( void );
 bool	CLIENT_AllowSVCheatMessage( void );
-void	CLIENTCOMMANDS_UserInfo( const std::set<FName> &cvarNames );
+void	CLIENTCOMMANDS_UserInfo( const UserInfoChanges &cvars );
 void	CLIENTCOMMANDS_SendAllUserInfo();
 void	CLIENTCOMMANDS_StartChat( void );
 void	CLIENTCOMMANDS_EndChat( void );

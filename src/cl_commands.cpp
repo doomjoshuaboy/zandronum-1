@@ -117,6 +117,26 @@ bool CLIENT_AllowSVCheatMessage( void )
 
 //*****************************************************************************
 //
+bool UserInfoSortingFunction::operator()( FName cvar1Name, FName cvar2Name ) const
+{
+	FBaseCVar* cvar1 = FindCVar( cvar1Name, nullptr );
+	FBaseCVar* cvar2 = FindCVar( cvar2Name, nullptr );
+
+	if ( cvar1 && cvar2 && ((( cvar1->GetFlags() & CVAR_MOD ) ^ ( cvar2->GetFlags() & CVAR_MOD )) != 0 ))
+	{
+		// If one of the cvars contains the mod flag and the other one does not,the one that
+		// does is goes before the other one.
+		return !!( cvar2->GetFlags() & CVAR_MOD );
+	}
+	else
+	{
+		// Otherwise we don't really care.
+		return cvar1 < cvar2;
+	}
+}
+
+//*****************************************************************************
+//
 static void clientcommands_WriteCVarToUserinfo( FName name, FBaseCVar *cvar )
 {
 	// [BB] It's pointless to tell the server of the class, if only one class is available.
@@ -171,7 +191,7 @@ void CLIENTCOMMANDS_SendAllUserInfo()
 
 	const userinfo_t &userinfo = players[consoleplayer].userinfo;
 	userinfo_t::ConstIterator iterator ( userinfo );
-	std::set<FName> cvarNames;
+	UserInfoChanges cvarNames;
 
 	for ( userinfo_t::ConstPair *pair; iterator.NextPair( pair ); )
 		cvarNames.insert( pair->Key );
@@ -181,7 +201,7 @@ void CLIENTCOMMANDS_SendAllUserInfo()
 
 //*****************************************************************************
 //
-void CLIENTCOMMANDS_UserInfo( const std::set<FName> &cvarNames )
+void CLIENTCOMMANDS_UserInfo( const UserInfoChanges &cvars )
 {
 	// Temporarily disable userinfo for when the player setup menu updates our userinfo. Then
 	// we can just send all our userinfo in one big bulk, instead of each time it updates
@@ -193,7 +213,7 @@ void CLIENTCOMMANDS_UserInfo( const std::set<FName> &cvarNames )
 	// contains cvars that we want to send.
 	bool sendUserinfo = false;
 
-	for ( std::set<FName>::const_iterator iterator = cvarNames.begin(); iterator != cvarNames.end(); ++iterator )
+	for ( UserInfoChanges::const_iterator iterator = cvars.begin(); iterator != cvars.end(); ++iterator )
 	{
 		FBaseCVar **cvarPointer = players[consoleplayer].userinfo.CheckKey( *iterator );
 		if ( cvarPointer && ( (*cvarPointer)->GetFlags() & CVAR_UNSYNCED_USERINFO ) == false )
@@ -208,7 +228,7 @@ void CLIENTCOMMANDS_UserInfo( const std::set<FName> &cvarNames )
 
 	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_USERINFO );
 
-	for ( std::set<FName>::const_iterator iterator = cvarNames.begin(); iterator != cvarNames.end(); ++iterator )
+	for ( UserInfoChanges::const_iterator iterator = cvars.begin(); iterator != cvars.end(); ++iterator )
 	{
 		FName name = *iterator;
 		FBaseCVar **cvarPointer = players[consoleplayer].userinfo.CheckKey( name );
