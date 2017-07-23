@@ -105,7 +105,7 @@ CVAR (Int,		cl_connectiontype,			1,		CVAR_USERINFO | CVAR_ARCHIVE);
 CVAR (Flag,		cl_clientsidepuffs,			cl_clientflags, CLIENTFLAGS_CLIENTSIDEPUFFS );
 
 // [TP] Userinfo changes yet to be sent.
-static std::set<FName> PendingUserinfoChanges;
+static UserInfoChanges PendingUserinfoChanges;
 
 // [CK] CVARs that affect cl_clientflags
 CUSTOM_CVAR ( Int, cl_clientflags, CLIENTFLAGS_DEFAULT, CVAR_USERINFO | CVAR_ARCHIVE )
