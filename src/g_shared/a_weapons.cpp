@@ -388,10 +388,13 @@ void AWeapon::AttachToOwner (AActor *other)
 
 			bool shouldSwitch = false;
 
+			// [BB] Clients only handle their own weapon.
+			if ( NETWORK_InClientMode( ) && (( Owner->player - players ) != consoleplayer ))
+				shouldSwitch = false;
 			// [ZZ] Changed code so it only treats switchonpickup == 2 as "always switch"
 			// [BC] Handle the "switchonpickup" userinfo cvar. If it's == 2, then
 			// we always want to switch our weapon when we pickup a new one.
-			if ( (Owner->player->userinfo.GetSwitchOnPickup() == 2) || ( zacompatflags & ZACOMPATF_OLD_WEAPON_SWITCH ) )
+			else if ( (Owner->player->userinfo.GetSwitchOnPickup() == 2) || ( zacompatflags & ZACOMPATF_OLD_WEAPON_SWITCH ) )
 			{
 				shouldSwitch  = true;
 			}
