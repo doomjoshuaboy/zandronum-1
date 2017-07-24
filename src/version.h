@@ -124,8 +124,8 @@ unsigned int GetRevisionNumber();
 #define GAMENAME "Zandronum"
 #define GAMENAMELOWERCASE "zandronum"
 #define DOMAIN_NAME "zandronum.com"
-#define FORUM_URL "http://" DOMAIN_NAME "/forum/"
-#define BUGS_FORUM_URL	"http://" DOMAIN_NAME "/tracker/"
+#define FORUM_URL "https://" DOMAIN_NAME "/forum/"
+#define BUGS_FORUM_URL	"https://" DOMAIN_NAME "/tracker/"
 
 // [BC] This is what's displayed as the title for server windows.
 #define	SERVERCONSOLE_TITLESTRING	GAMENAME " v" DOTVERSIONSTR " Server"
