@@ -2020,7 +2020,7 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 
 //*****************************************************************************
 //
-bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick, bool bEnforceRequiered )
+bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick, bool bEnforceRequired )
 {
 	player_t	*pPlayer;
 	FString		szSkin;
@@ -2206,7 +2206,7 @@ bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick, bool bEnfor
 	}
 
 	// [BB] Make sure that the joining client sends the full user info (sending player class is not mandatory though).
-	if ( bEnforceRequiered )
+	if ( bEnforceRequired )
 	{
 		static const std::set<FName> required = {
 			NAME_Name, NAME_Autoaim, NAME_Gender, NAME_Skin, NAME_RailColor,
