@@ -1169,6 +1169,10 @@ CCMD (load)
 
 CCMD (save)
 {
+    // [BB] This function may not be used by ConsoleCommand.
+    if ( ACS_IsCalledFromConsoleCommand() )
+        return;
+
     if (argv.argc() < 2 || argv.argc() > 3)
 	{
         Printf ("usage: save <filename> [description]\n");
