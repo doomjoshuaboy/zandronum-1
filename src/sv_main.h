@@ -410,7 +410,7 @@ void		SERVER_RequestClientToAuthenticate( ULONG ulClient );
 void		SERVER_AuthenticateClientLevel( BYTESTREAM_s *pByteStream );
 bool		SERVER_PerformAuthenticationChecksum( BYTESTREAM_s *pByteStream );
 void		SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream );
-bool		SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick, bool bEnforceRequiered = false );
+bool		SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick, bool bEnforceRequired = false );
 void		SERVER_ConnectionError( NETADDRESS_s Address, const char *pszMessage, ULONG ulErrorCode );
 void		SERVER_ClientError( ULONG ulClient, ULONG ulErrorCode );
 void		SERVER_SendFullUpdate( ULONG ulClient );
