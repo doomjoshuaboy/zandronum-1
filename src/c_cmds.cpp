@@ -1144,6 +1144,10 @@ CCMD (warp)
 
 CCMD (load)
 {
+    // [BB] This function may not be used by ConsoleCommand.
+    if ( ACS_IsCalledFromConsoleCommand() )
+        return;
+
     if (argv.argc() != 2)
 	{
         Printf ("usage: load <filename>\n");
