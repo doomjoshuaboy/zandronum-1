@@ -4430,7 +4430,9 @@ bool SERVER_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case CLC_USERINFO:
 
 		// Client is sending us his userinfo.
-		SERVER_GetUserInfo( pByteStream, true );
+		// [BB] Don't kick the client while he is still receiving the full update. During that time
+		// the client sends the full userinfo, which may be spread over multiple commands.
+		SERVER_GetUserInfo( pByteStream, ( SERVER_GetClient ( g_lCurrentClient )->bFullUpdateIncomplete == false ) );
 		break;
 	case CLC_QUIT:
 
