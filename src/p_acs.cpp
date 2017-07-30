@@ -6658,6 +6658,7 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 					if ( handle == ( g_dbQueries.size() - 1 ) )
 						g_dbQueries.resize ( g_dbQueries.size() - 1 );
 				}
+				break;
 			}
 
 		case ACSF_GetDBResultKeyString:

@@ -1039,8 +1039,6 @@ void G_DoLoadLevel (int position, bool autosave)
 	static int lastposition = 0;
 	gamestate_t oldgs = gamestate;
 	unsigned int i;
-	// [BC]
-	char				szString[256];
 	CAMPAIGNINFO_s		*pInfo;
 	UCVarValue			Val;
 
@@ -1593,8 +1591,9 @@ void G_DoLoadLevel (int position, bool autosave)
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
 		// Now that we're in a new level, update the mapname/scoreboard.
-		sprintf( szString, "%s: %s", level.mapname, level.LevelName.GetChars() );
-		SERVERCONSOLE_SetCurrentMapname( szString );
+		FString string;
+		string.Format( "%s: %s", level.mapname, level.LevelName.GetChars() );
+		SERVERCONSOLE_SetCurrentMapname( string );
 		SERVERCONSOLE_UpdateScoreboard( );
 
 		// Reset the columns.

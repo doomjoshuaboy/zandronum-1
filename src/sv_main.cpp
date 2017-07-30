@@ -628,21 +628,22 @@ void SERVER_Tick( void )
 		{
 			if ( --g_lMapRestartTimer == 0 )
 			{
-				char	szString[128];
+				FString string;
 
 				if ( GAMEMODE_IsNextMapCvarLobby( ) )
 				{
 					// [AM] If we're using a lobby map, reset to the lobby.
 					//      In theory, there can be many MAPINFO-lobbies, but there is only
 					//      one lobby cvar setting, so we only need to bother with the cvar.
-					sprintf(szString, "map %s", *lobby);
+					string.Format( "map %s", *lobby );
 				}
 				else
 				{
-					sprintf(szString, "map %s", level.mapname);
+					string.Format( "map %s", level.mapname );
 				}
 
-				AddCommandString( szString );
+				AddCommandString( string.LockBuffer() );
+				string.UnlockBuffer();
 			}
 		}
 

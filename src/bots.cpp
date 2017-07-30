@@ -794,7 +794,7 @@ bool BOTS_IsVisible( AActor *pActor1, AActor *pActor2 )
 void BOTS_ArchiveRevealedBotsAndSkins( FConfigFile *f )
 {
 	ULONG	ulIdx;
-	char	szString[64];
+	FString string;
 
 	for ( ulIdx = 0; ulIdx < g_BotInfo.Size(); ulIdx++ )
 	{
@@ -802,11 +802,11 @@ void BOTS_ArchiveRevealedBotsAndSkins( FConfigFile *f )
 		if (( g_BotInfo[ulIdx].bRevealed == false ) || ( g_BotInfo[ulIdx].bRevealedByDefault ))
 			continue;
 
-		sprintf( szString, "\"%s\"", g_BotInfo[ulIdx].szName );
+		string.Format( "\"%s\"", g_BotInfo[ulIdx].szName );
 
-		V_ColorizeString( szString );
-		V_RemoveColorCodes( szString );
-		f->SetValueForKey( szString, "1" );
+		V_ColorizeString( string );
+		V_RemoveColorCodes( string );
+		f->SetValueForKey( string, "1" );
 	}
 
 	for ( ulIdx = 0; ulIdx < (ULONG)skins.Size(); ulIdx++ )
@@ -815,11 +815,11 @@ void BOTS_ArchiveRevealedBotsAndSkins( FConfigFile *f )
 		if (( skins[ulIdx].bRevealed == false ) || ( skins[ulIdx].bRevealedByDefault ))
 			continue;
 
-		sprintf( szString, "\"%s\"", skins[ulIdx].name );
+		string.Format( "\"%s\"", skins[ulIdx].name );
 
-		V_ColorizeString( szString );
-		V_RemoveColorCodes( szString );
-		f->SetValueForKey( szString, "1" );
+		V_ColorizeString( string );
+		V_RemoveColorCodes( string );
+		f->SetValueForKey( string, "1" );
 	}
 }
 
