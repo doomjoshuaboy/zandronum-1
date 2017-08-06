@@ -92,7 +92,9 @@ bool AHolySpirit::Slam (AActor *thing)
 				// ghost burns out faster when attacking players/bosses
 				health -= 6;
 			}
-			P_DamageMobj (thing, this, target, dam, NAME_Melee);
+			// [TP] Don't deal damage as the client
+			if ( NETWORK_InClientMode() == false )
+				P_DamageMobj (thing, this, target, dam, NAME_Melee);
 			if (pr_spiritslam() < 128)
 			{
 				Spawn ("HolyPuff", x, y, z, ALLOW_REPLACE);
