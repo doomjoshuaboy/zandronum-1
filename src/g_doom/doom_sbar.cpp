@@ -212,6 +212,9 @@ private:
 	{
 		int amount;
 
+		if (automapactive)
+			DrawImage (&StatusBarTex, 0, 0);
+
 		DrawAmmoStats ();
 		DrawFace ();
 		DrawKeys ();
@@ -223,9 +226,9 @@ private:
 				OldPoints = CPlayer->lPointCount;
 				PointsRefresh = screen->GetPageCount ();
 			}
-			if (PointsRefresh)
+			if (PointsRefresh || automapactive)
 			{
-				PointsRefresh--;
+				if ( PointsRefresh ) PointsRefresh--;
 				DrawNumber (OldPoints, 138/*110*/, 3, 2);
 			}
 		}
@@ -236,9 +239,9 @@ private:
 				OldFrags = CPlayer->fragcount;
 				FragsRefresh = screen->GetPageCount ();
 			}
-			if (FragsRefresh)
+			if (FragsRefresh || automapactive)
 			{
-				FragsRefresh--;
+				if ( FragsRefresh ) FragsRefresh--;
 				DrawNumber (OldFrags, 138/*110*/, 3, 2);
 			}
 		}
@@ -250,9 +253,9 @@ private:
 			OldHealth = CPlayer->health;
 			HealthRefresh = screen->GetPageCount ();
 		}
-		if (HealthRefresh)
+		if (HealthRefresh || automapactive)
 		{
-			HealthRefresh--;
+			if ( HealthRefresh ) HealthRefresh--;
 			// [RC] If we're spying someone and aren't allowed to see his stats, draw dashes instead of numbers.
 			if ( NETWORK_InClientMode() &&
 				( SERVER_IsPlayerAllowedToKnowHealth( consoleplayer, ULONG( CPlayer - players ) ) == false ))
@@ -272,9 +275,9 @@ private:
 			OldArmor = armorpoints;
 			ArmorRefresh = screen->GetPageCount ();
 		}
-		if (ArmorRefresh)
+		if (ArmorRefresh || automapactive)
 		{
-			ArmorRefresh--;
+			if ( ArmorRefresh ) ArmorRefresh--;
 			// [RC] If we're spying someone and aren't allowed to see his stats, draw dashes instead of numbers.
 			if(( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( SERVER_IsPlayerAllowedToKnowHealth( consoleplayer, ULONG( CPlayer - players ) ) == false ))
 				DrawUnknownDashs(221, 3);
@@ -298,9 +301,9 @@ private:
 			OldActiveAmmo = amount;
 			ActiveAmmoRefresh = screen->GetPageCount ();
 		}
-		if (ActiveAmmoRefresh)
+		if (ActiveAmmoRefresh || automapactive)
 		{
-			ActiveAmmoRefresh--;
+			if ( ActiveAmmoRefresh ) ActiveAmmoRefresh--;
 			// [RC] If we're spying someone and aren't allowed to see his stats, draw dashes instead of numbers.
 			if ( NETWORK_InClientMode() &&
 				( SERVER_IsPlayerAllowedToKnowHealth( consoleplayer, ULONG( CPlayer - players ) ) == false ))
@@ -355,9 +358,9 @@ private:
 
 		for (i = 0; i < 3; i++)
 		{
-			if (ArmsRefresh[i])
+			if (ArmsRefresh[i] || automapactive)
 			{
-				ArmsRefresh[i]--;
+				if ( ArmsRefresh[i] ) ArmsRefresh[i]--;
 				int x = 111 + i * 12;
 
 				DrawArm (arms[i], i, x, 4, true);
@@ -442,9 +445,9 @@ private:
 		memcpy (OldAmmo, ammo, sizeof(ammo));
 		memcpy (OldMaxAmmo, maxammo, sizeof(ammo));
 
-		if (AmmoRefresh)
+		if (AmmoRefresh || automapactive)
 		{
-			AmmoRefresh--;
+			if ( AmmoRefresh ) AmmoRefresh--;
 			DrawPartialImage (&StatusBarTex, 276, 4*3);
 			for (i = 0; i < 4; i++)
 			{
@@ -452,9 +455,9 @@ private:
 					DrSmallNumber (ammo[i], 276, 5 + 6*i);
 			}
 		}
-		if (MaxAmmoRefresh)
+		if (MaxAmmoRefresh || automapactive)
 		{
-			MaxAmmoRefresh--;
+			if ( MaxAmmoRefresh ) MaxAmmoRefresh--;
 			DrawPartialImage (&StatusBarTex, 302, 4*3);
 			for (i = 0; i < 4; i++)
 			{
@@ -495,9 +498,9 @@ private:
 		}
 
 		// Draw keys that have changed since last time
-		if (KeysRefresh)
+		if (KeysRefresh || automapactive)
 		{
-			KeysRefresh--;
+			if ( KeysRefresh ) KeysRefresh--;
 			DrawPartialImage (&StatusBarTex, 239, 8);
 
 			// Blue Keys
