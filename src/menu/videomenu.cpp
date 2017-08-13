@@ -364,6 +364,9 @@ static bool GetSelectedSize (int *width, int *height)
 			{
 				*width = strtol (buffer, &breakpt, 10);
 				*height = strtol (breakpt+1, NULL, 10);
+				// [TP] Don't crash if an invalid mode was selected
+				if (( *width == 0 ) || ( *height == 0 ))
+					return false;
 				return true;
 			}
 		}
