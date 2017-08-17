@@ -2763,6 +2763,10 @@ static void P_SpawnPushers ()
 	line_t *l = lines;
 	register int s;
 
+	// [Leo] The server takes care of the pushers.
+	if ( NETWORK_InClientMode() )
+		return;
+
 	for (i = 0; i < numlines; i++, l++)
 	{
 		switch (l->special)
