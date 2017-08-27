@@ -64,6 +64,8 @@ public:
 		BigHeight = tex->GetScaledHeight();
 
 		DoCommonInit ();
+
+		lastDrawnWithMenuActive = false;
 	}
 
 	~DDoomStatusBar ()
@@ -145,6 +147,8 @@ public:
 				ST_SetNeedRefresh();
 			}
 		}
+
+		lastDrawnWithMenuActive = ( menuactive != MENU_Off );
 	}
 
 private:
@@ -208,11 +212,15 @@ private:
 		ST_SetNeedRefresh();
 	}
 
+	bool ForceRefresh ( ) const {
+		return ( automapactive || ( menuactive != MENU_Off ) || ( ( menuactive == MENU_Off && lastDrawnWithMenuActive ) ) );
+	}
+
 	void DrawMainBar ()
 	{
 		int amount;
 
-		if (automapactive)
+		if ( ForceRefresh() )
 			DrawImage (&StatusBarTex, 0, 0);
 
 		DrawAmmoStats ();
@@ -226,7 +234,7 @@ private:
 				OldPoints = CPlayer->lPointCount;
 				PointsRefresh = screen->GetPageCount ();
 			}
-			if (PointsRefresh || automapactive)
+			if (PointsRefresh || ForceRefresh())
 			{
 				if ( PointsRefresh ) PointsRefresh--;
 				DrawNumber (OldPoints, 138/*110*/, 3, 2);
@@ -239,7 +247,7 @@ private:
 				OldFrags = CPlayer->fragcount;
 				FragsRefresh = screen->GetPageCount ();
 			}
-			if (FragsRefresh || automapactive)
+			if (FragsRefresh || ForceRefresh())
 			{
 				if ( FragsRefresh ) FragsRefresh--;
 				DrawNumber (OldFrags, 138/*110*/, 3, 2);
@@ -253,7 +261,7 @@ private:
 			OldHealth = CPlayer->health;
 			HealthRefresh = screen->GetPageCount ();
 		}
-		if (HealthRefresh || automapactive)
+		if (HealthRefresh || ForceRefresh())
 		{
 			if ( HealthRefresh ) HealthRefresh--;
 			// [RC] If we're spying someone and aren't allowed to see his stats, draw dashes instead of numbers.
@@ -275,7 +283,7 @@ private:
 			OldArmor = armorpoints;
 			ArmorRefresh = screen->GetPageCount ();
 		}
-		if (ArmorRefresh || automapactive)
+		if (ArmorRefresh || ForceRefresh())
 		{
 			if ( ArmorRefresh ) ArmorRefresh--;
 			// [RC] If we're spying someone and aren't allowed to see his stats, draw dashes instead of numbers.
@@ -301,7 +309,7 @@ private:
 			OldActiveAmmo = amount;
 			ActiveAmmoRefresh = screen->GetPageCount ();
 		}
-		if (ActiveAmmoRefresh || automapactive)
+		if (ActiveAmmoRefresh || ForceRefresh())
 		{
 			if ( ActiveAmmoRefresh ) ActiveAmmoRefresh--;
 			// [RC] If we're spying someone and aren't allowed to see his stats, draw dashes instead of numbers.
@@ -358,7 +366,7 @@ private:
 
 		for (i = 0; i < 3; i++)
 		{
-			if (ArmsRefresh[i] || automapactive)
+			if (ArmsRefresh[i] || ForceRefresh())
 			{
 				if ( ArmsRefresh[i] ) ArmsRefresh[i]--;
 				int x = 111 + i * 12;
@@ -445,7 +453,7 @@ private:
 		memcpy (OldAmmo, ammo, sizeof(ammo));
 		memcpy (OldMaxAmmo, maxammo, sizeof(ammo));
 
-		if (AmmoRefresh || automapactive)
+		if (AmmoRefresh || ForceRefresh())
 		{
 			if ( AmmoRefresh ) AmmoRefresh--;
 			DrawPartialImage (&StatusBarTex, 276, 4*3);
@@ -455,7 +463,7 @@ private:
 					DrSmallNumber (ammo[i], 276, 5 + 6*i);
 			}
 		}
-		if (MaxAmmoRefresh || automapactive)
+		if (MaxAmmoRefresh || ForceRefresh())
 		{
 			if ( MaxAmmoRefresh ) MaxAmmoRefresh--;
 			DrawPartialImage (&StatusBarTex, 302, 4*3);
@@ -498,7 +506,7 @@ private:
 		}
 
 		// Draw keys that have changed since last time
-		if (KeysRefresh || automapactive)
+		if (KeysRefresh || ForceRefresh())
 		{
 			if ( KeysRefresh ) KeysRefresh--;
 			DrawPartialImage (&StatusBarTex, 239, 8);
@@ -1417,6 +1425,7 @@ void DrawFullHUD_GameInformation()
 	int OldActiveAmmo;
 	int OldFrags;
 	int OldPoints;
+	bool lastDrawnWithMenuActive;
 
 	char HealthRefresh;
 	char ArmorRefresh;
