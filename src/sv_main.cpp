@@ -1647,6 +1647,10 @@ void SERVER_DetermineConnectionType( BYTESTREAM_s *pByteStream )
 	// If it's not a launcher querying the server, it must be a client.
 	if ( lCommand != CLCC_ATTEMPTCONNECTION )
 	{
+		// If the client sends a game command now, he's probably thinking he's still in a game, but isn't. Ignore those.
+		if (( lCommand >= CLC_USERINFO ) && ( lCommand < NUM_CLIENT_COMMANDS ))
+			return;
+
 		switch ( lCommand )
 		{		
 		// [RC] An RCON utility is trying to connect to/control this server.
@@ -1700,54 +1704,7 @@ void SERVER_DetermineConnectionType( BYTESTREAM_s *pByteStream )
 					Printf ( "Master server message with wrong verification string received. Ignoring\n" );
 			}
 			return;
-		// Ignore; possibly a client who thinks he's still in a game, but isn't.
-		case CLC_USERINFO:
-		case CLC_QUIT:
-		case CLC_STARTCHAT:
-		case CLC_ENDCHAT:
-		case CLC_ENTERCONSOLE:
-		case CLC_EXITCONSOLE:
-		case CLC_IGNORE:
-		case CLC_SAY:
-		case CLC_CLIENTMOVE:
-		case CLC_MISSINGPACKET:
-		case CLC_PONG:
-		case CLC_WEAPONSELECT:
-		case CLC_TAUNT:
-		case CLC_SPECTATE:
-		case CLC_REQUESTJOIN:
-		case CLC_REQUESTRCON:
-		case CLC_RCONCOMMAND:
-		case CLC_SUICIDE:
-		case CLC_CHANGETEAM:
-		case CLC_SPECTATEINFO:
-		case CLC_GENERICCHEAT:
-		case CLC_GIVECHEAT:
-		case CLC_SUMMONCHEAT:
-		case CLC_READYTOGOON:
-		case CLC_CHANGEDISPLAYPLAYER:
-		case CLC_AUTHENTICATELEVEL:
-		case CLC_CALLVOTE:
-		case CLC_VOTEYES:
-		case CLC_VOTENO:
-		case CLC_INVENTORYUSEALL:
-		case CLC_INVENTORYUSE:
-		case CLC_INVENTORYDROP:
-		case CLC_SUMMONFRIENDCHEAT:
-		case CLC_SUMMONFOECHEAT: 
-		case CLC_PUKE:
-		case CLC_MORPHEX:
 
-			// [BB] After a map change with the CCMD map, legitimate clients may get caught by
-			// this. Since the packet is completely ignored anyway, there is no need to ban the
-			// IP for ten seconds.
-			/*
-			Printf( "CLC command (%d) from someone not in game (%s). Ignoring IP for 10 seconds.\n", static_cast<int> (lCommand), NETWORK_GetFromAddress().ToString() );
-			// [BB] Block all further challenges of this IP for ten seconds to prevent log flooding.
-			g_floodProtectionIPQueue.addAddress ( NETWORK_GetFromAddress( ), g_lGameTime / 1000 );
-			*/
-
-			return;
 		// [BB] 200 was CLCC_ATTEMPTCONNECTION in 97d-beta4.3 and earlier versions.
 		case 200: 
 			Printf( "Challenge (%d) from (%s). Likely an old client (97d-beta4.3 or older) trying to connect. Informing the client and ignoring IP for 10 seconds.\n", static_cast<int> (lCommand), NETWORK_GetFromAddress().ToString() );
