@@ -1629,21 +1629,3 @@ userinfo_t::~userinfo_t()
 	}
 	this->Clear();
 }
-
-#ifdef _DEBUG
-// [BC] Debugging function.
-CCMD( listinventory )
-{
-	AInventory	*pInventory;
-
-	if ( players[consoleplayer].mo == NULL )
-		return;
-
-	pInventory = players[consoleplayer].mo->Inventory;
-	while ( pInventory )
-	{
-		Printf( "%s\n", pInventory->GetClass( )->TypeName.GetChars( ));
-		pInventory = pInventory->Inventory;
-	}
-}
-#endif
