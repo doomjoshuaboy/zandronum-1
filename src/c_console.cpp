@@ -976,6 +976,8 @@ int PrintString (int printlevel, const char *outline)
 		V_ColorizeString( copy );
 		V_RemoveColorCodes( copy );
 
+		static bool needPrependedTimestamp = true;
+
 		if( sv_logfiletimestamp )
 		{
 			// [BB] Generate time string "[YY:MM:DD;HH:MM:SS] " or "[HH:MM:SS] " and write it to the logfile.
@@ -1001,12 +1003,11 @@ int PrintString (int printlevel, const char *outline)
 			}
 
 			// [TP] If the previous call ended on a newline, we add one at the beginning of the string too.
-			static bool needPrependedTimestamp = true;
 			if ( needPrependedTimestamp )
 				copy.Insert( 0, time );
-
-			needPrependedTimestamp = ( copy[copy.Len() - 1] == '\n' );
 		}
+
+		needPrependedTimestamp = (copy[copy.Len() - 1] == '\n');
 
 		fputs (copy, Logfile);
 		// [TP] copy is now an FString.
