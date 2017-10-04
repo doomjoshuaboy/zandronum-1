@@ -2817,11 +2817,22 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_SetTranslucent)
 	ACTION_PARAM_FIXED(alpha, 0);
 	ACTION_PARAM_INT(mode, 1);
 
+	// [Leo] This is handled server-side.
+	if ( NETWORK_InClientModeAndActorNotClientHandled( self ) )
+		return;
+
 	mode = mode == 0 ? STYLE_Translucent : mode == 2 ? STYLE_Fuzzy : STYLE_Add;
 
 	self->RenderStyle.Flags &= ~STYLEF_Alpha1;
 	self->alpha = clamp<fixed_t>(alpha, 0, FRACUNIT);
 	self->RenderStyle = ERenderStyle(mode);
+
+	// [Leo] Inform the clients about the alpha change and RenderStyle.
+	if (( NETWORK_GetState() == NETSTATE_SERVER ) && ( NETWORK_IsActorClientHandled( self ) == false ))
+	{
+		SERVERCOMMANDS_SetThingProperty(self, APROP_RenderStyle);
+		SERVERCOMMANDS_SetThingProperty(self, APROP_Alpha);
+	}
 }
 
 //===========================================================================
