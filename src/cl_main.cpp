@@ -270,7 +270,6 @@ static	void	client_SetPolyobjRotation( BYTESTREAM_s *pByteStream );
 
 // Miscellaneous commands.
 static	void	client_EarthQuake( BYTESTREAM_s *pByteStream );
-static	void	client_DoScroller( BYTESTREAM_s *pByteStream );
 static	void	client_SetScroller( BYTESTREAM_s *pByteStream );
 static	void	client_SetWallScroller( BYTESTREAM_s *pByteStream );
 static	void	client_DoFlashFader( BYTESTREAM_s *pByteStream );
@@ -1749,10 +1748,6 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_EARTHQUAKE:
 
 		client_EarthQuake( pByteStream );
-		break;
-	case SVC_DOSCROLLER:
-
-		client_DoScroller( pByteStream );
 		break;
 	case SVC_SETSCROLLER:
 
@@ -8606,50 +8601,33 @@ static void client_EarthQuake( BYTESTREAM_s *pByteStream )
 
 //*****************************************************************************
 //
-static void client_DoScroller( BYTESTREAM_s *pByteStream )
+void ServerCommands::DoScroller::Execute()
 {
-	DScroller::EScrollType	Type;
-	fixed_t					dX;
-	fixed_t					dY;
-	LONG					lAffectee;
-
-	// Read in the type of scroller.
-	Type = (DScroller::EScrollType)NETWORK_ReadByte( pByteStream );
-
-	// Read in the X speed.
-	dX = NETWORK_ReadLong( pByteStream );
-
-	// Read in the Y speed.
-	dY = NETWORK_ReadLong( pByteStream );
-
-	// Read in the sector/side being scrolled.
-	lAffectee = NETWORK_ReadLong( pByteStream );
-
 	// Check to make sure what we've read in is valid.
 	// [BB] sc_side is allowed, too, but we need to make a different check for it.
-	if (( Type != DScroller::sc_floor ) && ( Type != DScroller::sc_ceiling ) &&
-		( Type != DScroller::sc_carry ) && ( Type != DScroller::sc_carry_ceiling ) && ( Type != DScroller::sc_side ) )
+	if (( type != DScroller::sc_floor ) && ( type != DScroller::sc_ceiling ) &&
+		( type != DScroller::sc_carry ) && ( type != DScroller::sc_carry_ceiling ) && ( type != DScroller::sc_side ) )
 	{
-		CLIENT_PrintWarning( "client_DoScroller: Unknown type: %d!\n", static_cast<int> (Type) );
+		CLIENT_PrintWarning( "client_DoScroller: Unknown type: %d!\n", static_cast<int> (type) );
 		return;
 	}
 
-	if( Type == DScroller::sc_side )
+	if ( type == DScroller::sc_side )
 	{
-		if (( lAffectee < 0 ) || ( lAffectee >= numsides ))
+		if (( affectee < 0 ) || ( affectee >= numsides ))
 		{
-			CLIENT_PrintWarning( "client_DoScroller: Invalid side ID: %ld!\n", lAffectee );
+			CLIENT_PrintWarning( "client_DoScroller: Invalid side ID: %ld!\n", affectee );
 			return;
 		}
 	}
-	else if (( lAffectee < 0 ) || ( lAffectee >= numsectors ))
+	else if (( affectee < 0 ) || ( affectee >= numsectors ))
 	{
-		CLIENT_PrintWarning( "client_DoScroller: Invalid sector ID: %ld!\n", lAffectee );
+		CLIENT_PrintWarning( "client_DoScroller: Invalid sector ID: %ld!\n", affectee );
 		return;
 	}
 
 	// Finally, create the scroller.
-	new DScroller( Type, dX, dY, -1, lAffectee, 0 );
+	new DScroller( (DScroller::EScrollType)type, x, y, -1, affectee, 0 );
 }
 
 //*****************************************************************************

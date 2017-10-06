@@ -4316,11 +4316,11 @@ void SERVERCOMMANDS_RemoveFromJoinQueue( unsigned int index, ULONG ulPlayerExtra
 //
 void SERVERCOMMANDS_DoScroller( LONG lType, LONG lXSpeed, LONG lYSpeed, LONG lAffectee, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
-	NetCommand command ( SVC_DOSCROLLER );
-	command.addByte ( lType );
-	command.addLong ( lXSpeed );
-	command.addLong ( lYSpeed );
-	command.addLong ( lAffectee );
+	ServerCommands::DoScroller command;
+	command.SetType( lType );
+	command.SetX( lXSpeed );
+	command.SetY( lYSpeed );
+	command.SetAffectee( lAffectee );
 	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 

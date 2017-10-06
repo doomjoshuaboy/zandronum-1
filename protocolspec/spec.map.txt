@@ -64,3 +64,10 @@ Command SecretMarkSectorFound
 	ExtendedCommand
 	Sector sector
 EndCommand
+
+Command DoScroller
+	Byte type
+	Fixed x
+	Fixed y
+	Long affectee
+EndCommand
