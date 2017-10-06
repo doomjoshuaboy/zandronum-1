@@ -72,4 +72,10 @@ Command DoScroller
 	Fixed x
 	Fixed y
 	Long affectee
+	Bool accel
+	Bool hasControl
+
+	If (hasControl)
+		Sector sector
+	EndIf
 EndCommand
