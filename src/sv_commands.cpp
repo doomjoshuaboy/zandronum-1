@@ -3739,16 +3739,6 @@ void SERVERCOMMANDS_SetMapSky( ULONG ulPlayerExtra, ServerCommandFlags flags )
 }
 
 //*****************************************************************************
-//
-void SERVERCOMMANDS_SetMapSkyScrollSpeed( bool isSky1, ULONG ulPlayerExtra, ServerCommandFlags flags )
-{
-	ServerCommands::SetMapSkyScrollSpeed command;
-	command.SetIsSky1( isSky1 );
-	command.SetValue( isSky1 ? level.skyspeed1 : level.skyspeed2 );
-	command.sendCommandToClients ( ulPlayerExtra, flags );
-}
-
-//*****************************************************************************
 //*****************************************************************************
 //
 void SERVERCOMMANDS_GiveInventory( ULONG ulPlayer, AInventory *pInventory, ULONG ulPlayerExtra, ServerCommandFlags flags )
@@ -5043,18 +5033,6 @@ void SERVERCOMMANDS_ShootDecal ( const FDecalTemplate* tpl, AActor* actor, fixed
 	command.addLong( tracedist );
 	command.addByte( permanent );
 	command.sendCommandToClients ( ulPlayerExtra, flags );
-}
-
-//*****************************************************************************
-// [TP]
-void SERVERCOMMANDS_RCONAccess( int client )
-{
-	if ( SERVER_IsValidClient( client ) == false )
-		return;
-
-	NetCommand command ( SVC2_RCONACCESS );
-	command.addByte ( SERVER_GetClient( client )->bRCONAccess );
-	command.sendCommandToOneClient( client );
 }
 
 //*****************************************************************************
