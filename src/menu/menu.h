@@ -568,7 +568,7 @@ public:
 	virtual bool MouseEvent(int type, int x, int y);
 
 	// [TP]
-	virtual bool IsServerInfo() const { return false; }
+	virtual bool IsServerCVar() const { return false; }
 	virtual bool IsDisabled() const;
 	void SetDisabled ( bool a ) { mDisabled = a; }
 };	
@@ -696,6 +696,7 @@ void M_StartMessage(const char *message, int messagemode, FName action = NAME_No
 DMenu *StartPickerMenu(DMenu *parent, const char *name, FColorCVar *cvar);
 void M_RefreshModesList ();
 void M_InitVideoModesMenu ();
+void M_RconAccessGranted();
 
 
 

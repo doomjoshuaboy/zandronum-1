@@ -147,6 +147,7 @@ CVAR ( Int, menu_skirmishpointlimit, 0, CVAR_ARCHIVE )
 CVAR ( Int, menu_skirmishduellimit, 0, CVAR_ARCHIVE )
 CVAR ( Int, menu_skirmishwinlimit, 0, CVAR_ARCHIVE )
 CVAR ( Int, menu_skirmishwavelimit, 0, CVAR_ARCHIVE )
+CVAR ( String, menu_rconpassword, 0, 0 )
 
 CUSTOM_CVAR ( Int, menu_textsizescalar, 0, CVAR_NOINITCALL )
 {
@@ -178,6 +179,8 @@ static FIntCVar* const BotSlots[] =
 	&menu_botspawn8,  &menu_botspawn9,  &menu_botspawn10, &menu_botspawn11,
 	&menu_botspawn12, &menu_botspawn13, &menu_botspawn14, &menu_botspawn15,
 };
+
+static int g_LastRconAccessRequest = -1;
 
 // =================================================================================================
 //
@@ -500,6 +503,49 @@ IMPLEMENT_CLASS( DTextScalingMenu )
 
 // =================================================================================================
 //
+//
+//
+//
+//
+// =================================================================================================
+
+class DVotingSetupMenu : public DOptionMenu
+{
+	DECLARE_CLASS( DVotingSetupMenu, DOptionMenu )
+	TArray<FOptionMenuItem*> mItems;
+
+public:
+	void Init ( DMenu* parent, FOptionMenuDescriptor* desc )
+	{
+		mItems.Reserve( desc->mItems.Size() );
+
+		for ( unsigned int i = 0; i < desc->mItems.Size(); ++i )
+			mItems[i] = desc->mItems[i];
+
+		UpdateItems();
+		Super::Init( parent, desc );
+	}
+
+	void UpdateItems()
+	{
+		for ( unsigned int i = 0; i < mItems.Size(); ++i )
+		{
+			if ( mItems[i]->GetAction( NULL ) != NAME_sv_nocallvote )
+				mItems[i]->SetDisabled( sv_nocallvote == 1 );
+		}
+	}
+
+	void CVarChanged ( FBaseCVar* cvar )
+	{
+		if ( cvar == &sv_nocallvote )
+			UpdateItems();
+	}
+};
+
+IMPLEMENT_CLASS( DVotingSetupMenu )
+
+// =================================================================================================
+//
 // DWeaponSetupMenu
 //
 // The weapon setup menu calls PWO code to fill in the PWO items.
@@ -766,6 +812,20 @@ static void M_AutoSelect()
 //
 // =================================================================================================
 
+void M_RconAccessGranted()
+{
+	// [TP] We got RCON access. If this was done from the menu, forward the user to the server setup menu.
+	if (( g_LastRconAccessRequest > 0 ) && ( g_LastRconAccessRequest > gametic - 10 * TICRATE ))
+		M_SetMenu( "ZA_ServerSetupMenu" );
+}
+
+// =================================================================================================
+//
+//
+//
+//
+// =================================================================================================
+
 CCMD ( menu_startskirmish )
 {
 	M_StartSkirmishGame();
@@ -875,4 +935,17 @@ CCMD ( menu_login )
 	}
 	else
 		M_StartMessage( "You must be in a netgame to log in.\n\npress a key.", 1 );
+}
+
+CCMD ( menu_rconlogin )
+{
+	M_ClearMenus();
+
+	if ( NETWORK_GetState() == NETSTATE_CLIENT )
+	{
+		FString command;
+		command.Format ("send_password \"%s\"", *menu_rconpassword );
+		C_DoCommand( command );
+		g_LastRconAccessRequest = gametic;
+	}
 }

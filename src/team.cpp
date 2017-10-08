@@ -2348,7 +2348,7 @@ CUSTOM_CVAR( Int, pointlimit, 0, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK )
 }
 
 // Allow the server to set the return time for flags/skulls.
-CVAR( Int, sv_flagreturntime, 15, CVAR_CAMPAIGNLOCK );
+CVAR( Int, sv_flagreturntime, 15, CVAR_CAMPAIGNLOCK | CVAR_SERVERINFO );
 
 CUSTOM_CVAR( Int, sv_maxteams, 2, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK | CVAR_LATCH )
 {

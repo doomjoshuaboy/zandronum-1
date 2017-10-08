@@ -79,6 +79,10 @@ enum
 	// [TP] Despite being userinfo this CVar is not synced between client and server.
 	// (These CVars ideally shouldn't be userinfo in the first place but that would cause a lot of delta.)
 	CVAR_UNSYNCED_USERINFO = 524288,
+
+	// [TP] The cvar is a server setting that is not public knowledge, and should only be
+	// synchronized to clients with RCON access.
+	CVAR_SENSITIVESERVERSETTING = 1048576,
 };
 
 union UCVarValue
@@ -144,7 +148,7 @@ public:
 	// [TP] Gah
 	virtual bool IsFlagCVar() { return false; }
 	virtual bool IsMaskCVar() { return false; }
-	bool IsServerInfo();
+	bool IsServerCVar();
 
 protected:
 	FBaseCVar () {}
