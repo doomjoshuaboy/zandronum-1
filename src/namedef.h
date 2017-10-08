@@ -611,6 +611,10 @@ xx(CL_ClientFlags)
 xx(BotSkillMenu)
 xx(ChooseBotSkill)
 
+// [TP] For the server menu
+xx(sv_nocallvote)
+xx(ZA_ServerSetupMenu)
+xx(ZA_RconLoginMenu)
 // [TP] Doom decal names, so we can send these over the network easier
 xx(BulletChip)
 xx(BloodSplat)

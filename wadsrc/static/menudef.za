@@ -26,6 +26,7 @@ OptionMenu ZA_MultiplayerOptions
 	SubMenu		"Offline Skirmish",			"ZA_SkirmishMenu"
 	SubMenu		"Network Options",			"ZA_NetworkOptions"
 	SubMenu		"Log in",					"ZA_LoginMenu"
+	Submenu		"Server Administration",	"ZA_ServerSetupMenu"
 	SubMenu		"Browse servers",			"ZA_Browser"
 	StaticText	" "
 	Command		"Spectate",					"menu_spectate"
@@ -465,4 +466,77 @@ ListMenu "BotSkillMenu"
 	PatchItem "M_BRING","b", "ChooseBotSkill", 2
 	PatchItem "M_THRIVE","t", "ChooseBotSkill", 3
 	PatchItem "M_BNMARE","n", "ChooseBotSkill", 4
+}
+
+// =================================================================================================
+//
+// SERVER MENU
+//
+// =================================================================================================
+
+OptionMenu ZA_ServerSetupMenu
+{
+	Title		"SERVER SETTINGS"
+	Indent 150
+
+	Submenu		"Voting setup",				"ZA_VotingSetupMenu"
+	Submenu		"Gameplay Options",			"GameplayOptions"
+	Submenu		"Compatibility Options",	"CompatibilityOptions"
+	StaticText	" "
+	TextField	"Server name",				"sv_hostname"
+	TextField	"Website",					"sv_website"
+	TextField	"Contact address",			"sv_hostemail"
+	Option		"Enforce wads",				"sv_pure",					"YesNo"
+	StaticText	" "
+	Option		"Use connect password",		"sv_forcepassword",			"YesNo"
+	TextField	"Connect password",			"sv_password",				"sv_forcepassword"
+	Option		"Use join password",		"sv_forcejoinpassword",		"YesNo"
+	TextField	"Join password",			"sv_joinpassword",			"sv_forcejoinpassword"
+	Option		"Require login to join",	"sv_forcelogintojoin",		"YesNo"
+	NumberField	"Max connected clients",	"sv_maxclients",			0, 64
+	NumberField	"Max players",				"sv_maxplayers",			0, 64
+	NumberField	"Max idle time (minutes)",	"sv_afk2spec",				0, 30
+}
+
+OptionValue ZA_AllowVoting
+{
+	0, "On"
+	1, "Off"
+	2, "Players only"
+}
+
+OptionMenu ZA_VotingSetupMenu
+{
+	Title	"VOTING SETUP"
+
+	// [TP] TODO: I'd like to have the entire the menu be disabled if voting is disabled entirely,  other than the
+	// voting enabled setting, of course.
+	Command	"Cancel current vote",			"rcon cancelvote"
+	StaticText	" "
+	Option	"Voting enabled",				"sv_nocallvote",			"ZA_AllowVoting"
+	Option	"Allow unlimited voting",		"sv_limitnumvotes",			"NoYes"
+	StaticText	" "
+	StaticText "Specific votes", 1
+	Option	"Kick votes",					"sv_nokickvote",			"NoYes"
+	Option	"Force spectate votes",			"sv_noforcespecvote",		"NoYes"
+	Option	"Map votes",					"sv_nomapvote",				"NoYes"
+	Option	"Changemap votes",				"sv_nochangemapvote",		"NoYes"
+	Option	"Frag limit votes",				"sv_nofraglimitvote",		"NoYes"
+	Option	"Time limit votes",				"sv_notimelimitvote",		"NoYes"
+	Option	"Duel limit votes",				"sv_noduellimitvote",		"NoYes"
+	Option	"Point limit votes",			"sv_nopointlimitvote",		"NoYes"
+
+	Class VotingSetupMenu
+}
+
+OptionMenu ZA_RconLoginMenu
+{
+	NetGameOnly
+	Title "LOG IN TO RCON"
+
+	StaticText	"You must provide the RCON password", 1
+	StaticText	"to administer this server.", 1
+	TextField	"RCON Password",		"menu_rconpassword"
+	StaticText	" "
+	Command		"Log in",				"menu_rconlogin"
 }

@@ -186,7 +186,7 @@ void STACK_ARGS		CLIENT_PrintWarning( const char* format, ... ) GCCPRINTF( 1, 2 
 bool				CLIENT_ReadActorFromNetID( int netid, const PClass *subclass, bool allowNull, AActor *&actor,
 											   const char *commandName = "CLIENT_ReadActorFromNetID",
 											   const char *parameterName = "actor" );
-
+bool				CLIENT_HasRCONAccess();
 void				CLIENT_PREDICT_Construct( void );
 void				CLIENT_PREDICT_PlayerPredict( void );
 void				CLIENT_PREDICT_PlayerTeleported( void );

@@ -1260,6 +1260,8 @@ OptionMenu GameplayOptions
 	Option "Infinite inventory",	"sv_infiniteinventory", "YesNo"
 	Option "No monsters",			"sv_nomonsters", "YesNo"
 	Option "No monsters to exit",	"sv_killallmonsters", "YesNo"
+	// [TP] sv_killallmonsters_percentage
+	Slider "% of monsters to kill",	"sv_killallmonsters_percentage", 0, 100, 5
 	Option "Monsters respawn",		"sv_monsterrespawn", "YesNo"
 	Option "No respawn",			"sv_norespawn", "YesNo"
 	Option "Items respawn",			"sv_itemrespawn", "YesNo"
@@ -1303,6 +1305,8 @@ OptionMenu GameplayOptions
 	Option "Spawn farthest",		"sv_spawnfarthest", "YesNo"
 	Option "Same map",				"sv_samelevel", "YesNo"
 	Option "Force respawn",			"sv_forcerespawn", "YesNo"
+	// [TP] Force respawn time option
+	NumberField	"Force respawn time limit",	"sv_forcerespawntime", 0, 60, 1, "sv_forcerespawn"
 	Option "Allow exit",			"sv_noexit", "NoYes"
 	Option "Barrels respawn",		"sv_barrelrespawn", "YesNo"
 	// [TP] Zandronum has this CVar under a different name
@@ -1313,6 +1317,7 @@ OptionMenu GameplayOptions
 	Option "No team switching",		"sv_noteamswitch", "YesNo"
 	// [TP/BB/EP] Zandronum deathmatch settings
 	Option "Don't spawn runes (DM)", "sv_norunes", "YesNo"
+	NumberField	"Flag return time (ST/CTF)", "sv_flagreturntime", 0, 60
 	Option "Instant flag return (ST/CTF)", "sv_instantreturn", "YesNo"
 	Option "Server picks teams (ST/CTF)", "sv_noteamselect", "YesNo"
 	Option "Keep teams across levels", "sv_keepteams", "YesNo"

@@ -903,18 +903,19 @@ CUSTOM_CVAR( Int, sv_minvoters, 1, CVAR_ARCHIVE )
 	if ( self < 1 )
 		self = 1;
 }
-CVAR( Int, sv_nocallvote, 0, CVAR_ARCHIVE ); // 0 - everyone can call votes. 1 - nobody can. 2 - only players can.
-CVAR( Bool, sv_nokickvote, false, CVAR_ARCHIVE );
-CVAR( Bool, sv_noforcespecvote, false, CVAR_ARCHIVE );
-CVAR( Bool, sv_nomapvote, false, CVAR_ARCHIVE );
-CVAR( Bool, sv_nochangemapvote, false, CVAR_ARCHIVE );
-CVAR( Bool, sv_nofraglimitvote, false, CVAR_ARCHIVE );
-CVAR( Bool, sv_notimelimitvote, false, CVAR_ARCHIVE );
-CVAR( Bool, sv_nowinlimitvote, false, CVAR_ARCHIVE );
-CVAR( Bool, sv_noduellimitvote, false, CVAR_ARCHIVE );
-CVAR( Bool, sv_nopointlimitvote, false, CVAR_ARCHIVE );
-CVAR( Int, sv_votecooldown, 5, CVAR_ARCHIVE );
-CVAR( Int, sv_voteconnectwait, 0, CVAR_ARCHIVE );  // [RK] The amount of seconds after client connect to wait before voting
+
+CVAR( Int, sv_nocallvote, 0, CVAR_ARCHIVE | CVAR_SERVERINFO ); // 0 - everyone can call votes. 1 - nobody can. 2 - only players can.
+CVAR( Bool, sv_nokickvote, false, CVAR_ARCHIVE | CVAR_SERVERINFO );
+CVAR( Bool, sv_noforcespecvote, false, CVAR_ARCHIVE | CVAR_SERVERINFO );
+CVAR( Bool, sv_nomapvote, false, CVAR_ARCHIVE | CVAR_SERVERINFO );
+CVAR( Bool, sv_nochangemapvote, false, CVAR_ARCHIVE | CVAR_SERVERINFO );
+CVAR( Bool, sv_nofraglimitvote, false, CVAR_ARCHIVE | CVAR_SERVERINFO );
+CVAR( Bool, sv_notimelimitvote, false, CVAR_ARCHIVE | CVAR_SERVERINFO );
+CVAR( Bool, sv_nowinlimitvote, false, CVAR_ARCHIVE | CVAR_SERVERINFO );
+CVAR( Bool, sv_noduellimitvote, false, CVAR_ARCHIVE | CVAR_SERVERINFO );
+CVAR( Bool, sv_nopointlimitvote, false, CVAR_ARCHIVE | CVAR_SERVERINFO );
+CVAR( Int, sv_votecooldown, 5, CVAR_ARCHIVE | CVAR_SERVERINFO );
+CVAR( Int, sv_voteconnectwait, 0, CVAR_ARCHIVE | CVAR_SERVERINFO );  // [RK] The amount of seconds after client connect to wait before voting
 CVAR( Bool, cl_showfullscreenvote, false, CVAR_ARCHIVE );
 
 CCMD( callvote )

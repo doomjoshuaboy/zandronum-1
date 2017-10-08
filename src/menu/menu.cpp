@@ -62,6 +62,7 @@
 #include "team.h"
 #include "cooperative.h"
 #include "deathmatch.h"
+#include "cl_main.h"
 
 //
 // Todo: Move these elsewhere
@@ -471,6 +472,12 @@ void M_SetMenu(FName menu, int param)
 			M_StartMessage (GStrings("SAVEDEAD"), 1);
 			return;
 		}
+
+	case NAME_ZA_ServerSetupMenu:
+		// [TP] Make the server setup menu redirect to RCON login if not logged in yet
+		if (( NETWORK_GetState() == NETSTATE_CLIENT ) && ( CLIENT_HasRCONAccess() == false ))
+			menu = NAME_ZA_RconLoginMenu;
+		break;
 	}
 
 	// End of special checks

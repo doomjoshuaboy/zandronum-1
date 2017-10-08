@@ -60,8 +60,10 @@ class ClientIterator {
 	const ServerCommandFlags _flags;
 	ULONG _current;
 
-	bool isCurrentValid ( ) const;
 	void incremntCurrentTillValid ( );
+
+protected:
+	bool isCurrentValid ( ) const;
 
 public:
 	ClientIterator ( const ULONG ulPlayerExtra = MAXPLAYERS, const ServerCommandFlags flags = 0 );

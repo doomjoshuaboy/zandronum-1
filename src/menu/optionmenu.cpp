@@ -47,6 +47,8 @@
 #include "c_bind.h"
 #include "gameconfigfile.h"
 #include "menu/menu.h"
+// [TP] New #includes
+#include "cl_main.h"
 
 
 //=============================================================================
@@ -527,7 +529,7 @@ void FOptionMenuItem::drawLabel(int indent, int y, EColorRange color, bool graye
 // [TP] Is this item not available?
 bool FOptionMenuItem::IsDisabled() const
 {
-	return mDisabled || ( NETWORK_InClientMode() && IsServerInfo() );
+	return mDisabled || ( NETWORK_InClientMode() && ( CLIENT_HasRCONAccess() == false ) && IsServerCVar() );
 }
 
 

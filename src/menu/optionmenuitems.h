@@ -325,9 +325,9 @@ public:
 	}
 
 	// [TP]
-	bool IsServerInfo() const
+	bool IsServerCVar() const override
 	{
-		return mCVar && mCVar->IsServerInfo();
+		return mCVar && mCVar->IsServerCVar();
 	}
 };
 
@@ -753,9 +753,9 @@ public:
 	}
 
 	// [TP]
-	bool IsServerInfo() const
+	bool IsServerCVar() const override
 	{
-		return mCVar && mCVar->IsServerInfo();
+		return mCVar && mCVar->IsServerCVar();
 	}
 };
 
@@ -855,9 +855,9 @@ public:
 	}
 
 	// [TP]
-	bool IsServerInfo() const
+	bool IsServerCVar() const override
 	{
-		return mCVar && mCVar->IsServerInfo();
+		return mCVar && mCVar->IsServerCVar();
 	}
 };
 
@@ -1069,9 +1069,9 @@ public:
 		return false;
 	}
 
-	bool IsServerInfo() const
+	bool IsServerCVar() const override
 	{
-		return mCVar && mCVar->IsServerInfo();
+		return mCVar && mCVar->IsServerCVar();
 	}
 
 	bool Selectable()
