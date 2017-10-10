@@ -5406,7 +5406,7 @@ void P_UseItems( player_t *pPlayer )
 
 player_t *P_PlayerScan( AActor *pSource )
 {
-	fixed_t vx, vy, vz, shootz;
+	fixed_t vx, vy, vz, eyez;
 	FTraceResults	trace;
 	int				pitch;
 	angle_t			angle;
@@ -5418,11 +5418,14 @@ player_t *P_PlayerScan( AActor *pSource )
 	vy = FixedMul (finecosine[pitch], finesine[angle]);
 	vz = -finesine[pitch];
 
-	shootz = pSource->z - pSource->floorclip + (pSource->height>>1) + 8*FRACUNIT;
+	if ( pSource->player )
+		eyez = pSource->player->viewz;
+	else
+		eyez = pSource->z + pSource->height / 2;
 
 	if ( Trace( pSource->x,	// Actor x
 		pSource->y, // Actor y
-		shootz,	// Actor z
+		eyez,	// Actor z
 		pSource->Sector,
 		vx,
 		vy,
