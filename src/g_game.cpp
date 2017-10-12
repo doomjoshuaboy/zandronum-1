@@ -3989,6 +3989,9 @@ void GAME_ResetMap( bool bRunEnterScripts )
 			// since it's being deleted.
 			if ( pActor->flags & MF_COUNTITEM )
 				level.total_items--;
+			// Same thing for the total secret count.
+			if ( pActor->flags5 & MF5_COUNTSECRET )
+				level.total_secrets--;
 
 			// Remove the old actor.
 			if ( ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -4043,11 +4046,12 @@ void GAME_ResetMap( bool bRunEnterScripts )
 	// [BB] Restore the special gamemode actors that were not spawned by the map, e.g. terminator sphere or hellstone.
 	GAMEMODE_SpawnSpecialGamemodeThings();
 
-	// If we're the server, tell clients the new number of total items/monsters.
+	// If we're the server, tell clients the new number of total items/monsters/secrets.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
 		SERVERCOMMANDS_SetMapNumTotalMonsters( );
 		SERVERCOMMANDS_SetMapNumTotalItems( );
+		SERVERCOMMANDS_SetMapNumTotalSecrets( );
 	}
 
 	// Also, delete all floors, plats, etc. that are in progress.
