@@ -2157,6 +2157,13 @@ void G_PlayerReborn (int player, bool bGiveInventory)
 	p->~player_t();
 	::new(p) player_t;
 
+	// [Leo] This used to reset when re-constructing player_t.
+	if ( player == consoleplayer )
+	{
+		CLIENT_PREDICT_SetPosition( 0, 0, 0 );
+		CLIENT_PREDICT_SetVelocity( 0, 0, 0 );
+	}
+
 	p->fragcount = fragcount;
 	p->killcount = killcount;
 	p->itemcount = itemcount;

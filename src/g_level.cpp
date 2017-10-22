@@ -311,6 +311,10 @@ void G_NewInit ()
 	// [BC] Potentially need to reset userinfo if we left a server.
 	D_SetupUserInfo( );
 
+	// [Leo] This used to reset when re-constructing player_t.
+	CLIENT_PREDICT_SetPosition( 0, 0, 0 );
+	CLIENT_PREDICT_SetVelocity( 0, 0, 0 );
+
 	NextSkill = -1;
 
 	// [BB] For certain game modes, we need to reset the current state,
