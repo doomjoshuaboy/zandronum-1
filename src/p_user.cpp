@@ -362,8 +362,6 @@ player_t::player_t()
 
 	// [BC] Initialize additonal ST properties.
 	memset( &ulMedalCount, 0, sizeof( ULONG ) * NUM_MEDALS );
-	memset( &ServerXYZ, 0, sizeof( fixed_t ) * 3 );
-	memset( &ServerXYZVel, 0, sizeof( fixed_t ) * 3 );
 }
 
 player_t &player_t::operator=(const player_t &p)
@@ -510,8 +508,6 @@ player_t &player_t::operator=(const player_t &p)
 	bIsBot = p.bIsBot;
 	bIgnoreChat = p.bIgnoreChat;
 	lIgnoreChatTicks = p.lIgnoreChatTicks;
-	memcpy(ServerXYZ, &p.ServerXYZ, sizeof( ServerXYZ ));
-	memcpy(ServerXYZVel, &p.ServerXYZVel, sizeof( ServerXYZVel ));
 	ulPing = p.ulPing;
 	ulPingAverages = p.ulPingAverages;
 	bReadyToGoOn = p.bReadyToGoOn;
