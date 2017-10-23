@@ -3163,6 +3163,10 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 					if ( ( zacompatflags & ZACOMPATF_SKULLTAG_JUMPING ) || mo->player->jumpTics < 0 || mo->velz < minvel)
 					{ // delay any jumping for a short while
 						mo->player->jumpTics = 7;
+
+						// [Leo] Inform the client of the jumpTics change.
+						if ( NETWORK_GetState() == NETSTATE_SERVER )
+							SERVERCOMMANDS_SetLocalPlayerJumpTics( mo->player - players );
 					}
 					if (mo->velz < minvel && !(mo->flags & MF_NOGRAVITY))
 					{
