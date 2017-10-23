@@ -2964,6 +2964,10 @@ void P_MovePlayer (player_t *player)
 
 			player->mo->velz += JumpVelz;
 			player->jumpTics = ulJumpTicks;
+
+			// [Leo] Inform the client of the jumpTics change.
+			if ( NETWORK_GetState() == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetLocalPlayerJumpTics( player - players );
 		}
 	}
 }		
