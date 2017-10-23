@@ -308,8 +308,7 @@ void G_NewInit ()
 	D_SetupUserInfo( );
 
 	// [Leo] This used to reset when re-constructing player_t.
-	CLIENT_PREDICT_SetPosition( 0, 0, 0 );
-	CLIENT_PREDICT_SetVelocity( 0, 0, 0 );
+	CLIENT_PREDICT_Construct();
 
 	NextSkill = -1;
 

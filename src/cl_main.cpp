@@ -3079,8 +3079,7 @@ void PLAYER_ResetPlayerData( player_t *pPlayer )
 	}
 	else
 	{
-		CLIENT_PREDICT_SetPosition( 0, 0, 0 );
-		CLIENT_PREDICT_SetVelocity( 0, 0, 0 );
+		CLIENT_PREDICT_Construct();
 	}
 	memset( pPlayer->psprites, 0, sizeof( pPlayer->psprites ));
 
@@ -4497,6 +4496,23 @@ void ServerCommands::MoveLocalPlayer::Execute()
 		pPlayer->mo->vely = vely;
 		pPlayer->mo->velz = velz;
 	}
+}
+
+//*****************************************************************************
+//
+void ServerCommands::SetLocalPlayerJumpTics::Execute()
+{
+	player_t *pPlayer = &players[consoleplayer];
+
+	// Older update, ignore.
+	if ( clientTicOnServerEnd < CLIENT_GetLastConsolePlayerUpdateTick( ))
+		return;
+
+	// "ulClientTicOnServerEnd" is the gametic of the last time we sent a movement command.
+	CLIENT_SetLastConsolePlayerUpdateTick( clientTicOnServerEnd );
+
+	// Now that everything's check out, update stuff.
+	CLIENT_PREDICT_SetJumpTics( jumpTics );
 }
 
 //*****************************************************************************
