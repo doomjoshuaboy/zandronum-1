@@ -83,10 +83,6 @@ void UNLAGGED_Tick( void )
 		if ( PLAYER_IsValidPlayerWithMo( ulIdx ) )
 			UNLAGGED_RecordPlayer( &players[ulIdx] );
 	}
-
-	// [BB] Spawn debug actors if the server runner wants them.
-	if ( sv_unlagged_debugactors )
-		UNLAGGED_SpawnDebugActors( );
 }
 
 //Figure out which tic to use for reconciliation
