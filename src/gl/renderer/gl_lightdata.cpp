@@ -99,7 +99,7 @@ bool gl_GlowActive()
 
 CUSTOM_CVAR (Int, gl_distfog, 70, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 {
-	// [BB/EP] Take care of gl_distfog and ZADF_FORCE_GL_DEFAULTS.
+	// [BB/EP] Take care of gl_distfog and ZADF_FORCE_VIDEO_DEFAULTS.
 	OVERRIDE_INT_GL_CVAR_IF_NECESSARY( gl_distfog );
 
 	for (int i=0;i<256;i++)
@@ -144,7 +144,7 @@ CUSTOM_CVAR(Int, gl_lightmode, 3 ,CVAR_ARCHIVE|CVAR_NOINITCALL)
 
 	// [BB] Enforce Doom lighting if requested by the dmflags.
 	// [EP] Honor the MAPINFO lightmode option if present.
-	if ( zadmflags & ZADF_FORCE_GL_DEFAULTS )
+	if ( zadmflags & ZADF_FORCE_VIDEO_DEFAULTS )
 		glset.lightmode = (( IsLightmodeValid() == false ) ||
 			( ( glset.map_lightmode == 2 || glset.map_lightmode == 8 ) && gl.shadermodel < 4 )) ? 3 : glset.map_lightmode;
 	else
@@ -226,7 +226,7 @@ void gl_SetFogParams(int _fogdensity, PalEntry _outsidefogcolor, int _outsidefog
 
 int gl_CalcLightLevel(int lightlevel, int rellight, bool weapon)
 {
-	// [BB/EP] Take care of gl_light_ambient and ZADF_FORCE_GL_DEFAULTS.
+	// [BB/EP] Take care of gl_light_ambient and ZADF_FORCE_VIDEO_DEFAULTS.
 	OVERRIDE_INT_GL_CVAR_IF_NECESSARY( gl_light_ambient );
 
 	int light;
@@ -571,7 +571,7 @@ void gl_SetShaderLight(float level, float olight)
 
 void gl_SetFog(int lightlevel, int rellight, const FColormap *cmap, bool isadditive)
 {
-	// [BB/EP] Take care of gl_fogmode and ZADF_FORCE_GL_DEFAULTS.
+	// [BB/EP] Take care of gl_fogmode and ZADF_FORCE_VIDEO_DEFAULTS.
 	OVERRIDE_FOGMODE_IF_NECESSARY
 
 	PalEntry fogcolor;
