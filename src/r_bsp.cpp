@@ -1008,6 +1008,7 @@ void R_FakeDrawLoop(subsector_t *sub)
 //
 void R_Subsector (subsector_t *sub)
 {
+	OVERRIDE_R_3DFLOORS_IF_NECESSARY // [TP]
 	int 		 count;
 	seg_t*		 line;
 	sector_t     tempsec;				// killough 3/7/98: deep water hack
