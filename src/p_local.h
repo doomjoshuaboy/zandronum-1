@@ -488,6 +488,9 @@ enum	// P_AimLineAttack flags
 	ALF_CHECKNONSHOOTABLE = 4,
 	ALF_CHECKCONVERSATION = 8,
 	ALF_NOFRIENDS = 16,
+
+	// [Proteh] Don't use backwards reconciliation
+	ALF_NOUNLAGGED = 32
 };
 
 enum	// P_LineAttack flags

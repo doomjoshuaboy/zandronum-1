@@ -372,6 +372,9 @@ enum
 	// If unset, players who lose all lives will lose entire inventory
 	// regardless of the DF_COOP_* flags.
 	ZADF_DEAD_PLAYERS_CAN_KEEP_INVENTORY = 1 << 17,
+
+	// [Proteh] Don't use backwards reconcilation for the hitscan tracers fired from the BFG9000
+	ZADF_NOUNLAGGED_BFG_TRACERS = 1 << 18,
 };
 
 // [RH] Compatibility flags.
