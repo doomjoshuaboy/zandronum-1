@@ -161,7 +161,7 @@
 #define IDC_DF2_CHASECAM                        2258
 #define IDC_DF2_NOSUICIDE                       2259
 #define IDC_DF2_NOAUTOAIM                       2260
-#define IDC_ZADF_FORCE_GL_DEFAULTS              2261
+#define IDC_ZADF_FORCE_VIDEO_DEFAULTS              2261
 #define IDC_ZADF_NO_ROCKET_JUMPING              2262
 #define IDC_ZADF_FORCE_ALPHA                    2264
 #define IDC_COMPATF_SILENT_INSTANT_FLOORS       2275

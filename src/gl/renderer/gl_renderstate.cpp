@@ -147,7 +147,7 @@ int FRenderState::SetupShader(bool cameratexture, int &shaderindex, int &cm, flo
 
 bool FRenderState::ApplyShader()
 {
-	// [BB/EP] Take care of gl_fogmode and ZADF_FORCE_GL_DEFAULTS.
+	// [BB/EP] Take care of gl_fogmode and ZADF_FORCE_VIDEO_DEFAULTS.
 	OVERRIDE_FOGMODE_IF_NECESSARY
 
 	bool useshaders = false;

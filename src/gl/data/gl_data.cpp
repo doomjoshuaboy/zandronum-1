@@ -377,7 +377,7 @@ void InitGLRMapinfoData()
 		glset.skyrotatevector2 = FVector3(0,0,1);
 	}
 
-	// [BB/EP] Take care of gl_lightmode and ZADF_FORCE_GL_DEFAULTS.
+	// [BB/EP] Take care of gl_lightmode and ZADF_FORCE_VIDEO_DEFAULTS.
 	OVERRIDE_LIGHTMODE_IF_NECESSARY
 
 	if (!IsLightmodeValid()) glset.lightmode = gl_lightmode;
@@ -392,7 +392,7 @@ void InitGLRMapinfoData()
 
 CCMD(gl_resetmap)
 {
-	// [BB/EP] Take care of gl_lightmode and ZADF_FORCE_GL_DEFAULTS.
+	// [BB/EP] Take care of gl_lightmode and ZADF_FORCE_VIDEO_DEFAULTS.
 	OVERRIDE_LIGHTMODE_IF_NECESSARY
 
 	if (!IsLightmodeValid()) glset.lightmode = gl_lightmode;
