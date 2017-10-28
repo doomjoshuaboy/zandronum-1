@@ -865,36 +865,6 @@ void D_UserInfoChanged (FBaseCVar *cvar)
 		}
 		// [BB] Get rid of this cast.
 		V_ColorizeString( const_cast<char *> ( val.String ) );
-
-		// [BB] We don't want clients to change their name too often.
-		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
-		{
-			// [BB] The name was not actually changed, so no need to do anything.
-			if ( strcmp ( g_oldPlayerName.GetChars(), val.String ) == 0 )
-			{
-				// [BB] The client insists on changing to a name already in use.
-				if ( stricmp ( val.String, players[consoleplayer].userinfo.GetName() ) != 0 )
-				{
-					Printf ( "The server already reported that this name is in use!\n" );
-					g_oldPlayerName = players[consoleplayer].userinfo.GetName();
-					return;
-				}
-			}
-			// [BB] The client recently changed its name, don't allow to change it again yet.
-			// [TP] Made conditional with sv_limitcommands
-			else if (( sv_limitcommands ) && ( g_ulLastNameChangeTime > 0 ) && ( (ULONG)gametic < ( g_ulLastNameChangeTime + ( TICRATE * 30 ))))
-			{
-				Printf( "You must wait at least 30 seconds before changing your name again.\n" );
-				name = g_oldPlayerName;
-				return;
-			}
-			// [BB] The client made a valid name change, keep track of this.
-			else
-			{
-				g_ulLastNameChangeTime = gametic;
-				g_oldPlayerName = val.String;
-			}
-		}
 	}
 	else if ( cvar == &handicap )
 	{
@@ -997,6 +967,36 @@ void D_UserInfoChanged (FBaseCVar *cvar)
 		D_SendPendingUserinfoChanges();
 }
 
+static bool IsValidNameChange()
+{
+	// [BB] We don't want clients to change their name too often.
+	if ( NETWORK_GetState() == NETSTATE_CLIENT )
+	{
+		// [BB] The name was not actually changed, so no need to do anything.
+		if ( g_oldPlayerName.Compare( name ) == 0 )
+		{
+			// [BB] The client insists on changing to a name already in use.
+			if ( stricmp ( name, players[consoleplayer].userinfo.GetName() ) != 0 )
+			{
+				Printf ( "The server already reported that this name is in use!\n" );
+				g_oldPlayerName = players[consoleplayer].userinfo.GetName();
+				return false;
+			}
+		}
+		// [BB] The client recently changed its name, don't allow to change it again yet.
+		// [TP] Made conditional with sv_limitcommands
+		else if ( sv_limitcommands
+			&& ( g_ulLastNameChangeTime > 0 )
+			&& ( (ULONG)gametic < ( g_ulLastNameChangeTime + ( TICRATE * 30 ))))
+		{
+			Printf( "You must wait at least 30 seconds before changing your name again.\n" );
+			return false;
+		}
+	}
+
+	return true;
+}
+
 void D_SendPendingUserinfoChanges()
 {
 	// Send updated userinfo to the server.
@@ -1004,6 +1004,22 @@ void D_SendPendingUserinfoChanges()
 		&& ( CLIENT_GetConnectionState() >= CTS_REQUESTINGSNAPSHOT )
 		&& ( PendingUserinfoChanges.size() > 0 ))
 	{
+		// [TP] If there's a name change pending and it is not valid, revert the
+		// name change and remove it from the list of things to send.
+		UserInfoChanges::iterator namePosition = PendingUserinfoChanges.find( NAME_Name );
+
+		if (( namePosition != PendingUserinfoChanges.end() ) && ( IsValidNameChange() == false ))
+		{
+			PendingUserinfoChanges.erase( namePosition );
+			name = g_oldPlayerName;
+		}
+		else
+		{
+			// [BB] The client made a valid name change, keep track of this.
+			g_ulLastNameChangeTime = gametic;
+			g_oldPlayerName = name;
+		}
+
 		CLIENTCOMMANDS_UserInfo( PendingUserinfoChanges );
 
 		if ( CLIENTDEMO_IsRecording( ))
