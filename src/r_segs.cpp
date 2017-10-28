@@ -2337,6 +2337,7 @@ ptrdiff_t R_NewOpening (ptrdiff_t len)
 
 void R_StoreWallRange (int start, int stop)
 {
+	OVERRIDE_R_3DFLOORS_IF_NECESSARY // [TP]
 	int i;
 	bool maskedtexture = false;
 
