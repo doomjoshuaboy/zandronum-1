@@ -3988,7 +3988,10 @@ fixed_t P_AimLineAttack(AActor *t1, angle_t angle, fixed_t distance, AActor **pL
 	aim_t aim;
 
 	// [Spleen]
-	UNLAGGED_Reconcile( t1 );
+	if(!(flags & ALF_NOUNLAGGED))
+	{
+		UNLAGGED_Reconcile( t1 );
+	}
 
 	angle >>= ANGLETOFINESHIFT;
 	aim.flags = flags;
@@ -4084,7 +4087,10 @@ fixed_t P_AimLineAttack(AActor *t1, angle_t angle, fixed_t distance, AActor **pL
 	}
 
 	// [Spleen]
-	UNLAGGED_Restore( t1 );
+	if(!(flags & ALF_NOUNLAGGED))
+	{
+		UNLAGGED_Restore( t1 );
+	}
 
 	return aim.linetarget ? aim.aimpitch : t1->pitch;
 }
