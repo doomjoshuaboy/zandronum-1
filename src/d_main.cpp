@@ -580,7 +580,7 @@ CVAR (Flag, sv_shotgunstart,		dmflags2, DF2_COOP_SHOTGUNSTART);
 //
 //==========================================================================
 
-// [BB/EP] Only necessary to handle ZADF_FORCE_VIDEO_DEFAULTS.
+// [BB/EP] Only necessary to handle ZADF_FORCE_GL_DEFAULTS.
 #ifndef NO_GL
 EXTERN_CVAR(Int, gl_lightmode)
 EXTERN_CVAR(Int, gl_distfog)
@@ -629,7 +629,7 @@ CUSTOM_CVAR (Int, zadmflags, 0, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK | CVAR_GAMEP
 	SERVER_FlagsetChanged( self );
 
 #ifndef NO_GL
-	// [BB/EP] This makes gl_lightmode and gl_distfog handle ZADF_FORCE_VIDEO_DEFAULTS.
+	// [BB/EP] This makes gl_lightmode and gl_distfog handle ZADF_FORCE_GL_DEFAULTS.
 	// [BB] Don't do this on startup since gl.flags is not properly initialized yet.
 	if ( gamestate != GS_STARTUP )
 	{
@@ -646,7 +646,7 @@ CVAR (Flag, sv_unblockplayers,			zadmflags, ZADF_UNBLOCK_PLAYERS);
 CVAR (Flag, sv_nomedals,			zadmflags, ZADF_NO_MEDALS);
 CVAR (Flag, sv_sharekeys,			zadmflags, ZADF_SHARE_KEYS);
 CVAR (Flag, sv_keepteams,			zadmflags, ZADF_YES_KEEP_TEAMS);
-CVAR (Flag, sv_forcevideodefaults,	zadmflags, ZADF_FORCE_VIDEO_DEFAULTS);
+CVAR (Flag, sv_forcegldefaults,		zadmflags, ZADF_FORCE_GL_DEFAULTS);
 CVAR (Flag, sv_norocketjumping,		zadmflags, ZADF_NO_ROCKET_JUMPING);
 CVAR (Flag, sv_awarddamageinsteadkills,		zadmflags, ZADF_AWARD_DAMAGE_INSTEAD_KILLS);
 CVAR (Flag, sv_forcealpha,		zadmflags, ZADF_FORCE_ALPHA);
@@ -664,9 +664,6 @@ CVAR (Flag, sv_dontpushallies, zadmflags, ZADF_DONT_PUSH_ALLIES);
 CVAR (Flag, sv_dontkeepjoinqueue, zadmflags, ZADF_DONT_KEEP_JOIN_QUEUE);
 CVAR (Flag, sv_donthidestats, zadmflags, ZADF_DONT_HIDE_STATS);
 CVAR (Flag, sv_dontoverrideplayercolors, zadmflags, ZADF_DONT_OVERRIDE_PLAYER_COLORS);
-
-// Old name kept for compatibility
-CVAR (Flag, sv_forcegldefaults,		zadmflags, ZADF_FORCE_VIDEO_DEFAULTS);
 
 //==========================================================================
 //
