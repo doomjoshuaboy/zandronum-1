@@ -5456,6 +5456,10 @@ int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args, const 
 		{
 			if (args[0] == 1) level.skyspeed1 = FIXED2FLOAT(args[1]);
 			else if (args[0] == 2) level.skyspeed2 = FIXED2FLOAT(args[1]);
+
+			// [EP] Inform the clients.
+			if (( NETWORK_GetState() == NETSTATE_SERVER ) && ( args[0] == 1 || args[0] == 2 ))
+				SERVERCOMMANDS_SetMapSkyScrollSpeed( args[0] == 1 );
 			return 1;
 		}
 
