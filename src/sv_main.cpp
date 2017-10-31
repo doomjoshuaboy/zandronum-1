@@ -6039,6 +6039,9 @@ bool ClientMoveCommand::process( const ULONG ulClient ) const
 	{
 		if ( pPlayer->mo )
 		{
+			// We already processed a movement command this tic, we have no choice left but to tick the body now.
+			if ( g_aClients[ulClient].lLastMoveTickProcess == gametic )
+					pPlayer->mo->Tick( );
 
 			// [BB] Ignore the angle and pitch sent by the client if the client isn't authenticated yet.
 			// In this case the client still sends these values based on the previous map.
@@ -6063,13 +6066,8 @@ bool ClientMoveCommand::process( const ULONG ulClient ) const
 
 			P_PlayerThink( pPlayer );
 
-			// [BB] The server blocks AActor::Tick() for non-bot player actors unless the player
-			// is the "current client". So we have to work around this.
-			const LONG savedCurrentClient = g_lCurrentClient;
-			g_lCurrentClient = ulClient;
-			if ( pPlayer->mo )
-				pPlayer->mo->Tick( );
-			g_lCurrentClient = savedCurrentClient;
+			// P_PlayerThink was called this tic, this is used to tick the body afterwards.
+			g_aClients[ulClient].lLastMoveTickProcess = gametic;
 
 			// [BB] We possibly process more than one move of this client per tic,
 			// so we have to update oldbuttons (otherwise a door that just started to
