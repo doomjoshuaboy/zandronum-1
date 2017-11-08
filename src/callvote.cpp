@@ -190,6 +190,11 @@ void CALLVOTE_BeginVote( FString Command, FString Parameters, FString Reason, UL
 	// Play the announcer sound for this.
 	ANNOUNCER_PlayEntry( cl_announcer, "VoteNow" );
 
+	// [TP] If the reason contains color codes, make sure that the color codes
+	// are terminated properly.
+	if (( Reason.IndexOf( TEXTCOLOR_ESCAPE ) != -1 ) && ( Reason.Right( 2 ) != TEXTCOLOR_NORMAL ))
+		Reason += TEXTCOLOR_NORMAL;
+
 	// Create the vote console command.
 	g_VoteCommand = Command;
 	g_VoteCommand += " ";
