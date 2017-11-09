@@ -81,7 +81,7 @@ class player_t;
 class AActor;
 struct FState;
 
-void P_NewPspriteTick();
+void P_NewPspriteTick(player_t *player = NULL); // [EP] Add player parameter.
 void P_SetPsprite (player_t *player, int position, FState *state, bool nofunction=false);
 void P_CalcSwing (player_t *player);
 void P_BringUpWeapon (player_t *player);
