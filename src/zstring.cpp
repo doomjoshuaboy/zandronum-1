@@ -1128,6 +1128,35 @@ void FString::ReallocBuffer (size_t newlen)
 	}
 }
 
+// [TP] For debug use: returns a C++ string that represents this string.
+FString FString::Quote() const
+{
+	FString result = "\"";
+
+	for ( unsigned int i = 0; i < Len(); ++i )
+	{
+		unsigned char c = static_cast<unsigned char>( ( *this )[i] );
+
+		if ( c < 8 )
+		{
+			result.AppendFormat("\\%u", c);
+		}
+		else if ( c < ' ' || c >= 0x7f )
+		{
+			result.AppendFormat("\\x%02x", c);
+		}
+		else
+		{
+			if ( c == '"' || c == '\\' )
+				result += "\\";
+			result += c;
+		}
+	}
+
+	result += "\"";
+	return result;
+}
+
 // Under Windows, use the system heap functions for managing string memory.
 // Under other OSs, use ordinary memory management instead.
 
