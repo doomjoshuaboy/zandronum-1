@@ -2602,7 +2602,9 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 			pOldBody = pPlayer->mo;
 			// [BB] This also transfers the inventory from the old to the new body.
 			players[pPlayer - players].playerstate = ( zadmflags & ZADF_DEAD_PLAYERS_CAN_KEEP_INVENTORY ) ? PST_REBORN : PST_REBORNNOINVENTORY;
+			const bool bSpawnOkay = pPlayer->bSpawnOkay;	// [EP] Save the same-spot spawn information, since it'll be lost when GAMEMODE_SpawnPlayer is called.
 			GAMEMODE_SpawnPlayer( pPlayer - players );
+			pPlayer->bSpawnOkay = bSpawnOkay;	// [EP]
 
 			// Set the player's new body to the position of his or her old body.
 			if (( pPlayer->mo ) &&
