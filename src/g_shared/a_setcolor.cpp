@@ -10,7 +10,7 @@ class AColorSetter : public AActor
 	{
 		Super::PostBeginPlay();
 		Sector->SetColor(args[0], args[1], args[2], args[3]);
-		Destroy();
+		HideOrDestroyIfSafe(); // [EP] Prevent full destroy on gamemodes with map reset.
 	}
 
 };
@@ -25,7 +25,7 @@ class AFadeSetter : public AActor
 	{
 		Super::PostBeginPlay();
 		Sector->SetFade(args[0], args[1], args[2]);
-		Destroy();
+		HideOrDestroyIfSafe(); // [EP] Prevent full destroy on gamemodes with map reset.
 	}
 
 };
