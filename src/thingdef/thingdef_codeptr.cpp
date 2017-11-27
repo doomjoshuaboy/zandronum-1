@@ -3917,6 +3917,10 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CheckLOF)
 		ACTION_PARAM_FIXED(offsetwidth, 7);
 		ACTION_PARAM_INT(ptr_target, 8);
 
+		// [EP/BB] This is handled by the server.
+		if ( NETWORK_InClientModeAndActorNotClientHandled( self ) )
+		    return;
+
 		ACTION_SET_RESULT(false);	// Jumps should never set the result for inventory state chains!
 		
 		target = COPY_AAPTR(self, ptr_target == AAPTR_DEFAULT ? AAPTR_TARGET|AAPTR_PLAYER_GETTARGET|AAPTR_NULL : ptr_target); // no player-support by default
@@ -4048,7 +4052,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CheckLOF)
 		{
 			return;
 		}
-		ACTION_JUMP(jump, 0);	// [BB] Let's hope that the clients know enough.
+		ACTION_JUMP(jump, CLIENTUPDATE_FRAME );	// [EP] Since the actor's target is unknown on the client end, we need to send an update.
 	}
 }
 
