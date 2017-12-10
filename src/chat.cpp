@@ -877,6 +877,9 @@ void chat_SendMessage( ULONG ulMode, const char *pszString )
 {
 	FString ChatMessage = pszString;
 
+	// Format our message so color codes can appear.
+	V_ColorizeString( ChatMessage );
+
 	// [CW] Substitute the message if necessary.
 	chat_DoSubstitution( ChatMessage );
 

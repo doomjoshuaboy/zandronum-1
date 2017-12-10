@@ -74,6 +74,7 @@
 #include "sv_commands.h"
 #include "sv_main.h"
 #include "team.h"
+#include "v_text.h"
 
 //*****************************************************************************
 //	PROTOTYPES
@@ -2042,6 +2043,9 @@ static void botcmd_Say( CSkullBot *pBot )
 
 	if ( bot_allowchat )
 	{
+		// Format the message so color codes can appear.
+		V_ColorizeString( szInString );
+
 		// Perform any chat string substitutions that need to be done.
 		BOTCMD_DoChatStringSubstitutions( pBot, szInString, szOutString );
 
@@ -2100,6 +2104,9 @@ static void botcmd_SayFromFile( CSkullBot *pBot )
 
 	if ( bot_allowchat )
 	{
+		// Format the message so color codes can appear.
+		V_ColorizeString( szInString );
+
 		// Perform any chat string substitutions that need to be done.
 		BOTCMD_DoChatStringSubstitutions( pBot, szInString, szOutString );
 
@@ -2155,6 +2162,9 @@ static void botcmd_SayFromChatFile( CSkullBot *pBot )
 
 	if ( bot_allowchat )
 	{
+		// Format the message so color codes can appear.
+		V_ColorizeString( szInString );
+
 		// Perform any chat string substitutions that need to be done.
 		BOTCMD_DoChatStringSubstitutions( pBot, szInString, szOutString );
 
@@ -2639,6 +2649,9 @@ static void botcmd_SayFromLump( CSkullBot *pBot )
 
 	if ( bot_allowchat )
 	{
+		// Format the message so color codes can appear.
+		V_ColorizeString( szInString );
+
 		// Perform any chat string substitutions that need to be done.
 		BOTCMD_DoChatStringSubstitutions( pBot, szInString, szOutString );
 
@@ -2694,6 +2707,9 @@ static void botcmd_SayFromChatLump( CSkullBot *pBot )
 
 	if ( bot_allowchat )
 	{
+		// Format the message so color codes can appear.
+		V_ColorizeString( szInString );
+
 		// Perform any chat string substitutions that need to be done.
 		BOTCMD_DoChatStringSubstitutions( pBot, szInString, szOutString );
 
