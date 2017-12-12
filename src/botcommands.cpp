@@ -755,17 +755,15 @@ void BOTCMD_DoChatStringSubstitutions( CSkullBot *pBot, const char *pszInString,
 			}
 			else if ( strnicmp( pszInString + 1, "level_name", strlen( "level_name" )) == 0 )
 			{				
-				sprintf( pszOutString, "%s\\c-", level.LevelName.GetChars() );
+				sprintf( pszOutString, "%s", level.LevelName.GetChars() );
 				pszOutString += strlen( level.LevelName.GetChars() );
-				pszOutString += strlen( "\\c-" );
 
 				pszInString += strlen( "level_name" );
 			}
 			else if ( strnicmp( pszInString + 1, "map_name", strlen( "map_name" )) == 0 )
 			{				
-				sprintf( pszOutString, "%s\\c-", level.mapname );
+				sprintf( pszOutString, "%s", level.mapname );
 				pszOutString += strlen( level.mapname );
-				pszOutString += strlen( "\\c-" );
 
 				pszInString += strlen( "map_name" );
 			}
