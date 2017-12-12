@@ -237,9 +237,6 @@ CUSTOM_CVAR (Int, con_notifylines, 4, CVAR_ARCHIVE)
 
 static int NotifyTop, NotifyTopGoal;
 
-// [BC] Should we allow color codes?
-static	bool	g_bAllowColorCodes = true;
-
 // [BC] Is there a player executing a remote control command? If so, display messages that
 // are printed in the console as a result of his actions to him as well.
 static	ULONG	g_ulRCONPlayer = MAXPLAYERS;
@@ -690,13 +687,6 @@ void C_AddNotifyString (int printlevel, const char *source)
 
 //*****************************************************************************
 //
-void CONSOLE_SetAllowColorCodes( bool bAllow )
-{
-	g_bAllowColorCodes = bAllow;
-}
-
-//*****************************************************************************
-//
 void CONSOLE_SetRCONPlayer( ULONG ulPlayer )
 {
 	g_ulRCONPlayer = ulPlayer;
@@ -973,7 +963,6 @@ int PrintString (int printlevel, const char *outline)
 		strcpy (copy,outlinecopy);
 */
 		FString copy = outlinecopy;
-		V_ColorizeString( copy );
 		V_RemoveColorCodes( copy );
 
 		static bool needPrependedTimestamp = true;
@@ -1039,9 +1028,6 @@ int PrintString (int printlevel, const char *outline)
 	// [RC] Send this to the G15 LCD, if enabled.
 	if ( G15_IsReady() )
 		G15_Printf( outlinecopy );
-
-	if ( g_bAllowColorCodes )
-		V_ColorizeString( outlinecopy );
 
 	// User wishes to remove color from all messages.
 	if ( con_colorinmessages == 0 )
