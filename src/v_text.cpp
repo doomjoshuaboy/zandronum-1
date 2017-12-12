@@ -501,7 +501,6 @@ void V_RemoveColorCodes( FString &String )
 	szString[length] = 0;
 
 	// Remove the colors.
-	V_ColorizeString( szString );
 	V_RemoveColorCodes( szString );
 
 	// Convert back and clean up.
@@ -820,6 +819,7 @@ void V_RemoveTrailingCrapFromFString( FString &String )
 }
 
 // [BB] Removes invalid color codes, i.e. \cX where X not in [a,u] or '-'.
+// Note: this, just like V_RemoveColorCodes, expects already formatted strings.
 void V_RemoveInvalidColorCodes( char *pszString )
 {
 	if ( pszString == NULL )
@@ -831,14 +831,14 @@ void V_RemoveInvalidColorCodes( char *pszString )
 	{
 		// [BB] If there is an color code start followed by an invalid char, remove the
 		// leading '\' to disable the color code.
-		if ( V_ColorCodeStart ( pszString, i )
-			&& ( pszString[i+2] != '-' )
-			&& ( pszString[i+2] != '!' )
-			&& ( pszString[i+2] != '*' )
-			&& ( pszString[i+2] != '+' )
-			&& ( pszString[i+2] != '[' )
-			&& ( ( pszString[i+2] < 'a' ) || ( pszString[i+2] > 'v' ) )
-			&& ( ( pszString[i+2] < 'A' ) || ( pszString[i+2] > 'V' ) ) )
+		if ( pszString[i] == TEXTCOLOR_ESCAPE
+			&& ( pszString[i+1] != '-' )
+			&& ( pszString[i+1] != '!' )
+			&& ( pszString[i+1] != '*' )
+			&& ( pszString[i+1] != '+' )
+			&& ( pszString[i+1] != '[' )
+			&& ( ( pszString[i+1] < 'a' ) || ( pszString[i+1] > 'v' ) )
+			&& ( ( pszString[i+1] < 'A' ) || ( pszString[i+1] > 'V' ) ) )
 			pszString[i] = ' ';
 	}
 }

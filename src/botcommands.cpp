@@ -2081,13 +2081,7 @@ static void botcmd_SayFromFile( CSkullBot *pBot )
 	pFile = new CChatFile;
 	if ( pFile->LoadChatFile( szFilename ) == false )
 	{
-		// Temporarily disable the use of color codes.
-		CONSOLE_SetAllowColorCodes( false );
-
 		Printf( "botcmd_SayFromFile: Couldn't open file %s!\n", szFilename );
-
-		// Re-enable the use of color codes.
-		CONSOLE_SetAllowColorCodes( true );
 
 		// Free the file before leaving.
 		delete( pFile );
@@ -2097,13 +2091,7 @@ static void botcmd_SayFromFile( CSkullBot *pBot )
 	sprintf( szInString, "%s", pFile->ChooseRandomEntry( szSection ));
 	if ( stricmp( szInString, "NULL" ) == 0 )
 	{
-		// Temporarily disable the use of color codes.
-		CONSOLE_SetAllowColorCodes( false );
-
 		Printf( "botcmd_SayFromFile: Couldn't find section %s in file %s!\n", szSection, szFilename );
-
-		// Re-enable the use of color codes.
-		CONSOLE_SetAllowColorCodes( true );
 
 		// Free the file before leaving.
 		delete( pFile );
@@ -2148,13 +2136,7 @@ static void botcmd_SayFromChatFile( CSkullBot *pBot )
 	pFile = new CChatFile;
 	if ( pFile->LoadChatFile( szFilename ) == false )
 	{
-		// Temporarily disable the use of color codes.
-		CONSOLE_SetAllowColorCodes( false );
-
 		Printf( "botcmd_SayFromFile: Couldn't open file %s!\n", szFilename );
-
-		// Re-enable the use of color codes.
-		CONSOLE_SetAllowColorCodes( true );
 
 		// Free the file before leaving.
 		delete( pFile );
@@ -2164,13 +2146,7 @@ static void botcmd_SayFromChatFile( CSkullBot *pBot )
 	sprintf( szInString, "%s", pFile->ChooseRandomEntry( szSection ));
 	if ( stricmp( szInString, "NULL" ) == 0 )
 	{
-		// Temporarily disable the use of color codes.
-		CONSOLE_SetAllowColorCodes( false );
-
 		Printf( "botcmd_SayFromChatFile: Couldn't find section %s in file %s!\n", szSection, szFilename );
-
-		// Re-enable the use of color codes.
-		CONSOLE_SetAllowColorCodes( true );
 
 		// Free the file before leaving.
 		delete( pFile );
@@ -2644,13 +2620,7 @@ static void botcmd_SayFromLump( CSkullBot *pBot )
 	pFile = new CChatFile;
 	if ( pFile->LoadChatLump( szLumpname ) == false )
 	{
-		// Temporarily disable the use of color codes.
-		CONSOLE_SetAllowColorCodes( false );
-
 		Printf( "botcmd_SayFromLump: Couldn't open lump %s!\n", szLumpname );
-
-		// Re-enable the use of color codes.
-		CONSOLE_SetAllowColorCodes( true );
 
 		// Free the file before leaving.
 		delete( pFile );
@@ -2660,13 +2630,7 @@ static void botcmd_SayFromLump( CSkullBot *pBot )
 	sprintf( szInString, "%s", pFile->ChooseRandomEntry( szSection ));
 	if ( stricmp( szInString, "NULL" ) == 0 )
 	{
-		// Temporarily disable the use of color codes.
-		CONSOLE_SetAllowColorCodes( false );
-
 		Printf( "botcmd_SayFromLump: Couldn't find section %s in lump %s!\n", szSection, szLumpname );
-
-		// Re-enable the use of color codes.
-		CONSOLE_SetAllowColorCodes( true );
 
 		// Free the file before leaving.
 		delete( pFile );
@@ -2711,13 +2675,7 @@ static void botcmd_SayFromChatLump( CSkullBot *pBot )
 	pFile = new CChatFile;
 	if ( pFile->LoadChatLump( szLumpname ) == false )
 	{
-		// Temporarily disable the use of color codes.
-		CONSOLE_SetAllowColorCodes( false );
-
 		Printf( "botcmd_SayFromChatLump: Couldn't open lump %s!\n", szLumpname );
-
-		// Re-enable the use of color codes.
-		CONSOLE_SetAllowColorCodes( true );
 
 		// Free the file before leaving.
 		delete pFile;
@@ -2727,13 +2685,7 @@ static void botcmd_SayFromChatLump( CSkullBot *pBot )
 	sprintf( szInString, "%s", pFile->ChooseRandomEntry( szSection ));
 	if ( stricmp( szInString, "NULL" ) == 0 )
 	{
-		// Temporarily disable the use of color codes.
-		CONSOLE_SetAllowColorCodes( false );
-
 		Printf( "botcmd_SayFromChatLump: Couldn't find section %s in lump %s!\n", szSection, szLumpname );
-
-		// Re-enable the use of color codes.
-		CONSOLE_SetAllowColorCodes( true );
 
 		// Free the file before leaving.
 		delete pFile;

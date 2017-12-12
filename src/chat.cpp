@@ -788,12 +788,6 @@ void CHAT_PrintChatString( ULONG ulPlayer, ULONG ulMode, const char *pszString )
 
 	ChatString = pszString;
 
-	// [RC] Remove linebreaks and other escape codes from chat.
-	ChatString.Substitute("\\", "\\\\");
-
-	// [RC] ...but allow chat colors.
-	ChatString.Substitute("\\\\c", "\\c");
-
 	// [BB] Remove invalid color codes, those can confuse the printing and create new lines.
 	V_RemoveInvalidColorCodes( ChatString );
 

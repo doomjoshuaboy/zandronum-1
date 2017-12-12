@@ -74,7 +74,6 @@ void C_AdjustBottom (void);
 void C_FlushDisplay (void);
 
 // [BC] New function prototypes.
-void CONSOLE_SetAllowColorCodes( bool bAllow );
 void CONSOLE_SetRCONPlayer( ULONG ulPlayer );
 
 void C_InitTicker (const char *label, unsigned int max, bool showpercent=true);
