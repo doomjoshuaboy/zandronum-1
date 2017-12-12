@@ -222,9 +222,9 @@ void CALLVOTE_BeginVote( FString Command, FString Parameters, FString Reason, UL
 	{
 		FString	ReasonBlurb = ( g_VoteReason.Len( )) ? ( ", reason: \"" + g_VoteReason + "\"" ) : "";
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			Printf( "%s\\c- (%s) has called a vote (\"%s\"%s).\n", players[ulPlayer].userinfo.GetName(), SERVER_GetClient( ulPlayer )->Address.ToString(), g_VoteCommand.GetChars(), ReasonBlurb.GetChars() );
+			Printf( "%s (%s) has called a vote (\"%s\"%s).\n", players[ulPlayer].userinfo.GetName(), SERVER_GetClient( ulPlayer )->Address.ToString(), g_VoteCommand.GetChars(), ReasonBlurb.GetChars() );
 		else
-			Printf( "%s\\c- has called a vote (\"%s\"%s).\n", players[ulPlayer].userinfo.GetName(), g_VoteCommand.GetChars(), ReasonBlurb.GetChars() );
+			Printf( "%s has called a vote (\"%s\"%s).\n", players[ulPlayer].userinfo.GetName(), g_VoteCommand.GetChars(), ReasonBlurb.GetChars() );
 	}
 
 	g_VoteState = VOTESTATE_INVOTE;
@@ -321,9 +321,9 @@ bool CALLVOTE_VoteYes( ULONG ulPlayer )
 
 	// Display the message in the console.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		Printf( "%s\\c- (%s) votes \"yes\".\n", players[ulPlayer].userinfo.GetName(), SERVER_GetClient( ulPlayer )->Address.ToString() );
+		Printf( "%s (%s) votes \"yes\".\n", players[ulPlayer].userinfo.GetName(), SERVER_GetClient( ulPlayer )->Address.ToString() );
 	else
-		Printf( "%s\\c- votes \"yes\".\n", players[ulPlayer].userinfo.GetName() );
+		Printf( "%s votes \"yes\".\n", players[ulPlayer].userinfo.GetName() );
 
 	// Nothing more to do here for clients.
 	if ( NETWORK_InClientMode() )
@@ -415,9 +415,9 @@ bool CALLVOTE_VoteNo( ULONG ulPlayer )
 
 	// Display the message in the console.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		Printf( "%s\\c- (%s) votes \"no\".\n", players[ulPlayer].userinfo.GetName(), SERVER_GetClient( ulPlayer )->Address.ToString() );
+		Printf( "%s (%s) votes \"no\".\n", players[ulPlayer].userinfo.GetName(), SERVER_GetClient( ulPlayer )->Address.ToString() );
 	else
-		Printf( "%s\\c- votes \"no\".\n", players[ulPlayer].userinfo.GetName() );
+		Printf( "%s votes \"no\".\n", players[ulPlayer].userinfo.GetName() );
 
 	// Nothing more to do here for clients.
 	if ( NETWORK_InClientMode() )

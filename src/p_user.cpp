@@ -3310,7 +3310,7 @@ void PLAYER_JoinGameFromSpectators( int iChar )
 
 	PLAYER_SpectatorJoinsGame( &players[consoleplayer] );
 	players[consoleplayer].camera = players[consoleplayer].mo;
-	Printf( "%s \\c-joined the game.\n", players[consoleplayer].userinfo.GetName() );
+	Printf( "%s joined the game.\n", players[consoleplayer].userinfo.GetName() );
 
 	// [BB] If players are supposed to be on teams, select one for the player now.
 	if ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS )
@@ -3389,7 +3389,7 @@ void P_PlayerThink (player_t *player)
 		// Just print an error if a bot tried to spawn.
 		if ( player->pSkullBot )
 		{
-			Printf( "%s \\c-left: No player %td start\n", player->userinfo.GetName(), player - players + 1 );
+			Printf( "%s left: No player %td start\n", player->userinfo.GetName(), player - players + 1 );
 			BOTS_RemoveBot( player - players, false );
 			return;
 		}

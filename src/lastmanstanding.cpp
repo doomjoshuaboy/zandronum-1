@@ -172,7 +172,7 @@ void LASTMANSTANDING_Tick( void )
 				lWinner = LASTMANSTANDING_GetLastManStanding( );
 				if ( lWinner != -1 )
 				{
-					NETWORK_Printf( "%s \\c-wins!\n", players[lWinner].userinfo.GetName() );
+					NETWORK_Printf( "%s wins!\n", players[lWinner].userinfo.GetName() );
 
 					if (( NETWORK_GetState() != NETSTATE_SERVER ) && ( lWinner == consoleplayer ))
 						ANNOUNCER_PlayEntry( cl_announcer, "YouWin" );
