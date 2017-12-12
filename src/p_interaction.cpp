@@ -2833,14 +2833,6 @@ void PLAYER_SetWins( player_t *pPlayer, ULONG ulWins )
 
 //*****************************************************************************
 //
-void PLAYER_GetName( player_t *pPlayer, char *pszOutBuf )
-{
-	// Build the buffer, which has a "remove color code" tag at the end of it.
-	sprintf( pszOutBuf, "%s\\c-", pPlayer->userinfo.GetName() );
-}
-
-//*****************************************************************************
-//
 LONG PLAYER_GetHealth( ULONG ulPlayer )
 {
 	return players[ulPlayer].health;
