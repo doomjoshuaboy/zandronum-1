@@ -611,7 +611,7 @@ void AActor::Die (AActor *source, AActor *inflictor, int dmgflags)
 				{
 					NETWORK_Printf( "%s\n", GStrings( "TXT_FRAGLIMIT" ));
 					if ( teamplay && ( source->player->bOnTeam ))
-						NETWORK_Printf( "%s \\c-wins!\n", TEAM_GetName( source->player->ulTeam ));
+						NETWORK_Printf( "%s wins!\n", TEAM_GetName( source->player->ulTeam ));
 					else
 						NETWORK_Printf( "%s wins!\n", source->player->userinfo.GetName() );
 
@@ -2324,7 +2324,7 @@ void PLAYER_GivePossessionPoint( player_t *pPlayer )
 		}
 		else if ( teampossession && ( TEAM_GetScore( pPlayer->ulTeam ) >= pointlimit ))
 		{
-			NETWORK_Printf( "Pointlimit hit.\n%s \\c-wins!\n", TEAM_GetName( pPlayer->ulTeam ));
+			NETWORK_Printf( "Pointlimit hit.\n%s wins!\n", TEAM_GetName( pPlayer->ulTeam ));
 
 			if (( NETWORK_GetState() != NETSTATE_SERVER ) && pPlayer->mo->IsTeammate( players[consoleplayer].camera ))
 				ANNOUNCER_PlayEntry( cl_announcer, "YouWin" );

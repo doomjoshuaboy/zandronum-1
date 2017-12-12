@@ -203,7 +203,7 @@ void JOINQUEUE_PlayerLeftGame( int player, bool pop )
 			lWinner = LASTMANSTANDING_TeamGetLastManStanding( );
 			if ( lWinner != -1 )
 			{
-				NETWORK_Printf( "%s \\c-wins!\n", TEAM_GetName( lWinner ));
+				NETWORK_Printf( "%s wins!\n", TEAM_GetName( lWinner ));
 
 				if ( NETWORK_GetState() != NETSTATE_SERVER
 					&& players[consoleplayer].bOnTeam
