@@ -638,33 +638,29 @@ void BOTCMD_DoChatStringSubstitutions( CSkullBot *pBot, const char *pszInString,
 
 			if (( strnicmp( pszInString + 1, "player_damagedby", strlen( "player_damagedby" )) == 0 ) && ( pBot->m_ulLastPlayerDamagedBy != MAXPLAYERS ))
 			{
-				sprintf( pszOutString, "%s\\c-", players[pBot->m_ulLastPlayerDamagedBy].userinfo.GetName() );
+				sprintf( pszOutString, "%s", players[pBot->m_ulLastPlayerDamagedBy].userinfo.GetName() );
 				pszOutString += strlen ( players[pBot->m_ulLastPlayerDamagedBy].userinfo.GetName() );
-				pszOutString += strlen( "\\c-" );
 
 				pszInString += strlen( "player_damagedby" );
 			}
 			else if (( strnicmp( pszInString + 1, "player_enemy", strlen( "player_enemy" )) == 0 ) && ( pBot->m_ulPlayerEnemy != MAXPLAYERS ))
 			{
-				sprintf( pszOutString, "%s\\c-", players[pBot->m_ulPlayerEnemy].userinfo.GetName() );
+				sprintf( pszOutString, "%s", players[pBot->m_ulPlayerEnemy].userinfo.GetName() );
 				pszOutString += strlen( players[pBot->m_ulPlayerEnemy].userinfo.GetName() );
-				pszOutString += strlen( "\\c-" );
 
 				pszInString += strlen( "player_enemy" );
 			}
 			else if (( strnicmp( pszInString + 1, "player_killedby", strlen( "player_killedby" )) == 0 ) && ( pBot->m_ulPlayerKilledBy != MAXPLAYERS ))
 			{
-				sprintf( pszOutString, "%s\\c-", players[pBot->m_ulPlayerKilledBy].userinfo.GetName() );
+				sprintf( pszOutString, "%s", players[pBot->m_ulPlayerKilledBy].userinfo.GetName() );
 				pszOutString += strlen( players[pBot->m_ulPlayerKilledBy].userinfo.GetName() );
-				pszOutString += strlen( "\\c-" );
 
 				pszInString += strlen( "player_killedby" );
 			}
 			else if (( strnicmp( pszInString + 1, "player_killed", strlen( "player_killed" )) == 0 ) && ( pBot->m_ulPlayerKilled != MAXPLAYERS ))
 			{
-				sprintf( pszOutString, "%s\\c-", players[pBot->m_ulPlayerKilled].userinfo.GetName() );
+				sprintf( pszOutString, "%s", players[pBot->m_ulPlayerKilled].userinfo.GetName() );
 				pszOutString += strlen( players[pBot->m_ulPlayerKilled].userinfo.GetName() );
-				pszOutString += strlen( "\\c-" );
 
 				pszInString += strlen( "player_killed" );
 			}
@@ -682,9 +678,8 @@ void BOTCMD_DoChatStringSubstitutions( CSkullBot *pBot, const char *pszInString,
 						ulBestPlayer = ulIdx;
 				}
 
-				sprintf( pszOutString, "%s\\c-", players[ulBestPlayer].userinfo.GetName() );
+				sprintf( pszOutString, "%s", players[ulBestPlayer].userinfo.GetName() );
 				pszOutString += strlen( players[ulBestPlayer].userinfo.GetName() );
-				pszOutString += strlen( "\\c-" );
 
 				pszInString += strlen( "player_inlead" );
 			}
@@ -702,9 +697,8 @@ void BOTCMD_DoChatStringSubstitutions( CSkullBot *pBot, const char *pszInString,
 						ulBestPlayer = ulIdx;
 				}
 
-				sprintf( pszOutString, "%s\\c-", players[ulBestPlayer].userinfo.GetName() );
+				sprintf( pszOutString, "%s", players[ulBestPlayer].userinfo.GetName() );
 				pszOutString += strlen( players[ulBestPlayer].userinfo.GetName() );
-				pszOutString += strlen( "\\c-" );
 
 				pszInString += strlen( "player_lastplace" );
 			}
@@ -732,9 +726,8 @@ void BOTCMD_DoChatStringSubstitutions( CSkullBot *pBot, const char *pszInString,
 					while (( ulPlayer == static_cast<unsigned> ( pBot->GetPlayer( ) - players )) || ( playeringame[ulPlayer] == false ));
 				}
 				
-				sprintf( pszOutString, "%s\\c-", players[ulPlayer].userinfo.GetName() );
+				sprintf( pszOutString, "%s", players[ulPlayer].userinfo.GetName() );
 				pszOutString += strlen( players[ulPlayer].userinfo.GetName() );
-				pszOutString += strlen( "\\c-" );
 
 				pszInString += strlen( "player_random_notself" );
 			}
@@ -748,17 +741,15 @@ void BOTCMD_DoChatStringSubstitutions( CSkullBot *pBot, const char *pszInString,
 				}
 				while ( playeringame[ulPlayer] == false );
 				
-				sprintf( pszOutString, "%s\\c-", players[ulPlayer].userinfo.GetName() );
+				sprintf( pszOutString, "%s", players[ulPlayer].userinfo.GetName() );
 				pszOutString += strlen( players[ulPlayer].userinfo.GetName() );
-				pszOutString += strlen( "\\c-" );
 
 				pszInString += strlen( "player_random" );
 			}
 			else if (( strnicmp( pszInString + 1, "player_lastchat", strlen( "player_lastchat" )) == 0 ) && ( g_szLastChatPlayer[0] != 0 ))
 			{				
-				sprintf( pszOutString, "%s\\c-", g_szLastChatPlayer );
+				sprintf( pszOutString, "%s", g_szLastChatPlayer );
 				pszOutString += strlen( g_szLastChatPlayer );
-				pszOutString += strlen( "\\c-" );
 
 				pszInString += strlen( "player_lastchat" );
 			}
@@ -2360,7 +2351,7 @@ static void botcmd_TryToJoinGame( CSkullBot *pBot )
 	if ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS )
 		PLAYER_SetTeam( pBot->GetPlayer( ), TEAM_ChooseBestTeamForPlayer( ), true );
 
-	Printf( "%s \\c-joined the game.\n", pBot->GetPlayer( )->userinfo.GetName() );
+	Printf( "%s joined the game.\n", pBot->GetPlayer( )->userinfo.GetName() );
 }
 
 //*****************************************************************************

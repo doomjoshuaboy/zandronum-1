@@ -364,12 +364,12 @@ void ClientObituary (AActor *self, AActor *inflictor, AActor *attacker, int dmgf
 
 	// [BC] Stop the color codes after we display a name in the obituary string.
 	if ( attacker && attacker->player )
-		sprintf( szAttacker, "%s\\c-", attacker->player->userinfo.GetName() );
+		sprintf( szAttacker, "%s", attacker->player->userinfo.GetName() );
 	else
 		szAttacker[0] = 0;
 
 	if ( self && self->player )
-		sprintf( szVictim, "%s\\c-", self->player->userinfo.GetName() );
+		sprintf( szVictim, "%s", self->player->userinfo.GetName() );
 	else
 		szVictim[0] = 0;
 
@@ -613,7 +613,7 @@ void AActor::Die (AActor *source, AActor *inflictor, int dmgflags)
 					if ( teamplay && ( source->player->bOnTeam ))
 						NETWORK_Printf( "%s \\c-wins!\n", TEAM_GetName( source->player->ulTeam ));
 					else
-						NETWORK_Printf( "%s \\c-wins!\n", source->player->userinfo.GetName() );
+						NETWORK_Printf( "%s wins!\n", source->player->userinfo.GetName() );
 
 					if (( NETWORK_GetState( ) != NETSTATE_SERVER )
 						&& ( duel == false )
@@ -2288,7 +2288,7 @@ void PLAYER_GivePossessionPoint( player_t *pPlayer )
 	{
 		if ( possession && ( pPlayer->lPointCount >= pointlimit ))
 		{
-			NETWORK_Printf( "Pointlimit hit.\n%s \\c-wins!\n", pPlayer->userinfo.GetName() );
+			NETWORK_Printf( "Pointlimit hit.\n%s wins!\n", pPlayer->userinfo.GetName() );
 
 			if (( NETWORK_GetState() != NETSTATE_SERVER ) && pPlayer->mo->CheckLocalView( consoleplayer ))
 				ANNOUNCER_PlayEntry( cl_announcer, "YouWin" );
@@ -2297,7 +2297,7 @@ void PLAYER_GivePossessionPoint( player_t *pPlayer )
 			if (( NETWORK_GetState( ) == NETSTATE_SINGLE_MULTIPLAYER ) && ( pPlayer->mo->CheckLocalView( consoleplayer )))
 				sprintf( szString, "YOU WIN!" );
 			else
-				sprintf( szString, "%s \\c-WINS!", pPlayer->userinfo.GetName() );
+				sprintf( szString, "%s WINS!", pPlayer->userinfo.GetName() );
 			V_ColorizeString( szString );
 
 			if ( NETWORK_GetState( ) != NETSTATE_SERVER )
@@ -2522,7 +2522,7 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 				if ( bBroadcast )
 				{
 					// Send out a message saying this player joined the spectators.
-					NETWORK_Printf( "%s \\c-joined the spectators.\n", pPlayer->userinfo.GetName() );
+					NETWORK_Printf( "%s joined the spectators.\n", pPlayer->userinfo.GetName() );
 				}
 
 				// This player no longer has a team affiliation.
@@ -2643,7 +2643,7 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 		if (( bDeadSpectator == false ) && bBroadcast )
 		{
 			// Send out a message saying this player joined the spectators.
-			NETWORK_Printf( "%s \\c-joined the spectators.\n", pPlayer->userinfo.GetName() );
+			NETWORK_Printf( "%s joined the spectators.\n", pPlayer->userinfo.GetName() );
 		}
 	}
 

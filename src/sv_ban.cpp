@@ -514,7 +514,7 @@ CCMD( getIP )
 	// Look up the player.
 	ULONG ulIdx = SERVER_GetPlayerIndexFromName( argv[1], true, false );
 	if ( SERVER_IsValidClient( ulIdx ))
-		Printf( "%s\\c-'s IP is: %s\n", players[ulIdx].userinfo.GetName(), SERVER_GetClient( ulIdx )->Address.ToString() );
+		Printf( "%s's IP is: %s\n", players[ulIdx].userinfo.GetName(), SERVER_GetClient( ulIdx )->Address.ToString() );
 	else
 	{
 		if ( SERVER_GetPlayerIndexFromName( argv[1], true, true ) != MAXPLAYERS )
@@ -547,9 +547,9 @@ CCMD( getIP_idx )
 		return;
 
 	if ( players[playerIndex].bIsBot )
-		Printf( "%s\\c- is a bot.\n", players[playerIndex].userinfo.GetName() );
+		Printf( "%s is a bot.\n", players[playerIndex].userinfo.GetName() );
 	else
-		Printf( "%s\\c-'s IP is: %s\n", players[playerIndex].userinfo.GetName(), SERVER_GetClient( playerIndex )->Address.ToString() );
+		Printf( "%s's IP is: %s\n", players[playerIndex].userinfo.GetName(), SERVER_GetClient( playerIndex )->Address.ToString() );
 }
 
 //*****************************************************************************

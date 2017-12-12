@@ -213,7 +213,7 @@ bool ARaiseAlarm::SpecialDropAction (AActor *dropper)
 				}
 
 				// [CW] Tell other clients who set the alarm off!
-				SERVER_PrintfPlayer( ulIdx, "%s\\c- set off the alarm!\n", dropper->target->player->userinfo.GetName() );
+				SERVER_PrintfPlayer( ulIdx, "%s set off the alarm!\n", dropper->target->player->userinfo.GetName() );
 			}
 
 			// [CW] Tell the server who set the alarm off!

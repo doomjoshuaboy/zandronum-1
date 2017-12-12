@@ -917,7 +917,6 @@ void chat_GetIgnoredPlayers( FString &Destination )
 		if ( players[i].bIgnoreChat )
 		{
 			Destination += players[i].userinfo.GetName();
-			Destination += "\\c-";
 			
 			// Add the time remaining.
 			if ( players[i].lIgnoreChatTicks > 0 )
@@ -1164,12 +1163,12 @@ void chat_IgnorePlayer( FCommandLine &argv, const ULONG ulPlayer )
 	else if ( ( ulPlayer == (ULONG)consoleplayer ) && ( NETWORK_GetState( ) != NETSTATE_SERVER ) )
 		Printf( "You can't ignore yourself.\n" );
 	else if ( players[ulPlayer].bIgnoreChat && ( players[ulPlayer].lIgnoreChatTicks == lTicks ))
-		Printf( "You're already ignoring %s\\c-.\n", players[ulPlayer].userinfo.GetName() );
+		Printf( "You're already ignoring %s.\n", players[ulPlayer].userinfo.GetName() );
 	else
 	{
 		players[ulPlayer].bIgnoreChat = true;
 		players[ulPlayer].lIgnoreChatTicks = lTicks;
-		Printf( "%s\\c- will now be ignored", players[ulPlayer].userinfo.GetName() );
+		Printf( "%s will now be ignored", players[ulPlayer].userinfo.GetName() );
 		if ( lTicks > 0 )
 			Printf( ", for %d minutes", static_cast<int>(lArgv2));
 		Printf( ".\n" );
@@ -1228,12 +1227,12 @@ void chat_UnignorePlayer( FCommandLine &argv, const ULONG ulPlayer )
 	else if ( ( ulPlayer == (ULONG)consoleplayer ) && ( NETWORK_GetState( ) != NETSTATE_SERVER ) )
 		Printf( "You can't unignore yourself.\n" );
 	else if ( !players[ulPlayer].bIgnoreChat )
-		Printf( "You're not ignoring %s\\c-.\n", players[ulPlayer].userinfo.GetName() );
+		Printf( "You're not ignoring %s.\n", players[ulPlayer].userinfo.GetName() );
 	else 
 	{
 		players[ulPlayer].bIgnoreChat = false;
 		players[ulPlayer].lIgnoreChatTicks = -1;
-		Printf( "%s\\c- will no longer be ignored.\n", players[ulPlayer].userinfo.GetName() );
+		Printf( "%s will no longer be ignored.\n", players[ulPlayer].userinfo.GetName() );
 
 		// Notify the server so that others using this IP are also ignored.
 		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )

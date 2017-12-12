@@ -172,7 +172,7 @@ void JOINQUEUE_PlayerLeftGame( int player, bool pop )
 			lWinner = LASTMANSTANDING_GetLastManStanding( );
 			if ( lWinner != -1 )
 			{
-				NETWORK_Printf( "%s \\c-wins!\n", players[lWinner].userinfo.GetName() );
+				NETWORK_Printf( "%s wins!\n", players[lWinner].userinfo.GetName() );
 
 				if (( NETWORK_GetState( ) != NETSTATE_SERVER ) && ( lWinner == consoleplayer ))
 					ANNOUNCER_PlayEntry( cl_announcer, "YouWin" );
@@ -330,7 +330,7 @@ void JOINQUEUE_PopQueue( int slotCount )
 			}
 			else
 			{
-				NETWORK_Printf( "%s \\c-joined the game.\n", player->userinfo.GetName() );
+				NETWORK_Printf( "%s joined the game.\n", player->userinfo.GetName() );
 			}
 
 			JOINQUEUE_RemovePlayerAtPosition ( i );
