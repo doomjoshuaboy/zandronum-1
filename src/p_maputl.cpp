@@ -41,6 +41,9 @@
 #include "templates.h"
 #include "po_man.h"
 
+// [Leo] Zandronum includes
+#include "v_text.h"
+
 static AActor *RoughBlockCheck (AActor *mo, int index, void *);
 
 
@@ -274,7 +277,7 @@ void AActor::UnlinkFromWorld ()
 					next->sprev = prev;
 			}
 			else
-				Printf ( "\\cgWarning: 0xBeefCafe encountered!\n" );
+				Printf ( TEXTCOLOR_RED "Warning: 0xBeefCafe encountered!\n" );
 
 			snext = NULL;
 			sprev = (AActor **)(size_t)0xBeefCafe;	// Woo! Bug-catching value!

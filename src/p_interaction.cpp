@@ -2424,7 +2424,7 @@ void PLAYER_SetTeam( player_t *pPlayer, ULONG ulTeam, bool bNoBroadcast )
 		// Player has changed his team! Tell clients.
 		if ( bBroadcastChange )
 		{
-			SERVER_Printf( "%s \\c-joined the \\c%c%s \\c-team.\n", pPlayer->userinfo.GetName(), V_GetColorChar( TEAM_GetTextColor( ulTeam ) ), TEAM_GetName( ulTeam )); 
+			SERVER_Printf( "%s joined the \034%c%s " TEXTCOLOR_NORMAL "team.\n", pPlayer->userinfo.GetName(), V_GetColorChar( TEAM_GetTextColor( ulTeam ) ), TEAM_GetName( ulTeam ));
 		}		
 	}
 
