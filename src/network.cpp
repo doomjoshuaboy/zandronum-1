@@ -487,7 +487,7 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 		catch ( CRecoverableError& e )
 		{
 			// [TP] Might as well warn the user now that we're here.
-			Printf( "NETWORK_Construct: \\cGWARNING: Cannot open map %s: %s\n",
+			Printf( "NETWORK_Construct: " TEXTCOLOR_RED "WARNING: Cannot open map %s: %s\n",
 				info.mapname, e.GetMessage() );
 		}
 
@@ -1426,7 +1426,7 @@ static void network_InitPWADList( void )
 
 void network_Error( const char *pszError )
 {
-	Printf( "\\cd%s\n", pszError );
+	Printf( TEXTCOLOR_GREEN "%s\n", pszError );
 }
 
 //*****************************************************************************

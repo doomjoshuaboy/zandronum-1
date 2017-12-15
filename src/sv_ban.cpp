@@ -407,7 +407,7 @@ void SERVERBAN_BanPlayer( ULONG ulPlayer, const char *pszBanLength, const char *
 	time_t tExpiration = SERVERBAN_ParseBanLength( pszBanLength );
 	if ( tExpiration == -1 )
 	{
-		Printf("Error: couldn't read that length. Try something like \\cg6day\\c- or \\cg\"5 hours\"\\c-.\n");
+		Printf("Error: couldn't read that length. Try something like " TEXTCOLOR_RED "6day" TEXTCOLOR_NORMAL " or " TEXTCOLOR_RED "\"5 hours\"" TEXTCOLOR_NORMAL ".\n");
 		return;
 	}
 
@@ -518,9 +518,9 @@ CCMD( getIP )
 	else
 	{
 		if ( SERVER_GetPlayerIndexFromName( argv[1], true, true ) != MAXPLAYERS )
-			Printf( "%s\\c- is a bot.\n", argv[1] );
+			Printf( "%s" TEXTCOLOR_NORMAL " is a bot.\n", argv[1] );
 		else
-			Printf( "Unknown player: %s\\c-\n",argv[1] );
+			Printf( "Unknown player: %s" TEXTCOLOR_NORMAL "\n",argv[1] );
 	}
 }
 
@@ -605,9 +605,9 @@ CCMD( ban )
 	else
 	{
 		if ( SERVER_GetPlayerIndexFromName( argv[1], true, true ) != MAXPLAYERS )
-			Printf( "%s\\c- is a bot.\n", argv[1] );
+			Printf( "%s" TEXTCOLOR_NORMAL " is a bot.\n", argv[1] );
 		else
-			Printf( "Unknown player: %s\\c-\n",argv[1] );
+			Printf( "Unknown player: %s" TEXTCOLOR_NORMAL "\n",argv[1] );
 	}
 }
 
@@ -624,7 +624,7 @@ CCMD( addban )
 	time_t tExpiration = SERVERBAN_ParseBanLength( argv[2] );
 	if ( tExpiration == -1 )
 	{
-		Printf("Error: couldn't read that length. Try something like \\cg6day\\c- or \\cg\"5 hours\"\\c-.\n");
+		Printf("Error: couldn't read that length. Try something like " TEXTCOLOR_RED "6day" TEXTCOLOR_NORMAL " or " TEXTCOLOR_RED "\"5 hours\"" TEXTCOLOR_NORMAL ".\n");
 		return;
 	}
 

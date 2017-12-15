@@ -1324,7 +1324,11 @@ void D_ReadUserInfoStrings (int pnum, BYTE **stream, bool update)
 				// [BC] If the skin was hidden, reveal it!
 				if ( skins[info->GetSkin()].bRevealed == false )
 				{
-					Printf( "Hidden skin \"%s\\c-\" has now been revealed!\n", skins[info->GetSkin()].name );
+					char szColorizedName[25];
+					strcpy( szColorizedName, skins[info->GetSkin()].name );
+					V_ColorizeString( szColorizedName );
+
+					Printf( "Hidden skin \"%s" TEXTCOLOR_NORMAL "\" has now been revealed!\n", szColorizedName );
 					skins[info->GetSkin()].bRevealed = true;
 				}
 
@@ -1412,8 +1416,8 @@ void D_ReadUserInfoStrings (int pnum, BYTE **stream, bool update)
 					value.UnlockBuffer();
 					if (keyname == NAME_Name && update && oldname.Compare (value))
 					{
-						// [BB] Added "\\c-"
-						Printf("%s \\c-is now known as %s\n", oldname.GetChars(), value.GetChars());
+						// [BB] Added TEXTCOLOR_NORMAL
+						Printf("%s " TEXTCOLOR_NORMAL "is now known as %s\n", oldname.GetChars(), value.GetChars());
 					}
 				}
 				break;
@@ -1545,23 +1549,23 @@ CCMD (playerinfo)
 			{
 				// [BB] Only call Printf once to prevent problems with sv_logfiletimestamp.
 				FString infoString;
-				infoString.AppendFormat("\\c%c%d. %s", PLAYER_IsTrueSpectator( &players[i] ) ? 'k' : 'j', i, players[i].userinfo.GetName());
+				infoString.AppendFormat("\034%c%d. %s", PLAYER_IsTrueSpectator( &players[i] ) ? 'k' : 'j', i, players[i].userinfo.GetName());
 
 				// [RC] Are we the server? Draw their IPs as well.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				{
-					infoString.AppendFormat("\\c%c - IP %s", PLAYER_IsTrueSpectator( &players[i] ) ? 'k' : 'j', SERVER_GetClient( i )->Address.ToString() );
+					infoString.AppendFormat("\034%c - IP %s", PLAYER_IsTrueSpectator( &players[i] ) ? 'k' : 'j', SERVER_GetClient( i )->Address.ToString() );
 					// [BB] If we detected suspicious behavior of this client, print this now.
 					if ( SERVER_GetClient( i )->bSuspicious )
 						infoString.AppendFormat ( " * %lu", SERVER_GetClient( i )->ulNumConsistencyWarnings );
 
 					// [K6/BB] Show the player's country, if the GeoIP db is available.
 					if ( NETWORK_IsGeoIPAvailable() )
-						infoString.AppendFormat ( "\\ce - FROM %s", NETWORK_GetCountryCodeFromAddress ( SERVER_GetClient( i )->Address ).GetChars() );
+						infoString.AppendFormat ( TEXTCOLOR_BROWN " - FROM %s", NETWORK_GetCountryCodeFromAddress ( SERVER_GetClient( i )->Address ).GetChars() );
 				}
 
 				if ( PLAYER_IsTrueSpectator( &players[i] ))
-					infoString.AppendFormat("\\ck (SPEC)");
+					infoString.AppendFormat( TEXTCOLOR_YELLOW " (SPEC)" );
 
 				Printf("%s\n", infoString.GetChars());
 			}

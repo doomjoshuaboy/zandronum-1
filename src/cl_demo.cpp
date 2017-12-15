@@ -152,8 +152,8 @@ CUSTOM_CVAR( Bool, demo_pure, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG )
 	// I think it's reasonable to inform the user that this CVAR
 	// should be used with caution.
 	if ( !self )
-		Printf( "\\ckWarning: demo_pure is false. Demo authentication is therefore disabled. "
-		"Demos may get played back with completely incorrect WADs!\\c-\n" );
+		Printf( TEXTCOLOR_YELLOW "Warning: demo_pure is false. Demo authentication is therefore disabled. "
+		"Demos may get played back with completely incorrect WADs!" TEXTCOLOR_NORMAL "\n" );
 }
 
 //*****************************************************************************
@@ -897,12 +897,12 @@ void CLIENTDEMO_ReadDemoWads( void )
 		if ( demo_pure )
 		{
 			// Tell the user what WADs was the demo recorded with.
-			FString error = "\\ciDemo authentication failed. Please ensure that you have the "
+			FString error = TEXTCOLOR_ORANGE "Demo authentication failed. Please ensure that you have the "
 				"correct WADs to play back this demo and try again. "
 				"This demo uses the following WADs:\n";
 
 			for ( ULONG i = 0; i < ulWADCount; i++ )
-				error.AppendFormat( "\\cc- %s%s\\c-\n",
+				error.AppendFormat( TEXTCOLOR_GREY "- %s%s" TEXTCOLOR_NORMAL "\n",
 				WadNames[i].GetChars( ), (!i) ? " (IWAD)" : "");
 
 			I_Error( "%s", error.GetChars() );
@@ -913,9 +913,9 @@ void CLIENTDEMO_ReadDemoWads( void )
 			// regard to the fact that authentication failed. This
 			// may cause the demo to be played back incorrectly.
 			// Warn the user about the consequences.
-			Printf( "\\ckWARNING: Demo authentication failed and demo_pure is false. "
+			Printf( TEXTCOLOR_YELLOW "WARNING: Demo authentication failed and demo_pure is false. "
 				"The demo is being played back with incorrect WADs and "
-				"may get played back incorrectly.\\c-\n" );
+				"may get played back incorrectly." TEXTCOLOR_NORMAL "\n" );
 		}
 	}
 	else

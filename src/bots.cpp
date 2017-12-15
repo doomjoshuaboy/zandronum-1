@@ -1575,6 +1575,7 @@ void BOTSPAWN_SetTicks( ULONG ulIdx, ULONG ulTicks )
 CSkullBot::CSkullBot( char *pszName, char *pszTeamName, ULONG ulPlayerNum )
 {
 	ULONG	ulIdx;
+	char	szColorizedBuffer[256];
 
 	g_bBotIsInitialized[ulPlayerNum] = false;
 
@@ -1638,13 +1639,14 @@ CSkullBot::CSkullBot( char *pszName, char *pszTeamName, ULONG ulPlayerNum )
 		{
 			sprintf( szName, "%s", g_BotInfo[ulIdx].szName );
 			V_ColorizeString( szName );
+			strcpy( szColorizedBuffer, szName );
 			V_RemoveColorCodes( szName );
 			if ( stricmp( szName, pszName ) == 0 )
 			{
 				// If the bot was hidden, reveal it!
 				if ( g_BotInfo[ulIdx].bRevealed == false )
 				{
-					Printf( "Hidden bot \"%s\\c-\" has now been revealed!\n", g_BotInfo[ulIdx].szName );
+					Printf( "Hidden bot \"%s" TEXTCOLOR_NORMAL "\" has now been revealed!\n", szColorizedBuffer );
 					g_BotInfo[ulIdx].bRevealed = true;
 				}
 
@@ -1697,7 +1699,10 @@ CSkullBot::CSkullBot( char *pszName, char *pszTeamName, ULONG ulPlayerNum )
 	// If the skin was hidden, reveal it!
 	if ( skins[lSkin].bRevealed == false )
 	{
-		Printf( "Hidden skin \"%s\\c-\" has now been revealed!\n", skins[lSkin].name );
+		strcpy( szColorizedBuffer, skins[lSkin].name );
+		V_ColorizeString( szColorizedBuffer );
+
+		Printf( "Hidden skin \"%s" TEXTCOLOR_NORMAL "\" has now been revealed!\n", szColorizedBuffer );
 		skins[lSkin].bRevealed = true;
 	}
 
@@ -3724,6 +3729,7 @@ void CSkullBot::DeleteEventFromQueue( void )
 CCMD( reveal )
 {
 	char	szBuffer[256];
+	char	szColorizedBuffer[256];
 	ULONG	ulIdx;
 
 	if ( argv.argc( ) < 2 )
@@ -3739,11 +3745,12 @@ CCMD( reveal )
 
 		sprintf( szBuffer, "%s", g_BotInfo[ulIdx].szName );
 		V_ColorizeString( szBuffer );
+		strcpy( szColorizedBuffer, szBuffer );
 		V_RemoveColorCodes( szBuffer );
 
 		if ( stricmp( argv[1], szBuffer ) == 0 )
 		{
-			Printf( "Hidden bot \"%s\\c-\" has now been revealed!\n", g_BotInfo[ulIdx].szName );
+			Printf( "Hidden bot \"%s" TEXTCOLOR_NORMAL "\" has now been revealed!\n", szColorizedBuffer );
 			g_BotInfo[ulIdx].bRevealed = true;
 		}
 	}
@@ -3755,11 +3762,12 @@ CCMD( reveal )
 
 		sprintf( szBuffer, "%s", skins[ulIdx].name );
 		V_ColorizeString( szBuffer );
+		strcpy( szColorizedBuffer, szBuffer );
 		V_RemoveColorCodes( szBuffer );
 
 		if ( stricmp( argv[1], skins[ulIdx].name ) == 0 )
 		{
-			Printf( "Hidden skin \"%s\\c-\" has now been revealed!\n", skins[ulIdx].name );
+			Printf( "Hidden skin \"%s" TEXTCOLOR_NORMAL "\" has now been revealed!\n", szColorizedBuffer );
 			skins[ulIdx].bRevealed = true;
 		}
 	}

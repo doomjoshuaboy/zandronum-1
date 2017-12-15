@@ -516,9 +516,9 @@ bool AFlag::HandlePickup( AInventory *pItem )
 				SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_UNTRANSLATED, 3.0f, 0.5f, "SmallFont", false, MAKE_ID( 'S','U','B','S' ));
 
 				if( ( bAssisted ) && ( ! selfAssist ) )
-					SERVER_Printf( "%s \\c-and %s \\c-scored for the \\c%c%s \\c-team!\n", Owner->player->userinfo.GetName(), players[TEAM_GetAssistPlayer( Owner->player->ulTeam )].userinfo.GetName(), V_GetColorChar( TEAM_GetTextColor( Owner->player->ulTeam )), TEAM_GetName( Owner->player->ulTeam ));
+					SERVER_Printf( "%s and %s scored for the \034%c%s " TEXTCOLOR_NORMAL "team!\n", Owner->player->userinfo.GetName(), players[TEAM_GetAssistPlayer( Owner->player->ulTeam )].userinfo.GetName(), V_GetColorChar( TEAM_GetTextColor( Owner->player->ulTeam )), TEAM_GetName( Owner->player->ulTeam ));
 				else
-					SERVER_Printf( "%s \\c-scored for the \\c%c%s \\c-team!\n", Owner->player->userinfo.GetName(), V_GetColorChar( TEAM_GetTextColor( Owner->player->ulTeam )), TEAM_GetName( Owner->player->ulTeam ));
+					SERVER_Printf( "%s scored for the \034%c%s " TEXTCOLOR_NORMAL "team!\n", Owner->player->userinfo.GetName(), V_GetColorChar( TEAM_GetTextColor( Owner->player->ulTeam )), TEAM_GetName( Owner->player->ulTeam ));
 			}
 
 			
@@ -673,7 +673,7 @@ void AFlag::DisplayFlagTaken( AActor *pToucher )
 	else
 	{
 		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_UNTRANSLATED, 3.0f, 0.25f, "SmallFont", false, MAKE_ID('S','U','B','S'), ULONG( pToucher->player - players ), SVCF_SKIPTHISCLIENT  );
-		SERVER_Printf( PRINT_MEDIUM, "%s \\c-has taken the \\c%c%s \\c-flag.\n", players[playerIndex].userinfo.GetName(), V_GetColorChar( TEAM_GetTextColor( TEAM_GetTeamFromItem( this ))), TEAM_GetName( TEAM_GetTeamFromItem( this )));
+		SERVER_Printf( PRINT_MEDIUM, "%s has taken the \034%c%s " TEXTCOLOR_NORMAL "flag.\n", players[playerIndex].userinfo.GetName(), V_GetColorChar( TEAM_GetTextColor( TEAM_GetTeamFromItem( this ))), TEAM_GetName( TEAM_GetTeamFromItem( this )));
 	}
 }
 
@@ -773,9 +773,9 @@ void AFlag::ReturnFlag( AActor *pReturner )
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
 		if ( pReturner && pReturner->player )
-			SERVER_Printf( PRINT_MEDIUM, "%s \\c-returned the \\c%c%s \\c-flag.\n", pReturner->player->userinfo.GetName(), V_GetColorChar( TEAM_GetTextColor( TEAM_GetTeamFromItem( this ))), TEAM_GetName( TEAM_GetTeamFromItem( this )));
+			SERVER_Printf( PRINT_MEDIUM, "%s returned the \034%c%s " TEXTCOLOR_NORMAL "flag.\n", pReturner->player->userinfo.GetName(), V_GetColorChar( TEAM_GetTextColor( TEAM_GetTeamFromItem( this ))), TEAM_GetName( TEAM_GetTeamFromItem( this )));
 		else
-			SERVER_Printf( PRINT_MEDIUM, "\\c%c%s \\c-flag returned.\n", V_GetColorChar( TEAM_GetTextColor( TEAM_GetTeamFromItem( this ))), TEAM_GetName( TEAM_GetTeamFromItem( this )));
+			SERVER_Printf( PRINT_MEDIUM, "\034%c%s " TEXTCOLOR_NORMAL "flag returned.\n", V_GetColorChar( TEAM_GetTextColor( TEAM_GetTeamFromItem( this ))), TEAM_GetName( TEAM_GetTeamFromItem( this )));
 	}
 }
 
@@ -1282,7 +1282,7 @@ void ASkull::DisplayFlagTaken( AActor *pToucher )
 	else
 	{
 		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_UNTRANSLATED, 3.0f, 0.25f, "SmallFont", false, MAKE_ID('S','U','B','S'), ULONG( pToucher->player - players ), SVCF_SKIPTHISCLIENT  );
-		SERVER_Printf( PRINT_MEDIUM, "%s \\c-has taken the \\c%c%s \\c-skull.\n", players[playerIndex].userinfo.GetName(), V_GetColorChar( TEAM_GetTextColor( TEAM_GetTeamFromItem( this ))), TEAM_GetName( TEAM_GetTeamFromItem( this )));
+		SERVER_Printf( PRINT_MEDIUM, "%s has taken the \034%c%s " TEXTCOLOR_NORMAL "skull.\n", players[playerIndex].userinfo.GetName(), V_GetColorChar( TEAM_GetTextColor( TEAM_GetTeamFromItem( this ))), TEAM_GetName( TEAM_GetTeamFromItem( this )));
 	}
 }
 
@@ -1375,9 +1375,9 @@ void ASkull::ReturnFlag( AActor *pReturner )
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
 		if ( pReturner && pReturner->player )
-			SERVER_Printf( PRINT_MEDIUM, "%s \\c-returned the \\c%c%s \\c-skull.\n", pReturner->player->userinfo.GetName(), V_GetColorChar( TEAM_GetTextColor( TEAM_GetTeamFromItem( this ))), TEAM_GetName( TEAM_GetTeamFromItem( this )));
+			SERVER_Printf( PRINT_MEDIUM, "%s returned the \034%c%s " TEXTCOLOR_NORMAL "skull.\n", pReturner->player->userinfo.GetName(), V_GetColorChar( TEAM_GetTextColor( TEAM_GetTeamFromItem( this ))), TEAM_GetName( TEAM_GetTeamFromItem( this )));
 		else
-			SERVER_Printf( PRINT_MEDIUM, "\\c%c%s \\c-skull returned.\n", V_GetColorChar( TEAM_GetTextColor( TEAM_GetTeamFromItem( this ))), TEAM_GetName( TEAM_GetTeamFromItem( this )));
+			SERVER_Printf( PRINT_MEDIUM, "\034%c%s " TEXTCOLOR_NORMAL "skull returned.\n", V_GetColorChar( TEAM_GetTextColor( TEAM_GetTeamFromItem( this ))), TEAM_GetName( TEAM_GetTeamFromItem( this )));
 	}
 }
 

@@ -1238,7 +1238,7 @@ void R_InitSprites ()
 		if ( maxheight * skin.ScaleY > maxAllowedHeight + FRACUNIT )
 		{
 			sizeLimitsExceeded = true;
-			Printf ( "\\cgSprite %s of skin %s is too tall (%dpx, max is %dpx). Downsizing.\n",
+			Printf ( TEXTCOLOR_RED "Sprite %s of skin %s is too tall (%dpx, max is %dpx). Downsizing.\n",
 				maxheightSprite.GetChars(),
 				skin.name,
 				( maxheight * skin.ScaleY ) >> FRACBITS,
@@ -1252,7 +1252,7 @@ void R_InitSprites ()
 		if ( maxwidth * skin.ScaleX > maxAllowedWidth + FRACUNIT )
 		{
 			sizeLimitsExceeded = true;
-			Printf ( "\\cgSprite %s of skin %s is too wide (%dpx, max is %dpx). Downsizing.\n",
+			Printf ( TEXTCOLOR_RED "Sprite %s of skin %s is too wide (%dpx, max is %dpx). Downsizing.\n",
 				maxwidthSprite.GetChars(),
 				skin.name,
 				( maxwidth * skin.ScaleX ) >> FRACBITS,
