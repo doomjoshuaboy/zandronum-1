@@ -137,7 +137,7 @@ FButtonStatus Button_Mlook, Button_Klook, Button_Use, Button_AltAttack,
 	Button_ShowMedals;	// [BC] Added the "show medals" button.
 
 
-bool ParsingKeyConf;
+bool ParsingKeyConf, ParsingMenuDef = false;
 
 // To add new actions, go to the console and type "key <action name>".
 // This will give you the key value to use in the first column. Then
@@ -197,6 +197,43 @@ static const char *KeyConfCommands[] =
 	"setslot",
 	"addplayerclass",
 	"clearplayerclasses"
+};
+
+static const char *MenuDefCommands[] =
+{
+	"snd_reset",
+	"reset2defaults",
+	"reset2saved",
+	"menuconsole",
+	"clearnodecache",
+	"am_restorecolors",
+	"special",
+	"puke",
+	"fpuke",
+	"pukename",
+	//"event",		// [SP] these won't be useful until zscript
+	//"netevent",
+
+	// begin zandronum specific commands
+	"menu_spectate",
+	"menu_changeteam",
+	"menu_disconnect",
+	"menu_startskirmish",
+	"querymaster",
+	"menu_join_selected_server",
+	"menu_callkickvote",
+	"menu_callmapvote",
+	"menu_calllimitvote",
+	"menu_ignore",
+	"menu_joingame",
+	"menu_help",
+	"menu_autoselect",
+	"menu_joingame",
+	"menu_joingamewithclass",
+	"menu_login",
+	"rcon",
+	"menu_rconlogin",
+	"spectate",
 };
 
 // CODE --------------------------------------------------------------------
@@ -592,6 +629,25 @@ void C_DoCommand (const char *cmd, int keynum)
 		if (i < 0)
 		{
 			Printf ("Invalid command for KEYCONF: %s\n", beg);
+			return;
+		}
+	}
+
+	if (ParsingMenuDef)
+	{
+		int i;
+
+		for (i = countof(MenuDefCommands)-1; i >= 0; --i)
+		{
+			if (strnicmp (beg, MenuDefCommands[i], len) == 0 &&
+				MenuDefCommands[i][len] == 0)
+			{
+				break;
+			}
+		}
+		if (i < 0)
+		{
+			Printf ("Invalid command for MENUDEF: %s\n", beg);
 			return;
 		}
 	}
