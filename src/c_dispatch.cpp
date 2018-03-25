@@ -261,7 +261,7 @@ void DWaitingCommand::Tick ()
 {
 	if (--TicsLeft == 0)
 	{
-		UnsafeExecutionScope scope;
+		UnsafeExecutionScope scope(IsUnsafe);
 		AddCommandString (Command);
 		Destroy ();
 	}
