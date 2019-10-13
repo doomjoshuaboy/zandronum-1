@@ -12,6 +12,13 @@
 ===============================================================================================================
 
 
+3.0.1
+---
+
+-	- Fix a server hang that could be caused by malformed userinfo data. [Sean]
+-	- The spectate, join, suicide, change team, and inventory drop client commands will now trigger a client command flood. [Sean]
+
+
 3.0
 ---
 
