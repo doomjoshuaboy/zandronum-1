@@ -818,7 +818,9 @@ void CLIENT_AttemptConnection( void )
 
 	 // Send connection signal to the server.
 	NETWORK_WriteByte( &g_LocalBuffer.ByteStream, CLCC_ATTEMPTCONNECTION );
-	NETWORK_WriteString( &g_LocalBuffer.ByteStream, DOTVERSIONSTR );
+	//NETWORK_WriteString( &g_LocalBuffer.ByteStream, DOTVERSIONSTR );
+	// [BB] Stay network compatible with 3.0.
+	NETWORK_WriteString( &g_LocalBuffer.ByteStream, "3.0" );
 	NETWORK_WriteString( &g_LocalBuffer.ByteStream, cl_password );
 	NETWORK_WriteByte( &g_LocalBuffer.ByteStream, cl_connect_flags );
 	NETWORK_WriteByte( &g_LocalBuffer.ByteStream, cl_hideaccount );
