@@ -1962,6 +1962,14 @@ bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick, bool bEnfor
 
 	while (( name = NETWORK_ReadName( pByteStream ) ) != NAME_None )
 	{
+		// [SB] Kick the player if we run out of data.
+		if ( pByteStream->pbStream >= pByteStream->pbStreamEnd )
+		{
+			bKickPlayer = true;
+			kickReason = "Client sent malformed data.";
+			break;
+		}
+
 		names.insert( name );
 		value = pByteStream->ReadString();
 
@@ -2082,7 +2090,8 @@ bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick, bool bEnfor
 	}
 
 	// [BB] Make sure that the joining client sends the full user info (sending player class is not mandatory though).
-	if ( bEnforceRequired )
+	// [SB] This check is not done if bKickPlayer is true, allowing any decisions to kick a player to just fall through.
+	if ( bEnforceRequired && !bKickPlayer )
 	{
 		static const std::set<FName> required = {
 			NAME_Name, NAME_Autoaim, NAME_Gender, NAME_Skin, NAME_RailColor,
@@ -5482,6 +5491,10 @@ static bool server_Spectate( BYTESTREAM_s *pByteStream )
 {
 	ULONG	ulIdx;
 
+	// [SB] The spectate and request join commands are now ratelimited
+	if ( server_CheckForClientCommandFlood( g_lCurrentClient ) == true )
+		return ( true );
+
 	// Already a spectator!
 	if ( PLAYER_IsTrueSpectator( &players[g_lCurrentClient] ))
 	{
@@ -5521,6 +5534,10 @@ static bool server_RequestJoin( BYTESTREAM_s *pByteStream )
 {
 	FString		clientJoinPassword;
 	ULONG		ulGametic;
+
+	// [SB] The spectate and request join commands are now ratelimited
+	if ( server_CheckForClientCommandFlood( g_lCurrentClient ) == true )
+		return ( true );
 
 	// Read in the join password.
 	clientJoinPassword = pByteStream->ReadString();
@@ -5642,6 +5659,10 @@ static bool server_RCONCommand( BYTESTREAM_s *pByteStream )
 //
 static bool server_Suicide( BYTESTREAM_s *pByteStream )
 {
+	// [SB] Suicide client command is now flood checked.
+	if ( server_CheckForClientMinorCommandFlood( g_lCurrentClient ) == true )
+		return ( true );
+
 	// Spectators cannot suicide.
 	if ( players[g_lCurrentClient].bSpectating || playeringame[g_lCurrentClient] == false )
 		return ( false );
@@ -5673,6 +5694,10 @@ static bool server_ChangeTeam( BYTESTREAM_s *pByteStream )
 	LONG		lDesiredTeam;
 	bool		bOnTeam, bAutoSelectTeam = false;
 	FString		clientJoinPassword;
+	
+	// [SB] Change team client command is now flood checked.
+	if ( server_CheckForClientCommandFlood( g_lCurrentClient ) == true )
+		return ( true );
 
 	// Read in the join password.
 	clientJoinPassword = pByteStream->ReadString();
@@ -6397,6 +6422,10 @@ static bool server_InventoryDrop( BYTESTREAM_s *pByteStream )
 {
 	USHORT		usActorNetworkIndex = 0;
 	AInventory	*pItem;
+	
+	// [SB] Drop inventory client command is now flood checked.
+	if ( server_CheckForClientMinorCommandFlood( g_lCurrentClient ) == true )
+		return ( true );
 
 	usActorNetworkIndex = pByteStream->ReadShort();
 
