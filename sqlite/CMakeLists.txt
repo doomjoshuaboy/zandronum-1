@@ -60,6 +60,11 @@ elseif( ( NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/sqlite3.c ) OR ( NOT EXISTS ${C
 	message( STATUS "SQLite: done." )
 endif()
 
+# [BB] Silence all GCC warnings
+IF ( CMAKE_COMPILER_IS_GNUCXX )
+	ADD_DEFINITIONS ( -w )
+ENDIF ( CMAKE_COMPILER_IS_GNUCXX )
+
 add_library( sqlite3 sqlite3.c )
 target_link_libraries( sqlite3 ${CMAKE_DL_LIBS} )
 
