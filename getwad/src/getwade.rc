@@ -1,3 +1,9 @@
+<<<<<<< HEAD
 #include <windows.h>
 getwadico	ICON	getwad.ico
 1		24	manifest
+=======
+#include <windows.h>
+getwadico	ICON	getwad.ico
+1		24	manifest
+>>>>>>> 77ff70ccd (Initial commit)

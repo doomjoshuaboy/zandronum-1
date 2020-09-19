@@ -1,5 +1,10 @@
 Welcome to Zandronum!
 =====================
+ARM (and Pandora) version
+---------------
+This fork is the Pandora port of Zandronum, but it can be compiled on other ARM based linux machine, like ODroid and RaspberryPI.
+It feature ARM support (there are some small changes to be done in the code for that, and no assembler involved) and OpenAL audio backend (FMOD is still there and can be selected too).
+It can optionnaly use OpenGL for rendering. In that case, no GLES code is written here, and use of GL Wrapper is needed most of the time. I use gl4es (https://github.com/ptitSeb/gl4es) on Pandora and ODroid.
 
 A continuation of Skulltag.
 ---------------------------

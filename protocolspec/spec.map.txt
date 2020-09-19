@@ -1,7 +1,10 @@
 Command MapLoad
 	String mapName
+<<<<<<< HEAD
 	# [AK] Also send the current position of the map rotation.
 	Short currentPosition
+=======
+>>>>>>> 77ff70ccd (Initial commit)
 EndCommand
 
 Command MapNew
@@ -22,6 +25,7 @@ Command SetMapTime
 EndCommand
 
 Command SetMapNumKilledMonsters
+<<<<<<< HEAD
 	Variable killedMonsters
 EndCommand
 
@@ -39,11 +43,34 @@ EndCommand
 
 Command SetMapNumTotalItems
 	Variable totalItems
+=======
+	Short killedMonsters
+EndCommand
+
+Command SetMapNumFoundItems
+	Short foundItems
+EndCommand
+
+Command SetMapNumFoundSecrets
+	Short foundSecrets
+EndCommand
+
+Command SetMapNumTotalMonsters
+	Short totalMonsters
+EndCommand
+
+Command SetMapNumTotalItems
+	Short totalItems
+>>>>>>> 77ff70ccd (Initial commit)
 EndCommand
 
 Command SetMapNumTotalSecrets
 	ExtendedCommand
+<<<<<<< HEAD
 	Variable totalSecrets
+=======
+	Short totalSecrets
+>>>>>>> 77ff70ccd (Initial commit)
 EndCommand
 
 Command SetMapMusic

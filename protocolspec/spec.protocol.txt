@@ -4,7 +4,11 @@ EndCommand
 
 Command Ping
 	UnreliableCommand
+<<<<<<< HEAD
 	ULong time
+=======
+	Long time
+>>>>>>> 77ff70ccd (Initial commit)
 EndCommand
 
 Command BeginSnapshot

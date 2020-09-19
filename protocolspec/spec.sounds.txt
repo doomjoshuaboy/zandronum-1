@@ -38,9 +38,12 @@ EndCommand
 Command AnnouncerSound
 	String sound
 EndCommand
+<<<<<<< HEAD
 
 Command StopSound
 	ExtendedCommand
 	Actor actor
 	Byte channel
 EndCommand
+=======
+>>>>>>> 77ff70ccd (Initial commit)

@@ -11,6 +11,7 @@ Command ACSScriptExecute
 	Bool always
 EndCommand
 
+<<<<<<< HEAD
 Command ACSSendString
 	ExtendedCommand
 	Short netid
@@ -18,6 +19,8 @@ Command ACSSendString
 	String string
 EndCommand
 
+=======
+>>>>>>> 77ff70ccd (Initial commit)
 Struct JoinSlot
 	Byte player
 	Byte team
@@ -28,6 +31,7 @@ Command SyncJoinQueue
 	Struct<JoinSlot>[] slots
 EndCommand
 
+<<<<<<< HEAD
 Struct MapRotationEntry
 	String name
 	Byte isUsed
@@ -41,6 +45,8 @@ Command SyncMapRotation
 	Short currentPosition
 EndCommand
 
+=======
+>>>>>>> 77ff70ccd (Initial commit)
 Command ReplaceTextures
 	String fromTexture
 	String toTexture

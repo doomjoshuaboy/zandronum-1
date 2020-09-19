@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 LIBRARY		GetWAD
 DESCRIPTION	'GetWAD 2.0 Copyright (C) 2003 Hippocrates Sendoukas'
 EXPORTS		getwad_setup	@1
@@ -5,3 +6,12 @@ EXPORTS		getwad_setup	@1
 		getwad2_setup	@3
 		getwad2_fetch	@4
 		DllEntryPoint
+=======
+LIBRARY		GetWAD
+DESCRIPTION	'GetWAD 2.0 Copyright (C) 2003 Hippocrates Sendoukas'
+EXPORTS		getwad_setup	@1
+		getwad_fetch	@2
+		getwad2_setup	@3
+		getwad2_fetch	@4
+		DllEntryPoint
+>>>>>>> 77ff70ccd (Initial commit)

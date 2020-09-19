@@ -1,7 +1,13 @@
 Command SpawnPlayer
 	Player player with IndexTestOnly
+<<<<<<< HEAD
 	# [AK] Send the prior state as a short byte so that the four bools can fit together into a single byte.
 	ShortByte<4> priorState
+=======
+	Byte priorState
+	# Do we really need to send this? Shouldn't it always be PST_LIVE?
+	Byte playerState
+>>>>>>> 77ff70ccd (Initial commit)
 	Bool isBot
 	Bool isSpectating
 	Bool isDeadSpectator
@@ -33,6 +39,7 @@ Command MovePlayer
 		Fixed y
 		AproxFixed z
 		Angle angle
+<<<<<<< HEAD
 	EndIf
 
 	# [AK] The server should only send the player's velocity when it's not zero.
@@ -49,11 +56,18 @@ Command MovePlayer
 	If ((flags & PLAYER_VISIBLE) && (flags & PLAYER_SENDVELZ))
 		CheckFunction IsMovingZ
 		AproxFixed velz
+=======
+		AproxFixed velx
+		AproxFixed vely
+		AproxFixed velz
+		Bool isCrouching
+>>>>>>> 77ff70ccd (Initial commit)
 	EndIf
 EndCommand
 
 Command DamagePlayer
 	Player player with MoTest
+<<<<<<< HEAD
 	Variable health
 	Variable armor
 	Actor attacker with NullAllowed
@@ -65,6 +79,10 @@ Command DamagePlayerWithType
 	Variable health
 	Variable armor
 	String damageType
+=======
+	Short health
+	Short armor
+>>>>>>> 77ff70ccd (Initial commit)
 	Actor attacker with NullAllowed
 EndCommand
 
@@ -80,12 +98,20 @@ EndCommand
 
 Command SetPlayerHealth
 	Player player
+<<<<<<< HEAD
 	Variable health
+=======
+	Short health
+>>>>>>> 77ff70ccd (Initial commit)
 EndCommand
 
 Command SetPlayerArmor
 	Player player with MoTest
+<<<<<<< HEAD
 	Variable armorAmount
+=======
+	Short armorAmount
+>>>>>>> 77ff70ccd (Initial commit)
 	String armorIcon
 EndCommand
 
@@ -113,16 +139,25 @@ EndCommand
 
 Command SetPlayerFrags
 	Player player
+<<<<<<< HEAD
 	Variable fragCount
+=======
+	Short fragCount
+>>>>>>> 77ff70ccd (Initial commit)
 EndCommand
 
 Command SetPlayerPoints
 	Player player
+<<<<<<< HEAD
 	Variable pointCount
+=======
+	Short pointCount
+>>>>>>> 77ff70ccd (Initial commit)
 EndCommand
 
 Command SetPlayerWins
 	Player player
+<<<<<<< HEAD
 	Variable wins
 EndCommand
 
@@ -130,10 +165,14 @@ Command SetPlayerDeaths
 	ExtendedCommand
 	Player player
 	Variable deaths
+=======
+	Byte wins
+>>>>>>> 77ff70ccd (Initial commit)
 EndCommand
 
 Command SetPlayerKillCount
 	Player player
+<<<<<<< HEAD
 	Variable killCount
 EndCommand
 
@@ -142,6 +181,29 @@ Command SetPlayerStatus
 	# [AK] Ideally, we want to fit the status we're updating and its value into a single byte.
 	ShortByte<7> type
 	Bool value
+=======
+	Short killCount
+EndCommand
+
+Command SetPlayerChatStatus
+	Player player
+	Bool chatting
+EndCommand
+
+Command SetPlayerConsoleStatus
+	Player player
+	Bool inConsole
+EndCommand
+
+Command SetPlayerLaggingStatus
+	Player player
+	Bool lagging
+EndCommand
+
+Command SetPlayerReadyToGoOnStatus
+	Player player
+	Bool readyToGoOn
+>>>>>>> 77ff70ccd (Initial commit)
 EndCommand
 
 Command SetPlayerTeam

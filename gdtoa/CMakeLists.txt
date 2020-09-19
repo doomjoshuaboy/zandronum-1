@@ -12,6 +12,12 @@ if( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STRE
 	set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra" )
 endif( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" )
 
+<<<<<<< HEAD
+=======
+set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-single-precision-constant" )
+set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-single-precision-constant" )
+
+>>>>>>> 77ff70ccd (Initial commit)
 include_directories( ${CMAKE_CURRENT_BINARY_DIR} )
 add_definitions( -DINFNAN_CHECK -DMULTIPLE_THREADS )
 
