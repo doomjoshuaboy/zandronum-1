@@ -5208,6 +5208,7 @@ enum EACSFunctions
 	ACSF_GetPlayerChasecam,
 	ACSF_SetPlayerScore,
 	ACSF_GetPlayerScore,
+	ACSF_InDemoMode,
 
 	// ZDaemon
 	ACSF_GetTeamScore = 19620,	// (int team)
@@ -7096,6 +7097,10 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 				return 1;
 			}
 			break;
+
+		//[JS] Checks whether the game is in demo or not 
+		case ACSF_InDemoMode:
+			return CLIENTDEMO_IsPlaying() ? 1 : 0;
 
 		case ACSF_SetCurrentGamemode:
 			{
