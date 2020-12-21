@@ -6205,8 +6205,12 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 					S_StopSound(activator, chan);
 
 					// [AK] If we're the server, remove this channel from the list of looping channels.
+					// Also tell the clients to stop playing the sound in this channel.
 					if ( NETWORK_GetState() == NETSTATE_SERVER )
+					{
+						SERVERCOMMANDS_StopSound( activator, chan );
 						SERVER_UpdateLoopingChannels( activator, chan, 0, 0, 0, true );
+					}
 				}
 				else
 				{
@@ -6218,8 +6222,12 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 						S_StopSound(spot, chan);
 
 						// [AK] If we're the server, remove this channel from the list of looping channels.
+						// Also tell the clients to stop playing the sound in this channel.
 						if ( NETWORK_GetState() == NETSTATE_SERVER )
+						{
+							SERVERCOMMANDS_StopSound( spot, chan );
 							SERVER_UpdateLoopingChannels( spot, chan, 0, 0, 0, true );
+						}
 					}
 				}
 			}
