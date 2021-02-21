@@ -7057,6 +7057,10 @@ void ClientCommandRegulator::move( int client )
 
 CCMD( kick_idx )
 {
+	// [AK] This function may not be used by ConsoleCommand.
+	if ( ACS_IsCalledFromConsoleCommand( ))
+		return;
+
 	// Only the server can boot players!
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 		return;
@@ -7082,6 +7086,10 @@ CCMD( kick_idx )
 
 CCMD( kick_ip )
 {
+	// [AK] This function may not be used by ConsoleCommand.
+	if ( ACS_IsCalledFromConsoleCommand( ))
+		return;
+
 	// Only the server can boot players!
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 		return;
@@ -7108,6 +7116,10 @@ CCMD( kick )
 {
 	ULONG	ulIdx;
 	char	szPlayerName[64];
+
+	// [AK] This function may not be used by ConsoleCommand.
+	if ( ACS_IsCalledFromConsoleCommand( ))
+		return;
 
 	// Only the server can boot players!
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
@@ -7150,6 +7162,10 @@ CCMD( kick )
 //
 CCMD( forcespec_idx )
 {
+	// [AK] This function may not be used by ConsoleCommand.
+	if ( ACS_IsCalledFromConsoleCommand( ))
+		return;
+
 	// Only the server can boot players!
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 		return;
@@ -7177,6 +7193,10 @@ CCMD( forcespec_idx )
 //
 CCMD( forcespec )
 {
+	// [AK] This function may not be used by ConsoleCommand.
+	if ( ACS_IsCalledFromConsoleCommand( ))
+		return;
+
 	// Only the server can boot players!
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 		return;
