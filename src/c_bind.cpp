@@ -73,18 +73,22 @@ static const FBinding DefBindings[] =
 	{ "enter", "invuse" },
 	{ "-", "sizedown" },
 	{ "=", "sizeup" },
-	{ "ctrl", "+attack" },
+	{ "ctrl", "+crouch" }, // [AK]
 	{ "alt", "+strafe" },
 	{ "shift", "+speed" },
-	{ "space", "+use" },
+	{ "space", "+jump" }, // [AK]
+	{ "e", "+use" }, // [AK]
 	{ "rightarrow", "+right" },
 	{ "leftarrow", "+left" },
 	{ "uparrow", "+forward" },
 	{ "downarrow", "+back" },
-	{ ",", "+moveleft" },
-	{ ".", "+moveright" },
+	// [AK] Added WASD controls to replace "," and "." for movement.
+	{ "w", "+forward" },
+	{ "s", "+back" },
+	{ "a", "+moveleft" },
+	{ "d", "+moveright" },
 	{ "mouse1", "+attack" },
-	{ "mouse2", "+strafe" },
+	{ "mouse2", "+altattack" }, // [AK]
 	{ "mouse3", "+forward" },
 	{ "mouse4", "+speed" },
 	{ "capslock", "toggle cl_run" },
@@ -102,12 +106,18 @@ static const FBinding DefBindings[] =
 	{ "tab", "togglemap" },
 	{ "pause", "pause" },
 	{ "sysrq", "screenshot" },
-	{ "t", "say" },	// [BC] messagemode changed to "say"
-	{ "\\", "+showscores" },
+	// [AK] Added/changed binds for global, team, and private chat modes.
+	{ "y", "messagemode" },
+	{ "t", "messagemode2" },
+	{ "p", "messagemode3" },
+	{ "tab", "+showscores" }, // [AK] 
 	{ "f12", "spynext" },
 	{ "mwheeldown", "weapnext" },
 	{ "mwheelup", "weapprev" },
-	{ "m", "+showmedals" },	// [BC] New buttons below for Skulltag.
+	// [AK] Added default binds for "weapswap" and "weapdrop".
+	{ "q", "weapswap" },
+	{ "g", "weapdrop" },
+	{ "m", "togglemap" }, // [AK]
 	{ "u", "taunt" },
 	{ "pgup", "vote_yes" },
 	{ "pgdn", "vote_no" },
