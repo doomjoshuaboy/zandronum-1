@@ -6303,7 +6303,7 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 										continue;
 									}
 
-									SERVER_UpdateLoopingChannels( spot, chan, sid, vol, atten, false );
+									SERVER_UpdateLoopingChannels( spot, chan, sid, vol, atten, ( chan & CHAN_LOOP ) == false );
 								}
 
 								S_Sound(spot, chan, sid, vol, atten, true);	// [EP] Inform the clients.
