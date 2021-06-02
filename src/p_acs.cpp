@@ -7346,7 +7346,7 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 
 		case ACSF_GetCurrentGamemode:
 			{
-				return GlobalACSStrings.AddString( GAMEMODE_GetName( GAMEMODE_GetCurrentMode() ));
+				return GlobalACSStrings.AddString( GAMEMODE_GetCurrentName());
 			}
 
 		case ACSF_SetGamemodeLimit:
