@@ -11654,7 +11654,8 @@ DLevelScript::DLevelScript (AActor *who, line_t *where, int num, const ScriptPtr
 	// where we initialize the script's target, source, and inflictor pointers by using the
 	// activator as the target, and the activator's own master and target, which are the
 	// source and inflictor respectively.
-	if (( who != NULL ) && ( code->Type == SCRIPT_Event ) && ( args[0] == GAMEEVENT_ACTOR_DAMAGED ))
+	if (( NETWORK_InClientMode( ) == false ) && ( who != NULL ) &&
+		( code->Type == SCRIPT_Event ) && ( args[0] == GAMEEVENT_ACTOR_DAMAGED ))
 	{
 		pDamageTarget = who;
 		pDamageSource = who->master;
