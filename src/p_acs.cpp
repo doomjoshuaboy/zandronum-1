@@ -7370,6 +7370,7 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 		case ACSF_SetGamemodeLimit:
 			{
 				GAMELIMIT_e limit = static_cast<GAMELIMIT_e> ( args[0] );
+
 				if ( limit == GAMELIMIT_TIME )
 				{
 					UCVarValue Val;
@@ -7458,6 +7459,7 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 		case ACSF_GetPlayerChasecam:
 			{
 				const ULONG ulPlayer = static_cast<ULONG> ( args[0] );
+
 				if ( PLAYER_IsValidPlayer( ulPlayer ) )
 					return !!( players[ulPlayer].cheats & CF_CHASECAM );
 				else
@@ -7558,13 +7560,20 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 				{
 					switch ( args[1] )
 					{
-						case SCORE_FRAGS:	return players[ulPlayer].fragcount;
-						case SCORE_POINTS:	return players[ulPlayer].lPointCount;
-						case SCORE_WINS:	return players[ulPlayer].ulWins;
-						case SCORE_DEATHS:	return players[ulPlayer].ulDeathCount;
-						case SCORE_KILLS:	return players[ulPlayer].killcount;
-						case SCORE_ITEMS:	return players[ulPlayer].itemcount;
-						case SCORE_SECRETS:	return players[ulPlayer].secretcount;
+						case SCORE_FRAGS:
+							return players[ulPlayer].fragcount;
+						case SCORE_POINTS:
+							return players[ulPlayer].lPointCount;
+						case SCORE_WINS:
+							return players[ulPlayer].ulWins;
+						case SCORE_DEATHS:
+							return players[ulPlayer].ulDeathCount;
+						case SCORE_KILLS:
+							return players[ulPlayer].killcount;
+						case SCORE_ITEMS:
+							return players[ulPlayer].itemcount;
+						case SCORE_SECRETS:
+							return players[ulPlayer].secretcount;
 					}
 				}
 
