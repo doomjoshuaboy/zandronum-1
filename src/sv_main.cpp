@@ -7147,6 +7147,16 @@ static bool server_CallVote( BYTESTREAM_s *pByteStream )
 		bVoteAllowed = !sv_noflagvote;
 		sprintf( szCommand, "flag" );
 		break;
+	case VOTECMD_NEXTMAP:
+
+		bVoteAllowed = !sv_nonextmapvote;
+		sprintf( szCommand, "nextmap" );
+		break;
+	case VOTECMD_NEXTSECRET:
+
+		bVoteAllowed = !sv_nonextsecretvote;
+		sprintf( szCommand, "nextsecret" );
+		break;
 	default:
 
 		return ( false );
