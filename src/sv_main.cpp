@@ -5305,7 +5305,6 @@ CLIENT_PLAYER_DATA_s::CLIENT_PLAYER_DATA_s ( player_t *player )
 	crouchViewDelta = player->crouchviewdelta;
 	bTookEnvironmentalDamage = false;
 	bTeleported = false;
-	bActivatedSpecial = false;
 }
 
 //*****************************************************************************
@@ -7606,11 +7605,6 @@ static bool server_ShouldPerformBacktrace( ULONG ulClient )
 	else if ( g_aClients[ulClient].OldData->bTookEnvironmentalDamage )
 	{
 		reason = "took environmental damage during extrapolation";
-		bShouldPerform = false;
-	}
-	else if ( g_aClients[ulClient].OldData->bActivatedSpecial )
-	{
-		reason = "activated special during extrapolation";
 		bShouldPerform = false;
 	}
 	else if ( gametic - g_aClients[ulClient].OldData->ulSavedGametic >= UNLAGGEDTICS )
