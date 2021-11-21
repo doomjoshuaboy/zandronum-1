@@ -247,6 +247,8 @@ enum
 	SCORE_KILLS,
 	SCORE_ITEMS,
 	SCORE_SECRETS,
+	SCORE_SPREAD,
+	SCORE_RANK,
 };
 
 struct CallReturn
@@ -7614,6 +7616,10 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 							return players[ulPlayer].itemcount;
 						case SCORE_SECRETS:
 							return players[ulPlayer].secretcount;
+						case SCORE_SPREAD:
+							return PLAYER_CalcSpread( ulPlayer );
+						case SCORE_RANK:
+							return PLAYER_CalcRank( ulPlayer );
 					}
 				}
 
