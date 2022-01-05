@@ -2363,13 +2363,6 @@ static void P_SpawnFriction(void)
 	int i;
 	line_t *l = lines;
 
-	// [BC] Don't do this in client mode, because the friction for the sector could
-	// have changed at some point on the server end.
-	if ( NETWORK_InClientMode() )
-	{
-		return;
-	}
-
 	for (i = 0 ; i < numlines ; i++,l++)
 	{
 		if (l->special == Sector_SetFriction)
