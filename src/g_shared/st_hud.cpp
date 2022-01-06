@@ -476,21 +476,16 @@ static void HUD_DrawBottomString( ULONG ulDisplayPlayer )
 	if (( players[ulDisplayPlayer].bSpectating == false ) && (( GAMEMODE_GetCurrentFlags( ) & GMF_DONTPRINTPLAYERSLEFT ) == false ))
 	{
 		GAMESTATE_e gamestate = GAMEMODE_GetState( );
+		FString playersLeftString;
 
 		// [AK] Draw a message showing that we're waiting for players if we are.
 		if ( gamestate == GAMESTATE_WAITFORPLAYERS )
 		{
-			if ( ulDisplayPlayer != static_cast<ULONG>( consoleplayer ))
-				bottomString += " - ";
-
-			bottomString += TEXTCOLOR_RED "Waiting for players";
+			playersLeftString = TEXTCOLOR_RED "Waiting for players";
 		}
 		// Print the totals for living and dead allies/enemies.
 		else if (( gamestate == GAMESTATE_INPROGRESS ) && ( GAMEMODE_GetCurrentFlags( ) & GMF_DEADSPECTATORS ))
 		{
-			if ( ulDisplayPlayer != static_cast<ULONG>( consoleplayer ))
-				bottomString += " - ";
-
 			// Survival, Survival Invasion, etc
 			// [AK] Only print how many allies are left if we had any to begin with.
 			if ( GAMEMODE_GetCurrentFlags( ) & GMF_COOPERATIVE )
@@ -499,39 +494,47 @@ static void HUD_DrawBottomString( ULONG ulDisplayPlayer )
 				{
 					if ( g_lNumAlliesLeft < 1 )
 					{
-						bottomString += TEXTCOLOR_RED "Last Player Alive"; // Uh-oh.
+						playersLeftString = TEXTCOLOR_RED "Last Player Alive"; // Uh-oh.
 					}
 					else
 					{
-						bottomString.AppendFormat( TEXTCOLOR_GRAY "%d ", static_cast<int>( g_lNumAlliesLeft ));
-						bottomString.AppendFormat( TEXTCOLOR_RED "all%s left", g_lNumAlliesLeft != 1 ? "ies" : "y" );
+						playersLeftString.Format( TEXTCOLOR_GRAY "%d ", static_cast<int>( g_lNumAlliesLeft ));
+						playersLeftString.AppendFormat( TEXTCOLOR_RED "all%s left", g_lNumAlliesLeft != 1 ? "ies" : "y" );
 					}
 				}
 			}
 			// Last Man Standing, TLMS, etc
 			else
 			{
-				bottomString.AppendFormat( TEXTCOLOR_GRAY "%d ", static_cast<int>( g_lNumOpponentsLeft ));
-				bottomString.AppendFormat( TEXTCOLOR_RED "opponent%s", g_lNumOpponentsLeft != 1 ? "s" : "" );
+				playersLeftString.Format( TEXTCOLOR_GRAY "%d ", static_cast<int>( g_lNumOpponentsLeft ));
+				playersLeftString.AppendFormat( TEXTCOLOR_RED "opponent%s", g_lNumOpponentsLeft != 1 ? "s" : "" );
 
 				// [AK] Only print how many teammates are left if we actually have any.
 				if (( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSONTEAMS ) && ( g_bHasAllies ))
 				{
 					if ( g_lNumAlliesLeft < 1 )
 					{
-						bottomString += " left - allies dead";
+						playersLeftString += " left - allies dead";
 					}
 					else
 					{
-						bottomString.AppendFormat( ", " TEXTCOLOR_GRAY "%d ", static_cast<int>( g_lNumAlliesLeft ));
-						bottomString.AppendFormat( TEXTCOLOR_RED "all%s left", g_lNumAlliesLeft != 1 ? "ies" : "y" );
+						playersLeftString.AppendFormat( ", " TEXTCOLOR_GRAY "%d ", static_cast<int>( g_lNumAlliesLeft ));
+						playersLeftString.AppendFormat( TEXTCOLOR_RED "all%s left", g_lNumAlliesLeft != 1 ? "ies" : "y" );
 					}
 				}
 				else
 				{
-					bottomString += " left";
+					playersLeftString += " left";
 				}
 			}
+		}
+
+		if ( playersLeftString.Len( ) > 0 )
+		{
+			if ( ulDisplayPlayer != static_cast<ULONG>( consoleplayer ))
+				bottomString += " - ";
+
+			bottomString += playersLeftString;
 		}
 	}
 
