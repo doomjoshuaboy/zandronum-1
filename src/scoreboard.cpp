@@ -767,6 +767,10 @@ void SCOREBOARD_BuildLimitStrings( std::list<FString> &lines, bool bAcceptColors
 			else
 				text.Format( "%d%% monsters left", static_cast<int>( lRemaining ));
 
+			// [AK] Render the number of monsters left on the same line as the number of waves left in invasion.
+			if ( invasion && wavelimit )			
+				scoreboard_TryToPrependLimit( lines, text );
+
 			lines.push_back( text );
 			ulNumLimits++;
 		}
