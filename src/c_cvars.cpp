@@ -1825,7 +1825,9 @@ void FBaseCVar::CmdSet (const char *newval)
 	// has read all ServerInfo CVars from its config file upon startup.
 	if ((gamestate == GS_STARTUP) && (NETWORK_GetState() == NETSTATE_SERVER))
 	{
-		if ((Flags & (CVAR_SERVERINFO | CVAR_ARCHIVE)) == (CVAR_SERVERINFO | CVAR_ARCHIVE))
+		// [AK] We'll also include compatflags and compatflags2, because compatmode is saved into
+		// the config file and screws with these two CVars during startup.
+		if ((Flags & (CVAR_SERVERINFO | CVAR_ARCHIVE)) == (CVAR_SERVERINFO | CVAR_ARCHIVE) || (this == &compatflags || this == &compatflags2))
 		{
 			FLatchedValue saved;
 			saved.Variable = this;
