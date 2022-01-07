@@ -1754,8 +1754,11 @@ void C_RestoreServerInfoCVars( void )
 {
 	FLatchedValue var;
 
-	while ( SavedServerInfoValues.Pop( var ))
+	while ( SavedServerInfoValues.Size( ) > 0 )
 	{
+		var = SavedServerInfoValues[0];
+		SavedServerInfoValues.Delete( 0 );
+
 		var.Variable->SetGenericRep( var.Value, var.Type );
 		if ( var.Type == CVAR_String )
 			delete[] var.Value.String;
