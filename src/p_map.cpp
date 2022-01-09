@@ -4588,7 +4588,10 @@ AActor *P_LinePickActor(AActor *t1, angle_t angle, fixed_t distance, int pitch,
 	TData.Caller = t1;
 	TData.hitGhosts = true;
 	
-	// [AK] This doesn't spawn a puff actor, but indicate that this is a line pick hitscan.
+	// [AK] Explicity set hitSameSpecies to false. We are allowed to pick actors that are the
+	// same species, but this isn't always the case if called by the server.
+	// This doesn't spawn a puff actor, but indicate that this is a line pick hitscan.
+	TData.hitSameSpecies = false;
 	TData.pPuff = NULL;
 	TData.bIsLinePick = true;
 
