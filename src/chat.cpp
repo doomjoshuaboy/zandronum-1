@@ -1363,10 +1363,16 @@ CCMD( say )
 
 		// Send the server's chat string out to clients, and print it in the console.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		{
+			// [AK] Make sure that color codes can appear in the message.
+			V_ColorizeString( ChatString );
 			SERVER_SendChatMessage( MAXPLAYERS, CHATMODE_GLOBAL, ChatString.GetChars( ));
+		}
 		else
+		{
 			// We typed out our message in the console or with a macro. Go ahead and send the message now.
 			chat_SendMessage( CHATMODE_GLOBAL, ChatString.GetChars( ));
+		}
 	}
 }
 
@@ -1572,10 +1578,16 @@ void chat_PrivateMessage( FCommandLine &argv, const ULONG ulReceiver )
 
 			// Send the server's chat string out to clients, and print it in the console.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			{
+				// [AK] Make sure that color codes can appear in the message.
+				V_ColorizeString( ChatString );
 				SERVER_SendChatMessage( MAXPLAYERS, CHATMODE_PRIVATE_SEND, ChatString.GetChars( ), g_ulChatPlayer );
+			}
 			else
+			{
 				// We typed out our message in the console or with a macro. Go ahead and send the message now.
 				chat_SendMessage( CHATMODE_PRIVATE_SEND, ChatString.GetChars( ) );
+			}
 
 			return;
 		}
