@@ -734,8 +734,16 @@ void CHAT_Render( void )
 	// [AK] Also blink the cursor between dark gray and white.
 	if ( g_ulChatTicker >= C_BLINKRATE )
 	{
-		cursor.Insert( 0, g_ChatBuffer.IsInArchive() ? TEXTCOLOR_BLACK : TEXTCOLOR_DARKGRAY );
-		cursor += TEXTCOLOR_GRAY;
+		if ( g_ChatBuffer.IsInArchive() )
+		{
+			cursor.Insert( 0, TEXTCOLOR_BLACK );
+			cursor += TEXTCOLOR_DARKGRAY;
+		}
+		else
+		{
+			cursor.Insert( 0, TEXTCOLOR_DARKGRAY );
+			cursor += TEXTCOLOR_GRAY;
+		}
 	}
 
 	// Build the message that we will display to clients.
