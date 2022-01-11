@@ -3392,6 +3392,9 @@ void GAME_ResetMap( bool bRunEnterScripts )
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 		S_StopAllUnattachedSounds( );
 
+	// [AK] Also make sure that the game isn't frozen.
+	level.flags2 &= ~LEVEL2_FROZEN;
+
 	// [BB] We are going to reset the map now, so any request for a reset is fulfilled.
 	g_bResetMap = false;
 
