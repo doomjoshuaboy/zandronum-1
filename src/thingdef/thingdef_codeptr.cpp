@@ -4659,6 +4659,9 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_ChangeFlag)
 				level.total_monsters--;
 			}
 
+			// [AK] Update the invasion monster count accordingly.
+			INVASION_UpdateMonsterCount( self, !kill_after );
+
 			// [BB] If we're the server, tell clients the new number of total monsters.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				SERVERCOMMANDS_SetMapNumTotalMonsters( );
