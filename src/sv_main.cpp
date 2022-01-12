@@ -1257,6 +1257,8 @@ void SERVER_SendChatMessage( ULONG ulPlayer, ULONG ulMode, const char *pszString
 				message.Format( "<From %s> ", players[ulPlayer].userinfo.GetName() );
 		}
 
+		// [AK] Don't print the same message twice for the current RCON client.
+		CONSOLE_ShouldPrintToRCONPlayer( false );
 		message.AppendFormat( "* %s%s", ulPlayer != MAXPLAYERS ? players[ulPlayer].userinfo.GetName() : "<Server>", pszString );
 		Printf( "%s\n", message.GetChars() );
 	}
@@ -1271,6 +1273,8 @@ void SERVER_SendChatMessage( ULONG ulPlayer, ULONG ulMode, const char *pszString
 		}
 		else
 		{
+			// [AK] Don't print the same message twice for the current RCON client.
+			CONSOLE_ShouldPrintToRCONPlayer( false );
 			Printf( "%s: %s\n", ulPlayer != MAXPLAYERS ? players[ulPlayer].userinfo.GetName() : "<Server>", pszString );
 		}
 	}
