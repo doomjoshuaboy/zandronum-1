@@ -5188,7 +5188,13 @@ void AActor::PostBeginPlay ()
 	// script types like ENTER, RETURN, and RESPAWN.
 	if (( player == NULL ) && (( STFlags & STFL_NOSPAWNEVENTSCRIPT ) == false ))
 	{
-		bool bNotImportant = (( flags & ( MF_NOBLOCKMAP|MF_NOSECTOR )) || IsKindOf( RUNTIME_CLASS( AHexenArmor )));
+		bool bNotImportant = false;
+
+		// [AK] Projectiles and BulletPuffs can have NOBLOCKMAP enabled but that doesn't make them unimportant.
+		if (( flags & MF_NOBLOCKMAP ) && ((( flags & MF_MISSILE ) == false ) && ( IsKindOf( PClass::FindClass( NAME_BulletPuff )) == false )))
+			bNotImportant = true;
+		else if (( flags & MF_NOSECTOR ) || ( IsKindOf( RUNTIME_CLASS( AHexenArmor ))))
+			bNotImportant = true;
 
 		// [AK] If we want to force GAMEEVENT_ACTOR_SPAWNED on every actor, then at least ignore 
 		// the less imporant actors unless they have the USESPAWNEVENTSCRIPT flag enabled.
