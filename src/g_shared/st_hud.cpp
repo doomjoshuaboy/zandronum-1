@@ -531,7 +531,7 @@ static void HUD_DrawBottomString( ULONG ulDisplayPlayer )
 
 		if ( playersLeftString.Len( ) > 0 )
 		{
-			if ( ulDisplayPlayer != static_cast<ULONG>( consoleplayer ))
+			if (( CLIENTDEMO_IsInFreeSpectateMode( )) || ( ulDisplayPlayer != static_cast<ULONG>( consoleplayer )))
 				bottomString += " - ";
 
 			bottomString += playersLeftString;
