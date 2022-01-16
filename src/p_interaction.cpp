@@ -2571,13 +2571,13 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 
 		return;
 	}
-	// [AK] If this player's current mobj doesn't match their player class due to
-	// A_SkullPop, then we must reset their mobj back to the original body.
+	// [AK] If this player's current mobj derives from APlayerChunk due to A_SkullPop
+	// then we must reset their mobj back to the original body.
 	else if (( bDeadSpectator == false ) && ( pPlayer->mo != NULL ) && ( pPlayer->cls != NULL ))
 	{
 		APlayerPawn *mo = pPlayer->mo;
 
-		if (( mo->GetClass()->TypeName != pPlayer->cls->TypeName ) && ( mo->target != NULL ))
+		if (( mo->IsKindOf( RUNTIME_CLASS( APlayerChunk ))) && ( mo->target != NULL ))
 		{
 			APlayerPawn *pmo = barrier_cast<APlayerPawn *>( pPlayer->mo->target );
 			mo->player = NULL;
