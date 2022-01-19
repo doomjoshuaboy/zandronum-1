@@ -1311,16 +1311,13 @@ void APowerSpeed::DoEffect ()
 		speedMo->scaleY = Owner->scaleY;
 
 		// [BB] If the owner is a player, we also have to take into account the scaling of the skin.
+		// [AK] We'll use P_CheckPlayerSprite for this, which we'll also use to change the sprite
+		// to match the player's in case they're using a weapon with its own preferred skin.
 		if ( Owner->player )
 		{
-			const int skinidx = Owner->player->userinfo.GetSkin();
-
-			if (0 != skinidx && !(Owner->flags4 & MF4_NOSKIN))
-			{
-				// Apply skin's scale to actor's scale, it will be lost otherwise
-				speedMo->scaleX = Scale(speedMo->scaleX, skins[skinidx].ScaleX, Owner->scaleX);
-				speedMo->scaleY = Scale(speedMo->scaleY, skins[skinidx].ScaleY, Owner->scaleY);
-			}
+			int spritenum = speedMo->sprite;
+			P_CheckPlayerSprite( Owner, spritenum, speedMo->scaleX, speedMo->scaleY );
+			speedMo->sprite = spritenum;
 		}
 
 		if (Owner == players[consoleplayer].camera &&
