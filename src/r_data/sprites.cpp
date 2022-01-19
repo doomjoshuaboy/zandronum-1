@@ -1330,14 +1330,14 @@ CUSTOM_CVAR( Int, cl_skins, 1, CVAR_ARCHIVE )
 				players[ulIdx].mo->flags4 &= ~MF4_NOSKIN;
 		}
 
-		// If the skin is valid, set the player's sprite to the skin's sprite, and adjust
-		// the player's scale accordingly.
+		// If the skin is valid, set the player's sprite to the skin's sprite.
 		if (( lSkin >= 0 ) && ( static_cast<unsigned> (lSkin) < skins.Size() ))
 		{
 			players[ulIdx].mo->sprite = skins[lSkin].sprite;
+/*
 			players[ulIdx].mo->scaleX = skins[lSkin].ScaleX;
 			players[ulIdx].mo->scaleY = skins[lSkin].ScaleY;
-/*
+
 			// Make sure the player doesn't change sprites when his state changes.
 			if ( lSkin == R_FindSkin( "base", players[ulIdx].CurrentPlayerClass ))
 				players[ulIdx].mo->flags4 |= MF4_NOSKIN;
