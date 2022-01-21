@@ -5871,16 +5871,6 @@ APlayerPawn *P_SpawnPlayer (FPlayerStart *mthing, int playernum, int flags)
 	// [Spleen] Reset reconciliation buffer when player gets spawned
 	UNLAGGED_ResetPlayer( p );
 
-	// [AK] If the player is supposed to be a dead spectator, disassociate them
-	// from the old body. This prevents the old body from being frozen and not
-	// finishing their animation when they become a spectator.
-	// Add their old body to body queue too.
-	if (( p->bDeadSpectator ) && ( oldactor != NULL ) && ( oldactor->player == p ))
-	{
-		G_QueueBody( oldactor );
-		oldactor->player = NULL;
-	}
-
 	// [AK] We've spawned now, so we don't need to remember our corpse anymore.
 	p->pCorpse = NULL;
 

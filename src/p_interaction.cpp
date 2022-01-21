@@ -2661,23 +2661,31 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 			// at our corpse in case DF2_SAME_SPAWN_SPOT is enabled.
 			pPlayer->pCorpse = pOldBody;
 
-			// Set the player's new body to the position of his or her old body.
-			if (( pPlayer->mo ) &&
-				( pOldBody ))
+			if ( pOldBody )
 			{
-				// [BB] It's possible that the old body is at a place that's inaccessible to spectators
-				// (whatever source killed the player possibly moved the body after the player's death).
-				// If that's the case, don't move the spectator to the old body position, but to the place
-				// where G_DoReborn spawned him.
-				fixed_t playerSpawnX = pPlayer->mo->x;
-				fixed_t playerSpawnY = pPlayer->mo->y;
-				fixed_t playerSpawnZ = pPlayer->mo->z;
-				pPlayer->mo->SetOrigin( pOldBody->x, pOldBody->y, pOldBody->z );
-				if ( P_TestMobjLocation ( pPlayer->mo ) == false )
-					pPlayer->mo->SetOrigin( playerSpawnX, playerSpawnY, playerSpawnZ );
+				// Set the player's new body to the position of his or her old body.
+				if ( pPlayer->mo )
+				{
+					// [BB] It's possible that the old body is at a place that's inaccessible to spectators
+					// (whatever source killed the player possibly moved the body after the player's death).
+					// If that's the case, don't move the spectator to the old body position, but to the place
+					// where G_DoReborn spawned him.
+					fixed_t playerSpawnX = pPlayer->mo->x;
+					fixed_t playerSpawnY = pPlayer->mo->y;
+					fixed_t playerSpawnZ = pPlayer->mo->z;
+					pPlayer->mo->SetOrigin( pOldBody->x, pOldBody->y, pOldBody->z );
+					if ( P_TestMobjLocation ( pPlayer->mo ) == false )
+						pPlayer->mo->SetOrigin( playerSpawnX, playerSpawnY, playerSpawnZ );
 
-				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_MoveLocalPlayer( ULONG( pPlayer - players ));
+					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+						SERVERCOMMANDS_MoveLocalPlayer( ULONG( pPlayer - players ));
+				}
+
+				// [AK] Disassociate the player from their old body. This prevents the old body from
+				// being frozen and not finishing their animation when they become a spectator.
+				// Add their old body to body queue too.
+				G_QueueBody( pOldBody );
+				pOldBody->player = NULL;
 			}
 		}
 		// [BB] In case the player is not respawned as dead spectator, we have to manually clear its TID.
