@@ -2616,6 +2616,11 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 
 	if ( pPlayer->mo )
 	{
+		// [AK] Remember what weapon the player used before they become a specator. In case they
+		// become a dead spectator, we need to know if the weapon has its own preferred skin so
+		// we can apply the skin's scale to their old body correctly.
+		AWeapon *pOldWeapon = pPlayer->ReadyWeapon ? static_cast<AWeapon *>( pPlayer->ReadyWeapon->GetDefault( )) : NULL;
+
 		// [BB] Stop all scripts of the player that are still running.
 		if ( !( zacompatflags & ZACOMPATF_DONT_STOP_PLAYER_SCRIPTS_ON_DISCONNECT ) )
 			FBehavior::StaticStopMyScripts ( pPlayer->mo );
@@ -2686,6 +2691,9 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 				// Add their old body to body queue too.
 				G_QueueBody( pOldBody );
 				pOldBody->player = NULL;
+
+				// [AK] Apply the skin's scale to the old body's scale.
+				PLAYER_ApplySkinScaleToBody( pPlayer, pOldBody, pOldWeapon );
 			}
 		}
 		// [BB] In case the player is not respawned as dead spectator, we have to manually clear its TID.
@@ -3264,6 +3272,39 @@ void PLAYER_ClearWeapon( player_t *pPlayer )
 	// [BB] Assume that it was not the client's decision to clear the weapon.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		pPlayer->bClientSelectedWeapon = false;
+}
+
+//*****************************************************************************
+//
+bool PLAYER_IsUsingWeaponSkin( AActor *pActor )
+{
+	// [AK] Only players can use weapons.
+	if ( pActor && pActor->player )
+		return (( pActor->player->ReadyWeapon ) && ( pActor->player->ReadyWeapon->PreferredSkin != NAME_None ));
+
+	return ( false );
+}
+
+//*****************************************************************************
+//
+void PLAYER_ApplySkinScaleToBody( player_t *pPlayer, AActor *pBody, AWeapon *pWeapon )
+{
+	// [AK] Don't apply a skin's scale to the body if it's not supposed to be visible.
+	if (( pBody->state == NULL ) || ( pBody->state->sprite != pBody->SpawnState->sprite ))
+		return;
+
+	const bool bUsingWeaponSkin = (( pWeapon ) && ( pWeapon->PreferredSkin != NAME_None ));
+	const int skinidx = bUsingWeaponSkin ? R_FindSkin( pWeapon->PreferredSkin, pPlayer->CurrentPlayerClass ) : pPlayer->userinfo.GetSkin( );
+
+	// [AK] PreferredSkin overrides NOSKIN.
+	if (( bUsingWeaponSkin ) || ( 0 != skinidx && ( pBody->flags4 & MF4_NOSKIN ) == false ))
+	{
+		const AActor *const defaultActor = pBody->GetDefault( );
+		const FPlayerSkin &skin = skins[skinidx];
+
+		pBody->scaleX = Scale( pBody->scaleX, skin.ScaleX, defaultActor->scaleX );
+		pBody->scaleY = Scale( pBody->scaleY, skin.ScaleY, defaultActor->scaleY );
+	}
 }
 
 //*****************************************************************************

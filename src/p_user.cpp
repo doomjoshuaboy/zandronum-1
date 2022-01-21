@@ -2520,6 +2520,7 @@ void P_CheckPlayerSprite(AActor *actor, int &spritenum, fixed_t &scalex, fixed_t
 	LONG	lSkin;
 
 	player_t *player = actor->player;
+	const bool bUsingWeaponSkin = PLAYER_IsUsingWeaponSkin( actor ); // [AK]
 
 	int crouchspriteno;
 
@@ -2536,7 +2537,7 @@ void P_CheckPlayerSprite(AActor *actor, int &spritenum, fixed_t &scalex, fixed_t
 		lSkin = R_FindSkin( "base", player->CurrentPlayerClass );
 
 	// [BB] If the weapon has a PreferredSkin defined, make the player use it here.
-	if ( player->ReadyWeapon && ( player->ReadyWeapon->PreferredSkin != NAME_None ) )
+	if ( bUsingWeaponSkin )
 	{
 		LONG lDesiredSkin = R_FindSkin( player->ReadyWeapon->PreferredSkin.GetChars(), player->CurrentPlayerClass );
 		if ( lDesiredSkin != lSkin )
@@ -2554,7 +2555,7 @@ void P_CheckPlayerSprite(AActor *actor, int &spritenum, fixed_t &scalex, fixed_t
 	}
 
 	// [BB] PreferredSkin overrides NOSKIN.
-	if (lSkin != 0 && ( !(player->mo->flags4 & MF4_NOSKIN) || ( player->ReadyWeapon && ( player->ReadyWeapon->PreferredSkin != NAME_None ) ) ) )
+	if (lSkin != 0 && ( !(player->mo->flags4 & MF4_NOSKIN) || ( bUsingWeaponSkin ) ) )
 	{
 		// Convert from default scale to skin scale.
 		fixed_t defscaleY = actor->GetDefault()->scaleY;
@@ -2571,7 +2572,7 @@ void P_CheckPlayerSprite(AActor *actor, int &spritenum, fixed_t &scalex, fixed_t
 			crouchspriteno = player->mo->crouchsprite;
 		}
 		// [BB] PreferredSkin overrides NOSKIN.
-		else if ( ( !(actor->flags4 & MF4_NOSKIN) || ( player->ReadyWeapon && ( player->ReadyWeapon->PreferredSkin != NAME_None ) ) ) &&
+		else if ( ( !(actor->flags4 & MF4_NOSKIN) || ( bUsingWeaponSkin ) ) &&
 				(spritenum == skins[lSkin].sprite ||
 				 spritenum == skins[lSkin].crouchsprite))
 		{
