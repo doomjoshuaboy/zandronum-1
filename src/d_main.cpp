@@ -538,7 +538,8 @@ CUSTOM_CVAR (Int, dmflags2, 0, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK | CVAR_GAMEMO
 		if (!(dmflags2 & DF2_CHASECAM) && !G_SkillProperty (SKILLP_DisableCheats) && !sv_cheats)
 		{
 			// Take us out of chasecam mode only.
-			if (p->cheats & CF_CHASECAM)
+			// [AK] Allow spectators to keep using the chasecam.
+			if ((p->cheats & CF_CHASECAM) && p->bSpectating == false)
 				cht_DoCheat (p, CHT_CHASECAM);
 		}
 	}
