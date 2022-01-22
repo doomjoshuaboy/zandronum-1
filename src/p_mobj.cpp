@@ -5627,7 +5627,8 @@ APlayerPawn *P_SpawnPlayer (FPlayerStart *mthing, int playernum, int flags)
 			p->pSkullBot->PostEvent( BOTEVENT_SPECTATING );
 	}
 	// [BB] If this not a coop game and cheats are not allowed, remove the chasecam.
-	else if ( !( GAMEMODE_GetCurrentFlags() & GMF_COOPERATIVE ) && ( sv_cheats == false ) )
+	// [AK] Also remove it if the chasecam is disallowed.
+	else if (( !( GAMEMODE_GetCurrentFlags() & GMF_COOPERATIVE ) || !( dmflags2 & DF2_CHASECAM )) && ( sv_cheats == false ))
 	{
 		p->cheats &= ~(CF_CHASECAM);
 	}
