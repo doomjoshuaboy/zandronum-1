@@ -120,8 +120,9 @@ DEFINE_ACTION_FUNCTION(AActor, A_CFlamePuff)
 
 DEFINE_ACTION_FUNCTION(AActor, A_CFlameMissile)
 {
-	int i;
-	int an, an90;
+	// [EP] Fix misoptimization, not needed in recent GZDoom
+	unsigned int i;
+	unsigned int an;
 	fixed_t dist;
 	AActor *mo;
 	
@@ -141,7 +142,8 @@ DEFINE_ACTION_FUNCTION(AActor, A_CFlameMissile)
 		for (i = 0; i < 4; i++)
 		{
 			an = (i*ANG45)>>ANGLETOFINESHIFT;
-			an90 = (i*ANG45+ANG90)>>ANGLETOFINESHIFT;
+			// [EP] Remove unused variable, will be removed also in GZDoom
+			// an90 = (i*ANG45+ANG90)>>ANGLETOFINESHIFT;
 			mo = Spawn ("CircleFlame", BlockingMobj->x+FixedMul(dist, finecosine[an]),
 				BlockingMobj->y+FixedMul(dist, finesine[an]), 
 				BlockingMobj->z+5*FRACUNIT, ALLOW_REPLACE);
