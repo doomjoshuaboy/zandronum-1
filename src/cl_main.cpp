@@ -7023,6 +7023,9 @@ void ServerCommands::MapNew::Execute()
 	if ( M_InServerSetupMenu( ))
 		M_ClearMenus( );
 
+	// [AK] Reset the map rotation before reconnecting to the server.
+	MAPROTATION_Construct( );
+
 	// Clear out our local buffer.
 	g_LocalBuffer.Clear();
 
