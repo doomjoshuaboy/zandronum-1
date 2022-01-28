@@ -285,6 +285,11 @@ public:
 	{
 		return 0;
 	}
+
+	virtual unsigned short getWeaponNetworkIndex ( ) const
+	{
+		return 0;
+	}
 };
 
 //*****************************************************************************
@@ -307,6 +312,11 @@ public:
 		return moveCmd.ulGametic;
 	}
 
+	virtual unsigned short getWeaponNetworkIndex ( ) const
+	{
+		return moveCmd.usWeaponNetworkIndex;
+	}
+
 	void setClientTic( ULONG ulTic )
 	{
 		moveCmd.ulGametic = ulTic;
@@ -321,6 +331,11 @@ public:
 	ClientWeaponSelectCommand ( BYTESTREAM_s *pByteStream );
 
 	bool process ( const ULONG ulClient ) const;
+
+	virtual unsigned short getWeaponNetworkIndex ( ) const
+	{
+		return usActorNetworkIndex;
+	}
 };
 
 //*****************************************************************************
@@ -430,6 +445,9 @@ struct CLIENT_s
 
 	// [AK] The last movement command we received from this client.
 	ClientMoveCommand	*LastMoveCMD;
+
+	// [AK] The network index the client sent with their last weapon select command.
+	USHORT			usLastWeaponNetworkIndex;
 
 	// We keep track of how many extra movement commands we get from the client. If it
 	// exceeds a certain level over time, we kick him.

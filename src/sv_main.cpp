@@ -2029,6 +2029,7 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 	g_aClients[lClient].lLastPacketLossTick = 0;
 	g_aClients[lClient].lLastMoveTick = 0;
 	g_aClients[lClient].lLastMoveTickProcess = 0;
+	g_aClients[lClient].usLastWeaponNetworkIndex = 0;
 	g_aClients[lClient].lOverMovementLevel = 0;
 	g_aClients[lClient].bRunEnterScripts = false;
 	g_aClients[lClient].bSuspicious = false;
@@ -5222,14 +5223,23 @@ static bool server_ParseBufferedCommand ( BYTESTREAM_s *pByteStream )
 		{
 			if ( recentCMDs->getOldestEntry( i ) == ulClientTic )
 			{
-				delete cmd;
-				return false;
+				// [AK] Non-move (i.e. weapon select) commands with the same client gametic but
+				// different weapon net ids are not duplicates, so don't delete them.
+				if (( bIsMoveCMD ) || ( cmd->getWeaponNetworkIndex( ) == g_aClients[g_lCurrentClient].usLastWeaponNetworkIndex ))
+				{
+					delete cmd;
+					return false;
+				}
 			}
 		}
 
 		// [AK] Save this gametic into the ring buffer for later use.
 		recentCMDs->put( ulClientTic );
 	}
+
+	// [AK] Save the net id of the weapon sent last if this is a non-move (i.e. weapon select) command.
+	if ( bIsMoveCMD == false )
+		g_aClients[g_lCurrentClient].usLastWeaponNetworkIndex = cmd->getWeaponNetworkIndex( );
 
 	if ( sv_useticbuffer )
 	{
