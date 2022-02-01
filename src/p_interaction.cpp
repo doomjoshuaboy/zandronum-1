@@ -2110,6 +2110,12 @@ void P_PoisonDamage (player_t *player, AActor *source, int damage,
 	{ // Damage was reduced to 0, so don't bother further.
 		return;
 	}
+
+	// [AK] Trigger an event script indicating that the player has taken damage.
+	// If the event returns 0, then the player doesn't take damage and we do nothing.
+	if ( GAMEMODE_HandleDamageEvent( target, NULL, source, damage, player->poisontype ) == false )
+		return;
+
 	if (damage >= player->health
 		&& (G_SkillProperty(SKILLP_AutoUseHealth) || deathmatch)
 		&& !player->morphTics)
