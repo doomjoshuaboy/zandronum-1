@@ -413,13 +413,12 @@ void SERVERBAN_BanPlayer( ULONG ulPlayer, const char *pszBanLength, const char *
 	}
 
 	// Removes the color codes from the player name, for the ban record.
-	char	szPlayerName[64];
-	sprintf( szPlayerName, "%s", players[ulPlayer].userinfo.GetName() );
-	V_RemoveColorCodes( szPlayerName );
+	FString playerName = players[ulPlayer].userinfo.GetName();
+	V_RemoveColorCodes( playerName );
 
 	// Add the ban and kick the player.
 	std::string message;
-	g_ServerBans.addEntry( SERVER_GetClient( ulPlayer )->Address.ToString(), szPlayerName, pszBanReason, message, tExpiration );
+	g_ServerBans.addEntry( SERVER_GetClient( ulPlayer )->Address.ToString(), playerName, pszBanReason, message, tExpiration );
 	Printf( "addban: %s", message.c_str() );
 	SERVER_KickPlayer( ulPlayer, pszBanReason ? pszBanReason : "" );  // [RC] serverban_KickBannedPlayers would cover this, but we want the messages to be distinct so there's no confusion.
 
