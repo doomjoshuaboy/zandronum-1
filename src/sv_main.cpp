@@ -3659,23 +3659,23 @@ void SERVER_KickAllPlayers( const char *pszReason )
 //
 void SERVER_KickPlayer( ULONG ulPlayer, const char *pszReason )
 {
-	ULONG	ulIdx;
-	char	szKickString[512];
-	char	szName[64];
+	ULONG		ulIdx;
+	FString		kickString;
+	FString		playerName;
 
 	// Make sure the target is valid and applicable.
 	if (( ulPlayer >= MAXPLAYERS ) || ( !playeringame[ulPlayer] ))
 		return;
 
-	sprintf( szName, "%s", players[ulPlayer].userinfo.GetName() );
-	V_RemoveColorCodes( szName );
+	playerName = players[ulPlayer].userinfo.GetName();
+	V_RemoveColorCodes( playerName );
 
 	// Build the full kick string.
-	sprintf( szKickString, TEXTCOLOR_ORANGE "%s" TEXTCOLOR_ORANGE " was kicked from the server! Reason: %s\n", szName, pszReason );
-	Printf( "%s", szKickString );
+	kickString.Format( TEXTCOLOR_ORANGE "%s was kicked from the server! Reason: %s\n", playerName.GetChars(), pszReason );
+	Printf( "%s", kickString.GetChars() );
 
 	// Rebuild the string that will be displayed to clients. This time, color codes are allowed.
-	sprintf( szKickString, TEXTCOLOR_ORANGE "%s" TEXTCOLOR_ORANGE " was kicked from the server! Reason: %s\n", players[ulPlayer].userinfo.GetName(), pszReason );
+	kickString.Format( TEXTCOLOR_ORANGE "%s" TEXTCOLOR_ORANGE " was kicked from the server! Reason: %s\n", players[ulPlayer].userinfo.GetName(), pszReason );
 
 	// Send the message out to all clients.
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -3683,7 +3683,7 @@ void SERVER_KickPlayer( ULONG ulPlayer, const char *pszReason )
 		if ( SERVER_IsValidClient( ulIdx ) == false )
 			continue;
 
-		SERVER_PrintfPlayer( PRINT_HIGH, ulIdx, "%s", szKickString );
+		SERVER_PrintfPlayer( PRINT_HIGH, ulIdx, "%s", kickString.GetChars() );
 	}
 
 	// If we're kicking a bot, just remove him.
