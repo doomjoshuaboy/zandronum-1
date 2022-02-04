@@ -7705,8 +7705,8 @@ CCMD( kick_ip )
 
 CCMD( kick )
 {
-	ULONG	ulIdx;
-	char	szPlayerName[64];
+	ULONG		ulIdx;
+	FString		playerName;
 
 	// [AK] This function may not be used by ConsoleCommand.
 	if ( ACS_IsCalledFromConsoleCommand( ))
@@ -7729,10 +7729,10 @@ CCMD( kick )
 			continue;
 
 		// Removes the color codes from the player name so it appears as the server sees it in the window.
-		sprintf( szPlayerName, "%s", players[ulIdx].userinfo.GetName() );
-		V_RemoveColorCodes( szPlayerName );
+		playerName = players[ulIdx].userinfo.GetName( );
+		V_RemoveColorCodes( playerName );
 
-		if ( stricmp( szPlayerName, argv[1] ) == 0 )
+		if ( playerName.CompareNoCase( argv[1] ) == 0 )
 		{
 			// If we provided a reason, give it.
 			if ( argv.argc( ) >= 3 )
