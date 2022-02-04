@@ -623,42 +623,37 @@ void BOTCMD_SetLastJoinedPlayer( const char *pszString )
 
 //*****************************************************************************
 //
-void BOTCMD_DoChatStringSubstitutions( CSkullBot *pBot, const char *pszInString, char *pszOutString )
+void BOTCMD_DoChatStringSubstitutions( CSkullBot *pBot, FString &Input )
 {
-	do
+	FString Output;
+	const char *pszInString = Input.GetChars();
+
+	for ( ; pszInString != 0; pszInString++ )
 	{
 		// Continue to copy the instring to the outstring until we hit a '$'.
 		if ( *pszInString != '$' )
-			*pszOutString++ = *pszInString;
+			Output.AppendCStrPart( pszInString, 1 );
 		else
 		{
 
 			if (( strnicmp( pszInString + 1, "player_damagedby", strlen( "player_damagedby" )) == 0 ) && ( pBot->m_ulLastPlayerDamagedBy != MAXPLAYERS ))
 			{
-				sprintf( pszOutString, "%s", players[pBot->m_ulLastPlayerDamagedBy].userinfo.GetName() );
-				pszOutString += strlen ( players[pBot->m_ulLastPlayerDamagedBy].userinfo.GetName() );
-
+				Output.AppendFormat( "%s", players[pBot->m_ulLastPlayerDamagedBy].userinfo.GetName() );
 				pszInString += strlen( "player_damagedby" );
 			}
 			else if (( strnicmp( pszInString + 1, "player_enemy", strlen( "player_enemy" )) == 0 ) && ( pBot->m_ulPlayerEnemy != MAXPLAYERS ))
 			{
-				sprintf( pszOutString, "%s", players[pBot->m_ulPlayerEnemy].userinfo.GetName() );
-				pszOutString += strlen( players[pBot->m_ulPlayerEnemy].userinfo.GetName() );
-
+				Output.AppendFormat( "%s", players[pBot->m_ulPlayerEnemy].userinfo.GetName() );
 				pszInString += strlen( "player_enemy" );
 			}
 			else if (( strnicmp( pszInString + 1, "player_killedby", strlen( "player_killedby" )) == 0 ) && ( pBot->m_ulPlayerKilledBy != MAXPLAYERS ))
 			{
-				sprintf( pszOutString, "%s", players[pBot->m_ulPlayerKilledBy].userinfo.GetName() );
-				pszOutString += strlen( players[pBot->m_ulPlayerKilledBy].userinfo.GetName() );
-
+				Output.AppendFormat( "%s", players[pBot->m_ulPlayerKilledBy].userinfo.GetName() );
 				pszInString += strlen( "player_killedby" );
 			}
 			else if (( strnicmp( pszInString + 1, "player_killed", strlen( "player_killed" )) == 0 ) && ( pBot->m_ulPlayerKilled != MAXPLAYERS ))
 			{
-				sprintf( pszOutString, "%s", players[pBot->m_ulPlayerKilled].userinfo.GetName() );
-				pszOutString += strlen( players[pBot->m_ulPlayerKilled].userinfo.GetName() );
-
+				Output.AppendFormat( "%s", players[pBot->m_ulPlayerKilled].userinfo.GetName() );
 				pszInString += strlen( "player_killed" );
 			}
 			else if ( strnicmp( pszInString + 1, "player_inlead", strlen( "player_inlead" )) == 0 )
@@ -675,9 +670,7 @@ void BOTCMD_DoChatStringSubstitutions( CSkullBot *pBot, const char *pszInString,
 						ulBestPlayer = ulIdx;
 				}
 
-				sprintf( pszOutString, "%s", players[ulBestPlayer].userinfo.GetName() );
-				pszOutString += strlen( players[ulBestPlayer].userinfo.GetName() );
-
+				Output.AppendFormat( "%s", players[ulBestPlayer].userinfo.GetName() );
 				pszInString += strlen( "player_inlead" );
 			}
 			else if ( strnicmp( pszInString + 1, "player_lastplace", strlen( "player_lastplace" )) == 0 )
@@ -694,9 +687,7 @@ void BOTCMD_DoChatStringSubstitutions( CSkullBot *pBot, const char *pszInString,
 						ulBestPlayer = ulIdx;
 				}
 
-				sprintf( pszOutString, "%s", players[ulBestPlayer].userinfo.GetName() );
-				pszOutString += strlen( players[ulBestPlayer].userinfo.GetName() );
-
+				Output.AppendFormat( "%s", players[ulBestPlayer].userinfo.GetName() );
 				pszInString += strlen( "player_lastplace" );
 			}
 			else if ( strnicmp( pszInString + 1, "player_random_notself", strlen( "player_random_notself" )) == 0 )
@@ -723,9 +714,7 @@ void BOTCMD_DoChatStringSubstitutions( CSkullBot *pBot, const char *pszInString,
 					while (( ulPlayer == static_cast<unsigned> ( pBot->GetPlayer( ) - players )) || ( playeringame[ulPlayer] == false ));
 				}
 				
-				sprintf( pszOutString, "%s", players[ulPlayer].userinfo.GetName() );
-				pszOutString += strlen( players[ulPlayer].userinfo.GetName() );
-
+				Output.AppendFormat( "%s", players[ulPlayer].userinfo.GetName() );
 				pszInString += strlen( "player_random_notself" );
 			}
 			else if ( strnicmp( pszInString + 1, "player_random", strlen( "player_random" )) == 0 )
@@ -738,37 +727,30 @@ void BOTCMD_DoChatStringSubstitutions( CSkullBot *pBot, const char *pszInString,
 				}
 				while ( playeringame[ulPlayer] == false );
 				
-				sprintf( pszOutString, "%s", players[ulPlayer].userinfo.GetName() );
-				pszOutString += strlen( players[ulPlayer].userinfo.GetName() );
-
+				Output.AppendFormat( "%s", players[ulPlayer].userinfo.GetName() );
 				pszInString += strlen( "player_random" );
 			}
 			else if (( strnicmp( pszInString + 1, "player_lastchat", strlen( "player_lastchat" )) == 0 ) && ( g_LastChatPlayer.Len( ) > 0 ))
 			{				
-				sprintf( pszOutString, "%s", g_LastChatPlayer.GetChars( ));
-				pszOutString += g_LastChatPlayer.Len( );
-
+				Output.AppendFormat( "%s", g_LastChatPlayer.GetChars() );
 				pszInString += strlen( "player_lastchat" );
 			}
 			else if ( strnicmp( pszInString + 1, "level_name", strlen( "level_name" )) == 0 )
 			{				
-				sprintf( pszOutString, "%s", level.LevelName.GetChars() );
-				pszOutString += strlen( level.LevelName.GetChars() );
-
+				Output.AppendFormat( "%s", level.LevelName.GetChars() );
 				pszInString += strlen( "level_name" );
 			}
 			else if ( strnicmp( pszInString + 1, "map_name", strlen( "map_name" )) == 0 )
 			{				
-				sprintf( pszOutString, "%s", level.mapname );
-				pszOutString += strlen( level.mapname );
-
+				Output.AppendFormat( "%s", level.mapname );
 				pszInString += strlen( "map_name" );
 			}
 			else
-				*pszOutString++ = '$';
+				Output += '$';
 		}
+	}
 
-	} while ( *pszInString++ );
+	Input = Output;
 }
 
 //*****************************************************************************
@@ -2021,24 +2003,23 @@ static void botcmd_IsFavoriteWeapon( CSkullBot *pBot )
 //
 static void botcmd_Say( CSkullBot *pBot )
 {
-	char	szInString[1024];
-	char	szOutString[1024];
-
-	sprintf( szInString, "%s", pBot->m_ScriptData.aszStringStack[pBot->m_ScriptData.lStringStackPosition - 1] );
+	FString		chatString;
+	
+	chatString = pBot->m_ScriptData.aszStringStack[pBot->m_ScriptData.lStringStackPosition - 1];
 	pBot->PopStringStack( );
 
 	if ( bot_allowchat )
 	{
 		// Format the message so color codes can appear.
-		V_ColorizeString( szInString );
+		V_ColorizeString( chatString );
 
 		// Perform any chat string substitutions that need to be done.
-		BOTCMD_DoChatStringSubstitutions( pBot, szInString, szOutString );
+		BOTCMD_DoChatStringSubstitutions( pBot, chatString );
 
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVER_SendChatMessage( pBot->GetPlayer( ) - players, CHATMODE_GLOBAL, szOutString );
+			SERVER_SendChatMessage( pBot->GetPlayer( ) - players, CHATMODE_GLOBAL, chatString );
 		else
-			CHAT_PrintChatString( pBot->GetPlayer( ) - players, CHATMODE_GLOBAL, szOutString );
+			CHAT_PrintChatString( pBot->GetPlayer( ) - players, CHATMODE_GLOBAL, chatString );
 	}
 
 	// We can now get rid of the chat bubble above the bot's head.
@@ -2053,8 +2034,7 @@ static void botcmd_SayFromFile( CSkullBot *pBot )
 {
 	char		szFilename[1024];
 	char		szSection[1024];
-	char		szInString[1024];
-	char		szOutString[1024];
+	FString		chatString;
 	CChatFile	*pFile;
 
 	// We can now get rid of the chat bubble above the bot's head.
@@ -2078,8 +2058,8 @@ static void botcmd_SayFromFile( CSkullBot *pBot )
 		return;
 	}
 
-	sprintf( szInString, "%s", pFile->ChooseRandomEntry( szSection ));
-	if ( stricmp( szInString, "NULL" ) == 0 )
+	chatString = pFile->ChooseRandomEntry( szSection );
+	if ( chatString.CompareNoCase( "NULL" ) == 0 )
 	{
 		Printf( "botcmd_SayFromFile: Couldn't find section %s in file %s!\n", szSection, szFilename );
 
@@ -2091,15 +2071,15 @@ static void botcmd_SayFromFile( CSkullBot *pBot )
 	if ( bot_allowchat )
 	{
 		// Format the message so color codes can appear.
-		V_ColorizeString( szInString );
+		V_ColorizeString( chatString );
 
 		// Perform any chat string substitutions that need to be done.
-		BOTCMD_DoChatStringSubstitutions( pBot, szInString, szOutString );
+		BOTCMD_DoChatStringSubstitutions( pBot, chatString );
 
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVER_SendChatMessage( pBot->GetPlayer( ) - players, CHATMODE_GLOBAL, szOutString );
+			SERVER_SendChatMessage( pBot->GetPlayer( ) - players, CHATMODE_GLOBAL, chatString );
 		else
-			CHAT_PrintChatString( pBot->GetPlayer( ) - players, CHATMODE_GLOBAL, szOutString );
+			CHAT_PrintChatString( pBot->GetPlayer( ) - players, CHATMODE_GLOBAL, chatString );
 	}
 
 	// Free the file before leaving.
@@ -2112,8 +2092,7 @@ static void botcmd_SayFromChatFile( CSkullBot *pBot )
 {
 	char		szFilename[1024];
 	char		szSection[1024];
-	char		szInString[1024];
-	char		szOutString[1024];
+	FString		chatString;
 	CChatFile	*pFile;
 
 	// We can now get rid of the chat bubble above the bot's head.
@@ -2136,8 +2115,8 @@ static void botcmd_SayFromChatFile( CSkullBot *pBot )
 		return;
 	}
 
-	sprintf( szInString, "%s", pFile->ChooseRandomEntry( szSection ));
-	if ( stricmp( szInString, "NULL" ) == 0 )
+	chatString = pFile->ChooseRandomEntry( szSection );
+	if ( chatString.CompareNoCase( "NULL" ) == 0 )
 	{
 		Printf( "botcmd_SayFromChatFile: Couldn't find section %s in file %s!\n", szSection, szFilename );
 
@@ -2149,15 +2128,15 @@ static void botcmd_SayFromChatFile( CSkullBot *pBot )
 	if ( bot_allowchat )
 	{
 		// Format the message so color codes can appear.
-		V_ColorizeString( szInString );
+		V_ColorizeString( chatString );
 
 		// Perform any chat string substitutions that need to be done.
-		BOTCMD_DoChatStringSubstitutions( pBot, szInString, szOutString );
+		BOTCMD_DoChatStringSubstitutions( pBot, chatString );
 
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVER_SendChatMessage( pBot->GetPlayer( ) - players, CHATMODE_GLOBAL, szOutString );
+			SERVER_SendChatMessage( pBot->GetPlayer( ) - players, CHATMODE_GLOBAL, chatString );
 		else
-			CHAT_PrintChatString( pBot->GetPlayer( ) - players, CHATMODE_GLOBAL, szOutString );
+			CHAT_PrintChatString( pBot->GetPlayer( ) - players, CHATMODE_GLOBAL, chatString );
 	}
 
 	// Free the file before leaving.
@@ -2598,8 +2577,7 @@ static void botcmd_SayFromLump( CSkullBot *pBot )
 {
 	char		szLumpname[1024];
 	char		szSection[1024];
-	char		szInString[1024];
-	char		szOutString[1024];
+	FString		chatString;
 	CChatFile	*pFile;
 
 	// We can now get rid of the chat bubble above the bot's head.
@@ -2623,8 +2601,8 @@ static void botcmd_SayFromLump( CSkullBot *pBot )
 		return;
 	}
 
-	sprintf( szInString, "%s", pFile->ChooseRandomEntry( szSection ));
-	if ( stricmp( szInString, "NULL" ) == 0 )
+	chatString = pFile->ChooseRandomEntry( szSection );
+	if ( chatString.CompareNoCase( "NULL" ) == 0 )
 	{
 		Printf( "botcmd_SayFromLump: Couldn't find section %s in lump %s!\n", szSection, szLumpname );
 
@@ -2636,15 +2614,15 @@ static void botcmd_SayFromLump( CSkullBot *pBot )
 	if ( bot_allowchat )
 	{
 		// Format the message so color codes can appear.
-		V_ColorizeString( szInString );
+		V_ColorizeString( chatString );
 
 		// Perform any chat string substitutions that need to be done.
-		BOTCMD_DoChatStringSubstitutions( pBot, szInString, szOutString );
+		BOTCMD_DoChatStringSubstitutions( pBot, chatString );
 
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVER_SendChatMessage( pBot->GetPlayer( ) - players, CHATMODE_GLOBAL, szOutString );
+			SERVER_SendChatMessage( pBot->GetPlayer( ) - players, CHATMODE_GLOBAL, chatString );
 		else
-			CHAT_PrintChatString( pBot->GetPlayer( ) - players, CHATMODE_GLOBAL, szOutString );
+			CHAT_PrintChatString( pBot->GetPlayer( ) - players, CHATMODE_GLOBAL, chatString );
 	}
 
 	// Free the file before leaving.
@@ -2657,8 +2635,7 @@ static void botcmd_SayFromChatLump( CSkullBot *pBot )
 {
 	char		szLumpname[1024];
 	char		szSection[1024];
-	char		szInString[1024];
-	char		szOutString[1024];
+	FString		chatString;
 	CChatFile	*pFile;
 
 	// We can now get rid of the chat bubble above the bot's head.
@@ -2681,8 +2658,8 @@ static void botcmd_SayFromChatLump( CSkullBot *pBot )
 		return;
 	}
 
-	sprintf( szInString, "%s", pFile->ChooseRandomEntry( szSection ));
-	if ( stricmp( szInString, "NULL" ) == 0 )
+	chatString = pFile->ChooseRandomEntry( szSection );
+	if ( chatString.CompareNoCase( "NULL" ) == 0 )
 	{
 		Printf( "botcmd_SayFromChatLump: Couldn't find section %s in lump %s!\n", szSection, szLumpname );
 
@@ -2694,15 +2671,15 @@ static void botcmd_SayFromChatLump( CSkullBot *pBot )
 	if ( bot_allowchat )
 	{
 		// Format the message so color codes can appear.
-		V_ColorizeString( szInString );
+		V_ColorizeString( chatString );
 
 		// Perform any chat string substitutions that need to be done.
-		BOTCMD_DoChatStringSubstitutions( pBot, szInString, szOutString );
+		BOTCMD_DoChatStringSubstitutions( pBot, chatString );
 
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVER_SendChatMessage( pBot->GetPlayer( ) - players, CHATMODE_GLOBAL, szOutString );
+			SERVER_SendChatMessage( pBot->GetPlayer( ) - players, CHATMODE_GLOBAL, chatString );
 		else
-			CHAT_PrintChatString( pBot->GetPlayer( ) - players, CHATMODE_GLOBAL, szOutString );
+			CHAT_PrintChatString( pBot->GetPlayer( ) - players, CHATMODE_GLOBAL, chatString );
 	}
 
 	// Free the file before leaving.

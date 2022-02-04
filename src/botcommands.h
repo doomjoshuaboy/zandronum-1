@@ -263,7 +263,7 @@ void		BOTCMD_RunCommand( BOTCMD_e Command, CSkullBot *pBot );
 void		BOTCMD_SetLastChatString( const char *pszString );
 void		BOTCMD_SetLastChatPlayer( const char *pszString );
 void		BOTCMD_SetLastJoinedPlayer( const char *pszString );
-void		BOTCMD_DoChatStringSubstitutions( CSkullBot *pBot, const char *pszInString, char *pszOutString );
+void		BOTCMD_DoChatStringSubstitutions( CSkullBot *pBot, FString &Input );
 bool		BOTCMD_IgnoreItem( CSkullBot *pBot, LONG lIdx, bool bVisibilityCheck );
 
 #endif	// __BOTCOMMANDS_H__
