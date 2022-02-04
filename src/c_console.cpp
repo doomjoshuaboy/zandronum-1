@@ -77,6 +77,7 @@
 #include "gi.h"
 #include "sv_rcon.h"
 #include "st_hud.h"
+#include "r_utility.h"
 
 #define CONSOLESIZE	16384	// Number of characters to store in console
 #define CONSOLELINES 256	// Max number of lines of console text
@@ -109,6 +110,10 @@ bool		cursoron = false;
 int			ConBottom, ConScroll, RowAdjust;
 int			CursorTicker;
 constate_e	ConsoleState = c_up;
+
+// [AK] In case we interpolate the console, we need to save an old copy of ConBottom
+// so that we can restore the old vale after drawing the console.
+static int	SavedConBottom;
 
 // [TP] Some functions print result directly to console.. when we need it to a string
 // instead. To keep as much ZDoom code unchanged, here's a hack to capture the result
@@ -227,6 +232,16 @@ CVAR( Int, con_colorinmessages, 1, CVAR_ARCHIVE )
 
 // [AK] Add a timestamp to every line printed to the console.
 CVAR (Bool, con_showtimestamps, false, CVAR_ARCHIVE)
+
+// [AK] Interpolates the movement of the console. This doesn't work if the game is paused.
+CVAR (Bool, con_interpolate, true, CVAR_ARCHIVE)
+
+// [AK] Controls how fast the console moves.
+CUSTOM_CVAR (Int, con_speed, 25, CVAR_ARCHIVE)
+{
+	if ( self < 1 )
+		self = 1;
+}
 
 // [BB] Add a timestamp to every string printed to the logfile.
 CVAR (Bool, sv_logfiletimestamp, true, CVAR_ARCHIVE)
@@ -1254,21 +1269,31 @@ void C_Ticker ()
 	{
 		if (ConsoleState == c_falling)
 		{
-			ConBottom += (gametic - lasttic) * (SCREENHEIGHT*2/25);
+			// [AK] Change ConBottom based on con_speed rather than a constant value of 25.
+			ConBottom += (gametic - lasttic) * (SCREENHEIGHT*2/con_speed);
 			if (ConBottom >= SCREENHEIGHT / 2)
 			{
 				ConBottom = SCREENHEIGHT / 2;
 				ConsoleState = c_down;
 			}
+
+			// [AK] Save a copy of the current value of ConBottom in case
+			// we want to interpolate the console.
+			SavedConBottom = ConBottom;
 		}
 		else if (ConsoleState == c_rising)
 		{
-			ConBottom -= (gametic - lasttic) * (SCREENHEIGHT*2/25);
+			// [AK] Change ConBottom based on con_speed rather than a constant value of 25.
+			ConBottom -= (gametic - lasttic) * (SCREENHEIGHT*2/con_speed);
 			if (ConBottom <= 0)
 			{
 				ConsoleState = c_up;
 				ConBottom = 0;
 			}
+
+			// [AK] Save a copy of the current value of ConBottom in case
+			// we want to interpolate the console.
+			SavedConBottom = ConBottom;
 		}
 	}
 
@@ -1404,10 +1429,19 @@ void C_DrawConsole (bool hw2d)
 	int lines, left, offset;
 	// [BC] String for drawing the version.
 	char	szString[64];
+	// [AK] Check if we should interpolate the console.
+	const bool bInterpolate = ((con_interpolate) && (ConsoleState == c_falling || ConsoleState == c_rising));
 
 	// [BC] No need to draw the console in server mode.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		return;
+
+	// [AK] Interpolate the console while it's moving.
+	if (bInterpolate)
+	{
+		int offset = static_cast<int>(FIXED2FLOAT(r_TicFrac) * static_cast<float>(SCREENHEIGHT * 2 / con_speed));
+		ConBottom = clamp<int>(SavedConBottom + offset * (ConsoleState == c_falling ? 1 : -1), 0, SCREENHEIGHT / 2);
+	}
 
 	left = LEFTMARGIN;
 	lines = (ConBottom-ConFont->GetHeight()*2)/ConFont->GetHeight();
@@ -1607,6 +1641,10 @@ void C_DrawConsole (bool hw2d)
 			}
 		}
 	}
+
+	// [AK] Restore the saved value of ConBottom in case we interpolated the console.
+	if (bInterpolate)
+		ConBottom = SavedConBottom;
 }
 
 void C_FullConsole ()
