@@ -3911,8 +3911,8 @@ CCMD( addbot )
 //
 CCMD( removebot )
 {
-	ULONG	ulIdx;
-	char	szName[64];
+	ULONG		ulIdx;
+	FString		playerName;
 
 	// Don't allow removing of bots in campaign mode.
 	if (( CAMPAIGN_InCampaign( )) && ( sv_cheats == false ))
@@ -3960,9 +3960,9 @@ CCMD( removebot )
 			if (( playeringame[ulIdx] == false ) || ( players[ulIdx].pSkullBot == NULL ))
 				continue;
 
-			sprintf( szName, "%s", players[ulIdx].userinfo.GetName() );
-			V_RemoveColorCodes( szName );
-			if ( stricmp( szName, argv[1] ) == 0 )
+			playerName = players[ulIdx].userinfo.GetName( );
+			V_RemoveColorCodes( playerName );
+			if ( playerName.CompareNoCase( argv[1] ) == 0 )
 			{
 				// Now that we've found a valid bot, remove it.
 				BOTS_RemoveBot( ulIdx, true );
