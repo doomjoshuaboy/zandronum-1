@@ -3516,7 +3516,7 @@ void ServerCommands::SpawnPlayer::Execute()
 
 	pPlayer->mo = pActor;
 	pActor->player = pPlayer;
-	pPlayer->playerstate = playerState;
+	pPlayer->playerstate = PST_LIVE;
 
 	// If we were watching through this player's eyes, reattach the camera.
 	if ( bWasWatchingPlayer )
@@ -3631,7 +3631,6 @@ void ServerCommands::SpawnPlayer::Execute()
 		pPlayer->camera = pCameraActor;
 	else
 		pPlayer->camera = pActor;
-	pPlayer->playerstate = PST_LIVE;
 	pPlayer->refire = 0;
 	pPlayer->damagecount = 0;
 	pPlayer->bonuscount = 0;
@@ -3695,8 +3694,6 @@ void ServerCommands::SpawnPlayer::Execute()
 				pActor->y + 20 * finesine[an],
 				pActor->z + TELEFOGHEIGHT, ALLOW_REPLACE );
 	}
-
-	pPlayer->playerstate = PST_LIVE;
 
 	// [BB] If the player is reborn, we have to substitute all pointers
 	// to the old body to the new one. Otherwise (among other things) CLIENTSIDE

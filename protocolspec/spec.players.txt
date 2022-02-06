@@ -1,8 +1,7 @@
 Command SpawnPlayer
 	Player player with IndexTestOnly
-	Byte priorState
-	# Do we really need to send this? Shouldn't it always be PST_LIVE?
-	Byte playerState
+	# [AK] Send the prior state as a short byte so that the four bools can fit together into a single byte.
+	ShortByte<4> priorState
 	Bool isBot
 	Bool isSpectating
 	Bool isDeadSpectator

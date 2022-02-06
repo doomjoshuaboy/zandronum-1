@@ -263,8 +263,6 @@ void SERVERCOMMANDS_SpawnPlayer( ULONG ulPlayer, LONG lPlayerState, ULONG ulPlay
 	command.SetPlayer( &players[ulPlayer] );
 	command.SetPriorState( lPlayerState );
 	command.SetIsBot( players[ulPlayer].bIsBot );
-	// Do we really need to send this? Shouldn't it always be PST_LIVE?
-	command.SetPlayerState( players[ulPlayer].playerstate );
 	command.SetIsSpectating( players[ulPlayer].bSpectating );
 	command.SetIsDeadSpectator( players[ulPlayer].bDeadSpectator );
 	command.SetIsMorphed( bMorph );
