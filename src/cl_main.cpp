@@ -3799,6 +3799,19 @@ void ServerCommands::MovePlayer::Execute()
 	// [BB] But don't just set the position, but also properly set floorz and ceilingz, etc.
 	CLIENT_MoveThing( player->mo, x, y, z );
 
+	// [AK] Did the server tell us this player is supposed to be on a moving lift? If so, move
+	// them to the floor of whatever sector they're in.
+	if ( flags & PLAYER_ONLIFT )
+	{
+		// [AK] When the player is standing on the edge of a moving lift, their floorz might be
+		// messed up and lower than it actually is, so we have to fix it.
+		player->mo->floorz = player->mo->Sector->floorplane.ZatPoint( player->mo->x, player->mo->y );
+		player->mo->ceilingz = player->mo->Sector->ceilingplane.ZatPoint( player->mo->x, player->mo->y );
+		P_FindFloorCeiling( player->mo, false );
+
+		player->mo->z = player->mo->floorz;
+	}
+
 	// [AK] Calculate how much this player's angle changed.
 	player->mo->AngleDelta = angle - player->mo->angle;
 

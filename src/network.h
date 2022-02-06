@@ -92,6 +92,7 @@ enum
 	PLAYER_SENDVELX		= 1 << 4,
 	PLAYER_SENDVELY		= 1 << 5,
 	PLAYER_SENDVELZ		= 1 << 6,
+	PLAYER_ONLIFT		= 1 << 7,
 };
 
 /* [BB] This is not used anywhere anymore.

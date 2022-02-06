@@ -313,6 +313,11 @@ void SERVERCOMMANDS_MovePlayer( ULONG ulPlayer, ULONG ulPlayerExtra, ServerComma
 	if ( players[ulPlayer].mo->velz )
 		ulPlayerFlags |= PLAYER_SENDVELZ;
 
+	// [AK] Check if the player is standing on a moving lift. This tells clients to clamp the player onto
+	// the floor of whatever sector they end up in, making them not appeary jittery on lifts moving downward.
+	if (( players[ulPlayer].mo->z <= players[ulPlayer].mo->floorz ) && ( players[ulPlayer].mo->floorsector->floordata ))
+		ulPlayerFlags |= PLAYER_ONLIFT;
+
 	ServerCommands::MovePlayer fullCommand;
 	fullCommand.SetPlayer ( &players[ulPlayer] );
 	fullCommand.SetFlags( ulPlayerFlags | PLAYER_VISIBLE );
