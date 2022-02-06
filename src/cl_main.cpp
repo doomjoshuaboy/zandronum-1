@@ -3809,12 +3809,13 @@ void ServerCommands::MovePlayer::Execute()
 	player->mo->angle = angle;
 
 	// Set the player's XYZ momentum.
-	player->mo->velx = velx;
-	player->mo->vely = vely;
-	player->mo->velz = velz;
+	// [AK] Check if the server sent us this player's velocity on each axis.
+	player->mo->velx = IsMovingX() ? velx : 0;
+	player->mo->vely = IsMovingY() ? vely : 0;
+	player->mo->velz = IsMovingZ() ? velz : 0;
 
 	// Is the player crouching?
-	player->crouchdir = ( isCrouching ) ? 1 : -1;
+	player->crouchdir = ( flags & PLAYER_CROUCHING ) ? 1 : -1;
 
 	if (( player->crouchdir == 1 ) &&
 		( player->crouchfactor < FRACUNIT ) &&

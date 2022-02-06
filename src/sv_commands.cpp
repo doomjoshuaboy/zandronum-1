@@ -291,20 +291,33 @@ void SERVERCOMMANDS_SpawnPlayer( ULONG ulPlayer, LONG lPlayerState, ULONG ulPlay
 //
 void SERVERCOMMANDS_MovePlayer( ULONG ulPlayer, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
-	ULONG ulPlayerAttackFlags = 0;
+	ULONG ulPlayerFlags = 0;
 
 	if ( PLAYER_IsValidPlayerWithMo( ulPlayer ) == false )
 		return;
 
 	// [BB] Check if ulPlayer is pressing any attack buttons.
 	if ( players[ulPlayer].cmd.ucmd.buttons & BT_ATTACK )
-		ulPlayerAttackFlags |= PLAYER_ATTACK;
+		ulPlayerFlags |= PLAYER_ATTACK;
 	if ( players[ulPlayer].cmd.ucmd.buttons & BT_ALTATTACK )
-		ulPlayerAttackFlags |= PLAYER_ALTATTACK;
+		ulPlayerFlags |= PLAYER_ALTATTACK;
+
+	// [AK] Check if the player is crouching.
+	if ( players[ulPlayer].crouchdir >= 0 )
+		ulPlayerFlags |= PLAYER_CROUCHING;
+
+	// [AK] Ideally, we should only need to send the player's velocity if it's not zero.
+	// Otherwise, the client can set the velocity to zero by themselves.
+	if ( players[ulPlayer].mo->velx )
+		ulPlayerFlags |= PLAYER_SENDVELX;
+	if ( players[ulPlayer].mo->vely )
+		ulPlayerFlags |= PLAYER_SENDVELY;
+	if ( players[ulPlayer].mo->velz )
+		ulPlayerFlags |= PLAYER_SENDVELZ;
 
 	ServerCommands::MovePlayer fullCommand;
 	fullCommand.SetPlayer ( &players[ulPlayer] );
-	fullCommand.SetFlags( ulPlayerAttackFlags | PLAYER_VISIBLE );
+	fullCommand.SetFlags( ulPlayerFlags | PLAYER_VISIBLE );
 	fullCommand.SetX( players[ulPlayer].mo->x );
 	fullCommand.SetY( players[ulPlayer].mo->y );
 	fullCommand.SetZ( players[ulPlayer].mo->z );
@@ -312,10 +325,9 @@ void SERVERCOMMANDS_MovePlayer( ULONG ulPlayer, ULONG ulPlayerExtra, ServerComma
 	fullCommand.SetVelx( players[ulPlayer].mo->velx );
 	fullCommand.SetVely( players[ulPlayer].mo->vely );
 	fullCommand.SetVelz( players[ulPlayer].mo->velz );
-	fullCommand.SetIsCrouching(( players[ulPlayer].crouchdir >= 0 ) ? true : false );
 
 	ServerCommands::MovePlayer stubCommand = fullCommand;
-	stubCommand.SetFlags( ulPlayerAttackFlags );
+	stubCommand.SetFlags( ulPlayerFlags );
 
 	for ( ClientIterator it ( ulPlayerExtra, flags ); it.notAtEnd(); ++it )
 	{

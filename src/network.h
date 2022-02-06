@@ -86,8 +86,12 @@ enum
 enum
 {
 	PLAYER_VISIBLE		= 1 << 0,
-	PLAYER_ATTACK			= 1 << 1,
+	PLAYER_ATTACK		= 1 << 1,
 	PLAYER_ALTATTACK	= 1 << 2,
+	PLAYER_CROUCHING	= 1 << 3,
+	PLAYER_SENDVELX		= 1 << 4,
+	PLAYER_SENDVELY		= 1 << 5,
+	PLAYER_SENDVELZ		= 1 << 6,
 };
 
 /* [BB] This is not used anywhere anymore.
