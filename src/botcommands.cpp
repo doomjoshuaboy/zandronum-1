@@ -628,7 +628,7 @@ void BOTCMD_DoChatStringSubstitutions( CSkullBot *pBot, FString &Input )
 	FString Output;
 	const char *pszInString = Input.GetChars();
 
-	for ( ; pszInString != 0; pszInString++ )
+	for ( ; *pszInString != 0; pszInString++ )
 	{
 		// Continue to copy the instring to the outstring until we hit a '$'.
 		if ( *pszInString != '$' )
