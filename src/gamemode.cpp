@@ -354,6 +354,12 @@ void GAMEMODE_ParseGamemodeInfo( void )
 		FString name = ( GetStringGAMEMODE_e( static_cast<GAMEMODE_e>( i )) + ulPrefixLen );
 		name.ToLower( );
 
+		// [AK] Make sure the game mode has a (short) name.
+		if ( strlen( g_GameModes[i].szName ) == 0 )
+			I_Error( "\"%s\" has no name.", name.GetChars( ));
+		if ( strlen( g_GameModes[i].szShortName ) == 0 )
+			I_Error( "\"%s\" has no short name.", name.GetChars( ));
+
 		// [AK] Get the game mode type (cooperative, deathmatch, or team game). There shouldn't be more than one enabled or none at all.
 		ULONG ulFlags = g_GameModes[i].ulFlags & ( GMF_COOPERATIVE | GMF_DEATHMATCH | GMF_TEAMGAME );
 		if (( ulFlags == 0 ) || (( ulFlags & ( ulFlags - 1 )) != 0 ))
