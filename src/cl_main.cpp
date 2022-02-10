@@ -6204,7 +6204,7 @@ static void client_SetTeamScore( BYTESTREAM_s *pByteStream )
 			break;
 
 		case TEAMSCORE_POINTS:
-			TEAM_SetScore( ulTeam, lScore, bAnnounce );
+			TEAM_SetPointCount( ulTeam, lScore, bAnnounce );
 			break;
 		
 		case TEAMSCORE_WINS:

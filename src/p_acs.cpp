@@ -1566,7 +1566,7 @@ static LONG GetTeamScore (ULONG team) {
 		return TEAM_GetFragCount( team );
 	else if ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSEARNWINS )
 		return TEAM_GetWinCount( team );
-	return TEAM_GetScore( team );
+	return TEAM_GetPointCount( team );
 }
 
 //============================================================================
@@ -1611,7 +1611,7 @@ static int GetTeamProperty (unsigned int team, int prop) {
 		case TPROP_WinCount:
 			return TEAM_GetWinCount (team);
 		case TPROP_PointCount:
-			return TEAM_GetScore (team);
+			return TEAM_GetPointCount (team);
 		case TPROP_ReturnTics:
 			return TEAM_GetReturnTicks (team);
 		case TPROP_NumPlayers:
@@ -9920,7 +9920,7 @@ scriptwait:
 			else if ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSEARNWINS )
 				PushToStack( TEAM_GetWinCount( 0 ));
 			else
-				PushToStack( TEAM_GetScore( 0 ));
+				PushToStack( TEAM_GetPointCount( 0 ));
 			break;
 		case PCD_REDTEAMSCORE:
 			
@@ -9929,7 +9929,7 @@ scriptwait:
 			else if ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSEARNWINS )
 				PushToStack( TEAM_GetWinCount( 1 ));
 			else
-				PushToStack( TEAM_GetScore( 1 ));
+				PushToStack( TEAM_GetPointCount( 1 ));
 			break;
 		case PCD_ISONEFLAGCTF:
 

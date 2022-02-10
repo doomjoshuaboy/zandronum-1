@@ -396,7 +396,7 @@ ULONG WI_CalcRank( void )
 			if ( players[consoleplayer].bOnTeam == false )
 				return ( 2 );
 
-			if ( TEAM_GetScore( players[consoleplayer].Team ) == TEAM_GetHighestScoreCount( ))
+			if ( TEAM_GetPointCount( players[consoleplayer].Team ) == TEAM_GetHighestScoreCount( ))
 				return ( 1 );
 			else
 				return ( 2 );
@@ -1438,7 +1438,7 @@ void WI_UpdateCampaignStats( void )
 		}
 		else if (( teamgame || teampossession ) && ( players[consoleplayer].bOnTeam ))
 		{
-			cnt_Frags = TEAM_GetScore( players[consoleplayer].Team );
+			cnt_Frags = TEAM_GetPointCount( players[consoleplayer].Team );
 			cnt_Deaths = TEAM_GetFragCount( players[consoleplayer].Team );
 			cnt_Rank = WI_CalcRank( );
 			cnt_NumPlayers = SERVER_CountPlayers( true );
@@ -1489,9 +1489,9 @@ void WI_UpdateCampaignStats( void )
 		}
 		else if (( teamgame || teampossession ) && ( players[consoleplayer].bOnTeam ))
 		{
-			if ( cnt_Frags >= TEAM_GetScore( players[consoleplayer].Team ))
+			if ( cnt_Frags >= TEAM_GetPointCount( players[consoleplayer].Team ))
 			{
-				cnt_Frags = TEAM_GetScore( players[consoleplayer].Team );
+				cnt_Frags = TEAM_GetPointCount( players[consoleplayer].Team );
 				S_Sound( CHAN_VOICE, "intermission/nextstage", 1, ATTN_NONE );
 				cp_state++;
 			}

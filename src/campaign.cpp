@@ -224,7 +224,7 @@ bool CAMPAIGN_DidPlayerBeatMap( void )
 		{
 			for ( ULONG i = 0; i < teams.Size( ); i++ )
 			{
-				if ( TEAM_GetScore( players[consoleplayer].Team ) < TEAM_GetScore( i ))
+				if ( TEAM_GetPointCount( players[consoleplayer].Team ) < TEAM_GetPointCount( i ))
 					return ( false );
 			}
 		}

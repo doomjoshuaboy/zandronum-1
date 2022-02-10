@@ -490,7 +490,7 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 				else if ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSEARNWINS )
 					g_MasterServerBuffer.ByteStream.WriteShort( TEAM_GetWinCount( ulIdx ));
 				else
-					g_MasterServerBuffer.ByteStream.WriteShort( TEAM_GetScore( ulIdx ));
+					g_MasterServerBuffer.ByteStream.WriteShort( TEAM_GetPointCount( ulIdx ));
 			}
 		}
 	}
@@ -553,7 +553,7 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 				else if ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSEARNWINS )
 					g_MasterServerBuffer.ByteStream.WriteShort( TEAM_GetWinCount( ulIdx ));
 				else
-					g_MasterServerBuffer.ByteStream.WriteShort( TEAM_GetScore( ulIdx ));
+					g_MasterServerBuffer.ByteStream.WriteShort( TEAM_GetPointCount( ulIdx ));
 			}
 		}
 	}

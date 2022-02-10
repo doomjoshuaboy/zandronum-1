@@ -721,7 +721,7 @@ static void HUD_RenderTeamScores( void )
 		if ( ulFlags & GMF_PLAYERSEARNWINS )
 			lTeamScore = TEAM_GetWinCount( ulTeam );
 		else if ( ulFlags & GMF_PLAYERSEARNPOINTS )
-			lTeamScore = TEAM_GetScore( ulTeam );
+			lTeamScore = TEAM_GetPointCount( ulTeam );
 		else
 			lTeamScore = TEAM_GetFragCount( ulTeam );
 
@@ -1064,7 +1064,7 @@ FString HUD_BuildPointString( void )
 	else if ( ulFlags & GMF_PLAYERSEARNPOINTS )
 	{
 		scoreName = "point";
-		scoreFunction = &TEAM_GetScore;
+		scoreFunction = &TEAM_GetPointCount;
 	}
 	else if ( ulFlags & GMF_PLAYERSEARNFRAGS )
 	{

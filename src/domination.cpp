@@ -163,8 +163,8 @@ void DOMINATION_Tick(void)
 		{
 			if(PointOwners[i] != 255)
 			{
-				TEAM_SetScore(PointOwners[i], TEAM_GetScore(PointOwners[i]) + 1, false);
-				if( pointlimit && (TEAM_GetScore(PointOwners[i]) >= pointlimit) )
+				TEAM_SetPointCount(PointOwners[i], TEAM_GetPointCount(PointOwners[i]) + 1, false);
+				if( pointlimit && (TEAM_GetPointCount(PointOwners[i]) >= pointlimit) )
 				{
 					DOMINATION_WinSequence(0);
 					break;

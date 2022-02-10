@@ -1544,7 +1544,7 @@ void DBaseStatusBar::DrawTeamScores ()
 				DTA_CenterBottomOffset, true,
 				TAG_DONE);
 
-			DrBNumberOuter( MIN( (int)TEAM_GetScore( i ), 99 ), 28, lY - 29 );
+			DrBNumberOuter( MIN( (int)TEAM_GetPointCount( i ), 99 ), 28, lY - 29 );
 
 			lY -= 51;
 		}
@@ -1564,7 +1564,7 @@ void DBaseStatusBar::DrawTeamScores ()
 				DTA_CenterBottomOffset, true,
 				TAG_DONE);
 
-			DrBNumberOuter( MIN( (int)TEAM_GetScore( i ), 99 ), 16, lY - 16 );
+			DrBNumberOuter( MIN( (int)TEAM_GetPointCount( i ), 99 ), 16, lY - 16 );
 
 			lY -= 24;
 		}

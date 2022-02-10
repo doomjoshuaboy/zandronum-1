@@ -2116,7 +2116,7 @@ FUNC( LS_Team_Score )
 	if ( !it || !it->player || it->player->bOnTeam == false )
 		return ( false );
 
-	TEAM_SetScore( it->player->Team, TEAM_GetScore( it->player->Team ) + arg0, true );
+	TEAM_SetPointCount( it->player->Team, TEAM_GetPointCount( it->player->Team ) + arg0, true );
 	PLAYER_SetPoints ( it->player, it->player->lPointCount + arg0 );
 
 	return ( false );
@@ -2138,7 +2138,7 @@ FUNC( LS_Team_GivePoints )
 		return ( false );
 
 	// Give the point(s) to the team.
-	TEAM_SetScore( arg0, TEAM_GetScore( arg0 ) + arg1, !!arg2 );
+	TEAM_SetPointCount( arg0, TEAM_GetPointCount( arg0 ) + arg1, !!arg2 );
 
 	if ( it && it->player && it->player->bOnTeam )
 	{

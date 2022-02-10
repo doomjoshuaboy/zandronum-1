@@ -435,7 +435,7 @@ bool AFlag::HandlePickup( AInventory *pItem )
 		if (( TEAM_GetSimpleCTFSTMode( )) && ( NETWORK_InClientMode() == false ))
 		{
 			// Give his team a point.
-			TEAM_SetScore( Owner->player->Team, TEAM_GetScore( Owner->player->Team ) + 1, true );
+			TEAM_SetPointCount( Owner->player->Team, TEAM_GetPointCount( Owner->player->Team ) + 1, true );
 			PLAYER_SetPoints ( Owner->player, Owner->player->lPointCount + 1 );
 
 			// Award the scorer with a "Capture!" medal.
@@ -879,7 +879,7 @@ bool AWhiteFlag::HandlePickup( AInventory *pItem )
 	if (( TEAM_GetSimpleCTFSTMode( )) && ( NETWORK_InClientMode() == false ))
 	{
 		// Give his team a point.
-		TEAM_SetScore( Owner->player->Team, TEAM_GetScore( Owner->player->Team ) + 1, true );
+		TEAM_SetPointCount( Owner->player->Team, TEAM_GetPointCount( Owner->player->Team ) + 1, true );
 		PLAYER_SetPoints ( Owner->player, Owner->player->lPointCount + 1 );
 
 		// Award the scorer with a "Capture!" medal.

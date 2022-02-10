@@ -1076,7 +1076,7 @@ void G_DoLoadLevel (int position, bool autosave)
 		TEAM_SetFragCount( i, 0, false );
 		TEAM_SetDeathCount( i, 0 );
 		TEAM_SetWinCount( i, 0, false );
-		TEAM_SetScore( i, 0, false );
+		TEAM_SetPointCount( i, 0, false );
 		TEAM_SetAnnouncedLeadState( i, false );
 
 		// Also, reset the return ticks.

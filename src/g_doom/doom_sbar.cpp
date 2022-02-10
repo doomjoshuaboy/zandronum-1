@@ -780,7 +780,7 @@ void DrawFullHUD_GameInformation()
 				ulCurXPos + TexMan[szPatchName]->GetWidth( ) / 2,
 				ulCurYPos );
 
-			sprintf( szString, "%d", static_cast<int>( TEAM_GetScore( i )));
+			sprintf( szString, "%d", static_cast<int>( TEAM_GetPointCount( i )));
 			HUD_DrawText( ConFont, TEAM_GetTextColor( i ),
 				ulCurXPos + TexMan[szPatchName]->GetWidth( ) + 16,
 				ulCurYPos - ( TexMan[szPatchName]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
@@ -808,7 +808,7 @@ void DrawFullHUD_GameInformation()
 		else
 		{
 			for ( ULONG i = 0; i < teams.Size( ); i++ )
-				lPoints[i] = TEAM_GetScore( i );
+				lPoints[i] = TEAM_GetPointCount( i );
 		}
 		ulCurXPos = 4;
 		ulCurYPos = screenHeight - 4 - ( TexMan["MEDIA0"]->GetHeight( ) + 4 ) - ( TexMan["ARM1A0"]->GetHeight( ) + 4 ) - 14;

@@ -466,14 +466,14 @@ void POSSESSION_ScorePossessionPoint( player_t *pPlayer )
 
 	// If the player's on a team in team possession mode, give the player's point a team.
 	if ( teampossession && pPlayer->bOnTeam )
-		TEAM_SetScore( pPlayer->Team, TEAM_GetScore( pPlayer->Team ) + 1, true );
+		TEAM_SetPointCount( pPlayer->Team, TEAM_GetPointCount( pPlayer->Team ) + 1, true );
 
 	// Refresh the HUD since there's bound to be changes.
 	HUD_Refresh( );
 
 	// Determine if the pointlimit has been reached.
 	if (( teampossession ) && ( pPlayer->bOnTeam ))
-		bPointLimitReached = ( pointlimit && ( TEAM_GetScore( pPlayer->Team ) >= pointlimit ));
+		bPointLimitReached = ( pointlimit && ( TEAM_GetPointCount( pPlayer->Team ) >= pointlimit ));
 	else
 		bPointLimitReached = ( pointlimit && ( pPlayer->lPointCount >= pointlimit ));
 
@@ -639,7 +639,7 @@ void POSSESSION_TimeExpired( void )
 
 	// If the player's on a team in team possession mode, give the player's point a team.
 	if ( teampossession && g_pPossessionArtifactCarrier->bOnTeam )
-		TEAM_SetScore( g_pPossessionArtifactCarrier->Team, TEAM_GetScore( g_pPossessionArtifactCarrier->Team ) + 1, true );
+		TEAM_SetPointCount( g_pPossessionArtifactCarrier->Team, TEAM_GetPointCount( g_pPossessionArtifactCarrier->Team ) + 1, true );
 
 	NETWORK_Printf( "%s\n", GStrings( "TXT_TIMELIMIT" ));
 	GAME_SetEndLevelDelay( 5 * TICRATE );
@@ -712,7 +712,7 @@ void possession_DisplayScoreInfo( ULONG ulPlayer )
 
 	// First, determine if the pointlimit has been reached.
 	if (( teampossession ) && ( players[ulPlayer].bOnTeam ))
-		bPointLimitReached = ( pointlimit && ( TEAM_GetScore( players[ulPlayer].Team ) >= pointlimit ));
+		bPointLimitReached = ( pointlimit && ( TEAM_GetPointCount( players[ulPlayer].Team ) >= pointlimit ));
 	else
 		bPointLimitReached = ( pointlimit && ( players[ulPlayer].lPointCount >= pointlimit ));
 

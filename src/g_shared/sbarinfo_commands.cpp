@@ -1447,7 +1447,7 @@ class CommandDrawNumber : public CommandDrawString
 					break;
 				// [BB]
 				case TEAMSCORE:
-					num = TEAM_GetScore(valueArgument);
+					num = TEAM_GetPointCount(valueArgument);
 					break;
 				case POWERUPTIME:
 				{
@@ -2859,7 +2859,7 @@ class CommandDrawBar : public SBarInfoCommand
 					break;
 				// [BB]
 				case TEAMSCORE:
-					value = TEAM_GetScore(typeArgument);
+					value = TEAM_GetPointCount(typeArgument);
 					max = pointlimit;
 					break;
 				case INVENTORY:

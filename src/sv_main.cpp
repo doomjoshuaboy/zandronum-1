@@ -3110,7 +3110,7 @@ void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo )
 	{
 		for ( ULONG i = 0; i < teams.Size( ); i++ )
 		{
-			TEAM_SetScore( i, 0, false );
+			TEAM_SetPointCount( i, 0, false );
 			TEAM_SetFragCount( i, 0, false );
 			TEAM_SetDeathCount( i, 0 );
 			TEAM_SetWinCount( i, 0, false );

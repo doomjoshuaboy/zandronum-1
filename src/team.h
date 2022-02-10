@@ -111,8 +111,8 @@ void		TEAM_SetTextColor( ULONG ulTeamIdx, USHORT usColor );
 LONG		TEAM_GetRailgunColor( ULONG ulTeamIdx );
 void		TEAM_SetRailgunColor( ULONG ulTeamIdx, LONG lColor );
 
-LONG		TEAM_GetScore( ULONG ulTeamIdx );
-void		TEAM_SetScore( ULONG ulTeamIdx, LONG lScore, bool bAnnouncer );
+LONG		TEAM_GetPointCount( ULONG ulTeamIdx );
+void		TEAM_SetPointCount( ULONG ulTeamIdx, LONG lPointCount, bool bAnnouncer );
 
 const char	*TEAM_GetSmallHUDIcon( ULONG ulTeamIdx );
 void		TEAM_SetSmallHUDIcon( ULONG ulTeamIdx, const char *pszName, bool bFlag );

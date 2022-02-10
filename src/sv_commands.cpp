@@ -2517,7 +2517,7 @@ void SERVERCOMMANDS_SetTeamScore( ULONG ulTeam, ULONG ulType, bool bAnnounce, UL
 			break;
 
 		case TEAMSCORE_POINTS:
-			lScore = TEAM_GetScore( ulTeam );
+			lScore = TEAM_GetPointCount( ulTeam );
 			break;
 		
 		case TEAMSCORE_WINS:

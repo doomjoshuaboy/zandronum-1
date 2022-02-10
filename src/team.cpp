@@ -110,7 +110,7 @@ void TEAM_Construct( void )
 {
 	for ( ULONG i = 0; i < teams.Size( ); i++ )
 	{
-		TEAM_SetScore( i, 0, false );
+		TEAM_SetPointCount( i, 0, false );
 		TEAM_SetReturnTicks( i, 0 );
 		TEAM_SetFragCount( i, 0, false );
 		TEAM_SetDeathCount( i, 0 );
@@ -174,7 +174,7 @@ void TEAM_Reset( void )
 {
 	for ( ULONG i = 0; i < teams.Size( ); i++ )
 	{
-		TEAM_SetScore( i, 0, false );
+		TEAM_SetPointCount( i, 0, false );
 		TEAM_SetReturnTicks( i, 0 );
 		TEAM_SetFragCount( i, 0, false );
 		TEAM_SetDeathCount( i, 0 );
@@ -427,8 +427,8 @@ ULONG TEAM_ChooseBestTeamForPlayer( const bool bIgnoreTeamStartsAvailability )
 		}
 		else
 		{
-			if ( lLowestScoreCount > TEAM_GetScore( i ))
-				lLowestScoreCount = TEAM_GetScore( i );
+			if ( lLowestScoreCount > TEAM_GetPointCount( i ))
+				lLowestScoreCount = TEAM_GetPointCount( i );
 		}
 	}
 
@@ -439,7 +439,7 @@ ULONG TEAM_ChooseBestTeamForPlayer( const bool bIgnoreTeamStartsAvailability )
 		else if ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSEARNWINS )
 			lGotScore[i] = TEAM_GetWinCount( i );
 		else
-			lGotScore[i] = TEAM_GetScore( i );
+			lGotScore[i] = TEAM_GetPointCount( i );
 	}
 
 	for ( ULONG i = 0; i < teams.Size( ); i++ )
@@ -594,7 +594,7 @@ void TEAM_ScoreSkulltagPoint( player_t *pPlayer, ULONG ulNumPoints, AActor *pPil
 		SERVERCOMMANDS_PrintHUDMessage( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, HUDMESSAGETYPE_FADEOUT, CR_BLUE, 3.0f, 0.0f, 0.5f, "SmallFont", MAKE_ID( 'S', 'U', 'B', 'S' ) );
 
 	// Give his team a point.
-	TEAM_SetScore( pPlayer->Team, TEAM_GetScore( pPlayer->Team ) + ulNumPoints, true );
+	TEAM_SetPointCount( pPlayer->Team, TEAM_GetPointCount( pPlayer->Team ) + ulNumPoints, true );
 	PLAYER_SetPoints ( pPlayer, pPlayer->lPointCount + ulNumPoints );
 
 	// Take the skull away.
@@ -824,7 +824,7 @@ void TEAM_TimeExpired( void )
 		{
 			if ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSEARNPOINTS )
 			{
-				if ( lHighestScore == static_cast<unsigned> (TEAM_GetScore( i )))
+				if ( lHighestScore == static_cast<unsigned> (TEAM_GetPointCount( i )))
 				{
 					ulLeadingTeamsCount++;
 					lWinner = i;
@@ -1020,26 +1020,26 @@ void TEAM_SetRailgunColor( ULONG ulTeamIdx, LONG lColor )
 
 //*****************************************************************************
 //
-LONG TEAM_GetScore( ULONG ulTeamIdx )
+LONG TEAM_GetPointCount( ULONG ulTeamIdx )
 {
 	if ( TEAM_CheckIfValid( ulTeamIdx ))
-		return ( teams[ulTeamIdx].lScore );
+		return ( teams[ulTeamIdx].lPointCount );
 	else
 		return ( 0 );
 }
 
 //*****************************************************************************
 //
-void TEAM_SetScore( ULONG ulTeamIdx, LONG lScore, bool bAnnouncer )
+void TEAM_SetPointCount( ULONG ulTeamIdx, LONG lPointCount, bool bAnnouncer )
 {
-	LONG				lOldScore;
+	LONG lOldPointCount;
 
 	if ( TEAM_CheckIfValid( ulTeamIdx ) == false )
 		return;
 
-	lOldScore = TEAM_GetScore( ulTeamIdx );
-	teams[ulTeamIdx].lScore = lScore;
-	if ( bAnnouncer && ( TEAM_GetScore( ulTeamIdx ) > lOldScore ))
+	lOldPointCount = TEAM_GetPointCount( ulTeamIdx );
+	teams[ulTeamIdx].lPointCount = lPointCount;
+	if ( bAnnouncer && ( TEAM_GetPointCount( ulTeamIdx ) > lOldPointCount ))
 	{
 		// Build the message.
 		// Whatever the team's name is, is the first part of the message. For example:
@@ -1066,7 +1066,7 @@ void TEAM_SetScore( ULONG ulTeamIdx, LONG lScore, bool bAnnouncer )
 	if ( pointlimit <= 0 || NETWORK_InClientMode() )
 		return;
 
-	if ( TEAM_GetScore( ulTeamIdx ) >= (LONG)pointlimit )
+	if ( TEAM_GetPointCount( ulTeamIdx ) >= (LONG)pointlimit )
 	{
 		NETWORK_Printf( "\034%s%s " TEXTCOLOR_NORMAL "has won the game!\n", TEAM_GetTextColorName( ulTeamIdx ), TEAM_GetName( ulTeamIdx ));
 
@@ -1596,8 +1596,8 @@ LONG TEAM_GetHighestScoreCount( void )
 		if ( teamgame == false && TEAM_CountPlayers( i ) < 1 )
 			continue;
 
-		if ( lScoreCount < TEAM_GetScore( i ))
-			lScoreCount = TEAM_GetScore( i );
+		if ( lScoreCount < TEAM_GetPointCount( i ))
+			lScoreCount = TEAM_GetPointCount( i );
 	}
 
 	return lScoreCount;
@@ -1655,7 +1655,7 @@ LONG TEAM_GetWinCountSpread ( ULONG ulTeam )
 //
 LONG TEAM_GetScoreCountSpread ( ULONG ulTeam )
 {
-	return TEAM_GetSpread ( ulTeam, &TEAM_GetScore );
+	return TEAM_GetSpread ( ulTeam, &TEAM_GetPointCount );
 }
 
 //*****************************************************************************
