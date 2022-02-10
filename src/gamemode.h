@@ -217,12 +217,6 @@ LONG		GAMEMODE_HandleEvent ( const GAMEEVENT_e Event, AActor *pActivator = NULL,
 bool		GAMEMODE_HandleDamageEvent ( AActor *target, AActor *inflictor, AActor *source, int &damage, FName mod, bool bBeforeArmor = false );
 LONG		GAMEMODE_GetEventResult ( void );
 void		GAMEMODE_SetEventResult ( LONG lResult );
-
-// [BB] This function doesn't really belong here. Find a better place for it.
-void		GAMEMODE_DisplayStandardMessage( const char *pszMessage, const bool bInformClients = false );
-void		GAMEMODE_DisplayCNTRMessage( const char *pszMessage, const bool bInformClients, const ULONG ulPlayerExtra = MAXPLAYERS, const ULONG ulFlags = 0 );
-void		GAMEMODE_DisplaySUBSMessage( const char *pszMessage, const bool bInformClients, const ULONG ulPlayerExtra = MAXPLAYERS, const ULONG ulFlags = 0 );
-
 GAMEMODE_e	GAMEMODE_GetCurrentMode( void );
 void		GAMEMODE_SetCurrentMode( GAMEMODE_e GameMode );
 MODIFIER_e	GAMEMODE_GetModifier( void );

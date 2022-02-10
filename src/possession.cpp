@@ -622,7 +622,7 @@ void POSSESSION_TimeExpired( void )
 		{
 			sprintf( szString, "\\cdSUDDEN DEATH!" );
 			V_ColorizeString( szString );
-			GAMEMODE_DisplayStandardMessage ( szString, true );
+			HUD_DrawStandardMessage( szString, true );
 		}
 
 		return;

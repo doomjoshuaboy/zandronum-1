@@ -68,9 +68,6 @@
 #include "p_lnspec.h"
 #include "p_acs.h"
 #include "gi.h"
-// [BB] The next includes are only needed for GAMEMODE_DisplayStandardMessage
-#include "sbar.h"
-#include "v_video.h"
 
 //*****************************************************************************
 //	CONSOLE VARIABLES
@@ -1158,79 +1155,6 @@ LONG GAMEMODE_GetEventResult( )
 void GAMEMODE_SetEventResult( LONG lResult )
 {
 	g_lEventResult = lResult;
-}
-
-//*****************************************************************************
-//
-void GAMEMODE_DisplayStandardMessage( const char *pszMessage, const bool bInformClients )
-{
-	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-	{
-		DHUDMessageFadeOut	*pMsg;
-
-		// Display the HUD message.
-		pMsg = new DHUDMessageFadeOut( BigFont, pszMessage,
-			160.4f,
-			75.0f,
-			320,
-			200,
-			CR_RED,
-			3.0f,
-			2.0f );
-
-		StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
-	}
-	// If necessary, send it to clients.
-	else if ( bInformClients )
-	{
-		SERVERCOMMANDS_PrintHUDMessage( pszMessage, 160.4f, 75.0f, 320, 200, HUDMESSAGETYPE_FADEOUT, CR_RED, 3.0f, 0.0f, 2.0f, "BigFont", MAKE_ID( 'C', 'N', 'T', 'R' ) );
-	}
-}
-
-//*****************************************************************************
-// [BB] Expects pszMessage already to be colorized with V_ColorizeString.
-void GAMEMODE_DisplayCNTRMessage( const char *pszMessage, const bool bInformClients, const ULONG ulPlayerExtra, const ULONG ulFlags )
-{
-	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-	{
-		DHUDMessageFadeOut *pMsg = new DHUDMessageFadeOut( BigFont, pszMessage,
-			1.5f,
-			TEAM_MESSAGE_Y_AXIS,
-			0,
-			0,
-			CR_UNTRANSLATED,
-			3.0f,
-			0.25f );
-		StatusBar->AttachMessage( pMsg, MAKE_ID( 'C','N','T','R' ));
-	}
-	// If necessary, send it to clients.
-	else if ( bInformClients )
-	{
-		SERVERCOMMANDS_PrintHUDMessage( pszMessage, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, HUDMESSAGETYPE_FADEOUT, CR_UNTRANSLATED, 3.0f, 0.0f, 0.25f, "BigFont", MAKE_ID( 'C', 'N', 'T', 'R' ), ulPlayerExtra, ServerCommandFlags::FromInt( ulFlags ) );
-	}
-}
-
-//*****************************************************************************
-// [BB] Expects pszMessage already to be colorized with V_ColorizeString.
-void GAMEMODE_DisplaySUBSMessage( const char *pszMessage, const bool bInformClients, const ULONG ulPlayerExtra, const ULONG ulFlags )
-{
-	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-	{
-		DHUDMessageFadeOut *pMsg = new DHUDMessageFadeOut( SmallFont, pszMessage,
-			1.5f,
-			TEAM_MESSAGE_Y_AXIS_SUB,
-			0,
-			0,
-			CR_UNTRANSLATED,
-			3.0f,
-			0.25f );
-		StatusBar->AttachMessage( pMsg, MAKE_ID( 'S','U','B','S' ));
-	}
-	// If necessary, send it to clients.
-	else if ( bInformClients )
-	{
-		SERVERCOMMANDS_PrintHUDMessage( pszMessage, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, HUDMESSAGETYPE_FADEOUT, CR_UNTRANSLATED, 3.0f, 0.0f, 0.25f, "SmallFont", MAKE_ID( 'S', 'U', 'B', 'S' ), ulPlayerExtra, ServerCommandFlags::FromInt( ulFlags ) );
-	}
 }
 
 //*****************************************************************************

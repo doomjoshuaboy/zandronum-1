@@ -298,7 +298,7 @@ LONG ATeamItem::AllowFlagPickup( AActor *pToucher )
 		else
 			message += "skull";
 		message += "\nof a team with no players!";
-		GAMEMODE_DisplaySUBSMessage( message.GetChars(), true, static_cast<ULONG>(pToucher->player - players), SVCF_ONLYTHISCLIENT );
+		HUD_DrawSUBSMessage( message.GetChars(), true, static_cast<ULONG>(pToucher->player - players), SVCF_ONLYTHISCLIENT );
 		return ( DENY_PICKUP );
 	}
 
@@ -769,7 +769,7 @@ void AFlag::ReturnFlag( AActor *pReturner )
 	}
 
 	V_ColorizeString( szString );
-	GAMEMODE_DisplaySUBSMessage( szString, true );
+	HUD_DrawSUBSMessage( szString, true );
 
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
@@ -817,7 +817,7 @@ void AFlag::DisplayFlagReturn( void )
 
 	V_ColorizeString( szString );
 
-	GAMEMODE_DisplayCNTRMessage( szString, false );
+	HUD_DrawCNTRMessage( szString, false );
 }
 
 // White flag ---------------------------------------------------------------
@@ -1176,7 +1176,7 @@ void AWhiteFlag::DisplayFlagReturn( void )
 	sprintf( szString, "\\cCWhite flag returned" );
 	V_ColorizeString( szString );
 
-	GAMEMODE_DisplayCNTRMessage( szString, false );
+	HUD_DrawCNTRMessage( szString, false );
 }
 
 // Skulltag skull -----------------------------------------------------------
@@ -1386,7 +1386,7 @@ void ASkull::ReturnFlag( AActor *pReturner )
 	}
 
 	V_ColorizeString( szString );
-	GAMEMODE_DisplaySUBSMessage( szString, true );
+	HUD_DrawSUBSMessage( szString, true );
 
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
@@ -1434,5 +1434,5 @@ void ASkull::DisplayFlagReturn( void )
 
 	V_ColorizeString( szString );
 
-	GAMEMODE_DisplayCNTRMessage( szString, false );
+	HUD_DrawCNTRMessage( szString, false );
 }

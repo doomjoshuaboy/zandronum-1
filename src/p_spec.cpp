@@ -88,6 +88,7 @@
 #include "invasion.h"
 #include "unlagged.h"
 #include "network_enums.h"
+#include "st_hud.h"
 
 static FRandom pr_playerinspecialsector ("PlayerInSpecialSector");
 void P_SetupPortals();
@@ -970,7 +971,7 @@ void P_UpdateSpecials ()
 					V_ColorizeString( szString );
 
 					// Display "%s WINS!" HUD message.
-					GAMEMODE_DisplayStandardMessage ( szString, true );
+					HUD_DrawStandardMessage( szString, true );
 
 					GAME_SetEndLevelDelay( 5 * TICRATE );
 				}

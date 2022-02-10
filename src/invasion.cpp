@@ -77,6 +77,7 @@
 #include "survival.h"
 #include "gamemode.h"
 #include "farchive.h"
+#include "st_hud.h"
 
 void	SERVERCONSOLE_UpdateScoreboard( );
 
@@ -1281,7 +1282,7 @@ void INVASION_SetState( INVASIONSTATE_e State )
 
 		break;
 	case IS_MISSIONFAILED:
-		GAMEMODE_DisplayStandardMessage ( "MISSION FAILED!" );
+		HUD_DrawStandardMessage( "MISSION FAILED!" );
 		break;
 	default:
 		break;
