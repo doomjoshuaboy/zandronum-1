@@ -178,7 +178,7 @@ LONG		TEAM_GetHighestPointCount( void );
 LONG		TEAM_GetSpread ( ULONG ulTeam, LONG (*GetCount) ( ULONG ulTeam ) );
 LONG		TEAM_GetFragCountSpread ( ULONG ulTeam );
 LONG		TEAM_GetWinCountSpread ( ULONG ulTeam );
-LONG		TEAM_GetScoreCountSpread ( ULONG ulTeam );
+LONG		TEAM_GetPointCountSpread ( ULONG ulTeam );
 
 ULONG		TEAM_CountFlags( void );
 ULONG		TEAM_CountSkulls( void );

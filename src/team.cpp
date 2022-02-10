@@ -1653,7 +1653,7 @@ LONG TEAM_GetWinCountSpread ( ULONG ulTeam )
 
 //*****************************************************************************
 //
-LONG TEAM_GetScoreCountSpread ( ULONG ulTeam )
+LONG TEAM_GetPointCountSpread ( ULONG ulTeam )
 {
 	return TEAM_GetSpread ( ulTeam, &TEAM_GetPointCount );
 }

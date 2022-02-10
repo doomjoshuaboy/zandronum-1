@@ -2480,7 +2480,7 @@ static void botcmd_GetSpread( CSkullBot *pBot )
 	if ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS )
 	{
 		if ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSEARNPOINTS )
-			g_iReturnInt = TEAM_GetScoreCountSpread( pBot->GetPlayer( )->Team );
+			g_iReturnInt = TEAM_GetPointCountSpread( pBot->GetPlayer( )->Team );
 		else if ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSEARNFRAGS )
 			g_iReturnInt = TEAM_GetFragCountSpread( pBot->GetPlayer( )->Team );
 		else if ( teamlms )
