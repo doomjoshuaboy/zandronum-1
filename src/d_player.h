@@ -774,7 +774,6 @@ void	PLAYER_ResetAllPlayersFragcount( void );
 void	PLAYER_ResetAllPlayersSpecialCounters( void );
 void	PLAYER_ResetSpecialCounters ( player_t *pPlayer );
 void	PLAYER_ResetPlayerData( player_t *pPlayer );
-void	PLAYER_GivePossessionPoint( player_t *pPlayer );
 void	PLAYER_SetTeam( player_t *pPlayer, ULONG ulTeam, bool bNoBroadcast );
 void	PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectator );
 void	PLAYER_SetDefaultSpectatorValues( player_t *pPlayer );
