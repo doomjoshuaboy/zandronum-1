@@ -105,9 +105,6 @@ void	LASTMANSTANDING_SetCountdownTicks( ULONG ulTicks );
 LMSSTATE_e	LASTMANSTANDING_GetState( void );
 void		LASTMANSTANDING_SetState( LMSSTATE_e State );
 
-ULONG	LASTMANSTANDING_GetNumMatches( void );
-void	LASTMANSTANDING_SetNumMatches( ULONG ulNumMatches );
-
 bool	LASTMANSTANDING_GetStartNextMatchOnLevelLoad( void );
 void	LASTMANSTANDING_SetStartNextMatchOnLevelLoad( bool bStart );
 
