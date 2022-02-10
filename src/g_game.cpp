@@ -1901,7 +1901,7 @@ void G_Ticker ()
 						}
 						else
 						{
-							if ( TEAM_GetHighestScoreCount( ) >= pointlimit)
+							if ( TEAM_GetHighestPointCount( ) >= pointlimit)
 								bLimitHit = true;
 						}
 

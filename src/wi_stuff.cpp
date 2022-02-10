@@ -396,7 +396,7 @@ ULONG WI_CalcRank( void )
 			if ( players[consoleplayer].bOnTeam == false )
 				return ( 2 );
 
-			if ( TEAM_GetPointCount( players[consoleplayer].Team ) == TEAM_GetHighestScoreCount( ))
+			if ( TEAM_GetPointCount( players[consoleplayer].Team ) == TEAM_GetHighestPointCount( ))
 				return ( 1 );
 			else
 				return ( 2 );

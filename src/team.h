@@ -173,7 +173,7 @@ bool		TEAM_ShouldUseTeam( ULONG ulTeam );
 
 LONG		TEAM_GetHighestFragCount( void );
 LONG		TEAM_GetHighestWinCount( void );
-LONG		TEAM_GetHighestScoreCount( void );
+LONG		TEAM_GetHighestPointCount( void );
 
 LONG		TEAM_GetSpread ( ULONG ulTeam, LONG (*GetCount) ( ULONG ulTeam ) );
 LONG		TEAM_GetFragCountSpread ( ULONG ulTeam );

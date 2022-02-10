@@ -816,7 +816,7 @@ void TEAM_TimeExpired( void )
 	if ( SERVER_CountPlayers( true ))
 	{
 		if ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSEARNPOINTS )
-			lHighestScore = TEAM_GetHighestScoreCount( );
+			lHighestScore = TEAM_GetHighestPointCount( );
 		else
 			lHighestScore = TEAM_GetHighestFragCount( );
 
@@ -1587,20 +1587,20 @@ LONG TEAM_GetHighestWinCount( void )
 
 //*****************************************************************************
 //
-LONG TEAM_GetHighestScoreCount( void )
+LONG TEAM_GetHighestPointCount( void )
 {
-	LONG lScoreCount = LONG_MIN;
+	LONG lPointCount = LONG_MIN;
 
 	for ( ULONG i = 0; i < teams.Size( ); i++ )
 	{
 		if ( teamgame == false && TEAM_CountPlayers( i ) < 1 )
 			continue;
 
-		if ( lScoreCount < TEAM_GetPointCount( i ))
-			lScoreCount = TEAM_GetPointCount( i );
+		if ( lPointCount < TEAM_GetPointCount( i ))
+			lPointCount = TEAM_GetPointCount( i );
 	}
 
-	return lScoreCount;
+	return lPointCount;
 }
 
 //*****************************************************************************

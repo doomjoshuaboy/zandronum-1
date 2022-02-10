@@ -264,7 +264,7 @@ LONG SCOREBOARD_GetLeftToLimit( void )
 	else if ( pointlimit && GAMEMODE_GetCurrentFlags() & GMF_PLAYERSEARNPOINTS )
 	{
 		if ( teamgame || teampossession )
-			return ( pointlimit - TEAM_GetHighestScoreCount( ));		
+			return ( pointlimit - TEAM_GetHighestPointCount( ));
 		else // Must be possession mode.
 		{
 			LONG lHighestPointCount = INT_MIN;
