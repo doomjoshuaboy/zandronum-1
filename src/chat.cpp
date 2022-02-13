@@ -1051,6 +1051,10 @@ void CHAT_PrintChatString( ULONG ulPlayer, ULONG ulMode, const char *pszString )
 	// [BB] Remove invalid color codes, those can confuse the printing and create new lines.
 	V_RemoveInvalidColorCodes( ChatString );
 
+	// [AK] We need to make a copy of the chat string that we're going to save right here, since
+	// we don't want con_colorinmessages to remove the color codes.
+	FString ChatStringToSave = ChatString;
+
 	// [RC] ...if the user wants them.
 	if ( con_colorinmessages == 2)
 		V_RemoveColorCodes( ChatString );
@@ -1067,10 +1071,14 @@ void CHAT_PrintChatString( ULONG ulPlayer, ULONG ulMode, const char *pszString )
 	// [AK] Only save chat messages for non-private chat messages.
 	if (( ulMode != CHATMODE_PRIVATE_SEND ) && ( ulMode != CHATMODE_PRIVATE_RECEIVE ))
 	{
-		// [AK] Remove any color codes that may still be in the chat message.
+		// [AK] Remove any color codes that may still be in the original string.
 		V_RemoveColorCodes( ChatString );
 
-		g_SavedChatMessages[ulPlayer].put( ChatString );
+		// [AK] Remove any kind of trailing crap in the copy string and then save it. We shouldn't
+		// have to check if it's empty because we already did so in the original string. The only
+		// difference is that the copy is guaranteed to still have its color codes.
+		V_RemoveTrailingCrapFromFString( ChatStringToSave );
+		g_SavedChatMessages[ulPlayer].put( ChatStringToSave );
 
 		// [AK] Trigger an event script indicating that a chat message was received.
 		// If the event returns 0, then don't print the message.

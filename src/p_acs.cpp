@@ -7656,15 +7656,21 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 		case ACSF_GetChatMessage:
 			{
 				const int offset = ( MAX_SAVED_MESSAGES - 1 ) - clamp<int>( args[1], 0, MAX_SAVED_MESSAGES - 1 );
+				const bool bKeepColorCodes = argCount > 2 ? !!args[2] : false;
+				FString chatMessage;
 
 				// [AK] Get the chat message from the server via RCON.
 				if ( args[0] < 0 )
-					return GlobalACSStrings.AddString( CHAT_GetChatMessage( MAXPLAYERS, offset ) );
+					chatMessage = CHAT_GetChatMessage( MAXPLAYERS, offset );
 				// [AK] Only get chat messages from valid players.
 				else if ( PLAYER_IsValidPlayer( args[0] ) )
-					return GlobalACSStrings.AddString( CHAT_GetChatMessage( args[0], offset ) );
+					chatMessage = CHAT_GetChatMessage( args[0], offset );
 
-				return GlobalACSStrings.AddString( "" );
+				// [AK] Remove any color codes if we don't want to keep them.
+				if (( bKeepColorCodes == false ) && ( chatMessage.IsNotEmpty( )))
+					V_RemoveColorCodes( chatMessage );
+
+				return GlobalACSStrings.AddString( chatMessage.GetChars( ));
 			}
 
 		case ACSF_GetMapRotationSize:

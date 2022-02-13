@@ -1214,11 +1214,7 @@ void SERVER_SendChatMessage( ULONG ulPlayer, ULONG ulMode, const char *pszString
 	}
 	else
 	{
-		// [AK] Remove any color codes that may still be in the chat message.
-		FString cleanedStringWithoutColor = cleanedChatString;
-		V_RemoveColorCodes( cleanedStringWithoutColor );
-
-		CHAT_AddChatMessage( ulPlayer, cleanedStringWithoutColor );
+		CHAT_AddChatMessage( ulPlayer, pszString );
 
 		// [AK] Trigger an event script indicating that a chat message was received.
 		// If the event returns 0, then don't print the message or send it to the clients.
