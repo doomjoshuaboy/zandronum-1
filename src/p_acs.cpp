@@ -7681,6 +7681,18 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 		case ACSF_GetMapRotationInfo:
 			{
 				ULONG ulPosition = ( args[0] <= 0 ) ? MAPROTATION_GetCurrentPosition() : ( args[0] - 1 );
+				level_info_t *rotationMap = MAPROTATION_GetMap( ulPosition );
+
+				// [AK] If the map position's level info is invalid, this could mean that there's no maplist
+				// or that the position is invalid, so return zero (or an empty string if we wanted the name).
+				// If we're checking the current map position, make sure it's the current level too.
+				if (( rotationMap == NULL ) || (( args[0] <= 0 ) && ( stricmp( level.mapname, rotationMap->mapname ) != 0 )))
+				{
+					if (( args[1] == MAPROTATION_Name ) || ( args[1] == MAPROTATION_LumpName ))
+						return GlobalACSStrings.AddString( "" );
+
+					return 0;
+				}
 
 				switch ( args[1] )
 				{
@@ -7693,13 +7705,7 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 
 					case MAPROTATION_Name:
 					case MAPROTATION_LumpName:
-					{
-						level_info_t *level = MAPROTATION_GetMap( ulPosition );
-						if ( level == NULL )
-							return GlobalACSStrings.AddString( "" );
-
-						return GlobalACSStrings.AddString( args[1] == MAPROTATION_Name ? level->LookupLevelName().GetChars() : level->mapname );
-					}
+						return GlobalACSStrings.AddString( args[1] == MAPROTATION_Name ? rotationMap->LookupLevelName().GetChars() : rotationMap->mapname );
 				}
 
 				return 0;
