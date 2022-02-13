@@ -888,58 +888,58 @@ void HUD_DrawFragMessage( player_t *pPlayer, bool bFraggedBy )
 
 //*****************************************************************************
 //
-void HUD_DrawStandardMessage( const char *pszMessage, const bool bInformClients )
+void HUD_DrawStandardMessage( const char *pszMessage, EColorRange color, float fHoldTime, float fOutTime, const bool bInformClients )
 {
 	const LONG lId = MAKE_ID( 'C', 'N', 'T', 'R' );
 
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 	{
 		// Display the HUD message.
-		DHUDMessageFadeOut *pMsg = new DHUDMessageFadeOut( BigFont, pszMessage, 160.4f, 75.0f, 320, 200, CR_RED, 3.0f, 2.0f );
+		DHUDMessageFadeOut *pMsg = new DHUDMessageFadeOut( BigFont, pszMessage, 160.4f, 75.0f, 320, 200, color, fHoldTime, fOutTime );
 		StatusBar->AttachMessage( pMsg, lId );
 	}
 	// If necessary, send it to clients.
 	else if ( bInformClients )
 	{
-		SERVERCOMMANDS_PrintHUDMessage( pszMessage, 160.4f, 75.0f, 320, 200, HUDMESSAGETYPE_FADEOUT, CR_RED, 3.0f, 0.0f, 2.0f, "BigFont", lId );
+		SERVERCOMMANDS_PrintHUDMessage( pszMessage, 160.4f, 75.0f, 320, 200, HUDMESSAGETYPE_FADEOUT, color, fHoldTime, 0.0f, fOutTime, "BigFont", lId );
 	}
 }
 
 //*****************************************************************************
 // [BB] Expects pszMessage already to be colorized with V_ColorizeString.
-void HUD_DrawCNTRMessage( const char *pszMessage, const bool bInformClients, const ULONG ulPlayerExtra, const ULONG ulFlags )
+void HUD_DrawCNTRMessage( const char *pszMessage, EColorRange color, float fHoldTime, float fOutTime, const bool bInformClients, const ULONG ulPlayerExtra, const ULONG ulFlags )
 {
 	const LONG lId = MAKE_ID( 'C', 'N', 'T', 'R' );
 
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 	{
 		// Display the HUD message.
-		DHUDMessageFadeOut *pMsg = new DHUDMessageFadeOut( BigFont, pszMessage, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_UNTRANSLATED, 3.0f, 0.25f );
+		DHUDMessageFadeOut *pMsg = new DHUDMessageFadeOut( BigFont, pszMessage, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, color, fHoldTime, fOutTime );
 		StatusBar->AttachMessage( pMsg, lId );
 	}
 	// If necessary, send it to clients.
 	else if ( bInformClients )
 	{
-		SERVERCOMMANDS_PrintHUDMessage( pszMessage, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, HUDMESSAGETYPE_FADEOUT, CR_UNTRANSLATED, 3.0f, 0.0f, 0.25f, "BigFont", lId, ulPlayerExtra, ServerCommandFlags::FromInt( ulFlags ));
+		SERVERCOMMANDS_PrintHUDMessage( pszMessage, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, HUDMESSAGETYPE_FADEOUT, color, fHoldTime, 0.0f, fOutTime, "BigFont", lId, ulPlayerExtra, ServerCommandFlags::FromInt( ulFlags ));
 	}
 }
 
 //*****************************************************************************
 // [BB] Expects pszMessage already to be colorized with V_ColorizeString.
-void HUD_DrawSUBSMessage( const char *pszMessage, const bool bInformClients, const ULONG ulPlayerExtra, const ULONG ulFlags )
+void HUD_DrawSUBSMessage( const char *pszMessage, EColorRange color, float fHoldTime, float fOutTime, const bool bInformClients, const ULONG ulPlayerExtra, const ULONG ulFlags )
 {
 	const LONG lId = MAKE_ID( 'S', 'U', 'B', 'S' );
 
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 	{
 		// Display the HUD message.
-		DHUDMessageFadeOut *pMsg = new DHUDMessageFadeOut( SmallFont, pszMessage, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_UNTRANSLATED, 3.0f, 0.25f );
+		DHUDMessageFadeOut *pMsg = new DHUDMessageFadeOut( SmallFont, pszMessage, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, color, fHoldTime, fOutTime );
 		StatusBar->AttachMessage( pMsg, lId );
 	}
 	// If necessary, send it to clients.
 	else if ( bInformClients )
 	{
-		SERVERCOMMANDS_PrintHUDMessage( pszMessage, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, HUDMESSAGETYPE_FADEOUT, CR_UNTRANSLATED, 3.0f, 0.0f, 0.25f, "SmallFont", lId, ulPlayerExtra, ServerCommandFlags::FromInt( ulFlags ));
+		SERVERCOMMANDS_PrintHUDMessage( pszMessage, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, HUDMESSAGETYPE_FADEOUT, color, fHoldTime, 0.0f, fOutTime, "SmallFont", lId, ulPlayerExtra, ServerCommandFlags::FromInt( ulFlags ));
 	}
 }
 

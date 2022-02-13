@@ -1282,7 +1282,7 @@ void INVASION_SetState( INVASIONSTATE_e State )
 
 		break;
 	case IS_MISSIONFAILED:
-		HUD_DrawStandardMessage( "MISSION FAILED!" );
+		HUD_DrawStandardMessage( "MISSION FAILED!", CR_RED );
 		break;
 	default:
 		break;

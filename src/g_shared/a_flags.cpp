@@ -298,7 +298,7 @@ LONG ATeamItem::AllowFlagPickup( AActor *pToucher )
 		else
 			message += "skull";
 		message += "\nof a team with no players!";
-		HUD_DrawSUBSMessage( message.GetChars(), true, static_cast<ULONG>(pToucher->player - players), SVCF_ONLYTHISCLIENT );
+		HUD_DrawSUBSMessage( message.GetChars(), CR_UNTRANSLATED, 3.0f, 0.25f, true, static_cast<ULONG>(pToucher->player - players), SVCF_ONLYTHISCLIENT );
 		return ( DENY_PICKUP );
 	}
 
@@ -769,7 +769,7 @@ void AFlag::ReturnFlag( AActor *pReturner )
 	}
 
 	V_ColorizeString( szString );
-	HUD_DrawSUBSMessage( szString, true );
+	HUD_DrawSUBSMessage( szString, CR_UNTRANSLATED, 3.0f, 0.25f, true );
 
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
@@ -817,7 +817,7 @@ void AFlag::DisplayFlagReturn( void )
 
 	V_ColorizeString( szString );
 
-	HUD_DrawCNTRMessage( szString, false );
+	HUD_DrawCNTRMessage( szString, CR_UNTRANSLATED );
 }
 
 // White flag ---------------------------------------------------------------
@@ -1176,7 +1176,7 @@ void AWhiteFlag::DisplayFlagReturn( void )
 	sprintf( szString, "\\cCWhite flag returned" );
 	V_ColorizeString( szString );
 
-	HUD_DrawCNTRMessage( szString, false );
+	HUD_DrawCNTRMessage( szString, CR_UNTRANSLATED );
 }
 
 // Skulltag skull -----------------------------------------------------------
@@ -1386,7 +1386,7 @@ void ASkull::ReturnFlag( AActor *pReturner )
 	}
 
 	V_ColorizeString( szString );
-	HUD_DrawSUBSMessage( szString, true );
+	HUD_DrawSUBSMessage( szString, CR_UNTRANSLATED, true );
 
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
@@ -1434,5 +1434,5 @@ void ASkull::DisplayFlagReturn( void )
 
 	V_ColorizeString( szString );
 
-	HUD_DrawCNTRMessage( szString, false );
+	HUD_DrawCNTRMessage( szString, CR_UNTRANSLATED );
 }
