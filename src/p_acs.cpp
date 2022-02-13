@@ -5367,6 +5367,7 @@ enum EACSFunctions
 	ACSF_GetMapRotationSize,
 	ACSF_GetMapRotationInfo,
 	ACSF_GetCurrentMapPosition,
+	ACSF_GetEventResult,
 
 	// ZDaemon
 	ACSF_GetTeamScore = 19620,	// (int team)
@@ -7712,6 +7713,11 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 					return 0;
 
 				return ulPosition + 1;
+			}
+
+		case ACSF_GetEventResult:
+			{
+				return GAMEMODE_GetEventResult();
 			}
 
 		case ACSF_GetActorFloorTexture:
