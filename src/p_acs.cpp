@@ -5366,6 +5366,7 @@ enum EACSFunctions
 	ACSF_GetChatMessage,
 	ACSF_GetMapRotationSize,
 	ACSF_GetMapRotationInfo,
+	ACSF_GetCurrentMapPosition,
 
 	// ZDaemon
 	ACSF_GetTeamScore = 19620,	// (int team)
@@ -7695,6 +7696,22 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 				}
 
 				return 0;
+			}
+
+		case ACSF_GetCurrentMapPosition:
+			{
+				// [AK] If there's no maplist, return zero.
+				if ( MAPROTATION_GetNumEntries() == 0 )
+					return 0;
+
+				ULONG ulPosition = MAPROTATION_GetCurrentPosition();
+				level_info_t *rotationMap = MAPROTATION_GetMap( ulPosition );
+
+				// [AK] Make sure that the current map position is the current level being played.
+				if (( rotationMap == NULL ) || ( stricmp( level.mapname, rotationMap->mapname ) != 0 ))
+					return 0;
+
+				return ulPosition + 1;
 			}
 
 		case ACSF_GetActorFloorTexture:
