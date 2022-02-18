@@ -381,8 +381,11 @@ void G_InitNew (const char *mapname, bool bTitleLevel)
 
 	G_ClearHubInfo();
 
+	// [AK] We must save our demo playback status since G_InitNew resets it.
+	const bool bIsPlayingDemo = CLIENTDEMO_IsPlaying( );
+
 	// [BB] If there is a free spectator player from the last map, be sure to get rid of it.
-	if ( CLIENTDEMO_IsPlaying() )
+	if ( bIsPlayingDemo )
 		CLIENTDEMO_ClearFreeSpectatorPlayer();
 
 	// [BC] Clients need to keep their snapshots around for hub purposes, and since
@@ -583,6 +586,12 @@ void G_InitNew (const char *mapname, bool bTitleLevel)
 	}
 	// [BB] Somehow G_DoLoadLevel alters the contents of mapname. This causes the "Frags" bug.
 	G_DoLoadLevel (0, false);
+
+	// [AK] Restore our demo playback status.
+	if ( bIsPlayingDemo )
+	{
+		CLIENTDEMO_SetPlaying( true );
+	}
 
 //	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 //		SERVERCONSOLE_SetupColumns( );

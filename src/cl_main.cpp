@@ -1397,17 +1397,12 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 			// [BB] Setting the game mode is necessary to decide whether 3D floors should be spawned or not.
 			GAMEMODE_SetCurrentMode ( static_cast<GAMEMODE_e>(pByteStream->ReadByte()) );
 
-			bool	bPlaying;
-
 			// Print a status message.
 			Printf( "Level authenticated!\n" );
 
 			// Check to see if we have the map.
 			if ( P_CheckIfMapExists( g_szMapName ))
 			{
-				// Save our demo recording status since G_InitNew resets it.
-				bPlaying = CLIENTDEMO_IsPlaying( );
-
 				// Start new level.
 				G_InitNew( g_szMapName, false );
 
@@ -1418,9 +1413,6 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 				viewactive = false;
 
 				g_ulLastConsolePlayerUpdateTick = 0;
-
-				// Restore our demo recording status.
-				CLIENTDEMO_SetPlaying( bPlaying );
 			}
 			// [BB] If we don't have the map, something went horribly wrong.
 			else
@@ -6986,9 +6978,6 @@ void ServerCommands::MapLoad::Execute()
 	// Check to see if we have the map.
 	if ( P_CheckIfMapExists( mapName ))
 	{
-		// Save our demo recording status since G_InitNew resets it.
-		bool playing = CLIENTDEMO_IsPlaying( );
-
 		// Start new level.
 		G_InitNew( mapName, false );
 
@@ -6998,9 +6987,6 @@ void ServerCommands::MapLoad::Execute()
 
 		// [BB] We'll receive a full update for the new map from the server.
 		g_bFullUpdateIncomplete = true;
-
-		// Restore our demo recording status.
-		CLIENTDEMO_SetPlaying( playing );
 
 		// [BB] viewactive is set in G_InitNew
 		// For right now, the view is not active.
