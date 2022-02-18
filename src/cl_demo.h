@@ -100,6 +100,7 @@ bool		CLIENTDEMO_IsSkipping( void );
 bool		CLIENTDEMO_IsSkippingToNextMap( void );
 void		CLIENTDEMO_SetSkippingToNextMap( bool bSkipToNextMap );
 bool		CLIENTDEMO_IsInFreeSpectateMode( void );
+bool		CLIENTDEMO_ShouldLetFreeSpectatorThink( void );
 void		CLIENTDEMO_SetFreeSpectatorTiccmd( ticcmd_t *pCmd );
 void		CLIENTDEMO_FreeSpectatorPlayerThink( bool bTickBody = false );
 player_t	*CLIENTDEMO_GetFreeSpectatorPlayer( void );

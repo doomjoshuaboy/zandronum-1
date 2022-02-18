@@ -110,7 +110,8 @@ void P_Ticker (void)
 		}
 
 		// [BB] Allow the free spectate player to move even if the demo is paused.
-		if ( CLIENTDEMO_IsPaused() && CLIENTDEMO_IsInFreeSpectateMode() )
+		// [AK] Also do this if we're using the free chasecam.
+		if ( CLIENTDEMO_IsPaused() && CLIENTDEMO_ShouldLetFreeSpectatorThink() )
 			CLIENTDEMO_FreeSpectatorPlayerThink( true );
 
 		// run the tic
@@ -399,7 +400,8 @@ void P_Ticker (void)
 
 	// [BB] If we are playing a demo in free spectate mode, we also need to let the special free
 	// spectator player think. That's necessary to move this player and thus to move the camera.
-	if ( CLIENTDEMO_IsInFreeSpectateMode() )
+	// [AK] Also do this if we're using the free chasecam.
+	if ( CLIENTDEMO_IsPlaying() && CLIENTDEMO_ShouldLetFreeSpectatorThink() )
 		CLIENTDEMO_FreeSpectatorPlayerThink();
 
 	// [BB] The server has no status bar.

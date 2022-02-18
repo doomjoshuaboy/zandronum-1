@@ -834,6 +834,15 @@ bool CLIENTDEMO_IsInFreeSpectateMode( void )
 	const AActor *pCamera = players[consoleplayer].camera;
 	return ( pCamera && ( pCamera == g_demoCameraPlayer.mo ) );
 }
+
+//*****************************************************************************
+//
+bool CLIENTDEMO_ShouldLetFreeSpectatorThink( void )
+{
+	// [AK] Let the free spectator "think" while using the free chasecam to control the camera's movement.
+	return (( CLIENTDEMO_IsInFreeSpectateMode( )) || ( P_IsUsingFreeChasecam( players[consoleplayer].camera )));
+}
+
 //*****************************************************************************
 //
 void CLIENTDEMO_SetFreeSpectatorTiccmd( ticcmd_t *pCmd )
@@ -873,8 +882,18 @@ void CLIENTDEMO_SpawnFreeSpectatorPlayer( void )
 
 	p->bSpectating = true;
 	p->cls = PlayerClasses[p->CurrentPlayerClass].Type;
-	p->mo = static_cast<APlayerPawn *> (Spawn (p->cls, pCamera->x, pCamera->y, pCamera->z + pCamera->height, NO_REPLACE));
-	p->mo->angle = pCamera->angle;
+	
+	// [AK] If the local player's camera is invalid, just spawn the free spectator player at the center of the map.
+	if ( pCamera != NULL )
+	{
+		p->mo = static_cast<APlayerPawn *>( Spawn( p->cls, pCamera->x, pCamera->y, pCamera->z + pCamera->height, NO_REPLACE ));
+		p->mo->angle = pCamera->angle;
+	}
+	else
+	{
+		p->mo = static_cast<APlayerPawn *>( Spawn( p->cls, 0, 0, 0, NO_REPLACE ));
+	}
+
 	p->mo->flags |= (MF_NOGRAVITY);
 	p->mo->player = p;
 	p->DesiredFOV = p->FOV = 90.f;

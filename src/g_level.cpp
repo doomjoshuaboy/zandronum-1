@@ -587,10 +587,11 @@ void G_InitNew (const char *mapname, bool bTitleLevel)
 	// [BB] Somehow G_DoLoadLevel alters the contents of mapname. This causes the "Frags" bug.
 	G_DoLoadLevel (0, false);
 
-	// [AK] Restore our demo playback status.
+	// [AK] Restore our demo playback status. Also spawn the free spectator player if needed.
 	if ( bIsPlayingDemo )
 	{
 		CLIENTDEMO_SetPlaying( true );
+		CLIENTDEMO_SpawnFreeSpectatorPlayer( );
 	}
 
 //	if ( NETWORK_GetState( ) == NETSTATE_SERVER )

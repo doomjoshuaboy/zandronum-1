@@ -178,7 +178,11 @@ void cht_DoCheat (player_t *player, int cheat)
 	case CHT_CHASECAM:
 		player->cheats ^= CF_CHASECAM;
 		if (player->cheats & CF_CHASECAM)
+		{
+			// [AK] Reset the free chasecam's orientation when we enable the chasecam.
+			P_ResetFreeChasecamView();
 			msg = "chasecam ON";
+		}
 		else
 			msg = "chasecam OFF";
 		R_ResetViewInterpolation ();

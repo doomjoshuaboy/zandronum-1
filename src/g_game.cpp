@@ -1156,6 +1156,10 @@ void G_FinishChangeSpy( ULONG ulPlayer )
 	S_UpdateSounds(players[consoleplayer].camera);
 	StatusBar->AttachToPlayer (&players[ulPlayer]);
 
+	// [AK] If we're using the free chasecam, reset the orientation so that it's facing
+	// in the same direction of whoever we're spying.
+	P_ResetFreeChasecamView( );
+
 	// [TP] Rebuild translations if we're overriding player colors, they
 	// may very likely have changed by now.
 	if ( D_ShouldOverridePlayerColors() )
@@ -1554,7 +1558,8 @@ void G_Ticker ()
 	}
 
 	// [BB] If we are playing a demo in free spectate mode, hand the player's ticcmd to the free spectator player.
-	if ( CLIENTDEMO_IsInFreeSpectateMode() )
+	// [AK] Also do this if we're using the free chasecam while playing a demo.
+	if ( CLIENTDEMO_ShouldLetFreeSpectatorThink() )
 		CLIENTDEMO_SetFreeSpectatorTiccmd ( &netcmds[0][buf] );
 
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )

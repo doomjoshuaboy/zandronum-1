@@ -5070,6 +5070,60 @@ void P_RailAttackWithPossibleSpread (AActor *source, int damage, int offset_xy, 
 			source->player->ulConsecutiveRailgunHits = 0;
 	}
 }
+
+//==========================================================================
+//
+// [AK] P_IsUsingFreeChasecam
+//
+// Checks if we're allowed to use the free chasecam on some actor.
+//
+//==========================================================================
+
+CUSTOM_CVAR( Bool, cl_freechase, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG )
+{
+	if ( self )
+	{
+		P_ResetFreeChasecamView( );
+	}
+}
+
+bool P_IsUsingFreeChasecam( AActor *pActor )
+{
+	// [AK] We can't use the free chasecam if it's disabled or if we're not using the chasecam at all.
+	if (( cl_freechase == false ) || (( players[consoleplayer].cheats & CF_CHASECAM ) == false ))
+		return false;
+
+	// [AK] The actor must be valid and we need to be spying on them.
+	if (( pActor == NULL ) || ( pActor != players[consoleplayer].camera ))
+		return false;
+
+	// [AK] We can't use the free chasecam while spying on ourselves (unless we're playing a demo) or
+	// if we're in free spectator mode.
+	if ((( pActor == players[consoleplayer].mo ) && ( CLIENTDEMO_IsPlaying( ) == false )) || ( CLIENTDEMO_IsInFreeSpectateMode( )))
+		return false;
+
+	return true;
+}
+
+void P_ResetFreeChasecamView( )
+{
+	AActor *pActor = P_GetFreeChasecamActor( );
+
+	// [AK] We only need to reset the orientation if we're allowed to use the free chasecam right now.
+	if ( P_IsUsingFreeChasecam( players[consoleplayer].camera ))
+	{
+		pActor->angle = players[consoleplayer].camera->angle;
+		pActor->pitch = players[consoleplayer].camera->pitch;
+	}
+}
+
+// [AK] Returns the actor whose angle/pitch will be used for the free chasecam. We normally use the
+// local player but if we're watching a demo we need to use the free spectator player instead.
+AActor *P_GetFreeChasecamActor( )
+{
+	return CLIENTDEMO_IsPlaying( ) ? CLIENTDEMO_GetFreeSpectatorPlayer( )->mo : players[consoleplayer].mo;
+}
+
 //==========================================================================
 //
 // [RH] P_AimCamera
@@ -5088,8 +5142,11 @@ CUSTOM_CVAR(Float, chase_dist, 90.f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 void P_AimCamera(AActor *t1, fixed_t &CameraX, fixed_t &CameraY, fixed_t &CameraZ, sector_t *&CameraSector)
 {
 	fixed_t distance = (fixed_t)(chase_dist * FRACUNIT);
-	angle_t angle = (t1->angle - ANG180) >> ANGLETOFINESHIFT;
-	angle_t pitch = (angle_t)(t1->pitch) >> ANGLETOFINESHIFT;
+	// [AK] If we're using free chasecam, use the angle and pitch of ourselves (or the free spectator
+	// if playing a demo). If not, use the passed actor's angle and pitch
+	AActor *pActor = P_IsUsingFreeChasecam(t1) ? P_GetFreeChasecamActor() : t1;
+	angle_t angle = (pActor->angle - ANG180) >> ANGLETOFINESHIFT;
+	angle_t pitch = (angle_t)(pActor->pitch) >> ANGLETOFINESHIFT;
 	FTraceResults trace;
 	fixed_t vx, vy, vz, sz;
 
