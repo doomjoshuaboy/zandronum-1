@@ -5368,6 +5368,7 @@ enum EACSFunctions
 	ACSF_GetMapRotationInfo,
 	ACSF_GetCurrentMapPosition,
 	ACSF_GetEventResult,
+	ACSF_GetActorSectorLocation,
 
 	// ZDaemon
 	ACSF_GetTeamScore = 19620,	// (int team)
@@ -7730,6 +7731,24 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 		case ACSF_GetEventResult:
 			{
 				return GAMEMODE_GetEventResult();
+			}
+
+		case ACSF_GetActorSectorLocation:
+			{
+				const TArray<FString *> *sectorInfoNames = &level.info->SectorInfo.Names;
+				const AActor *pActor = SingleActorFromTID( args[0], activator );
+
+				// [AK] Make sure that the actor is valid.
+				if ( pActor != NULL )
+				{
+					ULONG ulSectorNum = pActor->Sector->sectornum;
+
+					// [AK] Check if the sector that the actor is in has a designated name.
+					if (( sectorInfoNames->Size( ) > ulSectorNum ) && (( *sectorInfoNames )[ulSectorNum] != NULL ))
+						return GlobalACSStrings.AddString( *( *sectorInfoNames )[ulSectorNum] );
+				}
+
+				return GlobalACSStrings.AddString( "" );
 			}
 
 		case ACSF_GetActorFloorTexture:
