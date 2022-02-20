@@ -704,6 +704,23 @@ static void M_CallNextMapVote()
 	M_ClearMenus();
 }
 
+// =================================================================================================
+//
+//
+//
+//
+//
+// =================================================================================================
+
+static void M_CallResetMapVote()
+{
+	FString command;
+	command.Format( "callvote resetmap \"%s\"",
+		*menu_callvotereason );
+	C_DoCommand( command );
+	M_ClearMenus();
+}
+
 //=================================================================================================
 //
 // [TP] M_ExecuteIgnore
@@ -943,6 +960,11 @@ CCMD ( menu_callflagvote )
 CCMD ( menu_callnextmapvote )
 {
 	M_CallNextMapVote();
+}
+
+CCMD ( menu_callresetmapvote )
+{
+	M_CallResetMapVote();
 }
 
 CCMD ( menu_autoselect )

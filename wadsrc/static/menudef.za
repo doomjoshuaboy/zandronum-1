@@ -301,11 +301,12 @@ OptionMenu ZA_CallVote
 	Title "CALL VOTE"
 	NetGameOnly
 
-	SubMenu		"Kick a player",		"ZA_CallKickVote"
-	SubMenu		"Change the map",		"ZA_CallMapVote"
-	SubMenu		"Go to the next map",   "ZA_CallNextMapVote"
-	SubMenu		"Change a limit",		"ZA_CallLimitVote"
-	SubMenu		"Change a flag",		"ZA_CallFlagVote"
+	SubMenu		"Kick a player",			"ZA_CallKickVote"
+	SubMenu		"Change the map",			"ZA_CallMapVote"
+	SubMenu		"Go to the next map",   	"ZA_CallNextMapVote"
+	SubMenu		"Reset the current map",	"ZA_CallResetMapVote"
+	SubMenu		"Change a limit",			"ZA_CallLimitVote"
+	SubMenu		"Change a flag",			"ZA_CallFlagVote"
 }
 
 OptionMenu ZA_CallKickVote
@@ -363,6 +364,14 @@ OptionMenu ZA_CallNextMapVote
 	StaticText	" "
 	TextField	"Reason for change",		"menu_callvotereason"
 	Command		"Vote!",					"menu_callnextmapvote"
+}
+
+OptionMenu ZA_CallResetMapVote
+{
+	Title		"RESET MAP"
+
+	TextField	"Reason for change",		"menu_callvotereason"
+	Command		"Vote!",					"menu_callresetmapvote"
 }
 
 // =================================================================================================

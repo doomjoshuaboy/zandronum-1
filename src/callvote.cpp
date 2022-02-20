@@ -1091,6 +1091,15 @@ static bool callvote_CheckValidity( FString &Command, FString &Parameters )
 			}
 		}
 		break;
+	case VOTECMD_RESETMAP:
+		{
+			if ( !( GAMEMODE_GetCurrentFlags() & GMF_MAPRESETS ) )
+			{
+				SERVER_PrintfPlayer( SERVER_GetCurrentClient(), "ResetMap votes can only be called in game modes that support map resets.\n" );
+				return ( false );
+			}
+		}
+	    break;
 
 	default:
 
@@ -1127,6 +1136,8 @@ static ULONG callvote_GetVoteType( const char *pszCommand )
 		return VOTECMD_NEXTMAP;
 	else if ( stricmp( "nextsecret", pszCommand ) == 0 )
 		return VOTECMD_NEXTSECRET;
+	else if ( stricmp( "resetmap", pszCommand ) == 0 )
+		return VOTECMD_RESETMAP;
 	else if ( callvote_IsFlagValid( pszCommand ))
 		return VOTECMD_FLAG;
 
@@ -1148,6 +1159,7 @@ static bool callvote_VoteRequiresParameter( const ULONG ulVoteType )
 	{
 		case VOTECMD_NEXTMAP:
 		case VOTECMD_NEXTSECRET:
+		case VOTECMD_RESETMAP:
 			return ( false );
 
 		default:
@@ -1212,6 +1224,7 @@ CVAR( Bool, sv_nopointlimitvote, false, CVAR_ARCHIVE | CVAR_SERVERINFO );
 CVAR( Bool, sv_noflagvote, true, CVAR_ARCHIVE | CVAR_SERVERINFO );
 CVAR( Bool, sv_nonextmapvote, false, CVAR_ARCHIVE | CVAR_SERVERINFO );
 CVAR( Bool, sv_nonextsecretvote, false, CVAR_ARCHIVE | CVAR_SERVERINFO );
+CVAR( Bool, sv_noresetmapvote, true, CVAR_ARCHIVE | CVAR_SERVERINFO );
 CVAR( Int, sv_votecooldown, 5, CVAR_ARCHIVE | CVAR_SERVERINFO );
 CVAR( Int, sv_voteconnectwait, 0, CVAR_ARCHIVE | CVAR_SERVERINFO );  // [RK] The amount of seconds after client connect to wait before voting
 CVAR( Bool, cl_showfullscreenvote, false, CVAR_ARCHIVE );

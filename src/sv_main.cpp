@@ -7168,6 +7168,11 @@ static bool server_CallVote( BYTESTREAM_s *pByteStream )
 		bVoteAllowed = !sv_nonextsecretvote;
 		sprintf( szCommand, "nextsecret" );
 		break;
+	case VOTECMD_RESETMAP:
+
+		bVoteAllowed = !sv_noresetmapvote;
+		sprintf( szCommand, "resetmap" );
+		break;
 	default:
 
 		return ( false );

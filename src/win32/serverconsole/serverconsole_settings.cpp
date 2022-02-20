@@ -367,6 +367,7 @@ void settings_Dialog_SaveSettings( )
 	sv_noflagvote = !SendDlgItemMessage( hDlg, IDC_ALLOWVOTE_FLAG, BM_GETCHECK, 0, 0 );
 	sv_nonextmapvote = !SendDlgItemMessage( hDlg, IDC_ALLOWVOTE_NEXTMAP, BM_GETCHECK, 0, 0 );
 	sv_nonextsecretvote = !SendDlgItemMessage( hDlg, IDC_ALLOWVOTE_NEXTSECRET, BM_GETCHECK, 0, 0 );
+	sv_noresetmapvote = !SendDlgItemMessage( hDlg, IDC_ALLOWVOTE_RESETMAP, BM_GETCHECK, 0, 0 );
 
 	GetDlgItemText( hDlg, IDC_PASSWORD, szBuffer, 1024 );
 	sv_password = szBuffer;
@@ -875,6 +876,7 @@ void settings_AccessTab_ShowOrHideItems( HWND hDlg )
 	EnableWindow( GetDlgItem( hDlg, IDC_ALLOWVOTE_FLAG ), bVotesEnabled );
 	EnableWindow( GetDlgItem( hDlg, IDC_ALLOWVOTE_NEXTMAP ), bVotesEnabled );
 	EnableWindow( GetDlgItem( hDlg, IDC_ALLOWVOTE_NEXTSECRET ), bVotesEnabled );
+	EnableWindow( GetDlgItem( hDlg, IDC_ALLOWVOTE_RESETMAP ), bVotesEnabled );
 	EnableWindow( GetDlgItem( hDlg, IDC_ALLOWVOTE_SPECTATOR ), bVotesEnabled );
 }
 
@@ -931,6 +933,7 @@ BOOL CALLBACK settings_AccessTab_Callback( HWND hDlg, UINT Message, WPARAM wPara
 		SendDlgItemMessage( hDlg, IDC_ALLOWVOTE_FLAG, BM_SETCHECK, ( !sv_noflagvote ? BST_CHECKED : BST_UNCHECKED ), 0 );
 		SendDlgItemMessage( hDlg, IDC_ALLOWVOTE_NEXTMAP, BM_SETCHECK, ( !sv_nonextmapvote ? BST_CHECKED : BST_UNCHECKED ), 0 );
 		SendDlgItemMessage( hDlg, IDC_ALLOWVOTE_NEXTSECRET, BM_SETCHECK, ( !sv_nonextsecretvote ? BST_CHECKED : BST_UNCHECKED ), 0 );
+		SendDlgItemMessage( hDlg, IDC_ALLOWVOTE_RESETMAP, BM_SETCHECK, ( !sv_noresetmapvote ? BST_CHECKED : BST_UNCHECKED ), 0 );
 		SendDlgItemMessage( hDlg, IDC_ALLOWVOTE_SPECTATOR, BM_SETCHECK, ( sv_nocallvote != 2 ? BST_CHECKED : BST_UNCHECKED ), 0 );
 
 		settings_AccessTab_ShowOrHideItems( hDlg );
