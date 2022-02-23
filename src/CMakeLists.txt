@@ -15,7 +15,7 @@ include( CheckLibraryExists )
 find_package( PythonInterp 3 REQUIRED )
 
 if( NOT APPLE )
-	option( NO_ASM "Disable assembly code" OFF )
+	option( NO_ASM "Disable assembly code" ON )
 else( NOT APPLE )
 	# At the moment asm code doesn't work with OS X, so disable by default
 	option( NO_ASM "Disable assembly code" ON )
@@ -156,6 +156,22 @@ if( WIN32 )
 		message( FATAL_ERROR "Could not find DirectX 9 libraries" )
 	endif( NOT DX_LIBS_FOUND )
 
+	if( NOT NO_OPENAL )
+	find_package( OpenAL )
+	mark_as_advanced(CLEAR OPENAL_INCLUDE_DIR)
+	if( OPENAL_INCLUDE_DIR )
+		include_directories( ${OPENAL_INCLUDE_DIR} )
+		mark_as_advanced(CLEAR OPENAL_LIBRARY)
+		if( OPENAL_LIBRARY )
+			set( ZDOOM_LIBS ${OPENAL_LIBRARY} ${ZDOOM_LIBS} )
+		else()
+			set( NO_OPENAL ON )
+		endif( OPENAL_LIBRARY )
+	endif( OPENAL_INCLUDE_DIR )
+	else()
+		set( NO_OPENAL ON )
+	endif( NOT NO_OPENAL )
+
 	set( ZDOOM_LIBS
 		wsock32
 		winmm
@@ -180,7 +196,11 @@ else( WIN32 )
 		# [BL] We need to compile without ASM code for now.
 		# [AL] OpenGL on OS X is enabled by default
 		set( NO_ASM ON )
-	else( APPLE )
+ 
+ 		if( NOT NO_OPENAL )
+ 			set( ZDOOM_LIBS ${ZDOOM_LIBS} "-framework OpenAL")
+ 		endif( NOT NO_OPENAL )	
+ 	else( APPLE )
 		option( NO_GTK "Disable GTK+ dialogs (Not applicable to Windows)" )
 		option( VALGRIND "Add special Valgrind sequences to self-modifying code" )
 		# [BB] Added SERVERONLY, NO_SOUND and NO_GL.
@@ -286,65 +306,80 @@ if( NOT NO_GL )
 	include_directories( ${OPENGL_INCLUDE_DIR} )
 endif( NOT NO_GL )
 
-# Decide on the name of the FMOD library we want to use.
+if( NOT NO_FMOD )
+ 	# Search for FMOD include files
+ 	if( NOT WIN32 )
+		find_path( FMOD_INCLUDE_DIR fmod.hpp
+ 			PATHS ${FMOD_LOCAL_INC_DIRS} )
+ 	endif( NOT WIN32 )
+  
+ 	if( NOT FMOD_INCLUDE_DIR )
+ 		find_path( FMOD_INCLUDE_DIR fmod.hpp
+ 			PATHS ${FMOD_SEARCH_PATHS}
+ 			${FMOD_INC_PATH_SUFFIXES} )
+ 	endif( NOT FMOD_INCLUDE_DIR )
+  
+ 	if( FMOD_INCLUDE_DIR )
+ 		message( STATUS "FMOD include files found at ${FMOD_INCLUDE_DIR}" )
+ 		include_directories( "${FMOD_INCLUDE_DIR}" )
+ 	else( FMOD_INCLUDE_DIR )
+ 		message( STATUS "Could not find FMOD include files" )
+ 		set( NO_FMOD ON )
+ 	endif( FMOD_INCLUDE_DIR )
+endif( NOT NO_FMOD )
+ 
+if( NOT NO_FMOD )
+ 	# Decide on the name of the FMOD library we want to use.
+ 	if( NOT FMOD_LIB_NAME AND MSVC )
+ 		set( FMOD_LIB_NAME fmodex${X64}_vc )
+ 	endif( NOT FMOD_LIB_NAME AND MSVC )
+  
+ 	if( NOT FMOD_LIB_NAME AND BORLAND )
+ 		set( FMOD_LIB_NAME fmodex${X64}_bc )
+ 	endif( NOT FMOD_LIB_NAME AND BORLAND )
+  
+ 	if( NOT FMOD_LIB_NAME )
+ 		set( FMOD_LIB_NAME fmodex${X64} )
+ 	endif( NOT FMOD_LIB_NAME )
+  
+ 	# Search for FMOD library
+ 	if( WIN32 OR APPLE )
+ 		find_library( FMOD_LIBRARY ${FMOD_LIB_NAME}
+ 			PATHS ${FMOD_SEARCH_PATHS}
+ 			${FMOD_LIB_PATH_SUFFIXES} )
+ 	else( WIN32 OR APPLE )
+ 		find_library( FMOD_LIBRARY
+ 			NAMES ${FMOD_VERSIONS}
+ 			PATHS ${FMOD_LOCAL_LIB_DIRS} )
+ 	endif( WIN32 OR APPLE )
+ 	
+ 	if( FMOD_LIBRARY )
+ 		message( STATUS "FMOD library found at ${FMOD_LIBRARY}" )
+ 		set( ZDOOM_LIBS ${ZDOOM_LIBS} "${FMOD_LIBRARY}" )
+ 	else( FMOD_LIBRARY )
+ 		message( STATUS "Could not find FMOD library" )
+ 		set( NO_FMOD ON )
+ 	endif( FMOD_LIBRARY )
+endif( NOT NO_FMOD )
+ 
+if( NO_FMOD )
+ 	add_definitions( -DNO_FMOD=1 )
+endif( NO_FMOD )
 
-if( NOT FMOD_LIB_NAME AND MSVC )
-	set( FMOD_LIB_NAME fmodex${X64}_vc )
-endif( NOT FMOD_LIB_NAME AND MSVC )
+if( NO_OPENAL )
+	add_definitions( -DNO_OPENAL=1 )
 
-if( NOT FMOD_LIB_NAME AND BORLAND )
-	set( FMOD_LIB_NAME fmodex${X64}_bc )
-endif( NOT FMOD_LIB_NAME AND BORLAND )
+	set(MPG123_FOUND NO)
+	set(SNDFILE_FOUND NO)
+else()
+	# Search for libSndFile
 
-if( NOT FMOD_LIB_NAME )
-	set( FMOD_LIB_NAME fmodex${X64} )
-endif( NOT FMOD_LIB_NAME )
+	find_package( SndFile )
 
+	# Search for libmpg123
 
-# Search for FMOD include files
-
-if( NOT WIN32 )
-	find_path( FMOD_INCLUDE_DIR fmod.hpp
-		PATHS ${FMOD_LOCAL_INC_DIRS} )
-endif( NOT WIN32 )
-
-if( NOT FMOD_INCLUDE_DIR )
-	find_path( FMOD_INCLUDE_DIR fmod.hpp
-		PATHS ${FMOD_SEARCH_PATHS}
-		${FMOD_INC_PATH_SUFFIXES} )
-endif( NOT FMOD_INCLUDE_DIR )
-
-if( FMOD_INCLUDE_DIR )
-	message( STATUS "FMOD include files found at ${FMOD_INCLUDE_DIR}" )
-else( FMOD_INCLUDE_DIR )
-	# [BB] Without sound, we don't need FMOD.
-	if ( NOT NO_SOUND )
-		message( SEND_ERROR "Could not find FMOD include files" )
-	endif ( NOT NO_SOUND )
-endif( FMOD_INCLUDE_DIR )
-
-
-# Search for FMOD library
-
-if( WIN32 OR APPLE )
-	find_library( FMOD_LIBRARY ${FMOD_LIB_NAME}
-		PATHS ${FMOD_SEARCH_PATHS}
-		${FMOD_LIB_PATH_SUFFIXES} )
-else( WIN32 OR APPLE )
-	find_library( FMOD_LIBRARY
-		NAMES ${FMOD_VERSIONS}
-		PATHS ${FMOD_LOCAL_LIB_DIRS} )
-endif( WIN32 OR APPLE )
-
-if( FMOD_LIBRARY )
-	message( STATUS "FMOD library found at ${FMOD_LIBRARY}" )
-else( FMOD_LIBRARY )
-	# [BB] Without sound, we don't need FMOD.
-	if ( NOT NO_SOUND )
-		message( SEND_ERROR "Could not find FMOD library" )
-	endif ( NOT NO_SOUND )
-endif( FMOD_LIBRARY )
-
+	find_package( MPG123 )
+endif()
 
 # Search for FluidSynth
 
@@ -657,8 +692,11 @@ message( STATUS "Fluid synth libs: ${FLUIDSYNTH_LIBRARIES}" )
 set( ZDOOM_LIBS ${ZDOOM_LIBS} "${ZLIB_LIBRARIES}" "${JPEG_LIBRARIES}" "${BZIP2_LIBRARIES}" "${GME_LIBRARIES}" )
 # [BB] Without sound, we don't need FMOD.
 if ( NOT NO_SOUND )
-	set( ZDOOM_LIBS ${ZDOOM_LIBS} "${FMOD_LIBRARY}" )
-	include_directories( "${ZLIB_INCLUDE_DIR}" "${FMOD_INCLUDE_DIR}" "${BZIP2_INCLUDE_DIR}" "${LZMA_INCLUDE_DIR}" "${JPEG_INCLUDE_DIR}" "${GME_INCLUDE_DIR}" )
+ 	set( ZDOOM_LIBS ${ZDOOM_LIBS} )
+ 	if( NOT NO_FMOD )
+ 		set( ZDOOM_LIBS ${ZDOOM_LIBS} "${FMOD_LIBRARY}" )
+ 	endif( NOT NO_FMOD )
+ 	include_directories( "${ZLIB_INCLUDE_DIR}" "${BZIP2_INCLUDE_DIR}" "${LZMA_INCLUDE_DIR}" "${JPEG_INCLUDE_DIR}" "${GME_INCLUDE_DIR}" )
 else ( NOT NO_SOUND )
 	include_directories( "${ZLIB_INCLUDE_DIR}" "${BZIP2_INCLUDE_DIR}" "${LZMA_INCLUDE_DIR}" "${JPEG_INCLUDE_DIR}" "${GME_INCLUDE_DIR}" )
 endif ( NOT NO_SOUND )
@@ -671,6 +709,14 @@ if( WIN32 )
 	set ( ZDOOM_LIBS ${ZDOOM_LIBS} crypt32 )
 endif ( WIN32 )
 
+if( SNDFILE_FOUND )
+    set( ZDOOM_LIBS ${ZDOOM_LIBS} "${SNDFILE_LIBRARIES}" )
+    include_directories( "${SNDFILE_INCLUDE_DIRS}" )
+endif( SNDFILE_FOUND )
+if( MPG123_FOUND )
+    set( ZDOOM_LIBS ${ZDOOM_LIBS} "${MPG123_LIBRARIES}" )
+    include_directories( "${MPG123_INCLUDE_DIR}" )
+endif( MPG123_FOUND )
 if( NOT DYN_FLUIDSYNTH)
 	if( FLUIDSYNTH_FOUND )
 		set( ZDOOM_LIBS ${ZDOOM_LIBS} "${FLUIDSYNTH_LIBRARIES}" )
@@ -818,6 +864,12 @@ else( SSE_MATTERS )
 	set( X86_SOURCES )
 endif( SSE_MATTERS )
 
+if( SNDFILE_FOUND )
+    add_definitions( -DHAVE_SNDFILE )
+endif( SNDFILE_FOUND )
+if( MPG123_FOUND )
+    add_definitions( -DHAVE_MPG123 )
+endif( MPG123_FOUND )
 if( DYN_FLUIDSYNTH )
 	add_definitions( -DHAVE_FLUIDSYNTH -DDYN_FLUIDSYNTH )
 elseif( FLUIDSYNTH_FOUND )
@@ -1347,6 +1399,7 @@ add_executable( zdoom WIN32
 	sound/fmodsound.cpp
 	sound/i_music.cpp
 	sound/i_sound.cpp
+	sound/mpg123_decoder.cpp
 	sound/music_cd.cpp
 	sound/music_dumb.cpp
 	sound/music_gme.cpp
@@ -1364,6 +1417,8 @@ add_executable( zdoom WIN32
 	sound/music_timidity_mididevice.cpp
 	sound/music_win_mididevice.cpp
 	sound/music_pseudo_mididevice.cpp
+	sound/oalsound.cpp
+	sound/sndfile_decoder.cpp
 	textures/animations.cpp
 	textures/anim_switches.cpp
 	textures/automaptexture.cpp
