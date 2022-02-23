@@ -156,6 +156,22 @@ if( WIN32 )
 		message( FATAL_ERROR "Could not find DirectX 9 libraries" )
 	endif( NOT DX_LIBS_FOUND )
 
+	if( NOT NO_OPENAL )
+	find_package( OpenAL )
+	mark_as_advanced(CLEAR OPENAL_INCLUDE_DIR)
+	if( OPENAL_INCLUDE_DIR )
+		include_directories( ${OPENAL_INCLUDE_DIR} )
+		mark_as_advanced(CLEAR OPENAL_LIBRARY)
+		if( OPENAL_LIBRARY )
+			set( ZDOOM_LIBS ${OPENAL_LIBRARY} ${ZDOOM_LIBS} )
+		else()
+			set( NO_OPENAL ON )
+		endif( OPENAL_LIBRARY )
+	endif( OPENAL_INCLUDE_DIR )
+	else()
+		set( NO_OPENAL ON )
+	endif( NOT NO_OPENAL )
+
 	set( ZDOOM_LIBS
 		wsock32
 		winmm
@@ -170,7 +186,7 @@ if( WIN32 )
 		setupapi
 		oleaut32 
 		DelayImp )
-else( WIN32 )
+
 	if( APPLE )
 		set( FMOD_SEARCH_PATHS "/Developer/FMOD Programmers API Mac/api" )
 		set( FMOD_INC_PATH_SUFFIXES PATH_SUFFIXES inc )
@@ -230,7 +246,7 @@ else( WIN32 )
 			else( XCURSOR_HEADER )
 				unset( XCURSOR_LIB )
 			endif( XCURSOR_HEADER )
-		endif( XCURSOR_LIB )
+		endif( XCURSOR_LIB ))
 	endif( APPLE )
 	set( NASM_NAMES nasm )
 	
@@ -286,20 +302,80 @@ if( NOT NO_GL )
 	include_directories( ${OPENGL_INCLUDE_DIR} )
 endif( NOT NO_GL )
 
-# Decide on the name of the FMOD library we want to use.
+if( NOT NO_FMOD )
+ 	# Search for FMOD include files
+ 	if( NOT WIN32 )
+		find_path( FMOD_INCLUDE_DIR fmod.hpp
+ 			PATHS ${FMOD_LOCAL_INC_DIRS} )
+ 	endif( NOT WIN32 )
+  
+ 	if( NOT FMOD_INCLUDE_DIR )
+ 		find_path( FMOD_INCLUDE_DIR fmod.hpp
+ 			PATHS ${FMOD_SEARCH_PATHS}
+ 			${FMOD_INC_PATH_SUFFIXES} )
+ 	endif( NOT FMOD_INCLUDE_DIR )
+  
+ 	if( FMOD_INCLUDE_DIR )
+ 		message( STATUS "FMOD include files found at ${FMOD_INCLUDE_DIR}" )
+ 		include_directories( "${FMOD_INCLUDE_DIR}" )
+ 	else( FMOD_INCLUDE_DIR )
+ 		message( STATUS "Could not find FMOD include files" )
+ 		set( NO_FMOD ON )
+ 	endif( FMOD_INCLUDE_DIR )
+endif( NOT NO_FMOD )
+ 
+if( NOT NO_FMOD )
+ 	# Decide on the name of the FMOD library we want to use.
+ 	if( NOT FMOD_LIB_NAME AND MSVC )
+ 		set( FMOD_LIB_NAME fmodex${X64}_vc )
+ 	endif( NOT FMOD_LIB_NAME AND MSVC )
+  
+ 	if( NOT FMOD_LIB_NAME AND BORLAND )
+ 		set( FMOD_LIB_NAME fmodex${X64}_bc )
+ 	endif( NOT FMOD_LIB_NAME AND BORLAND )
+  
+ 	if( NOT FMOD_LIB_NAME )
+ 		set( FMOD_LIB_NAME fmodex${X64} )
+ 	endif( NOT FMOD_LIB_NAME )
+  
+ 	# Search for FMOD library
+ 	if( WIN32 OR APPLE )
+ 		find_library( FMOD_LIBRARY ${FMOD_LIB_NAME}
+ 			PATHS ${FMOD_SEARCH_PATHS}
+ 			${FMOD_LIB_PATH_SUFFIXES} )
+ 	else( WIN32 OR APPLE )
+ 		find_library( FMOD_LIBRARY
+ 			NAMES ${FMOD_VERSIONS}
+ 			PATHS ${FMOD_LOCAL_LIB_DIRS} )
+ 	endif( WIN32 OR APPLE )
+ 	
+ 	if( FMOD_LIBRARY )
+ 		message( STATUS "FMOD library found at ${FMOD_LIBRARY}" )
+ 		set( ZDOOM_LIBS ${ZDOOM_LIBS} "${FMOD_LIBRARY}" )
+ 	else( FMOD_LIBRARY )
+ 		message( STATUS "Could not find FMOD library" )
+ 		set( NO_FMOD ON )
+ 	endif( FMOD_LIBRARY )
+endif( NOT NO_FMOD )
+ 
+if( NO_FMOD )
+ 	add_definitions( -DNO_FMOD=1 )
+endif( NO_FMOD )
 
-if( NOT FMOD_LIB_NAME AND MSVC )
-	set( FMOD_LIB_NAME fmodex${X64}_vc )
-endif( NOT FMOD_LIB_NAME AND MSVC )
+if( NO_OPENAL )
+	add_definitions( -DNO_OPENAL=1 )
 
-if( NOT FMOD_LIB_NAME AND BORLAND )
-	set( FMOD_LIB_NAME fmodex${X64}_bc )
-endif( NOT FMOD_LIB_NAME AND BORLAND )
+	set(MPG123_FOUND NO)
+	set(SNDFILE_FOUND NO)
+else()
+	# Search for libSndFile
 
-if( NOT FMOD_LIB_NAME )
-	set( FMOD_LIB_NAME fmodex${X64} )
-endif( NOT FMOD_LIB_NAME )
+	find_package( SndFile )
 
+	# Search for libmpg123
+
+	find_package( MPG123 )
+endif()
 
 # Search for FMOD include files
 
