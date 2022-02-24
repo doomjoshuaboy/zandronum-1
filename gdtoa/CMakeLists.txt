@@ -12,7 +12,6 @@ if( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STRE
 	set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra" )
 endif( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" )
 
->>>>>>> 77ff70ccd (Initial commit)
 include_directories( ${CMAKE_CURRENT_BINARY_DIR} )
 add_definitions( -DINFNAN_CHECK -DMULTIPLE_THREADS )
 
