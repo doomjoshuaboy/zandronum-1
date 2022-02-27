@@ -49,7 +49,7 @@
 #include <errno.h>
 #include <stdarg.h>
 #include <signal.h>
-#if !defined(__APPLE__)
+#if !defined(__APPLE__) && !defined(__FreeBSD__)
 #include <malloc.h>
 #endif
 #include <time.h>
@@ -77,6 +77,7 @@
 #include <GL/glu.h>
 #include "gl/api/glext.h"
 #endif
+
 #include "gl/glad/glad.h"
 
 #ifdef _WIN32
