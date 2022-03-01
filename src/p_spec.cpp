@@ -971,7 +971,7 @@ void P_UpdateSpecials ()
 					V_ColorizeString( szString );
 
 					// Display "%s WINS!" HUD message.
-					HUD_DrawStandardMessage( szString, CR_RED, 3.0f, 2.0f, true );
+					HUD_DrawStandardMessage( szString, CR_RED, false, 3.0f, 2.0f, true );
 
 					GAME_SetEndLevelDelay( 5 * TICRATE );
 				}
