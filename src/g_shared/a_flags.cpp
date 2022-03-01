@@ -1099,7 +1099,7 @@ void AWhiteFlag::DisplayFlagTaken( AActor *pToucher )
 
 void AWhiteFlag::MarkFlagTaken( bool bTaken )
 {
-	TEAM_SetWhiteFlagTaken( bTaken );
+	TEAM_SetItemTaken( teams.Size( ), bTaken );
 }
 
 //===========================================================================
@@ -1129,7 +1129,7 @@ void AWhiteFlag::ReturnFlag( AActor *pReturner )
 	AActor	*pActor;
 
 	// Respawn the white flag.
-	WhiteFlagOrigin = TEAM_GetWhiteFlagOrigin( );
+	WhiteFlagOrigin = TEAM_GetItemOrigin( teams.Size( ));
 	pActor = Spawn( this->GetClass( ), WhiteFlagOrigin.x, WhiteFlagOrigin.y, WhiteFlagOrigin.z, NO_REPLACE );
 
 	// If we're the server, tell clients to spawn the new skull.
@@ -1141,7 +1141,7 @@ void AWhiteFlag::ReturnFlag( AActor *pReturner )
 		pActor->flags &= ~MF_DROPPED;
 
 	// Mark the white flag as no longer being taken.
-	TEAM_SetWhiteFlagTaken( false );
+	TEAM_SetItemTaken( teams.Size( ), false );
 
 	// [AK] Trigger an event script. Since the white flag doesn't belong to any team, don't pass any team's ID.
 	GAMEMODE_HandleEvent( GAMEEVENT_RETURNS, NULL, teams.Size() );

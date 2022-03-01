@@ -3089,6 +3089,7 @@ void GAME_CheckMode( void )
 		{
 			if ( GAMEMODE_GetCurrentFlags() & GMF_USEFLAGASTEAMITEM )
 			{
+				POS_t Origin;
 				TEAM_SetSimpleCTFSTMode( true );
 
 				while ( (pItem = iterator.Next( )))
@@ -3097,8 +3098,6 @@ void GAME_CheckMode( void )
 					{
 						if ( pItem->GetClass( ) == TEAM_GetItem( i ))
 						{
-							POS_t	Origin;
-
 							Origin.x = pItem->x;
 							Origin.y = pItem->y;
 							Origin.z = pItem->z;
@@ -3109,13 +3108,11 @@ void GAME_CheckMode( void )
 
 					if ( pItem->IsKindOf( PClass::FindClass( "WhiteFlag" )))
 					{
-						POS_t	Origin;
-
 						Origin.x = pItem->x;
 						Origin.y = pItem->y;
 						Origin.z = pItem->z;
 
-						TEAM_SetWhiteFlagOrigin( Origin );
+						TEAM_SetTeamItemOrigin( teams.Size( ), Origin );
 					}
 				}
 			}
