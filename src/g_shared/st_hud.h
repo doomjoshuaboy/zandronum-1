@@ -77,6 +77,7 @@ void	HUD_DrawFragMessage( player_t *pFraggedPlayer, bool bFraggedBy );
 void	HUD_DrawStandardMessage( const char *pszMessage, EColorRange color, const bool bClearScreen = false, float fHoldTime = 3.0f, float fOutTime = 2.0f, const bool bInformClients = false );
 void	HUD_DrawCNTRMessage( const char *pszMessage, EColorRange color, float fHoldTime = 3.0f, float fOutTime = 0.25f, const bool bInformClients = false, const ULONG ulPlayerExtra = MAXPLAYERS, const ULONG ulFlags = 0 );
 void	HUD_DrawSUBSMessage( const char *pszMessage, EColorRange color, float fHoldTime = 3.0f, float fOutTime = 0.25f, const bool bInformClients = false, const ULONG ulPlayerExtra = MAXPLAYERS, const ULONG ulFlags = 0 );
+void	HUD_ClearFragAndPlaceMessages( const bool bInformClients );
 bool	HUD_ShouldDrawRank( ULONG ulPlayer );
 bool	HUD_IsTied( ULONG ulPlayerNum );
 bool	HUD_IsTied( void );
