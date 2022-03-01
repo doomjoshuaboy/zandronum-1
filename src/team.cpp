@@ -170,7 +170,7 @@ void TEAM_Reset( void )
 		}
 	}
 
-	TEAM_SetWhiteFlagTaken( false );
+	g_bWhiteFlagTaken = false;
 	g_ulWhiteFlagReturnTicks = 0;
 }
 
@@ -1394,56 +1394,40 @@ void TEAM_SetSimpleCTFSTMode( bool bSimple )
 //
 bool TEAM_GetItemTaken( ULONG ulTeamIdx )
 {
-	return ( teams[ulTeamIdx].g_bTaken );
+	if ( TEAM_CheckIfValid( ulTeamIdx ))
+		return ( teams[ulTeamIdx].g_bTaken );
+
+	return ( g_bWhiteFlagTaken );
 }
 
 //*****************************************************************************
 //
 void TEAM_SetItemTaken( ULONG ulTeamIdx, bool bTaken )
 {
-	teams[ulTeamIdx].g_bTaken = bTaken;
-}
-
-//*****************************************************************************
-//
-bool TEAM_GetWhiteFlagTaken( void )
-{
-	return ( g_bWhiteFlagTaken );
-}
-
-//*****************************************************************************
-//
-void TEAM_SetWhiteFlagTaken( bool bTaken )
-{
-	g_bWhiteFlagTaken = bTaken;
+	if ( TEAM_CheckIfValid( ulTeamIdx ))
+		teams[ulTeamIdx].g_bTaken = bTaken;
+	else
+		g_bWhiteFlagTaken = bTaken;
 }
 
 //*****************************************************************************
 //
 POS_t TEAM_GetItemOrigin( ULONG ulTeamIdx )
 {
-	return ( teams[ulTeamIdx].g_Origin );
+	if ( TEAM_CheckIfValid( ulTeamIdx ))
+		return ( teams[ulTeamIdx].g_Origin );
+
+	return ( g_WhiteFlagOrigin );
 }
 
 //*****************************************************************************
 //
 void TEAM_SetTeamItemOrigin( ULONG ulTeamIdx, POS_t Origin )
 {
-	teams[ulTeamIdx].g_Origin = Origin;
-}
-
-//*****************************************************************************
-//
-POS_t TEAM_GetWhiteFlagOrigin( void )
-{
-	return ( g_WhiteFlagOrigin );
-}
-
-//*****************************************************************************
-//
-void TEAM_SetWhiteFlagOrigin( POS_t Origin )
-{
-	g_WhiteFlagOrigin = Origin;
+	if ( TEAM_CheckIfValid( ulTeamIdx ))
+		teams[ulTeamIdx].g_Origin = Origin;
+	else
+		g_WhiteFlagOrigin = Origin;
 }
 
 //*****************************************************************************
