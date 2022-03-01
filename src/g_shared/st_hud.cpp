@@ -888,12 +888,16 @@ void HUD_DrawFragMessage( player_t *pPlayer, bool bFraggedBy )
 
 //*****************************************************************************
 //
-void HUD_DrawStandardMessage( const char *pszMessage, EColorRange color, float fHoldTime, float fOutTime, const bool bInformClients )
+void HUD_DrawStandardMessage( const char *pszMessage, EColorRange color, const bool bClearScreen, float fHoldTime, float fOutTime, const bool bInformClients )
 {
 	const LONG lId = MAKE_ID( 'C', 'N', 'T', 'R' );
 
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 	{
+		// [EP] Clear all the HUD messages.
+		if ( bClearScreen )
+			StatusBar->DetachAllMessages( );
+
 		// Display the HUD message.
 		DHUDMessageFadeOut *pMsg = new DHUDMessageFadeOut( BigFont, pszMessage, 160.4f, 75.0f, 320, 200, color, fHoldTime, fOutTime );
 		StatusBar->AttachMessage( pMsg, lId );
