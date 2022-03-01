@@ -634,62 +634,29 @@ void AActor::Die (AActor *source, AActor *inflictor, int dmgflags)
 					// End the level after five seconds.
 					else
 					{
-						char				szString[64];
-						DHUDMessageFadeOut	*pMsg;
+						FString message;
+						EColorRange color = CR_RED;
 
 						// Just print "YOU WIN!" in single player.
 						if (( NETWORK_GetState( ) == NETSTATE_SINGLE_MULTIPLAYER ) && ( players[consoleplayer].mo->CheckLocalView( source->player - players )))
-							sprintf( szString, "\\cGYOU WIN!" );
+						{
+							message = "YOU WIN!";
+						}
 						else if (( teamplay ) && ( source->player->bOnTeam ))
-							sprintf( szString, "\\c%s%s wins!\n", TEAM_GetTextColorName( source->player->Team ), TEAM_GetName( source->player->Team ));
-						else
-							sprintf( szString, "%s \\cGWINS!", players[source->player - players].userinfo.GetName() );
-						V_ColorizeString( szString );
-
-						if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 						{
-							// Display "%s WINS!" HUD message.
-							pMsg = new DHUDMessageFadeOut( BigFont, szString,
-								160.4f,
-								75.0f,
-								320,
-								200,
-								CR_WHITE,
-								3.0f,
-								2.0f );
-
-							StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
-
-							szString[0] = 0;
-							pMsg = new DHUDMessageFadeOut( SmallFont, szString,
-								0.0f,
-								0.0f,
-								0,
-								0,
-								CR_RED,
-								3.0f,
-								2.0f );
-
-							StatusBar->AttachMessage( pMsg, MAKE_ID('F','R','A','G') );
-
-							pMsg = new DHUDMessageFadeOut( SmallFont, szString,
-								0.0f,
-								0.0f,
-								0,
-								0,
-								CR_RED,
-								3.0f,
-								2.0f );
-
-							StatusBar->AttachMessage( pMsg, MAKE_ID('P','L','A','C') );
+							message.Format( "%s wins!", TEAM_GetName( source->player->Team ));
+							color = static_cast<EColorRange>( TEAM_GetTextColor( source->player->Team ));
 						}
 						else
 						{
-							SERVERCOMMANDS_PrintHUDMessage( szString, 160.4f, 75.0f, 320, 200, HUDMESSAGETYPE_FADEOUT, CR_WHITE, 3.0f, 0.0f, 2.0f, "BigFont", MAKE_ID( 'C', 'N', 'T', 'R' ) );
-							szString[0] = 0;
-							SERVERCOMMANDS_PrintHUDMessage( szString, 0.0f, 0.0f, 0, 0, HUDMESSAGETYPE_FADEOUT, CR_WHITE, 3.0f, 0.0f, 2.0f, "BigFont", MAKE_ID( 'F', 'R', 'A', 'G' ) );
-							SERVERCOMMANDS_PrintHUDMessage( szString, 0.0f, 0.0f, 0, 0, HUDMESSAGETYPE_FADEOUT, CR_WHITE, 3.0f, 0.0f, 2.0f, "BigFont", MAKE_ID( 'P', 'L', 'A', 'C' ) );
+							message.Format( "%s WINS!", players[source->player - players].userinfo.GetName( ));
 						}
+
+						// Display "%s WINS!" HUD message.
+						HUD_DrawStandardMessage( message, color, false, 3.0f, 2.0f, true );
+
+						// [AK] Clear the frag and place HUD messages from the screen.
+						HUD_ClearFragAndPlaceMessages( true );
 
 						GAME_SetEndLevelDelay( 5 * TICRATE );
 					}
