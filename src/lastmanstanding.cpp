@@ -367,8 +367,6 @@ void LASTMANSTANDING_StartCountdown( ULONG ulTicks )
 //
 void LASTMANSTANDING_DoFight( void )
 {
-	DHUDMessageFadeOut	*pMsg;
-
 	// The match is now in progress.
 	if ( NETWORK_InClientMode() == false )
 	{
@@ -391,20 +389,8 @@ void LASTMANSTANDING_DoFight( void )
 		// Play fight sound.
 		ANNOUNCER_PlayEntry( cl_announcer, "Fight" );
 
-		// [EP] Clear all the HUD messages.
-		StatusBar->DetachAllMessages();
-
 		// Display "FIGHT!" HUD message.
-		pMsg = new DHUDMessageFadeOut( BigFont, "FIGHT!",
-			160.4f,
-			75.0f,
-			320,
-			200,
-			CR_RED,
-			2.0f,
-			1.0f );
-
-		StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
+		HUD_DrawStandardMessage( "FIGHT!", CR_RED, true, 2.0f, 1.0f );
 	}
 	// Display a little thing in the server window so servers can know when matches begin.
 	else
@@ -435,56 +421,36 @@ void LASTMANSTANDING_DoWinSequence( ULONG ulWinner )
 
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 	{
-		char				szString[64];
-		DHUDMessageFadeOut	*pMsg;
+		FString message;
+		EColorRange color = CR_GREEN;
 
 		if ( teamlms )
 		{
-			if ( ulWinner == teams.Size( ) )
-				sprintf( szString, "\\cdDraw Game!" );
+			if ( ulWinner == teams.Size( ))
+			{
+				message = "Draw Game!";
+			}
 			else
-				sprintf( szString, "\\c%s%s Wins!", TEAM_GetTextColorName( ulWinner ), TEAM_GetName( ulWinner ));
+			{
+				message.Format( "%s Wins!", TEAM_GetName( ulWinner ));
+				color = static_cast<EColorRange>( TEAM_GetTextColor( ulWinner ));
+			}
 		}
 		else if ( ulWinner == MAXPLAYERS )
-			sprintf( szString, "\\cdDRAW GAME!" );
+		{
+			message = "DRAW GAME!";
+		}
 		else
-			sprintf( szString, "%s \\c-WINS!", players[ulWinner].userinfo.GetName() );
-		V_ColorizeString( szString );
+		{
+			message.Format( "%s WINS!", players[ulWinner].userinfo.GetName( ));
+			color = CR_RED;
+		}
 
 		// Display "%s WINS!" HUD message.
-		pMsg = new DHUDMessageFadeOut( BigFont, szString,
-			160.4f,
-			75.0f,
-			320,
-			200,
-			CR_RED,
-			3.0f,
-			2.0f );
+		HUD_DrawStandardMessage( message, color );
 
-		StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
-
-		szString[0] = 0;
-		pMsg = new DHUDMessageFadeOut( SmallFont, szString,
-			0.0f,
-			0.0f,
-			0,
-			0,
-			CR_RED,
-			3.0f,
-			2.0f );
-
-		StatusBar->AttachMessage( pMsg, MAKE_ID('F','R','A','G') );
-
-		pMsg = new DHUDMessageFadeOut( SmallFont, szString,
-			0.0f,
-			0.0f,
-			0,
-			0,
-			CR_RED,
-			3.0f,
-			2.0f );
-
-		StatusBar->AttachMessage( pMsg, MAKE_ID('P','L','A','C') );
+		// [AK] Clear the frag and place HUD messages from the screen.
+		HUD_ClearFragAndPlaceMessages( false );
 	}
 
 	// Award a victory or perfect medal to the winner.
@@ -520,8 +486,6 @@ void LASTMANSTANDING_TimeExpired( void )
 	bool				bTie = false;
 	bool				bFoundPlayer = false;
 	LONG				lWinner = -1;
-	DHUDMessageFadeOut	*pMsg;
-	char				szString[64];
 
 	// Don't end the level if we're not in a game.
 	if ( LASTMANSTANDING_GetState( ) != LMSS_INPROGRESS )
@@ -578,30 +542,8 @@ void LASTMANSTANDING_TimeExpired( void )
 	if ( bTie )
 	{
 		// Only print the message the instant we reach sudden death.
-		if ( level.time == (int)( timelimit * TICRATE * 60 ))
-		{
-			sprintf( szString, "\\cdSUDDEN DEATH!" );
-			V_ColorizeString( szString );
-
-			if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-			{
-				// Display the HUD message.
-				pMsg = new DHUDMessageFadeOut( BigFont, szString,
-					160.4f,
-					75.0f,
-					320,
-					200,
-					CR_RED,
-					3.0f,
-					2.0f );
-
-				StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
-			}
-			else
-			{
-				SERVERCOMMANDS_PrintHUDMessage( szString, 160.4f, 75.0f, 320, 200, HUDMESSAGETYPE_FADEOUT, CR_RED, 3.0f, 0.0f, 2.0f, "BigFont", MAKE_ID( 'C', 'N', 'T', 'R' ) );
-			}
-		}
+		if ( level.time == static_cast<int>( timelimit * TICRATE * 60 ))
+			HUD_DrawStandardMessage( "SUDDEN DEATH!", CR_GREEN, false, 3.0f, 2.0f, true );
 
 		return;
 	}
