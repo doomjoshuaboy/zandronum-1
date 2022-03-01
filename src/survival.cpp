@@ -202,8 +202,6 @@ void SURVIVAL_StartCountdown( ULONG ulTicks )
 //
 void SURVIVAL_DoFight( void )
 {
-	DHUDMessageFadeOut	*pMsg;
-
 	// The battle is now in progress.
 	if ( NETWORK_InClientMode() == false )
 	{
@@ -225,20 +223,8 @@ void SURVIVAL_DoFight( void )
 		// Play fight sound.
 		ANNOUNCER_PlayEntry( cl_announcer, "Fight" );
 
-		// [EP] Clear all the HUD messages.
-		StatusBar->DetachAllMessages();
-
 		// Display "FIGHT!" HUD message.
-		pMsg = new DHUDMessageFadeOut( BigFont, "FIGHT!",
-			160.4f,
-			75.0f,
-			320,
-			200,
-			CR_RED,
-			2.0f,
-			1.0f );
-
-		StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
+		HUD_DrawStandardMessage( "FIGHT!", CR_RED, true, 2.0f, 1.0f );
 	}
 	// Display a little thing in the server window so servers can know when matches begin.
 	else
@@ -363,25 +349,7 @@ void SURVIVAL_SetState( SURVIVALSTATE_e State )
 		g_SurvivalResetMap = !(zadmflags & ZADF_SURVIVAL_NO_MAP_RESET_ON_DEATH); // yay for double-negation
 
 		if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-		{
-			DHUDMessageFadeOut	*pMsg;
-
-			const char *text = "";
-			if ( g_SurvivalResetMap )
-				text = "MISSION FAILED!";
-			else
-				text = "ALL PLAYERS DIED.\nRESPAWNING.";
-			pMsg = new DHUDMessageFadeOut( BigFont, text,
-				160.4f,
-				75.0f,
-				320,
-				200,
-				CR_RED,
-				3.0f,
-				2.0f );
-
-			StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
-		}
+			HUD_DrawStandardMessage( g_SurvivalResetMap ? "MISSION FAILED!" : "ALL PLAYERS DIED.\nRESPAWNING.", CR_RED );
 		break;
 	default:
 		break;
