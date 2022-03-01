@@ -108,40 +108,9 @@ CVAR( Bool, sv_forcerandomclass, false, 0 )
 
 void TEAM_Construct( void )
 {
-	for ( ULONG i = 0; i < teams.Size( ); i++ )
-	{
-		TEAM_SetPointCount( i, 0, false );
-		TEAM_SetReturnTicks( i, 0 );
-		TEAM_SetFragCount( i, 0, false );
-		TEAM_SetDeathCount( i, 0 );
-		TEAM_SetWinCount( i, 0, false );
-		TEAM_SetCarrier( i, NULL );
-		TEAM_SetItemTaken( i, false );
-		TEAM_SetAnnouncedLeadState( i, false );
-		TEAM_SetAssistPlayer( i, MAXPLAYERS );
-
-		teams[i].g_Origin.x = 0;
-		teams[i].g_Origin.y = 0;
-		teams[i].g_Origin.z = 0;
-
-		switch ( i )
-		{
-		case 0:
-			teams[i].ulReturnScriptOffset = SCRIPT_BlueReturn;
-			break;
-		case 1:
-			teams[i].ulReturnScriptOffset = SCRIPT_RedReturn;
-			break;
-		default:
-			break;
-		}
-	}
-
 	// Start off in regular CTF/ST mode.
 	TEAM_SetSimpleCTFSTMode( false );
-
-	TEAM_SetWhiteFlagTaken( false );
-	g_ulWhiteFlagReturnTicks = 0;
+	TEAM_Reset( );
 }
 
 //*****************************************************************************
