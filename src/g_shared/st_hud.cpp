@@ -949,6 +949,28 @@ void HUD_DrawSUBSMessage( const char *pszMessage, EColorRange color, float fHold
 
 //*****************************************************************************
 //
+void HUD_ClearFragAndPlaceMessages( const bool bInformClients )
+{
+	const LONG lFragId = MAKE_ID( 'F', 'R', 'A', 'G' );
+	const LONG lPlaceId = MAKE_ID( 'P', 'L', 'A', 'C' );
+
+	// [AK] If we're not the server, we can just detach the messages. Otherwise, we'll send the clients
+	// two empty HUD messages to override the corresponding IDs. Note that due to several optimizations,
+	// the width/height and font ("SmallFont" is the default) aren't sent to conserve bandwidth.
+	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+	{
+		StatusBar->DetachMessage( lFragId );
+		StatusBar->DetachMessage( lPlaceId );
+	}
+	else if ( bInformClients )
+	{
+		SERVERCOMMANDS_PrintHUDMessage( "", 0.0f, 0.0f, 0, 0, HUDMESSAGETYPE_NORMAL, CR_UNTRANSLATED, 0.0f, 0.0f, 0.0f, "SmallFont", lFragId );
+		SERVERCOMMANDS_PrintHUDMessage( "", 0.0f, 0.0f, 0, 0, HUDMESSAGETYPE_NORMAL, CR_UNTRANSLATED, 0.0f, 0.0f, 0.0f, "SmallFont", lPlaceId );
+	}
+}
+
+//*****************************************************************************
+//
 // [TP]
 //
 bool HUD_ShouldDrawRank( ULONG ulPlayer )
