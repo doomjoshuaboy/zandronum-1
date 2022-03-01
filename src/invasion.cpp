@@ -875,7 +875,6 @@ void INVASION_StartCountdown( ULONG ulTicks )
 //
 void INVASION_BeginWave( ULONG ulWave )
 {
-	DHUDMessageFadeOut							*pMsg;
 	AActor										*pActor;
 	AActor										*pFog;
 	ABaseMonsterInvasionSpot					*pMonsterSpot;
@@ -908,16 +907,7 @@ void INVASION_BeginWave( ULONG ulWave )
 		ANNOUNCER_PlayEntry( cl_announcer, "Fight" );
 
 		// Display "BEGIN!" HUD message.
-		pMsg = new DHUDMessageFadeOut( BigFont, "BEGIN!",
-			160.4f,
-			75.0f,
-			320,
-			200,
-			CR_RED,
-			2.0f,
-			1.0f );
-
-		StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
+		HUD_DrawStandardMessage( "BEGIN!", CR_RED, false, 2.0f, 1.0f );
 	}
 	// Display a little thing in the server window so servers can know when waves begin.
 	else
@@ -1193,26 +1183,15 @@ void INVASION_DoWaveComplete( void )
 
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 	{
-		char				szString[32];
-		DHUDMessageFadeOut	*pMsg;
+		FString message;
 
 		if ( static_cast<LONG>( g_CurrentWave ) == wavelimit )
-			sprintf( szString, "VICTORY!" );
+			message = "VICTORY!";
 		else
-			sprintf( szString, "WAVE %d COMPLETE!", static_cast<unsigned int>( g_CurrentWave ));
-		V_ColorizeString( szString );
+			message.Format( "WAVE %d COMPLETE!", static_cast<unsigned int>( g_CurrentWave ));
 
 		// Display "VICTORY!"/"WAVE %d COMPLETE!" HUD message.
-		pMsg = new DHUDMessageFadeOut( BigFont, szString,
-			160.4f,
-			75.0f,
-			320,
-			200,
-			CR_RED,
-			3.0f,
-			2.0f );
-
-		StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
+		HUD_DrawStandardMessage( message, CR_RED );
 	}
 
 	if ( NETWORK_InClientMode() == false )
