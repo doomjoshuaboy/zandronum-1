@@ -1105,49 +1105,19 @@ drawfullconsole:
 	}
 	if ( NETWORK_InClientMode() )
 	{
+		FString message;
+
 		// Draw a "Waiting for server..." message if the server is lagging.
 		if ( CLIENT_GetServerLagging( ) == true )
-		{
-			USHORT				usTextColor;
-			char				szString[64];
-			DHUDMessageFadeOut	*pMsg;
-
-			// Build the string and text color;
-			sprintf( szString, "Waiting for server..." );
-			usTextColor = CR_GREEN;
-
-			pMsg = new DHUDMessageFadeOut( SmallFont, szString,
-				1.5f,
-				0.9f,
-				0,
-				0,
-				(EColorRange)usTextColor,
-				0.15f,
-				0.35f );
-
-			StatusBar->AttachMessage( pMsg, MAKE_ID('C','L','A','G') );
-		}
+			message = "Waiting for server...";
 		// Draw a "CONNECTION INTERRUPTED" message if the client is lagging.
 		else if ( CLIENT_GetClientLagging( ) == true )
+			message = "CONNECTION INTERRUPTED!";
+
+		if ( message.Len( ) > 0 )
 		{
-			USHORT				usTextColor;
-			char				szString[64];
-			DHUDMessageFadeOut	*pMsg;
-
-			// Build the string and text color;
-			sprintf( szString, "CONNECTION INTERRUPTED!" );
-			usTextColor = CR_GREEN;
-
-			pMsg = new DHUDMessageFadeOut( SmallFont, szString,
-				1.5f,
-				0.9f,
-				0,
-				0,
-				(EColorRange)usTextColor,
-				0.15f,
-				0.35f );
-
-			StatusBar->AttachMessage( pMsg, MAKE_ID('C','L','A','G') );
+			DHUDMessageFadeOut *pMsg = new DHUDMessageFadeOut( SmallFont, message, 1.5f, 0.9f, 0, 0, CR_GREEN, 0.15f, 0.35f );
+			StatusBar->AttachMessage( pMsg, MAKE_ID( 'C', 'L', 'A', 'G' ));
 		}
 	}
 

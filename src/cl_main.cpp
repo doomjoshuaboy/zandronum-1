@@ -1199,20 +1199,11 @@ void CLIENT_CheckForMissingPackets( void )
 				// [Leo] Print how many packets we missed.
 				if ( cl_showpacketloss )
 				{
-					char szString[64];
-					DHUDMessageFadeOut *pMsg;
-					sprintf( szString, "Client missed %d packets.", static_cast<int>( g_lHighestReceivedSequence - g_lLastParsedSequence ) );
+					FString message;
+					message.Format( "Client missed %d packets.", static_cast<int>( g_lHighestReceivedSequence - g_lLastParsedSequence ));
 
-					pMsg = new DHUDMessageFadeOut( SmallFont, szString,
-						1.5f,
-						0.9f,
-						0,
-						0,
-						(EColorRange)CR_GREEN,
-						2.f,
-						0.35f );
-
-					StatusBar->AttachMessage( pMsg, MAKE_ID('P','C','K','T') );
+					DHUDMessageFadeOut *pMsg = new DHUDMessageFadeOut( SmallFont, message, 1.5f, 0.9f, 0, 0, CR_GREEN, 2.f, 0.35f );
+					StatusBar->AttachMessage( pMsg, MAKE_ID( 'P', 'C', 'K', 'T' ));
 				}
 			}
 		}
