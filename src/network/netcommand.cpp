@@ -76,6 +76,9 @@ bool ClientIterator::isCurrentValid ( ) const {
 	if ( ( _flags & SVCF_ONLY_CONNECTIONTYPE_1 ) && ( players[_current].userinfo.GetConnectionType() != 1 ) )
 		return false;
 
+	if ( ( _flags & SVCF_SKIP_CLIENTS_WITHOUT_FULLUPDATE ) && ( SERVER_GetClient( _current )->State == CLS_SPAWNED_BUT_NEEDS_AUTHENTICATION ) && ( gamestate == GS_LEVEL ) )
+		return false;
+
 	return true;
 }
 
@@ -277,6 +280,9 @@ BYTESTREAM_s& NetCommand::getBytestreamForClient( ULONG i ) const
 //
 void NetCommand::sendCommandToClients ( ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
+	if ( ( flags == 0 ) && ( ulPlayerExtra == MAXPLAYERS ) && ( static_cast<SVC>( _buffer.pbData[0] ) != SVC_MAPAUTHENTICATE ) )
+		flags |= SVCF_SKIP_CLIENTS_WITHOUT_FULLUPDATE;
+
 	for ( ClientIterator it ( ulPlayerExtra, flags ); it.notAtEnd(); ++it )
 		sendCommandToOneClient( *it );
 }
