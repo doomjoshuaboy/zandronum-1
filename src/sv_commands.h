@@ -71,7 +71,8 @@ enum ServerCommandFlag
 	SVCF_SKIPTHISCLIENT			= ( 1 << 0 ),
 	SVCF_ONLYTHISCLIENT			= ( 1 << 1 ),
 	SVCF_ONLY_CONNECTIONTYPE_0	= ( 1 << 2 ),
-	SVCF_ONLY_CONNECTIONTYPE_1	= ( 1 << 3 )
+	SVCF_ONLY_CONNECTIONTYPE_1	= ( 1 << 3 ),
+	SVCF_SKIP_CLIENTS_WITHOUT_FULLUPDATE	= ( 1 << 4 )
 };
 
 typedef TFlags<ServerCommandFlag, unsigned int> ServerCommandFlags;
