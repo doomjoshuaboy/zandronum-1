@@ -1608,6 +1608,7 @@ OptionMenu SoundOptions
 	Slider "Sound channels",	"snd_channels", 8, 256, 8, 0
 	Option "Play connect sound", "cl_connectsound", "YesNo" // [TP]
 	Option "Multiple announcer sounds", "cl_allowmultipleannouncersounds", "YesNo" // [TP]
+	Option "Lock music",		"snd_lockmusic", "YesNo" // [AK]
 	StaticText " "
 	Command "Restart sound",	"snd_reset"
 	StaticText " "
