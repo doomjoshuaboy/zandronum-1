@@ -5369,6 +5369,7 @@ enum EACSFunctions
 	ACSF_GetCurrentMapPosition,
 	ACSF_GetEventResult,
 	ACSF_GetActorSectorLocation,
+	ACSF_ChangeTeamScore,
 
 	// ZDaemon
 	ACSF_GetTeamScore = 19620,	// (int team)
@@ -7749,6 +7750,63 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 				}
 
 				return GlobalACSStrings.AddString( "" );
+			}
+
+		case ACSF_ChangeTeamScore:
+			{
+				const ULONG ulTeam = static_cast<ULONG>( args[0] );
+				const bool bAnnounce = argCount > 3 ? !!args[3] : true;
+
+				// [AK] With the exception of frags, the new score must not be a negative value.
+				const LONG lScore = ( args[1] == SCORE_FRAGS || args[2] >= 0 ) ? args[2] : 0;
+
+				if ( TEAM_CheckIfValid( ulTeam ) )
+				{
+					switch ( args[1] )
+					{
+						case SCORE_FRAGS:
+						{
+							// [AK] Don't do anything if the frag count won't change.
+							if ( teams[ulTeam].lFragCount == lScore )
+								return 0;
+
+							TEAM_SetFragCount( ulTeam, lScore, bAnnounce );
+							return 1;
+						}
+
+						case SCORE_POINTS:
+						{
+							// [AK] Don't do anything if the point count won't change.
+							if ( teams[ulTeam].lPointCount == lScore )
+								return 0;
+
+							TEAM_SetPointCount( ulTeam, lScore, bAnnounce );
+							return 1;
+						}
+
+						case SCORE_WINS:
+						{
+							// [AK] Don't do anything if the win count won't change.
+							if ( teams[ulTeam].lWinCount == lScore )
+								return 0;
+
+							TEAM_SetWinCount( ulTeam, lScore, bAnnounce );
+							return 1;
+						}
+
+						case SCORE_DEATHS:
+						{
+							// [AK] Don't do anything if the death count won't change.
+							if ( teams[ulTeam].lDeathCount == lScore )
+								return 0;
+
+							TEAM_SetDeathCount( ulTeam, lScore );
+							return 1;
+						}
+					}
+				}
+
+				return 0;
 			}
 
 		case ACSF_GetActorFloorTexture:
