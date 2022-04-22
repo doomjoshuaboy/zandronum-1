@@ -144,6 +144,9 @@ FBoolCVar noisedebug ("noise", false, 0);	// [RH] Print sound debugging info?
 CVAR (Int, snd_channels, 32, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)	// number of channels available
 CVAR (Bool, snd_flipstereo, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 
+// [AK] Prevents any music changes as if a playlist was playing, originally from ZCC.
+CVAR (Bool, snd_lockmusic, false, CVAR_ARCHIVE);
+
 // CODE --------------------------------------------------------------------
 
 //==========================================================================
@@ -2540,7 +2543,8 @@ bool S_ChangeMusic (const char *musicname, int order, bool looping, bool force)
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		return ( false );
 
-	if (!force && PlayList)
+	// [AK] Don't change if we also want to lock the music.
+	if (!force && ( PlayList || snd_lockmusic ))
 	{ // Don't change if a playlist is active
 		return false;
 	}
