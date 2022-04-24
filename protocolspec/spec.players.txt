@@ -59,6 +59,15 @@ Command DamagePlayer
 	Actor attacker with NullAllowed
 EndCommand
 
+Command DamagePlayerWithType
+	ExtendedCommand
+	Player player with MoTest
+	Variable health
+	Variable armor
+	String damageType
+	Actor attacker with NullAllowed
+EndCommand
+
 Command KillPlayer
 	Player player with MoTest
 	Actor source with NullAllowed
