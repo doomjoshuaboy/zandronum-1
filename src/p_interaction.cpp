@@ -100,6 +100,9 @@ EXTERN_CVAR (Bool, show_obituaries)
 // [BB] FIXME
 //EXTERN_CVAR( Int, menu_teamidxjointeammenu )
 
+// [AK] If true, the intensity of the blood on the screen takes into account
+// the player's max health instead of a hard-coded health of 100.
+CVAR( Bool, blood_fade_usemaxhealth, false, CVAR_ARCHIVE )
 
 FName MeansOfDeath;
 bool FriendlyFire;
@@ -1600,6 +1603,12 @@ int P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage,
 			}
 		}
 
+		// [AK] In case blood_fade_usemaxhealth is enabled and we want to scale the intensity
+		// of the blood based on the player's max health, we scale the incoming damage using
+		// the max health. By default, the damagecount is based on a max health of 100.
+		int oldDamage = damage;
+		PLAYER_ScaleDamageCountWithMaxHealth( player, damage );
+
 		player->attacker = source;
 		player->damagecount += damage;	// add damage after armor / invuln
 		if (player->damagecount > 100)
@@ -1613,6 +1622,9 @@ int P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage,
 		{
 			I_Tactile (40,10,40+temp*2);
 		}
+
+		// [AK] Restore the old damage value, in case it was modified above.
+		damage = oldDamage;
 	}
 	else
 	{
@@ -3506,6 +3518,26 @@ ULONG PLAYER_CalcRank( ULONG ulPlayer )
 	}
 
 	return ( ulRank );
+}
+
+//*****************************************************************************
+//
+void PLAYER_ScaleDamageCountWithMaxHealth( player_t *pPlayer, int &damage )
+{
+	// [AK] We'll only scale the damage count if the user wants to scale the intensity of the
+	// blood based on the player's max health.
+	// This doesn't work if the server wants to force max blood on the screen.
+	if (( zadmflags & ZADF_MAX_BLOOD_SCALAR ) || ( blood_fade_usemaxhealth == false ))
+		return;
+
+	if (( pPlayer == NULL ) || ( pPlayer->mo == NULL ))
+		return;
+
+	const int maxHealth = pPlayer->mo->GetMaxHealth( );
+
+	// [AK] The player's max health shouldn't be 100 if we want to scale the damage.
+	if ( maxHealth != 100 )
+		damage = ( damage * 100 ) / maxHealth;
 }
 
 //*****************************************************************************

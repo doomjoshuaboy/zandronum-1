@@ -3860,6 +3860,11 @@ void ServerCommands::DamagePlayer::Execute()
 	// [BB] Set the inflictor of the damage (necessary to let the HUD mugshot look in direction of the inflictor).
 	player->attacker = attacker;
 
+	// [AK] In case blood_fade_usemaxhealth is enabled and we want to scale the intensity
+	// of the blood based on the player's max health, we scale the incoming damage using
+	// the max health. By default, the damagecount is based on a max health of 100.
+	PLAYER_ScaleDamageCountWithMaxHealth( player, damage );
+
 	// Set the damagecount, for blood on the screen.
 	player->damagecount += damage;
 	if ( player->damagecount > 100 )

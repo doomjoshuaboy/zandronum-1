@@ -811,6 +811,7 @@ bool	PLAYER_CanRespawnWhereDied( player_t *pPlayer );
 bool	PLAYER_CannotAffectAllyWith( AActor *pActor1, AActor *pActor2, AActor *pInflictor, int flag );
 LONG	PLAYER_CalcSpread( ULONG ulPlayer );
 ULONG	PLAYER_CalcRank( ULONG ulPlayer );
+void	PLAYER_ScaleDamageCountWithMaxHealth( player_t *pPlayer, int &damage );
 
 void P_CheckPlayerSprite(AActor *mo, int &spritenum, fixed_t &scalex, fixed_t &scaley);
 
