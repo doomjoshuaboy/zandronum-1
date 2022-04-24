@@ -347,6 +347,8 @@ void SERVERCOMMANDS_DamagePlayer( ULONG ulPlayer )
 {
 	ULONG		ulArmorPoints;
 	AInventory	*pArmor;
+	PalEntry	painFlash;
+	bool		bSendDamageType = false;
 
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
@@ -361,6 +363,12 @@ void SERVERCOMMANDS_DamagePlayer( ULONG ulPlayer )
 
 		// If the player doesn't possess any armor, then his armor points are 0.
 		ulArmorPoints = ( pArmor != NULL ) ? pArmor->Amount : 0;
+
+		// [AK] Check if the player's class has a special pain flash for the damage type they just
+		// received. If it does, then we'll also send the damage type under a different command so
+		// that the pain flash appears properly on the client's screen.
+		if ( players[ulPlayer].mo->GetClass( )->ActorInfo->GetPainFlash( players[ulPlayer].mo->DamageTypeReceived, &painFlash ))
+			bSendDamageType = true;
 	}
 
 	ServerCommands::DamagePlayer fullCommand;
@@ -374,8 +382,29 @@ void SERVERCOMMANDS_DamagePlayer( ULONG ulPlayer )
 		// [EP] Send the updated health and armor of the player who's being damaged to this client
 		// only if this client is allowed to know.
 		if ( SERVER_IsPlayerAllowedToKnowHealth( *it, ulPlayer ))
-			fullCommand.sendCommandToClients( *it, SVCF_ONLYTHISCLIENT );
+		{
+			// [AK] If we're going to send the damage type, make sure that this client is watching the
+			// player. Otherwise, they don't need to know the damage type.
+			if (( bSendDamageType ) && ( SERVER_GetClient( *it )->ulDisplayPlayer == ulPlayer ))
+				SERVERCOMMANDS_DamagePlayerWithType( ulPlayer, ulArmorPoints, *it );
+			else
+				fullCommand.sendCommandToClients( *it, SVCF_ONLYTHISCLIENT );
+		}
 	}
+}
+
+//*****************************************************************************
+//
+void SERVERCOMMANDS_DamagePlayerWithType( ULONG ulPlayer, ULONG ulArmorPoints, ULONG ulPlayerExtra )
+{
+	ServerCommands::DamagePlayerWithType command;
+	command.SetPlayer( &players[ulPlayer] );
+	command.SetHealth( players[ulPlayer].health );
+	command.SetArmor( ulArmorPoints );
+	command.SetDamageType( players[ulPlayer].mo->DamageTypeReceived.GetChars() );
+	command.SetAttacker( players[ulPlayer].attacker );
+
+	command.sendCommandToClients( ulPlayerExtra, SVCF_ONLYTHISCLIENT );
 }
 
 //*****************************************************************************

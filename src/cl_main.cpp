@@ -3837,7 +3837,7 @@ void ServerCommands::MovePlayer::Execute()
 
 //*****************************************************************************
 //
-void ServerCommands::DamagePlayer::Execute()
+static void client_DamagePlayer( player_t *player, int health, int armor, AActor *attacker )
 {
 	// Level not loaded, ignore...
 	if ( gamestate != GS_LEVEL )
@@ -3879,6 +3879,26 @@ void ServerCommands::DamagePlayer::Execute()
 
 		I_Tactile( 40,10,40 + damage * 2 );
 	}
+}
+
+//*****************************************************************************
+//
+void ServerCommands::DamagePlayer::Execute()
+{
+	// [AK] No damage type was sent to us, revert the player's DamageTypeReceived to "none".
+	player->mo->DamageTypeReceived = "None";
+
+	client_DamagePlayer( player, health, armor, attacker );
+}
+
+//*****************************************************************************
+//
+void ServerCommands::DamagePlayerWithType::Execute()
+{
+	// [AK] Set the player's DamageTypeReceived to whatever was sent to us.
+	player->mo->DamageTypeReceived = damageType;
+
+	client_DamagePlayer( player, health, armor, attacker );
 }
 
 //*****************************************************************************
