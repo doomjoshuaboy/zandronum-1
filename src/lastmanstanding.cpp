@@ -742,7 +742,32 @@ CVAR( Flag, lms_allowchainsaw, lmsallowedweapons, LMS_AWF_CHAINSAW );
 // [AK] Added CVAR_GAMEMODELOCK.
 CUSTOM_CVAR( Int, lmsspectatorsettings, LMS_SPF_VIEW, CVAR_SERVERINFO | CVAR_GAMEMODELOCK )
 {
+	// [AK] If LMS_SPF_VIEW is disabled and we're spying on an enemy player,
+	// revert our view back to our own eyes.
+	if (( self & LMS_SPF_VIEW ) == false )
+	{
+		for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+		{
+			if (( players[ulIdx].mo != NULL ) && ( players[ulIdx].mo->IsTeammate( players[ulIdx].camera ) == false ))
+			{
+				players[ulIdx].camera = players[ulIdx].mo;
+
+				S_UpdateSounds( players[ulIdx].camera );
+
+				// [AK] The server doesn't have a status bar.
+				if ( StatusBar != NULL )
+				{
+					StatusBar->AttachToPlayer( &players[ulIdx] );
+
+					if ( demoplayback || ( NETWORK_GetState( ) != NETSTATE_SINGLE ))
+						StatusBar->ShowPlayerName( );
+				}
+			}
+		}
+	}
+
 	SERVER_FlagsetChanged( self );
 }
+
 CVAR( Flag, lms_spectatorchat, lmsspectatorsettings, LMS_SPF_CHAT );
 CVAR( Flag, lms_spectatorview, lmsspectatorsettings, LMS_SPF_VIEW );
