@@ -229,6 +229,10 @@ bool P_GiveBody (AActor *actor, int num, int max)
 	num = clamp(num, -65536, 65536);	// prevent overflows for bad values
 	if (player != NULL)
 	{
+		// [AK] Don't give this player health if we're not allowed to know their actual health.
+		if (( NETWORK_InClientMode( )) && ( SERVER_IsPlayerAllowedToKnowHealth( consoleplayer, player - players ) == false ))
+			return false;
+
 		// Max is 0 by default, preserving default behavior for P_GiveBody()
 		// calls while supporting AHealth.
 		if (max <= 0)
