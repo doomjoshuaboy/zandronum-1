@@ -1116,9 +1116,13 @@ static void ChangeSpy (int changespy)
 			{
 				if ( CLIENTDEMO_IsPlaying( ) == false )
 				{
-					// [AK] We can still spy on enemy players as a dead spectator if LMS_SPF_VIEW is enabled.
-					if (( players[consoleplayer].bDeadSpectator == false ) || ( lmsspectatorsettings & LMS_SPF_VIEW ) == false )
-						bFoundValidPlayer = false;
+					// [AK] We're allowed to spy on enemy players in singleplayer games, but only in game modes that don't support teams.
+					if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSONTEAMS ))
+					{
+						// [AK] We can still spy on enemy players as a dead spectator if LMS_SPF_VIEW is enabled.
+						if (( players[consoleplayer].bDeadSpectator == false ) || ( lmsspectatorsettings & LMS_SPF_VIEW ) == false )
+							bFoundValidPlayer = false;
+					}
 				}
 			}
 
