@@ -101,6 +101,9 @@ static	ULONG		g_aulColumnX[MAX_COLUMNS];
 // What font are the column headers using?
 static	FFont		*g_pColumnHeaderFont = NULL;
 
+// [AK] Do we need to update the scoreboard before we draw it on the screen?
+static	bool		g_bRefreshBeforeRendering = false;
+
 // This is the header for each column type.
 static	const char	*g_pszColumnHeaders[NUM_COLUMN_TYPES] =
 {
@@ -166,18 +169,30 @@ bool SCOREBOARD_ShouldDrawBoard( void )
 //
 void SCOREBOARD_Render( ULONG ulDisplayPlayer )
 {
-	ULONG	ulNumIdealColumns;
-
 	// Make sure the display player is valid.
 	if ( ulDisplayPlayer >= MAXPLAYERS )
 		return;
 
+	// [AK] If we need to update the scoreboard, do so before rendering it.
+	if ( g_bRefreshBeforeRendering )
+	{
+		SCOREBOARD_Refresh( );
+		g_bRefreshBeforeRendering = false;
+	}
+
 	// [AK] Draw the scoreboard header at the top.
 	scoreboard_DrawHeader( ulDisplayPlayer );
 
-	// Draw the player list and its data.
+	// Draw the headers, list, entries, everything.
+	scoreboard_DrawRankings( ulDisplayPlayer );
+}
+
+//*****************************************************************************
+//
+void SCOREBOARD_Refresh( void )
+{
 	// First, determine how many columns we can use, based on our screen resolution.
-	ulNumIdealColumns = 3;
+	ULONG ulNumIdealColumns = 3;
 
 	if ( HUD_GetWidth( ) >= 600 )
 		ulNumIdealColumns = 5;
@@ -185,18 +200,25 @@ void SCOREBOARD_Render( ULONG ulDisplayPlayer )
 		ulNumIdealColumns = 4;
 
 	// The 5 column display is only availible for modes that support it.
-	if (( ulNumIdealColumns == 5 ) && !( GAMEMODE_GetCurrentFlags() & (GMF_PLAYERSEARNPOINTS|GMF_PLAYERSEARNWINS) ))
+	if (( ulNumIdealColumns == 5 ) && !( GAMEMODE_GetCurrentFlags( ) & ( GMF_PLAYERSEARNPOINTS | GMF_PLAYERSEARNWINS )))
 		ulNumIdealColumns = 4;
 
 	if ( ulNumIdealColumns == 5 )
 		scoreboard_Prepare5ColumnDisplay( );
-	else if( ulNumIdealColumns == 4 )
+	else if ( ulNumIdealColumns == 4 )
 		scoreboard_Prepare4ColumnDisplay( );
 	else
 		scoreboard_Prepare3ColumnDisplay( );
+}
 
-	// Draw the headers, list, entries, everything.
-	scoreboard_DrawRankings( ulDisplayPlayer );
+//*****************************************************************************
+//
+void SCOREBOARD_ShouldRefreshBeforeRendering( void )
+{
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		return;
+
+	g_bRefreshBeforeRendering = true;
 }
 
 //*****************************************************************************
