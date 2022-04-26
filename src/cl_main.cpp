@@ -3969,15 +3969,18 @@ void ServerCommands::KillPlayer::Execute()
 		ClientObituary( players[ulPlayer].mo, pInflictor, NULL, MOD );
 */
 
-	// [AK] If we died, show how long we must wait before we can respawn if it's more than one second.
+	// [AK] If we died and can respawn, show how long we must wait before we can respawn.
 	if ( player - players == consoleplayer )
 	{
 		bool bNoMoreLivesLeft = ( GAMEMODE_AreLivesLimited( ) && GAMEMODE_IsGameInProgress( ) && ( player->ulLivesLeft == 0 ));
+		float fRespawnDelayTime = 1.0f;
 
-		if (( sv_respawndelaytime > 1 ) && ( player->mo->DamageType != NAME_SpawnTelefrag ) && ( bNoMoreLivesLeft == false ))
-			HUD_SetRespawnTimeLeft( sv_respawndelaytime );
-		else
-			HUD_SetRespawnTimeLeft( -1 );
+		if (( player->mo->DamageType != NAME_SpawnTelefrag ) && ( bNoMoreLivesLeft == false ))
+			fRespawnDelayTime = sv_respawndelaytime;
+
+		// [AK] The timer is precise to only one decimal place, so it's not worth showing
+		// the message if it's below 0.1 seconds.
+		HUD_SetRespawnTimeLeft(( bNoMoreLivesLeft == false && fRespawnDelayTime > 0.1f ) ? fRespawnDelayTime : -1.0f );
 	}
 
 	// Refresh the HUD, since this could affect the number of players left in an LMS game.
@@ -5904,8 +5907,8 @@ static void client_SetGameModeLimits( BYTESTREAM_s *pByteStream )
 	sv_allowprivatechat.ForceSet( Value, CVAR_Int );
 
 	// [AK] Read in, and set the value for sv_respawndelaytime.
-	Value.Int = pByteStream->ReadByte();
-	sv_respawndelaytime.ForceSet( Value, CVAR_Int );
+	Value.Float = pByteStream->ReadFloat();
+	sv_respawndelaytime.ForceSet( Value, CVAR_Float );
 }
 
 //*****************************************************************************

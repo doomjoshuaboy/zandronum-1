@@ -725,24 +725,23 @@ void AActor::Die (AActor *source, AActor *inflictor, int dmgflags)
 		if ((( zacompatflags & ZACOMPATF_INSTANTRESPAWN ) == false ) ||
 			( player->bSpawnTelefragged ) || ( bNoMoreLivesLeft ))
 		{
-			// [AK] The respawn delay can be adjusted, but the minimum is one second. This only works if
-			// the player wasn't spawn telefragged and still has lives left.
-			if (( sv_respawndelaytime > 1 ) && ( player->bSpawnTelefragged == false ) && ( bNoMoreLivesLeft == false ))
-			{
-				player->respawn_time = level.time + sv_respawndelaytime * TICRATE;
+			float fRespawnDelayTime = 1.0f;
 
-				// [AK] Show how long we must wait until we can respawn on the screen.
-				if ( player - players == consoleplayer )
-					HUD_SetRespawnTimeLeft( sv_respawndelaytime );
+			// [AK] The respawn delay can be adjusted if the player wasn't spawn telefragged and still has lives left.
+			if (( player->bSpawnTelefragged == false ) && ( bNoMoreLivesLeft == false ))
+			{
+				player->respawn_time = level.time + static_cast<int>( sv_respawndelaytime * TICRATE );
+				fRespawnDelayTime = sv_respawndelaytime;
 			}
 			else
 			{
 				player->respawn_time = level.time + TICRATE;
-				
-				// [AK] We don't need to show how long to wait before we can respawn here.
-				if ( player - players == consoleplayer )
-					HUD_SetRespawnTimeLeft( -1 );
 			}
+
+			// [AK] Show how long we must wait until we can respawn on the screen. The timer is precise to
+			// only one decimal place, so it's not worth showing if it's below 0.1 seconds.
+			if ( player - players == consoleplayer )
+				HUD_SetRespawnTimeLeft(( bNoMoreLivesLeft == false && fRespawnDelayTime > 0.1f ) ? fRespawnDelayTime : -1.0f );
 
 			// [BC] Don't respawn quite so fast on forced respawn. It sounds weird when your
 			// scream isn't completed.
