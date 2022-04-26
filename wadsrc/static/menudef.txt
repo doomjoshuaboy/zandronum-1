@@ -520,6 +520,7 @@ OptionMenu "CustomizeControls"
 	Control		"Item carrier spy",			"spycarrier" // [AK]
 	Control 	"Screenshot",			"screenshot"
 	Control		"Spectate",				"spectate" // [TP]
+	Control		"Switch teams",				"changeteam" // [AK]
 	Control		"Taunt",				"taunt" // [TP]
 	Option		"Join the game",		"joinmenukey", "JoinMenuKeys" // [TP]
 	Control		"Join the game (custom)", "menu_join" // [TP]
