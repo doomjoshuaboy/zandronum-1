@@ -103,8 +103,8 @@ static	player_t	*g_pArtifactCarrier = NULL;
 // [AK] Who are the two duelers?
 static	player_t	*g_pDuelers[2];
 
-// [AK] How long we have to wait until we can respawn, used for displaying on the screen if sv_respawndelaytime is greater than 1.
-static	LONG		g_lRespawnDelay = -1;
+// [AK] How long we have to wait until we can respawn, used for displaying on the screen.
+static	float		g_fRespawnDelay = -1.0f;
 
 // [AK] At what tic will we be able to respawn?
 static	LONG		g_lRespawnGametic = 0;
@@ -124,6 +124,7 @@ static	void	HUD_RenderCountdown( ULONG ulTimeLeft );
 
 CVAR( Bool, cl_drawcoopinfo, true, CVAR_ARCHIVE )
 CVAR( Bool, r_drawspectatingstring, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG )
+CVAR( Bool, r_drawrespawnstring, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG )
 EXTERN_CVAR( Int, con_notifylines )
 EXTERN_CVAR( Bool, cl_stfullscreenhud )
 EXTERN_CVAR( Int, screenblocks )
@@ -539,14 +540,14 @@ static void HUD_DrawBottomString( ULONG ulDisplayPlayer )
 	}
 
 	// [AK] Show how much time is left before we can respawn if we had to wait for more than one second.
-	if (( players[consoleplayer].bSpectating == false ) && ( players[consoleplayer].playerstate == PST_DEAD ))
+	if (( r_drawrespawnstring ) && ( players[consoleplayer].bSpectating == false ) && ( players[consoleplayer].playerstate == PST_DEAD ))
 	{
 		if ( g_lRespawnGametic > level.time )
 		{
-			ULONG ulTimeLeft = MIN( g_lRespawnDelay, 1 + ( g_lRespawnGametic - level.time ) / TICRATE );
+			float fTimeLeft = MIN( g_fRespawnDelay, static_cast<float>( g_lRespawnGametic - level.time ) / TICRATE );
 
 			bottomString += "\n" TEXTCOLOR_GREEN;
-			bottomString.AppendFormat( "Ready to respawn in %lu second%s", ulTimeLeft, ulTimeLeft != 1 ? "s" : "" );
+			bottomString.AppendFormat( "Ready to respawn in %.1f seconds", fTimeLeft );
 		}
 	}
 
@@ -1057,14 +1058,14 @@ LONG HUD_GetSpread( void )
 
 //*****************************************************************************
 //
-void HUD_SetRespawnTimeLeft( LONG lRespawnTime )
+void HUD_SetRespawnTimeLeft( float fRespawnTime )
 {
 	// [AK] The server shouldn't execute this.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		return;
 
-	g_lRespawnDelay = lRespawnTime;
-	g_lRespawnGametic = level.time + g_lRespawnDelay * TICRATE;
+	g_fRespawnDelay = fRespawnTime;
+	g_lRespawnGametic = level.time + static_cast<LONG>( g_fRespawnDelay * TICRATE );
 }
 
 //*****************************************************************************

@@ -457,23 +457,19 @@ CUSTOM_CVAR( Int, sv_allowprivatechat, PRIVATECHAT_EVERYONE, CVAR_ARCHIVE | CVAR
 
 //*****************************************************************************
 //
-CUSTOM_CVAR( Int, sv_respawndelaytime, 1, CVAR_ARCHIVE | CVAR_SERVERINFO )
+CUSTOM_CVAR( Float, sv_respawndelaytime, 1.0f, CVAR_ARCHIVE | CVAR_SERVERINFO )
 {
-	if ( self < 1 )
+	// [AK] The respawn delay time should always be at least a tic long.
+	if ( self <= 0.0f )
 	{
-		self = 1;
-		return;
-	}
-	else if ( self > 255 )
-	{
-		self = 255;
+		self = 1.0f / TICRATE;
 		return;
 	}
 
 	// [AK] Notify the clients about the change.
 	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( gamestate != GS_STARTUP ))
 	{
-		SERVER_Printf( "%s changed to: %d\n", self.GetName( ), self.GetGenericRep( CVAR_Int ).Int );
+		SERVER_Printf( "%s changed to: %.1f\n", self.GetName( ), static_cast<float>( self ));
 		SERVERCOMMANDS_SetGameModeLimits( );
 	}
 }
