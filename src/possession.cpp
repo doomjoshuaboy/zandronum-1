@@ -255,7 +255,7 @@ void POSSESSION_Render( void )
 		return;
 
 	// [RC] Hide this when the scoreboard is up to prevent overlapping.
-	if ( SCOREBOARD_ShouldDrawBoard( consoleplayer ))
+	if ( SCOREBOARD_ShouldDrawBoard( ))
 		return;
 
 	ULONG ulColor = ( g_ulPSNArtifactHoldTicks > 3 * TICRATE ) ? CR_GRAY : CR_RED;
