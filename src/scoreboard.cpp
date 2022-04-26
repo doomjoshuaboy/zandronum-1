@@ -148,7 +148,7 @@ CVAR( Bool, cl_intermissiontimer, false, CVAR_ARCHIVE );
 //*****************************************************************************
 // Checks if the user wants to see the scoreboard and is allowed to.
 //
-bool SCOREBOARD_ShouldDrawBoard( ULONG ulDisplayPlayer )
+bool SCOREBOARD_ShouldDrawBoard( void )
 {
 	// [AK] If the user isn't pressing their scoreboard key then return false.
 	if ( Button_ShowScores.bDown == false )

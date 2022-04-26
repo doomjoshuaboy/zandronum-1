@@ -225,7 +225,7 @@ void HUD_Render( ULONG ulDisplayPlayer )
 		return;
 
 	// Draw the main scoreboard.
-	if (SCOREBOARD_ShouldDrawBoard( ulDisplayPlayer ))
+	if ( SCOREBOARD_ShouldDrawBoard( ))
 		SCOREBOARD_Render( ulDisplayPlayer );
 
 	if ( CALLVOTE_ShouldShowVoteScreen( ))
