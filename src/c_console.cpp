@@ -2695,4 +2695,7 @@ void C_UpdateVirtualScreen()
 		g_fYScale = static_cast<float>( SCREENHEIGHT ) / 200.0f;
 		g_rXScale = g_rYScale = 1.0f;
 	}
+
+	// [AK] The screen size changed, refresh the HUD just in case.
+	HUD_Refresh( );
 }

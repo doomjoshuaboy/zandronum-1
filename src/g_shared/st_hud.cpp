@@ -342,6 +342,9 @@ void HUD_Refresh( void )
 			}
 		}
 	}
+
+	// [AK] If we updated the HUD, then we should also update the scoreboard when we need to.
+	SCOREBOARD_ShouldRefreshBeforeRendering( );
 }
 
 //*****************************************************************************
