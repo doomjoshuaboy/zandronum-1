@@ -121,21 +121,6 @@ void GAMEMODE_Tick( void )
 
 //*****************************************************************************
 //
-int GAMEMODE_ParserMustGetEnumName ( FScanner &sc, const char *EnumName, const char *FlagPrefix, int (*GetValueFromName) ( const char *Name ), const bool StringAlreadyParse = false )
-{
-	if ( StringAlreadyParse == false )
-		sc.MustGetString ();
-	FString flagname = FlagPrefix;
-	flagname += sc.String;
-	flagname.ToUpper();
-	const int flagNum = GetValueFromName ( flagname.GetChars() );
-	if ( flagNum == -1 )
-		sc.ScriptError ( "Unknown %s '%s', on line %d in GAMEMODE.", EnumName, sc.String, sc.Line );
-	return flagNum;
-}
-
-//*****************************************************************************
-//
 FFlagCVar *GAMEMODE_ParserMustGetFlagset ( FScanner &sc, const GAMEMODE_e GameMode, FLAGSET_e &Flagset )
 {
 	sc.MustGetString();
@@ -184,11 +169,11 @@ void GAMEMODE_ParseGamemodeInfoLump ( FScanner &sc, const GAMEMODE_e GameMode )
 
 		if (0 == stricmp (sc.String, "removeflag"))
 		{
-			g_GameModes[GameMode].ulFlags &= ~GAMEMODE_ParserMustGetEnumName( sc, "flag", "GMF_", GetValueGMF );
+			g_GameModes[GameMode].ulFlags &= ~sc.MustGetEnumName( "flag", "GMF_", GetValueGMF );
 		}
 		else if (0 == stricmp (sc.String, "addflag"))
 		{
-			g_GameModes[GameMode].ulFlags |= GAMEMODE_ParserMustGetEnumName( sc, "flag", "GMF_", GetValueGMF );
+			g_GameModes[GameMode].ulFlags |= sc.MustGetEnumName( "flag", "GMF_", GetValueGMF );
 		}
 		else if (0 == stricmp (sc.String, "name"))
 		{
@@ -340,7 +325,7 @@ void GAMEMODE_ParseGamemodeInfo( void )
 			}
 			else
 			{
-				GAMEMODE_e GameMode = static_cast<GAMEMODE_e>( GAMEMODE_ParserMustGetEnumName( sc, "gamemode", "GAMEMODE_", GetValueGAMEMODE_e, true ) );
+				GAMEMODE_e GameMode = static_cast<GAMEMODE_e>( sc.MustGetEnumName( "gamemode", "GAMEMODE_", GetValueGAMEMODE_e, true ));
 				GAMEMODE_ParseGamemodeInfoLump ( sc, GameMode );
 			}
 		}
