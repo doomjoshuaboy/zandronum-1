@@ -2635,6 +2635,9 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 	// [TP] If we left the game, we need to rebuild player translations if we overrid them.
 	if ( D_ShouldOverridePlayerColors() && pPlayer - players == consoleplayer )
 		D_UpdatePlayerColors();
+
+	// [AK] The spectator count has changed, so refresh the HUD.
+	HUD_Refresh( );
 }
 
 //*****************************************************************************
