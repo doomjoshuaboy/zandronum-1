@@ -2211,7 +2211,7 @@ void PLAYER_SetFragcount( player_t *pPlayer, LONG lFragCount, bool bAnnounce, bo
 	}
 
 	// Refresh the HUD since a score has changed.
-	HUD_Refresh( );
+	HUD_ShouldRefreshBeforeRendering( );
 }
 
 //*****************************************************************************
@@ -2254,7 +2254,7 @@ void PLAYER_ResetAllPlayersFragcount( void )
 	}
 
 	// Refresh the HUD since a score has changed.
-	HUD_Refresh( );
+	HUD_ShouldRefreshBeforeRendering( );
 }
 
 //*****************************************************************************
@@ -2762,7 +2762,7 @@ void PLAYER_SetPoints( player_t *pPlayer, ULONG ulPoints )
 	pPlayer->lPointCount = ulPoints;
 
 	// Refresh the HUD since a score has changed.
-	HUD_Refresh( );
+	HUD_ShouldRefreshBeforeRendering( );
 
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
@@ -2783,7 +2783,7 @@ void PLAYER_SetWins( player_t *pPlayer, ULONG ulWins )
 	pPlayer->ulWins = ulWins;
 
 	// Refresh the HUD since a score has changed.
-	HUD_Refresh( );
+	HUD_ShouldRefreshBeforeRendering( );
 
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
@@ -2804,7 +2804,7 @@ void PLAYER_SetKills( player_t *pPlayer, ULONG ulKills )
 	pPlayer->killcount = ulKills;
 
 	// Refresh the HUD since a score has changed.
-	HUD_Refresh( );
+	HUD_ShouldRefreshBeforeRendering( );
 
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
@@ -2825,7 +2825,7 @@ void PLAYER_SetDeaths( player_t *pPlayer, ULONG ulDeaths, bool bInformClients )
 	pPlayer->ulDeathCount = ulDeaths;
 
 	// Refresh the HUD since a score has changed.
-	HUD_Refresh( );
+	HUD_ShouldRefreshBeforeRendering( );
 
 	// If we're the server, notify the clients of the death count change.
 	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( bInformClients ))

@@ -1183,7 +1183,7 @@ void G_FinishChangeSpy( ULONG ulPlayer )
 		CLIENTCOMMANDS_ChangeDisplayPlayer( ulPlayer );
 
 	// [BC] Also, refresh the HUD since the display player is changing.
-	HUD_Refresh( );
+	HUD_ShouldRefreshBeforeRendering( );
 }
 
 CCMD (spynext)

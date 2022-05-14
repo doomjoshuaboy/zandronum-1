@@ -109,6 +109,9 @@ static	float		g_fRespawnDelay = -1.0f;
 // [AK] At what tic will we be able to respawn?
 static	LONG		g_lRespawnGametic = 0;
 
+// [AK] Do we need to update the HUD before we draw it on the screen?
+static	bool		g_bRefreshBeforeRendering = false;
+
 //*****************************************************************************
 //	PROTOTYPES
 
@@ -224,6 +227,13 @@ void HUD_Render( ULONG ulDisplayPlayer )
 	if ( ulDisplayPlayer >= MAXPLAYERS )
 		return;
 
+	// [AK] If we need to update the HUD, do so before rendering it.
+	if ( g_bRefreshBeforeRendering )
+	{
+		HUD_Refresh( );
+		g_bRefreshBeforeRendering = false;
+	}
+
 	// Draw the main scoreboard.
 	if ( SCOREBOARD_ShouldDrawBoard( ))
 		SCOREBOARD_Render( ulDisplayPlayer );
@@ -281,11 +291,9 @@ void HUD_Render( ULONG ulDisplayPlayer )
 //
 void HUD_Refresh( void )
 {
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		return;
+	ULONG ulNumDuelers = 0;
 
 	// [AK] Reset the dueler pointers.
-	ULONG ulNumDuelers = 0;
 	g_pDuelers[0] = g_pDuelers[1] = NULL;
 
 	// [AK] Determine which players are currently dueling.
@@ -345,6 +353,16 @@ void HUD_Refresh( void )
 
 	// [AK] If we updated the HUD, then we should also update the scoreboard when we need to.
 	SCOREBOARD_ShouldRefreshBeforeRendering( );
+}
+
+//*****************************************************************************
+//
+void HUD_ShouldRefreshBeforeRendering( void )
+{
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		return;
+
+	g_bRefreshBeforeRendering = true;
 }
 
 //*****************************************************************************

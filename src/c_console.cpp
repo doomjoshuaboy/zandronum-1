@@ -2697,5 +2697,5 @@ void C_UpdateVirtualScreen()
 	}
 
 	// [AK] The screen size changed, refresh the HUD just in case.
-	HUD_Refresh( );
+	HUD_ShouldRefreshBeforeRendering( );
 }

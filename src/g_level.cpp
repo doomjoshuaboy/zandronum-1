@@ -1400,7 +1400,7 @@ void G_DoLoadLevel (int position, bool autosave)
 		TEAM_UpdateCarriers( );
 
 	// Refresh the HUD.
-	HUD_Refresh( );
+	HUD_ShouldRefreshBeforeRendering( );
 
 	// Set number of duels to 0.
 	DUEL_SetNumDuels( 0 );

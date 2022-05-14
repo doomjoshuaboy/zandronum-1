@@ -307,7 +307,7 @@ void TEAM_ExecuteReturnRoutine( ULONG ulTeamIdx, AActor *pReturner )
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCOMMANDS_TeamFlagReturned( ulTeamIdx );
 	else
-		HUD_Refresh( );
+		HUD_ShouldRefreshBeforeRendering( );
 }
 
 //*****************************************************************************
@@ -584,7 +584,7 @@ void TEAM_ScoreSkulltagPoint( player_t *pPlayer, ULONG ulNumPoints, AActor *pPil
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCOMMANDS_TakeInventory( ULONG( pPlayer - players ), TEAM_GetItem( ulTeamIdx ), 0 );
 	else
-		HUD_Refresh( );
+		HUD_ShouldRefreshBeforeRendering( );
 
 	// Respawn the skull.
 	SkullOrigin = TEAM_GetItemOrigin( ulTeamIdx );
