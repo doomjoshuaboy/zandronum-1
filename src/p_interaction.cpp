@@ -541,17 +541,9 @@ void AActor::Die (AActor *source, AActor *inflictor, int dmgflags)
 		if ((CountsAsKill()) &&
 			( NETWORK_InClientMode() == false ))
 		{ // count for intermission
-			source->player->killcount++;
-			
-			// Update the clients with this player's updated killcount.
-			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			{
-				SERVERCOMMANDS_SetPlayerKillCount( ULONG( source->player - players ) );
-
-				// Also, update the scoreboard.
-				SERVERCONSOLE_UpdatePlayerInfo( ULONG( source->player - players ), UDF_FRAGS );
-				SERVERCONSOLE_UpdateScoreboard( );
-			}
+			// [AK] Call PLAYER_SetKills to increment the kill count instead.
+			PLAYER_SetKills( source->player, source->player->killcount + 1 );
+			//source->player->killcount++;
 		}
 
 		// Don't count any frags at level start, because they're just telefrags
@@ -679,7 +671,11 @@ void AActor::Die (AActor *source, AActor *inflictor, int dmgflags)
 		// Why give player 0 credit? :P
 		// Meh, just do it in single player.
 		if ( NETWORK_GetState( ) == NETSTATE_SINGLE )
-			players[0].killcount++;
+		{
+			// [AK] Call PLAYER_SetKills to increment the kill count instead.
+			PLAYER_SetKills( &players[0], players[0].killcount + 1 );
+			// players[0].killcount++;
+		}
 
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		{
