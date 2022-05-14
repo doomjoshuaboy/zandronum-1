@@ -72,6 +72,7 @@ bool	HUD_IsFullscreen( void );
 
 void	HUD_Render( ULONG ulDisplayPlayer );
 void	HUD_Refresh( void );
+void	HUD_ShouldRefreshBeforeRendering( void );
 void	HUD_DrawCoopInfo( void );
 void	HUD_DrawFragMessage( player_t *pFraggedPlayer, bool bFraggedBy );
 void	HUD_DrawStandardMessage( const char *pszMessage, EColorRange color, const bool bClearScreen = false, float fHoldTime = 3.0f, float fOutTime = 2.0f, const bool bInformClients = false );

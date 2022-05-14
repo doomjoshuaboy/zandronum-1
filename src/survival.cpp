@@ -239,7 +239,7 @@ void SURVIVAL_DoFight( void )
 	if ( (NETWORK_GetState( ) == NETSTATE_SINGLE) && sv_maxlives > 0 )
 		NETWORK_SetState( NETSTATE_SINGLE_MULTIPLAYER );
 
-	HUD_Refresh( );
+	HUD_ShouldRefreshBeforeRendering( );
 }
 
 //*****************************************************************************

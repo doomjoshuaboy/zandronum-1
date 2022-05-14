@@ -3753,7 +3753,7 @@ void ServerCommands::SpawnPlayer::Execute()
 	}
 
 	// Refresh the HUD because this is potentially a new player.
-	HUD_Refresh( );
+	HUD_ShouldRefreshBeforeRendering( );
 }
 
 //*****************************************************************************
@@ -4004,7 +4004,7 @@ void ServerCommands::KillPlayer::Execute()
 	}
 
 	// Refresh the HUD, since this could affect the number of players left in an LMS game.
-	HUD_Refresh( );
+	HUD_ShouldRefreshBeforeRendering( );
 }
 
 //*****************************************************************************
@@ -4309,7 +4309,7 @@ void ServerCommands::SetPlayerAmmoCapacity::Execute()
 	pAmmo->MaxAmount = maxAmount;
 
 	// Since an item displayed on the HUD may have been given, refresh the HUD.
-	HUD_Refresh( );
+	HUD_ShouldRefreshBeforeRendering( );
 }
 
 //*****************************************************************************
@@ -4579,7 +4579,7 @@ void ServerCommands::DisconnectPlayer::Execute()
 	PLAYER_ResetPlayerData( player );
 
 	// Refresh the HUD because this affects the number of players in the game.
-	HUD_Refresh( );
+	HUD_ShouldRefreshBeforeRendering( );
 }
 
 //*****************************************************************************
@@ -4672,7 +4672,7 @@ void ServerCommands::PlayerIsSpectator::Execute()
 		g_bClientLagging = false;
 
 	// [EP] Refresh the HUD, since this could affect the number of players left in a dead spectators game.
-	HUD_Refresh( );
+	HUD_ShouldRefreshBeforeRendering( );
 }
 
 //*****************************************************************************
@@ -6218,7 +6218,7 @@ static void client_SetTeamScore( BYTESTREAM_s *pByteStream )
 			break;
 	}
 
-	HUD_Refresh( );
+	HUD_ShouldRefreshBeforeRendering( );
 }
 
 //*****************************************************************************
@@ -7268,7 +7268,7 @@ static void client_GiveInventory( BYTESTREAM_s *pByteStream )
 		players[ulPlayer].PendingWeapon = WP_NOCHANGE;
 
 	// Since an item displayed on the HUD may have been given, refresh the HUD.
-	HUD_Refresh( );
+	HUD_ShouldRefreshBeforeRendering( );
 
 	// [BB] If this is not "our" player and this player didn't have a weapon before, we assume
 	// that he was just spawned and didn't tell the server yet which weapon he selected. In this
@@ -7340,7 +7340,7 @@ static void client_TakeInventory( BYTESTREAM_s *pByteStream )
 	}
 
 	// Since an item displayed on the HUD may have been taken away, refresh the HUD.
-	HUD_Refresh( );
+	HUD_ShouldRefreshBeforeRendering( );
 }
 
 //*****************************************************************************
@@ -7413,7 +7413,7 @@ static void client_GivePowerup( BYTESTREAM_s *pByteStream )
 	}
 
 	// Since an item displayed on the HUD may have been given, refresh the HUD.
-	HUD_Refresh( );
+	HUD_ShouldRefreshBeforeRendering( );
 }
 
 //*****************************************************************************
