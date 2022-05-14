@@ -2172,19 +2172,26 @@ void P_PoisonDamage (player_t *player, AActor *source, int damage,
 void PLAYER_SetFragcount( player_t *pPlayer, LONG lFragCount, bool bAnnounce, bool bUpdateTeamFrags )
 {
 	// Don't bother with fragcount during warm-ups.
-	if ((( duel ) && ( DUEL_GetState( ) == DS_COUNTDOWN )) ||
-		(( lastmanstanding || teamlms ) && ( LASTMANSTANDING_GetState( ) == LMSS_COUNTDOWN )))
+	// [AK] Clients shouldn't need to check this.
+	if ( NETWORK_InClientMode( ) == false )
 	{
-		return;
+		if ((( duel ) && ( DUEL_GetState( ) == DS_COUNTDOWN )) ||
+			(( lastmanstanding || teamlms ) && ( LASTMANSTANDING_GetState( ) == LMSS_COUNTDOWN )))
+		{
+			return;
+		}
 	}
 
 	// Don't announce events related to frag changes during teamplay, LMS,
 	// or possession games.
-	if (( bAnnounce ) &&
-		( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSEARNFRAGS ) &&
-		!( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS ))
+	if (( bAnnounce ) && ( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSEARNFRAGS ) && !( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSONTEAMS ))
 	{
-		ANNOUNCER_PlayFragSounds( pPlayer - players, pPlayer->fragcount, lFragCount );
+		// [AK] Clients must check a few more things if they are to play any frag sounds.
+		// [BB] If we are still in the first tic of the level, we are receiving the frag count
+		// as part of the full update (that is not considered as a snapshot after a "changemap"
+		// map change). Thus don't announce anything in this case.
+		if (( NETWORK_InClientMode( ) == false ) || (( CLIENT_GetConnectionState( ) == CTS_ACTIVE ) && ( GAMEMODE_IsGameInProgress( )) && ( level.time != 0 )))
+			ANNOUNCER_PlayFragSounds( pPlayer - players, pPlayer->fragcount, lFragCount );
 	}
 
 	// If this is a teamplay deathmatch, update the team frags.
