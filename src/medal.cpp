@@ -568,7 +568,6 @@ void MEDAL_PlayerDied( ULONG ulPlayer, ULONG ulSourcePlayer )
 		players[ulSourcePlayer].ulLastFragTick = level.time;
 	}
 
-	players[ulPlayer].ulDeathCount++;
 	players[ulPlayer].ulFragsWithoutDeath = 0;
 
 	// [BB] Don't punish being killed by a teammate (except if a player kills himself).
