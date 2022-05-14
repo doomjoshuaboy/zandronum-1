@@ -4180,53 +4180,35 @@ void ServerCommands::SetPlayerAccountName::Execute()
 //
 void ServerCommands::SetPlayerFrags::Execute()
 {
-	if (( g_ConnectionState == CTS_ACTIVE ) &&
-		( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSEARNFRAGS ) &&
-		!( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS ) &&
-		( GAMEMODE_IsGameInProgress() ) &&
-		// [BB] If we are still in the first tic of the level, we are receiving the frag count
-		// as part of the full update (that is not considered as a snapshot after a "changemap"
-		// map change). Thus don't announce anything in this case.
-		( level.time != 0 ))
-	{
-		ANNOUNCER_PlayFragSounds( player - players, player->fragcount, fragCount );
-	}
-
-	// Finally, set the player's frag count, and refresh the HUD.
-	player->fragcount = fragCount;
-	HUD_Refresh( );
+	PLAYER_SetFragcount( player, fragCount, true, false );
 }
 
 //*****************************************************************************
 //
 void ServerCommands::SetPlayerPoints::Execute()
 {
-	player->lPointCount = pointCount;
-	HUD_Refresh( );
+	PLAYER_SetPoints( player, pointCount );
 }
 
 //*****************************************************************************
 //
 void ServerCommands::SetPlayerWins::Execute()
 {
-	player->ulWins = wins;
-	HUD_Refresh( );
+	PLAYER_SetWins( player, wins );
 }
 
 //*****************************************************************************
 //
 void ServerCommands::SetPlayerDeaths::Execute()
 {
-	player->ulDeathCount = deaths;
-	HUD_Refresh( );
+	PLAYER_SetDeaths( player, deaths );
 }
 
 //*****************************************************************************
 //
 void ServerCommands::SetPlayerKillCount::Execute()
 {
-	player->killcount = killCount;
-	HUD_Refresh( );
+	PLAYER_SetKills( player, killCount );
 }
 
 //*****************************************************************************
@@ -4438,7 +4420,7 @@ void ServerCommands::SetPlayerMaxHealth::Execute()
 //
 void ServerCommands::SetPlayerLivesLeft::Execute()
 {
-	player->ulLivesLeft = livesLeft;
+	PLAYER_SetLivesLeft( player, livesLeft );
 }
 
 //*****************************************************************************
