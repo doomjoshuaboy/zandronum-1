@@ -103,6 +103,12 @@ static	player_t	*g_pArtifactCarrier = NULL;
 // [AK] Who are the two duelers?
 static	player_t	*g_pDuelers[2];
 
+// [AK] The player whose name is drawn in the large frag message. If this is NULL, no message is drawn.
+static	player_t	*g_pFragMessagePlayer = NULL;
+
+// [AK] Did this player frag us, or did we frag them?
+static	bool		g_bFraggedBy = false;
+
 // [AK] How long we have to wait until we can respawn, used for displaying on the screen.
 static	float		g_fRespawnDelay = -1.0f;
 
@@ -121,6 +127,7 @@ static	void	HUD_RenderTeamScores( void );
 static	void	HUD_RenderRankAndSpread( void );
 static	void	HUD_RenderInvasionStats( void );
 static	void	HUD_RenderCountdown( ULONG ulTimeLeft );
+static	void	HUD_DrawFragMessage( void );
 
 //*****************************************************************************
 //	CONSOLE VARIABLES
@@ -245,6 +252,14 @@ void HUD_Render( ULONG ulDisplayPlayer )
 			CALLVOTE_RenderClassic( );
 		else
 			CALLVOTE_Render( );
+	}
+
+	// [AK] Draw the frag message if we have to.
+	if ( g_pFragMessagePlayer != NULL )
+	{
+		HUD_DrawFragMessage( );
+		g_pFragMessagePlayer = NULL;
+		g_bFraggedBy = false;
 	}
 
 	// [AK] Render the countdown screen when we're in the countdown.
@@ -857,9 +872,9 @@ static void HUD_RenderCountdown( ULONG ulTimeLeft )
 
 //*****************************************************************************
 //
-void HUD_DrawFragMessage( player_t *pPlayer, bool bFraggedBy )
+static void HUD_DrawFragMessage( void )
 {
-	FString message = GStrings( bFraggedBy ? "GM_YOUWEREFRAGGED" : "GM_YOUFRAGGED" );
+	FString message = GStrings( g_bFraggedBy ? "GM_YOUWEREFRAGGED" : "GM_YOUFRAGGED" );
 	message.StripLeftRight( );
 
 	// [AK] Don't print the message if the string is empty.
@@ -867,7 +882,7 @@ void HUD_DrawFragMessage( player_t *pPlayer, bool bFraggedBy )
 		return;
 
 	// [AK] Substitute the fragged/fragging player's name into the message if we can.
-	message.Substitute( "%s", pPlayer->userinfo.GetName( ));
+	message.Substitute( "%s", g_pFragMessagePlayer->userinfo.GetName( ));
 
 	// Print the frag message out in the console.
 	Printf( "%s\n", message.GetChars( ));
@@ -878,7 +893,7 @@ void HUD_DrawFragMessage( player_t *pPlayer, bool bFraggedBy )
 	// [AK] Build the place string.
 	message = HUD_BuildPlaceString( consoleplayer );
 
-	if ( bFraggedBy == false )
+	if ( g_bFraggedBy == false )
 	{
 		ULONG ulMenLeftStanding = 0;
 
@@ -967,6 +982,14 @@ void HUD_DrawSUBSMessage( const char *pszMessage, EColorRange color, float fHold
 	{
 		SERVERCOMMANDS_PrintHUDMessage( pszMessage, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, HUDMESSAGETYPE_FADEOUT, color, fHoldTime, 0.0f, fOutTime, "SmallFont", lId, ulPlayerExtra, ServerCommandFlags::FromInt( ulFlags ));
 	}
+}
+
+//*****************************************************************************
+//
+void HUD_PrepareToDrawFragMessage( player_t *pPlayer, bool bFraggedBy )
+{
+	g_pFragMessagePlayer = pPlayer;
+	g_bFraggedBy = bFraggedBy;
 }
 
 //*****************************************************************************

@@ -3951,10 +3951,10 @@ void ServerCommands::KillPlayer::Execute()
 		{
 			// Display a large "You were fragged by <name>." message in the middle of the screen.
 			if ( player == &players[consoleplayer] )
-				HUD_DrawFragMessage( &players[ulSourcePlayer], true );
+				HUD_PrepareToDrawFragMessage( &players[ulSourcePlayer], true );
 			// Display a large "You fragged <name>!" message in the middle of the screen.
 			else if ( ulSourcePlayer == static_cast<ULONG>(consoleplayer) )
-				HUD_DrawFragMessage( player, false );
+				HUD_PrepareToDrawFragMessage( player, false );
 		}
 	}
 

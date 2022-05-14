@@ -918,7 +918,7 @@ void AActor::Die (AActor *source, AActor *inflictor, int dmgflags)
 				if (( player - players ) == consoleplayer )
 				{
 					if ( cl_showlargefragmessages )
-						HUD_DrawFragMessage( source->player, true );
+						HUD_PrepareToDrawFragMessage( source->player, true );
 					
 					if ( G15_IsReady() ) // [RC] Also show the message on the Logitech G15 (if enabled).
 						G15_ShowLargeFragMessage( source->player->userinfo.GetName(), false );
@@ -928,7 +928,7 @@ void AActor::Die (AActor *source, AActor *inflictor, int dmgflags)
 				else if (( source->player - players ) == consoleplayer )
 				{
 					if ( cl_showlargefragmessages )
-						HUD_DrawFragMessage( player, false );
+						HUD_PrepareToDrawFragMessage( player, false );
 					
 					if ( G15_IsReady() ) // [RC] Also show the message on the Logitech G15 (if enabled).
 						G15_ShowLargeFragMessage( player->userinfo.GetName(), true );
