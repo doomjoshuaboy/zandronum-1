@@ -1613,34 +1613,6 @@ LONG TEAM_GetPointCountSpread ( ULONG ulTeam )
 
 //*****************************************************************************
 //
-ULONG TEAM_CountFlags( void )
-{
-	AFlag *pItem;
-	TThinkerIterator<AFlag>	iterator;
-	ULONG ulCounted = 0;
-
-	while ( (pItem = iterator.Next( )))
-		ulCounted++;
-
-	return ulCounted;
-}
-
-//*****************************************************************************
-//
-ULONG TEAM_CountSkulls( void )
-{
-	ASkull *pItem;
-	TThinkerIterator<ASkull>	iterator;
-	ULONG ulCounted = 0;
-
-	while ( (pItem = iterator.Next( )))
-		ulCounted++;
-
-	return ulCounted;
-}
-
-//*****************************************************************************
-//
 ULONG TEAM_GetTeamFromItem( AActor *pActor )
 {
 	for ( ULONG i = 0; i < teams.Size( ); i++ )
