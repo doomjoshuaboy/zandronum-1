@@ -143,11 +143,11 @@ public:
 	virtual LONG AllowFlagPickup( AActor *pToucher );
 	virtual void AnnounceFlagPickup( AActor *pToucher );
 	virtual void DisplayFlagTaken( AActor *pToucher );
-	virtual void MarkFlagTaken( bool bTaken );
-	virtual void ResetReturnTicks( void );
 	virtual void ReturnFlag( AActor *pReturner );
 	virtual void AnnounceFlagReturn( void );
 	virtual void DisplayFlagReturn( void );
+	void MarkFlagTaken( bool bTaken );
+	void ResetReturnTicks( void );
 
 	LONG lTick;
 };
@@ -160,8 +160,6 @@ public:
 	virtual LONG AllowFlagPickup( AActor *pToucher );
 	virtual void AnnounceFlagPickup( AActor *pToucher );
 	virtual void DisplayFlagTaken( AActor *pToucher );
-	virtual void MarkFlagTaken( bool bTaken );
-	virtual void ResetReturnTicks( void );
 	virtual void ReturnFlag( AActor *pReturner );
 	virtual void AnnounceFlagReturn( void );
 	virtual void DisplayFlagReturn( void );
@@ -175,8 +173,6 @@ protected:
 	virtual LONG AllowFlagPickup( AActor *pToucher );
 	virtual void AnnounceFlagPickup( AActor *pToucher );
 	virtual void DisplayFlagTaken( AActor *pToucher );
-	virtual void MarkFlagTaken( bool bTaken );
-	virtual void ResetReturnTicks( void );
 	virtual void ReturnFlag( AActor *pReturner );
 	virtual void AnnounceFlagReturn( void );
 	virtual void DisplayFlagReturn( void );
