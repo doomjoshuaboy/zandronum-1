@@ -2914,6 +2914,22 @@ void GAME_SetDefaultDMFlags()
 }
 
 //*****************************************************************************
+// [AK] Counts the number of a particular team item class in the level.
+//
+template <class TeamItem>
+ULONG GAME_CountTeamItem( void )
+{
+	TeamItem *pItem;
+	TThinkerIterator<TeamItem> iterator;
+	ULONG ulCounted = 0;
+
+	while ( pItem = iterator.Next( ))
+		ulCounted++;
+
+	return ulCounted;
+}
+
+//*****************************************************************************
 // Determine is a level is a deathmatch, CTF, etc. level by items that are placed on it.
 //
 void GAME_CheckMode( void )
@@ -2922,8 +2938,6 @@ void GAME_CheckMode( void )
 	ULONG						ulFlags2 = (ULONG)dmflags2;
 	UCVarValue					Val;
 	ULONG						ulIdx;
-	ULONG						ulNumFlags;
-	ULONG						ulNumSkulls;
 	bool						bPlayerStarts = false;
 	bool						bTeamStarts = false;
 	AActor						*pItem;
@@ -2990,10 +3004,8 @@ void GAME_CheckMode( void )
 		// there are skulls or flags placed on the level.
 //		if ( oneflagctf == false )
 		{
-			TThinkerIterator<AActor>	iterator;
-
-			ulNumFlags = TEAM_CountFlags( );
-			ulNumSkulls = TEAM_CountSkulls( );
+			ULONG ulNumFlags = GAME_CountTeamItem<AFlag>( );
+			ULONG ulNumSkulls = GAME_CountTeamItem<ASkull>( );
 
 			// We found flags but no skulls. Set CTF mode.
 			if ( ulNumFlags && ( ulNumSkulls == 0 ))

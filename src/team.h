@@ -174,9 +174,6 @@ LONG		TEAM_GetFragCountSpread ( ULONG ulTeam );
 LONG		TEAM_GetWinCountSpread ( ULONG ulTeam );
 LONG		TEAM_GetPointCountSpread ( ULONG ulTeam );
 
-ULONG		TEAM_CountFlags( void );
-ULONG		TEAM_CountSkulls( void );
-
 ULONG		TEAM_GetTeamFromItem( AActor *pActor );
 ULONG		TEAM_GetNextTeam( ULONG ulTeamIdx );
 
