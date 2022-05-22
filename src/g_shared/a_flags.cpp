@@ -347,6 +347,7 @@ void ATeamItem::DisplayFlagTaken( AActor *pToucher )
 
 void ATeamItem::MarkFlagTaken( bool bTaken )
 {
+	// [AK] For the white flag, TEAM_GetTeamFromItem should return teams.size( ).
 	TEAM_SetItemTaken( TEAM_GetTeamFromItem( this ), bTaken );
 }
 
@@ -360,6 +361,8 @@ void ATeamItem::MarkFlagTaken( bool bTaken )
 
 void ATeamItem::ResetReturnTicks( void )
 {
+	// [AK] For the white flag, TEAM_GetTeamFromItem should return teams.size( ).
+	TEAM_SetReturnTicks( TEAM_GetTeamFromItem( this ), 0 );
 }
 
 //===========================================================================
@@ -680,32 +683,6 @@ void AFlag::DisplayFlagTaken( AActor *pToucher )
 
 //===========================================================================
 //
-// AFlag :: MarkFlagTaken
-//
-// Signal to the team module whether or not this flag has been taken.
-//
-//===========================================================================
-
-void AFlag::MarkFlagTaken( bool bTaken )
-{
-	Super::MarkFlagTaken ( bTaken );
-}
-
-//===========================================================================
-//
-// AFlag :: ResetReturnTicks
-//
-// Reset the return ticks for the team associated with this flag.
-//
-//===========================================================================
-
-void AFlag::ResetReturnTicks( void )
-{
-	TEAM_SetReturnTicks( TEAM_GetTeamFromItem( this ), 0 );
-}
-
-//===========================================================================
-//
 // AFlag :: ReturnFlag
 //
 // Spawn a new flag at its original location.
@@ -831,8 +808,6 @@ protected:
 	virtual LONG AllowFlagPickup( AActor *pToucher );
 	virtual void AnnounceFlagPickup( AActor *pToucher );
 	virtual void DisplayFlagTaken( AActor *pToucher );
-	virtual void MarkFlagTaken( bool bTaken );
-	virtual void ResetReturnTicks( void );
 	virtual void ReturnFlag( AActor *pReturner );
 	virtual void AnnounceFlagReturn( void );
 	virtual void DisplayFlagReturn( void );
@@ -1091,32 +1066,6 @@ void AWhiteFlag::DisplayFlagTaken( AActor *pToucher )
 
 //===========================================================================
 //
-// AWhiteFlag :: MarkFlagTaken
-//
-// Signal to the team module whether or not this flag has been taken.
-//
-//===========================================================================
-
-void AWhiteFlag::MarkFlagTaken( bool bTaken )
-{
-	TEAM_SetItemTaken( teams.Size( ), bTaken );
-}
-
-//===========================================================================
-//
-// AWhiteFlag :: ResetReturnTicks
-//
-// Reset the return ticks for the team associated with this flag.
-//
-//===========================================================================
-
-void AWhiteFlag::ResetReturnTicks( void )
-{
-	TEAM_SetReturnTicks( teams.Size( ), 0 );
-}
-
-//===========================================================================
-//
 // AWhiteFlag :: ReturnFlag
 //
 // Spawn a new flag at its original location.
@@ -1294,32 +1243,6 @@ void ASkull::DisplayFlagTaken( AActor *pToucher )
 		SERVERCOMMANDS_PrintHUDMessage( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, HUDMESSAGETYPE_FADEOUT, CR_UNTRANSLATED, 3.0f, 0.0f, 0.25f, "SmallFont", MAKE_ID( 'S', 'U', 'B', 'S' ), ULONG( pToucher->player - players ), SVCF_SKIPTHISCLIENT );
 		SERVER_Printf( PRINT_MEDIUM, "%s has taken the \034%s%s " TEXTCOLOR_NORMAL "skull.\n", players[playerIndex].userinfo.GetName(), TEAM_GetTextColorName( TEAM_GetTeamFromItem( this )), TEAM_GetName( TEAM_GetTeamFromItem( this )));
 	}
-}
-
-//===========================================================================
-//
-// ASkull :: MarkFlagTaken
-//
-// Signal to the team module whether or not this flag has been taken.
-//
-//===========================================================================
-
-void ASkull::MarkFlagTaken( bool bTaken )
-{
-	Super::MarkFlagTaken ( bTaken );
-}
-
-//===========================================================================
-//
-// ASkull :: ResetReturnTicks
-//
-// Reset the return ticks for the team associated with this flag.
-//
-//===========================================================================
-
-void ASkull::ResetReturnTicks( void )
-{
-	TEAM_SetReturnTicks( TEAM_GetTeamFromItem( this ), 0 );
 }
 
 //===========================================================================
