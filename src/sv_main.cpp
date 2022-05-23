@@ -2507,9 +2507,12 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 		SERVERCOMMANDS_SetPlayerLivesLeft( ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
 
 		// [BB] Also tell this player's chat / console status to the new client.
+		// [AK] Tell the client whether this player is lagging or not. This prevents the client from
+		// seeing players with the lag icon over their head indefinitely after a level change.
 		SERVERCOMMANDS_SetPlayerStatus( ulIdx, PLAYERSTATUS_CHATTING, ulClient, SVCF_ONLYTHISCLIENT );
 		SERVERCOMMANDS_SetPlayerStatus( ulIdx, PLAYERSTATUS_INCONSOLE, ulClient, SVCF_ONLYTHISCLIENT );
 		SERVERCOMMANDS_SetPlayerStatus( ulIdx, PLAYERSTATUS_INMENU, ulClient, SVCF_ONLYTHISCLIENT );
+		SERVERCOMMANDS_SetPlayerStatus( ulIdx, PLAYERSTATUS_LAGGING, ulClient, SVCF_ONLYTHISCLIENT );
 
 		// [BB] If this player has any cheats, also inform the new client.
 		if( players[ulIdx].cheats )
