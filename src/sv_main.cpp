@@ -1072,19 +1072,20 @@ void SERVER_CheckTimeouts( void )
 			continue;
 		}
 
+		const int lastCommandTicDiff = gametic - g_aClients[ulIdx].ulLastCommandTic;
+
 		// If we haven't gotten a packet from this client in CLIENT_TIMEOUT seconds,
 		// disconnect him.
-		if (( gametic - g_aClients[ulIdx].ulLastCommandTic ) >= ( CLIENT_TIMEOUT * TICRATE ))
+		if ( lastCommandTicDiff >= CLIENT_TIMEOUT * TICRATE )
 		{
 		    SERVER_DisconnectClient( ulIdx, true, true );
 			continue;
 		}
 
-		if ( players[ulIdx].bSpectating )
-			continue;
-
 		// Also check to see if the client is lagging.
-		if (( gametic - g_aClients[ulIdx].ulLastCommandTic ) >= TICRATE )
+		// [AK] Spectators don't send updates as often as in-game players do, so give
+		// them more time before marking them as lagging.
+		if ( lastCommandTicDiff >= ( players[ulIdx].bSpectating ? TICRATE * 5 : TICRATE ))
 		{
 			// Have not heard from the client in at least one second; mark him as
 			// lagging and tell clients.

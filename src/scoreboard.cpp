@@ -476,7 +476,7 @@ static void scoreboard_RenderIndividualPlayer( ULONG ulDisplayPlayer, ULONG ulPl
 			}
 
 			// [AK] Also show an icon if the player is lagging to the server.
-			if (( players[ulPlayer].bLagging ) && ( players[ulPlayer].bSpectating == false ) && ( gamestate == GS_LEVEL ))
+			if (( players[ulPlayer].bLagging ) && ( gamestate == GS_LEVEL ))
 				scoreboard_DrawIcon( "LAGMINI", ulXPosOffset, g_ulCurYPos, 4 );
 
 			// Draw text if there's a vote on and this player voted.
