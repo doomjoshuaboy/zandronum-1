@@ -2939,27 +2939,9 @@ void PLAYER_StruckPlayer( player_t *pPlayer )
 	pPlayer->ulConsecutiveHits++;
 
 	// If the player has made 5 straight consecutive hits with a weapon, award a medal.
+	// Award a "Precision" medal if they made 10+ consecutive hits. Otherwise, award an "Accuracy" medal.
 	if (( pPlayer->ulConsecutiveHits % 5 ) == 0 )
-	{
-		// If this player has made 10+ consecuvite hits, award a "Precision" medal.
-		if ( pPlayer->ulConsecutiveHits >= 10 )
-		{
-			MEDAL_GiveMedal( pPlayer - players, MEDAL_PRECISION );
-
-			// Tell clients about the medal that been given.
-			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_GivePlayerMedal( pPlayer - players, MEDAL_PRECISION );
-		}
-		// Otherwise, award an "Accuracy" medal.
-		else
-		{
-			MEDAL_GiveMedal( pPlayer - players, MEDAL_ACCURACY );
-
-			// Tell clients about the medal that been given.
-			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_GivePlayerMedal( pPlayer - players, MEDAL_ACCURACY );
-		}
-	}
+		MEDAL_GiveMedal( pPlayer - players, pPlayer->ulConsecutiveHits >= 10 ? MEDAL_PRECISION : MEDAL_ACCURACY );
 
 	// Reset the struck player flag.
 	pPlayer->bStruckPlayer = false;

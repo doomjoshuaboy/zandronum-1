@@ -258,22 +258,10 @@ void DUEL_DoWinSequence( ULONG ulPlayer )
 	}
 
 	// Award a victory or perfect medal to the winner.
-	if ( NETWORK_InClientMode() == false )
-	{
-		LONG	lMedal;
-
-		// If the duel loser doesn't have any frags, give the winner a "Perfect!".
-		if ( players[g_ulDuelLoser].fragcount <= 0 )
-			lMedal = MEDAL_PERFECT;
-		else
-			lMedal = MEDAL_VICTORY;
-
-		// Give the player the medal.
-		MEDAL_GiveMedal( ulPlayer, lMedal );
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_GivePlayerMedal( ulPlayer, lMedal );
-	}
-
+	// If the duel loser doesn't have any frags, give the winner a "Perfect!".
+	if ( NETWORK_InClientMode( ) == false )
+		MEDAL_GiveMedal( ulPlayer, players[g_ulDuelLoser].fragcount <= 0 ? MEDAL_PERFECT : MEDAL_VICTORY );
+	
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
 		if (( playeringame[ulIdx] ) && ( players[ulIdx].pSkullBot ))

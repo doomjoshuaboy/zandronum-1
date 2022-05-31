@@ -605,22 +605,13 @@ void TEAM_ScoreSkulltagPoint( player_t *pPlayer, ULONG ulNumPoints, AActor *pPil
 	// Award the scorer with a "Tag!" medal.
 	MEDAL_GiveMedal( ULONG( pPlayer - players ), MEDAL_TAG );
 
-	// Tell clients about the medal that been given.
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_GivePlayerMedal( ULONG( pPlayer - players ), MEDAL_TAG );
-
 	// If someone just recently returned the skull, award him with an "Assist!" medal.
 	if ( TEAM_GetAssistPlayer( pPlayer->Team ) != MAXPLAYERS )
 	{
 		// [AK] Mark the assisting player.
 		playerAssistNumber = TEAM_GetAssistPlayer( pPlayer->Team );
 
-		MEDAL_GiveMedal( TEAM_GetAssistPlayer( pPlayer->Team ), MEDAL_ASSIST );
-
-		// Tell clients about the medal that been given.
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_GivePlayerMedal( TEAM_GetAssistPlayer( pPlayer->Team ), MEDAL_ASSIST );
-
+		MEDAL_GiveMedal( playerAssistNumber, MEDAL_ASSIST );
 		TEAM_SetAssistPlayer( pPlayer->Team, MAXPLAYERS );
 	}
 

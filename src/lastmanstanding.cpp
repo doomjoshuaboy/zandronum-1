@@ -454,22 +454,9 @@ void LASTMANSTANDING_DoWinSequence( ULONG ulWinner )
 	}
 
 	// Award a victory or perfect medal to the winner.
-	if (( lastmanstanding ) &&
-		( NETWORK_InClientMode() == false ))
-	{
-		LONG	lMedal;
-
-		// If the winner has full health, give him a "Perfect!".
-		if ( players[ulWinner].health == deh.MegasphereHealth )
-			lMedal = MEDAL_PERFECT;
-		else
-			lMedal = MEDAL_VICTORY;
-
-		// Give the player the medal.
-		MEDAL_GiveMedal( ulWinner, lMedal );
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_GivePlayerMedal( ulWinner, lMedal );
-	}
+	// If the winner has full health, give him a "Perfect!".
+	if (( lastmanstanding ) && ( NETWORK_InClientMode( ) == false ))
+		MEDAL_GiveMedal( ulWinner, players[ulWinner].health == deh.MegasphereHealth ? MEDAL_PERFECT : MEDAL_VICTORY );
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{

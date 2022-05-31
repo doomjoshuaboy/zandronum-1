@@ -4933,37 +4933,14 @@ void P_RailAttack(AActor *source, int damage, int offset_xy, fixed_t offset_z, i
 				}
 			}
 
-			if (( hitactor->player ) && ( source->IsTeammate( hitactor ) == false ))
+			if (( hitactor->player ) && ( source->IsTeammate( hitactor ) == false ) && ( source->player ))
 			{
-				if ( source->player )
-				{
-					source->player->ulConsecutiveRailgunHits++;
+				source->player->ulConsecutiveRailgunHits++;
 
-					// If the player has made 2 straight consecutive hits with the railgun, award a medal.
-					if (( source->player->ulConsecutiveRailgunHits % 2 ) == 0 )
-					{
-						// If the player gets 4+ straight hits with the railgun, award a "Most Impressive" medal.
-						if ( source->player->ulConsecutiveRailgunHits >= 4 )
-						{
-							if ( NETWORK_InClientMode() == false )
-								MEDAL_GiveMedal( ULONG( source->player - players ), MEDAL_MOSTIMPRESSIVE );
-
-							// Tell clients about the medal that been given.
-							if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-								SERVERCOMMANDS_GivePlayerMedal( ULONG( source->player - players ), MEDAL_MOSTIMPRESSIVE );
-						}
-						// Otherwise, award an "Impressive" medal.
-						else
-						{
-							if ( NETWORK_InClientMode() == false )
-								MEDAL_GiveMedal( ULONG( source->player - players ), MEDAL_IMPRESSIVE );
-
-							// Tell clients about the medal that been given.
-							if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-								SERVERCOMMANDS_GivePlayerMedal( ULONG( source->player - players ), MEDAL_IMPRESSIVE );
-						}
-					}
-				}
+				// If the player has made 2 straight consecutive hits with the railgun, award a medal.
+				// Award a "Most Impressive" medal if they get 4+ straight hits. Otherwise, award an "Impressive" medal.
+				if (( NETWORK_InClientMode( ) == false ) && (( source->player->ulConsecutiveRailgunHits % 2 ) == 0 ))
+					MEDAL_GiveMedal( static_cast<ULONG>( source->player - players ), source->player->ulConsecutiveRailgunHits >= 4 ? MEDAL_MOSTIMPRESSIVE : MEDAL_IMPRESSIVE );
 			}
 		}
 	}
