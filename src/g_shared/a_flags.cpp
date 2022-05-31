@@ -444,10 +444,6 @@ bool AFlag::HandlePickup( AInventory *pItem )
 			// Award the scorer with a "Capture!" medal.
 			MEDAL_GiveMedal( ULONG( Owner->player - players ), MEDAL_CAPTURE );
 
-			// Tell clients about the medal that been given.
-			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_GivePlayerMedal( ULONG( Owner->player - players ), MEDAL_CAPTURE );
-
 			// [RC] Clear the 'returned automatically' message. A bit hackish, but leaves the flag structure unchanged.
 			this->ReturnFlag( NULL );
 			if ( NETWORK_GetState( ) != NETSTATE_SERVER )
@@ -531,12 +527,7 @@ bool AFlag::HandlePickup( AInventory *pItem )
 				// [CK] Mark the assisting player
 				playerAssistNumber = TEAM_GetAssistPlayer( Owner->player->Team );
 
-				MEDAL_GiveMedal( TEAM_GetAssistPlayer( Owner->player->Team ), MEDAL_ASSIST );
-
-				// Tell clients about the medal that been given.
-				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_GivePlayerMedal( TEAM_GetAssistPlayer( Owner->player->Team ), MEDAL_ASSIST );
-
+				MEDAL_GiveMedal( playerAssistNumber, MEDAL_ASSIST );
 				TEAM_SetAssistPlayer( Owner->player->Team, MAXPLAYERS );
 			}
 
@@ -860,20 +851,12 @@ bool AWhiteFlag::HandlePickup( AInventory *pItem )
 		// Award the scorer with a "Capture!" medal.
 		MEDAL_GiveMedal( ULONG( Owner->player - players ), MEDAL_CAPTURE );
 
-		// Tell clients about the medal that been given.
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_GivePlayerMedal( ULONG( Owner->player - players ), MEDAL_CAPTURE );
-
 		// If someone just recently returned the flag, award him with an "Assist!" medal.
 		if ( TEAM_GetAssistPlayer( Owner->player->Team ) != MAXPLAYERS )
 		{
 			// [AK] Mark the assisting player.
 			playerAssistNumber = TEAM_GetAssistPlayer( Owner->player->Team );
-			MEDAL_GiveMedal( TEAM_GetAssistPlayer( Owner->player->Team ), MEDAL_ASSIST );
-
-			// Tell clients about the medal that been given.
-			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_GivePlayerMedal( TEAM_GetAssistPlayer( Owner->player->Team ), MEDAL_ASSIST );
+			MEDAL_GiveMedal( playerAssistNumber, MEDAL_ASSIST );
 
 			TEAM_SetAssistPlayer( Owner->player->Team, MAXPLAYERS );
 		}
