@@ -176,7 +176,6 @@ typedef struct
 
 // Standard API.
 void	MEDAL_Construct( void );
-void	MEDAL_Input( void );
 void	MEDAL_Tick( void );
 void	MEDAL_Render( void );
 
