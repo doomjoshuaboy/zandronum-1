@@ -490,6 +490,16 @@ static void HUD_DrawBottomString( ULONG ulDisplayPlayer )
 {
 	FString bottomString;
 
+	// [AK] Show how much time is left before we can respawn if we had to wait for more than one second.
+	if (( r_drawrespawnstring ) && ( players[consoleplayer].bSpectating == false ) && ( players[consoleplayer].playerstate == PST_DEAD ))
+	{
+		if ( g_lRespawnGametic > level.time )
+		{
+			float fTimeLeft = MIN( g_fRespawnDelay, static_cast<float>( g_lRespawnGametic - level.time ) / TICRATE );
+			bottomString.AppendFormat( TEXTCOLOR_GREEN "Ready to respawn in %.1f seconds\n", fTimeLeft );
+		}
+	}
+
 	// [BB] Draw a message to show that the free spectate mode is active.
 	if ( CLIENTDEMO_IsInFreeSpectateMode( ))
 		bottomString.AppendFormat( "Free Spectate Mode" );
@@ -572,18 +582,6 @@ static void HUD_DrawBottomString( ULONG ulDisplayPlayer )
 				bottomString += " - ";
 
 			bottomString += playersLeftString;
-		}
-	}
-
-	// [AK] Show how much time is left before we can respawn if we had to wait for more than one second.
-	if (( r_drawrespawnstring ) && ( players[consoleplayer].bSpectating == false ) && ( players[consoleplayer].playerstate == PST_DEAD ))
-	{
-		if ( g_lRespawnGametic > level.time )
-		{
-			float fTimeLeft = MIN( g_fRespawnDelay, static_cast<float>( g_lRespawnGametic - level.time ) / TICRATE );
-
-			bottomString += "\n" TEXTCOLOR_GREEN;
-			bottomString.AppendFormat( "Ready to respawn in %.1f seconds", fTimeLeft );
 		}
 	}
 
