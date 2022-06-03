@@ -1079,11 +1079,17 @@ void GAMEMODE_SetState( GAMESTATE_e GameState )
 
 //*****************************************************************************
 //
-LONG GAMEMODE_HandleEvent ( const GAMEEVENT_e Event, AActor *pActivator, const int DataOne, const int DataTwo )
+LONG GAMEMODE_HandleEvent ( const GAMEEVENT_e Event, AActor *pActivator, const int DataOne, const int DataTwo, const int OverrideResult )
 {
 	// [BB] Clients don't start scripts.
 	if ( NETWORK_InClientMode() )
 		return 1;
+
+	// [AK] Remember the old event's result value, in case we need to
+	// handle nested event calls (i.e. an event that's triggered in
+	// the middle of another event).
+	const LONG lOldResult = GAMEMODE_GetEventResult( );
+	GAMEMODE_SetEventResult( OverrideResult );
 
 	// [AK] Allow events that are triggered by an actor spawning or
 	// taking damage to be executed immediately, in case any of the
@@ -1098,9 +1104,9 @@ LONG GAMEMODE_HandleEvent ( const GAMEEVENT_e Event, AActor *pActivator, const i
 	// The third argument will be zero if it isn't used in the script.
 	FBehavior::StaticStartTypedScripts( SCRIPT_Event, pActivator, true, Event, bRunNow, false, DataOne, DataTwo );
 
-	// [AK] Get the result value of the event, then reset it back to the default value.
+	// [AK] Get the result value of the event, then reset it back to the old value.
 	LONG lResult = GAMEMODE_GetEventResult( );
-	GAMEMODE_SetEventResult( 1 );
+	GAMEMODE_SetEventResult( lOldResult );
 
 	// [AK] Return the result value of the event.
 	return lResult;
@@ -1132,8 +1138,7 @@ bool GAMEMODE_HandleDamageEvent ( AActor *target, AActor *inflictor, AActor *sou
 	temp->master = source;
 	temp->tracer = inflictor;
 
-	GAMEMODE_SetEventResult( damage );
-	damage = GAMEMODE_HandleEvent( DamageEvent, temp, damage, GlobalACSStrings.AddString( mod ));
+	damage = GAMEMODE_HandleEvent( DamageEvent, temp, damage, GlobalACSStrings.AddString( mod ), damage );
 
 	// [AK] Destroy the temporary actor after executing all event scripts.
 	temp->Destroy( );
