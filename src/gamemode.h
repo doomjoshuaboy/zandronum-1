@@ -213,7 +213,7 @@ bool		GAMEMODE_IsSpectatorAllowedSpecial ( const int Special );
 bool		GAMEMODE_IsHandledSpecial ( AActor *Activator, int Special );
 GAMESTATE_e	GAMEMODE_GetState ( void );
 void		GAMEMODE_SetState ( GAMESTATE_e GameState );
-LONG		GAMEMODE_HandleEvent ( const GAMEEVENT_e Event, AActor *pActivator = NULL, const int DataOne = 0, const int DataTwo = 0 );
+LONG		GAMEMODE_HandleEvent ( const GAMEEVENT_e Event, AActor *pActivator = NULL, const int DataOne = 0, const int DataTwo = 0, const int OverrideResult = 1 );
 bool		GAMEMODE_HandleDamageEvent ( AActor *target, AActor *inflictor, AActor *source, int &damage, FName mod, bool bBeforeArmor = false );
 LONG		GAMEMODE_GetEventResult ( void );
 void		GAMEMODE_SetEventResult ( LONG lResult );
