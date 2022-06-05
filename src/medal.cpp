@@ -246,10 +246,7 @@ void MEDAL_Render( void )
 
 	ULONG ulMedal = g_MedalQueue[ulPlayer][0].ulMedal;
 	ULONG ulTick = g_MedalQueue[ulPlayer][0].ulTick;
-	LONG lAlpha = OPAQUE;
-
-	if ( ulTick > TICRATE )
-		lAlpha = static_cast<LONG>( OPAQUE * (static_cast<float>( ulTick ) / TICRATE ));
+	const LONG lAlpha = ulTick > TICRATE ? OPAQUE : static_cast<LONG>( OPAQUE * ( static_cast<float>( ulTick ) / TICRATE ));
 
 	// Get the graphic and text name from the global array.
 	FString patchName = g_Medals[ulMedal].szLumpName;
