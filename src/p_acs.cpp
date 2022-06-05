@@ -7893,6 +7893,7 @@ int DLevelScript::RunScript ()
 	ScriptFunction *activeFunction = NULL;
 	FRemapTable *translation = 0;
 	int resultValue = 1;
+	bool bIsFirstTic = false; // [AK]
 
 	if (InModuleScriptNumber >= 0)
 	{
@@ -7918,6 +7919,8 @@ int DLevelScript::RunScript ()
 	case SCRIPT_Running:
 		if ( ACS_IsEventScript( script ))
 			resultValue = GAMEMODE_GetEventResult( );
+
+		bIsFirstTic = true;
 		break;
 
 	case SCRIPT_Delayed:
@@ -9218,6 +9221,13 @@ int DLevelScript::RunScript ()
 
 		case PCD_SETRESULTVALUE:
 			resultValue = STACK(1);
+
+			// [AK] If this is an event script and the result value differs from the event's result value, update it.
+			// This can only happen during the first tic that the event script is running. Updating an event's result
+			// value is irrelevant after the first tic because it will be too late.
+			if (( bIsFirstTic ) && ( ACS_IsEventScript( script )) && ( resultValue != GAMEMODE_GetEventResult( )))
+				GAMEMODE_SetEventResult( resultValue );
+
 		case PCD_DROP: //fall through.
 			sp--;
 			break;
@@ -11773,10 +11783,6 @@ scriptwait:
 
 	// [AK] We're done running this script so any action or line specials activated now aren't done in ACS.
 	g_pCurrentScript = NULL;
-
-	// [AK] If this is an event script and the result value differs from the event's result value, update it.
-	if (( ACS_IsEventScript( script )) && ( resultValue != GAMEMODE_GetEventResult( )))
-		GAMEMODE_SetEventResult( resultValue );
 
 	// [BB] Stop the net traffic measurement and add the result to this script's traffic.
 	NETTRAFFIC_AddACSScriptTraffic ( script, NETWORK_StopTrafficMeasurement ( ) );
