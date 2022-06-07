@@ -131,10 +131,12 @@ int UNLAGGED_Gametic( player_t *player )
 // Call UNLAGGED_Restore afterwards to restore everything
 void UNLAGGED_Reconcile( AActor *actor )
 {
-	//Only do anything if the actor to be reconciled is a player,
-	//it's on a server with unlagged on, and reconciliation is not being blocked
-	if ( !actor->player || (NETWORK_GetState() != NETSTATE_SERVER) || ( zadmflags & ZADF_NOUNLAGGED ) ||
-		 ( ( actor->player->userinfo.GetClientFlags() & CLIENTFLAGS_UNLAGGED ) == 0 ) || ( reconciliationBlockers > 0 ) )
+	// [AK] Don't do anything if it's not a server with unlagged or if reconciliation is being blocked.
+	if (( NETWORK_GetState( ) != NETSTATE_SERVER ) || ( zadmflags & ZADF_NOUNLAGGED ) || ( reconciliationBlockers > 0 ))
+		return;
+
+	// [AK] Don't do anything if the actor isn't a player, is a bot, or if this player disabled unlagged for themselves.
+	if (( actor == NULL ) || ( actor->player == NULL ) || ( actor->player->bIsBot ) || (( actor->player->userinfo.GetClientFlags( ) & CLIENTFLAGS_UNLAGGED ) == 0 ))
 		return;
 
 	//Something went wrong, reconciliation was attempted when the gamestate
