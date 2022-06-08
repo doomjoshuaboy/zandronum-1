@@ -11432,7 +11432,8 @@ scriptwait:
 				switch (STACK(1))
 				{
 				// [CW] PLAYERINFO_TEAM needs to use the one in player_t rather than the one in userinfo_t.
-				case PLAYERINFO_TEAM:			STACK(2) = players[STACK( 2 )].Team; break;
+				// [AK] Return TEAM_None if the player isn't on a team.
+				case PLAYERINFO_TEAM:			STACK(2) = pl->bOnTeam ? pl->Team : TEAM_None; break;
 				case PLAYERINFO_AIMDIST:		STACK(2) = userinfo->GetAimDist(); break;
 				case PLAYERINFO_COLOR:			STACK(2) = userinfo->GetColor(); break;
 				case PLAYERINFO_GENDER:			STACK(2) = userinfo->GetGender(); break;
