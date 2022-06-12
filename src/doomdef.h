@@ -389,6 +389,9 @@ enum
 
 	// [AK] Players aren't pushed by attacks caused by their teammates (e.g. BFG tracers).
 	ZADF_DONT_PUSH_ALLIES = 1 << 22,
+
+	// [AK] If enabled, the join queue is cleared between level changes.
+	ZADF_DONT_KEEP_JOIN_QUEUE = 1 << 23,
 };
 
 // [RH] Compatibility flags.

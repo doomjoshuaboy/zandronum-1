@@ -4533,9 +4533,9 @@ void P_SetupLevel (char *lumpname, int position)
 					if ( players[i].bOnTeam && ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS ) )
 						PLAYER_SetTeam( &players[i], teams.Size( ), true );
 
-					// [BB] In duel the players should keep their position in line after a "changemap"
-					// map change.
-					if ( duel == false )
+					// [AK] Players only keep their position in line after a "changemap" map change
+					// if ZADF_DONT_KEEP_JOIN_QUEUE isn't enabled.
+					if ( zadmflags & ZADF_DONT_KEEP_JOIN_QUEUE )
 					{
 						// [BB] If the player was in the join queue, remove him.
 						JOINQUEUE_RemovePlayerFromQueue ( i );
