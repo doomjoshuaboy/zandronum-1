@@ -724,13 +724,9 @@ public:
 	bool		bUnarmed;
 
 	// [Spleen] Store old information about the player for unlagged support
-	fixed_t		unlaggedX[UNLAGGEDTICS];
-	fixed_t		unlaggedY[UNLAGGEDTICS];
-	fixed_t		unlaggedZ[UNLAGGEDTICS];
-
-	fixed_t		restoreX;
-	fixed_t		restoreY;
-	fixed_t		restoreZ;
+	// [AK] Converted the position members into TVector3 objects.
+	TVector3<fixed_t>	unlaggedPos[UNLAGGEDTICS];
+	TVector3<fixed_t>	restorePos;
 
 	fixed_t		restoreFloorZ;
 	fixed_t		restoreCeilingZ;

@@ -522,12 +522,12 @@ player_t &player_t::operator=(const player_t &p)
 	bSpawnTelefragged = p.bSpawnTelefragged;
 	ulTime = p.ulTime;
 	bUnarmed = p.bUnarmed;
-	memcpy(unlaggedX, &p.unlaggedX, sizeof( unlaggedX ));
-	memcpy(unlaggedY, &p.unlaggedY, sizeof( unlaggedY ));
-	memcpy(unlaggedZ, &p.unlaggedZ, sizeof( unlaggedZ ));
-	restoreX = p.restoreX;
-	restoreY = p.restoreY;
-	restoreZ = p.restoreZ;
+
+	// [AK] Copy the old positions for the unlagged.
+	for ( unsigned int i = 0; i < UNLAGGEDTICS; i++ )
+		unlaggedPos[i] = p.unlaggedPos[i];
+
+	restorePos = p.restorePos;
 	restoreFloorZ = p.restoreFloorZ;
 	restoreCeilingZ = p.restoreCeilingZ;
 

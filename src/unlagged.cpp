@@ -176,9 +176,9 @@ void UNLAGGED_Reconcile( AActor *actor )
 	{
 		if (playeringame[i] && players[i].mo && !players[i].bSpectating)
 		{
-			players[i].restoreX = players[i].mo->x;
-			players[i].restoreY = players[i].mo->y;
-			players[i].restoreZ = players[i].mo->z;
+			players[i].restorePos[0] = players[i].mo->x;
+			players[i].restorePos[1] = players[i].mo->y;
+			players[i].restorePos[2] = players[i].mo->z;
 
 			//Work around limitations of SetOrigin to prevent players
 			//from getting stuck in ledges
@@ -190,11 +190,7 @@ void UNLAGGED_Reconcile( AActor *actor )
 			//to predict him
 			if (players+i != actor->player)
 			{
-				players[i].mo->SetOrigin(
-					players[i].unlaggedX[unlaggedIndex],
-					players[i].unlaggedY[unlaggedIndex],
-					players[i].unlaggedZ[unlaggedIndex]
-				);
+				players[i].mo->SetOrigin( players[i].unlaggedPos[unlaggedIndex][0], players[i].unlaggedPos[unlaggedIndex][1], players[i].unlaggedPos[unlaggedIndex][2] );
 			}
 			else
 				//However, the client sometimes mispredicts itself if it's on a moving sector.
@@ -279,21 +275,19 @@ void UNLAGGED_Restore( AActor *actor )
 			// Do not restore this player's position if the shot resulted in his direct teleportation.
 			if ( players + i != actor->player )
 			{
-				if ( players[i].mo->x != players[i].unlaggedX[unlaggedIndex] ||
-					players[i].mo->y != players[i].unlaggedY[unlaggedIndex] ||
-					players[i].mo->z != players[i].unlaggedZ[unlaggedIndex] )
+				if ( players[i].mo->x != players[i].unlaggedPos[unlaggedIndex][0] ||
+					players[i].mo->y != players[i].unlaggedPos[unlaggedIndex][1] ||
+					players[i].mo->z != players[i].unlaggedPos[unlaggedIndex][2] )
 				{
 					continue;
 				}
 			}
-			else if ( actor->x != players[i].restoreX ||
-				actor->y != players[i].restoreY ||
-				actor->z != reconcilledZ )
+			else if ( actor->x != players[i].restorePos[0] || actor->y != players[i].restorePos[1] || actor->z != reconcilledZ )
 			{
 				continue;
 			}
 
-			players[i].mo->SetOrigin( players[i].restoreX, players[i].restoreY, players[i].restoreZ );
+			players[i].mo->SetOrigin( players[i].restorePos[0], players[i].restorePos[1], players[i].restorePos[2] );
 			players[i].mo->floorz = players[i].restoreFloorZ;
 			players[i].mo->ceilingz = players[i].restoreCeilingZ;
 		}
@@ -319,9 +313,9 @@ void UNLAGGED_RecordPlayer( player_t *player )
 	const int unlaggedIndex = gametic % UNLAGGEDTICS;
 
 	//record the player
-	player->unlaggedX[unlaggedIndex] = player->mo->x;
-	player->unlaggedY[unlaggedIndex] = player->mo->y;
-	player->unlaggedZ[unlaggedIndex] = player->mo->z;
+	player->unlaggedPos[unlaggedIndex][0] = player->mo->x;
+	player->unlaggedPos[unlaggedIndex][1] = player->mo->y;
+	player->unlaggedPos[unlaggedIndex][2] = player->mo->z;
 }
 
 
@@ -339,9 +333,9 @@ void UNLAGGED_ResetPlayer( player_t *player )
 
 	for (int unlaggedIndex = 0; unlaggedIndex < UNLAGGEDTICS; ++unlaggedIndex)
 	{
-		player->unlaggedX[unlaggedIndex] = player->mo->x;
-		player->unlaggedY[unlaggedIndex] = player->mo->y;
-		player->unlaggedZ[unlaggedIndex] = player->mo->z;
+		player->unlaggedPos[unlaggedIndex][0] = player->mo->x;
+		player->unlaggedPos[unlaggedIndex][1] = player->mo->y;
+		player->unlaggedPos[unlaggedIndex][2] = player->mo->z;
 	}
 }
 
@@ -400,10 +394,7 @@ void UNLAGGED_GetHitOffset ( const AActor *attacker, const FTraceResults &trace,
 		const int unlaggedIndex = unlaggedGametic % UNLAGGEDTICS;
 
 		const player_t *hitPlayer = trace.Actor->player;
-
-		hitOffset[0] = hitPlayer->restoreX - hitPlayer->unlaggedX[unlaggedIndex];
-		hitOffset[1] = hitPlayer->restoreY - hitPlayer->unlaggedY[unlaggedIndex];
-		hitOffset[2] = hitPlayer->restoreZ - hitPlayer->unlaggedZ[unlaggedIndex];
+		hitOffset = hitPlayer->restorePos - hitPlayer->unlaggedPos[unlaggedIndex];
 	}
 }
 
@@ -455,9 +446,9 @@ void UNLAGGED_SpawnDebugActors ( )
 				if ( ( ulPlayer == ulIdx ) || ( PLAYER_IsValidPlayer ( ulIdx ) == false ) || players[ulIdx].bSpectating )
 					continue;
 
-				pActor->x = players[ulIdx].unlaggedX[unlaggedIndex];
-				pActor->y = players[ulIdx].unlaggedY[unlaggedIndex];
-				pActor->z = players[ulIdx].unlaggedZ[unlaggedIndex];
+				pActor->x = players[ulIdx].unlaggedPos[unlaggedIndex][0];
+				pActor->y = players[ulIdx].unlaggedPos[unlaggedIndex][1];
+				pActor->z = players[ulIdx].unlaggedPos[unlaggedIndex][2];
 
 				SERVERCOMMANDS_SpawnThingNoNetID( pActor, ulPlayer, SVCF_ONLYTHISCLIENT );
 			}
