@@ -728,6 +728,10 @@ public:
 	TVector3<fixed_t>	unlaggedPos[UNLAGGEDTICS];
 	TVector3<fixed_t>	restorePos;
 
+	// [AK] We should also store the player's old height for unlagged.
+	fixed_t		unlaggedHeight[UNLAGGEDTICS];
+	fixed_t		restoreHeight;
+
 	fixed_t		restoreFloorZ;
 	fixed_t		restoreCeilingZ;
 

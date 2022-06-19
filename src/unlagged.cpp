@@ -191,6 +191,10 @@ void UNLAGGED_Reconcile( AActor *actor )
 			if (players+i != actor->player)
 			{
 				players[i].mo->SetOrigin( players[i].unlaggedPos[unlaggedIndex][0], players[i].unlaggedPos[unlaggedIndex][1], players[i].unlaggedPos[unlaggedIndex][2] );
+
+				// [AK] We only need to restore the heights of the other players except the shooter.
+				players[i].restoreHeight = players[i].mo->height;
+				players[i].mo->height = players[i].unlaggedHeight[unlaggedIndex];
 			}
 			else
 				//However, the client sometimes mispredicts itself if it's on a moving sector.
@@ -272,9 +276,13 @@ void UNLAGGED_Restore( AActor *actor )
 	{
 		if (playeringame[i] && players[i].mo && !players[i].bSpectating)
 		{
-			// Do not restore this player's position if the shot resulted in his direct teleportation.
 			if ( players + i != actor->player )
 			{
+				// [AK] Always restore their height unless it changed during reconciliation (e.g. the player died).
+				if ( players[i].mo->height == players[i].unlaggedHeight[unlaggedIndex] )
+					players[i].mo->height = players[i].restoreHeight;
+
+				// Do not restore this player's position if the shot resulted in his direct teleportation.
 				if ( players[i].mo->x != players[i].unlaggedPos[unlaggedIndex][0] ||
 					players[i].mo->y != players[i].unlaggedPos[unlaggedIndex][1] ||
 					players[i].mo->z != players[i].unlaggedPos[unlaggedIndex][2] )
@@ -316,6 +324,7 @@ void UNLAGGED_RecordPlayer( player_t *player )
 	player->unlaggedPos[unlaggedIndex][0] = player->mo->x;
 	player->unlaggedPos[unlaggedIndex][1] = player->mo->y;
 	player->unlaggedPos[unlaggedIndex][2] = player->mo->z;
+	player->unlaggedHeight[unlaggedIndex] = player->mo->height;
 }
 
 
@@ -336,6 +345,7 @@ void UNLAGGED_ResetPlayer( player_t *player )
 		player->unlaggedPos[unlaggedIndex][0] = player->mo->x;
 		player->unlaggedPos[unlaggedIndex][1] = player->mo->y;
 		player->unlaggedPos[unlaggedIndex][2] = player->mo->z;
+		player->unlaggedHeight[unlaggedIndex] = player->mo->height;
 	}
 }
 
