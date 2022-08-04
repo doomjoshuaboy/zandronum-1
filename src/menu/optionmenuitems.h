@@ -1392,7 +1392,8 @@ public:
 	bool IsValid ( int classId )
 	{
 		// [BB] The random class is always a valid choice.
-		if ( classId == ( Maximum() - 1 ) )
+		// [SB] ..except when NoRandomPlayerClass is enabled in MAPINFO.
+		if ( !gameinfo.norandomplayerclass && classId == ( Maximum() - 1 ) )
 			return true;
 
 		// [EP] Temporary spots require no other limitation.
@@ -1404,12 +1405,12 @@ public:
 
 	int Maximum()
 	{
-		return PlayerClasses.Size() + 1;
+		return PlayerClasses.Size() + ( gameinfo.norandomplayerclass ? 0 : 1 );
 	}
 
 	FString RepresentOption ( int classId )
 	{
-		if ( classId == ( Maximum() - 1 ) )
+		if ( !gameinfo.norandomplayerclass && classId == ( Maximum() - 1 ) )
 			return "Random";
 		else
 			return GetPrintableDisplayName( PlayerClasses[classId].Type );

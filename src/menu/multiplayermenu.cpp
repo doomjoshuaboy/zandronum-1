@@ -888,10 +888,11 @@ CCMD ( menu_joingame )
 
 CCMD ( menu_joingamewithclass )
 {
+	// [SB] The random option isn't valid when NoRandomPlayerClass is enabled in MAPINFO.
 	if ( menu_joinclassidx >= 0
-		&& static_cast<unsigned>( menu_joinclassidx ) < PlayerClasses.Size() + 1 )
+		&& static_cast<unsigned>( menu_joinclassidx ) < PlayerClasses.Size() + ( gameinfo.norandomplayerclass ? 0 : 1 ) )
 	{
-		if ( static_cast<unsigned>( menu_joinclassidx ) == PlayerClasses.Size() )
+		if ( !gameinfo.norandomplayerclass && static_cast<unsigned>( menu_joinclassidx ) == PlayerClasses.Size() )
 			playerclass = "Random";
 		else
 			playerclass = GetPrintableDisplayName( PlayerClasses[menu_joinclassidx].Type );
