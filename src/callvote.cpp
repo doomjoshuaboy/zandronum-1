@@ -1058,21 +1058,24 @@ static bool callvote_CheckValidity( FString &Command, FString &Parameters )
 			// [AK] Don't accept compatibility flags, only server hosts should be messing with these flags.
 			if (( flagset == &compatflags ) || ( flagset == &compatflags2 ) || ( flagset == &zacompatflags ))
 			{
-				SERVER_PrintfPlayer( SERVER_GetCurrentClient( ), "compatibility flags cannot be changed in a vote.\n" );
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVER_PrintfPlayer( SERVER_GetCurrentClient( ), "compatibility flags cannot be changed in a vote.\n" );
 				return ( false );
 			}
 
 			// [AK] Don't call the vote if this flag is supposed to be locked in the current game mode.
 			if ( flag->GetBitVal() & GAMEMODE_GetCurrentFlagsetMask( flag->GetValueVar(), true ))
 			{
-				SERVER_PrintfPlayer( SERVER_GetCurrentClient( ), "%s cannot be changed in this game mode.\n", flag->GetName() );
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVER_PrintfPlayer( SERVER_GetCurrentClient( ), "%s cannot be changed in this game mode.\n", flag->GetName() );
 				return ( false );
 			}
 
 			// [AK] Don't call the vote if this flag is already set to the parameter's value. 
 			if ( flag->GetGenericRep( CVAR_Int ).Int == parameterInt )
 			{
-				SERVER_PrintfPlayer( SERVER_GetCurrentClient( ), "%s is already set to %s.\n", flag->GetName(), Parameters.GetChars() );
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVER_PrintfPlayer( SERVER_GetCurrentClient( ), "%s is already set to %s.\n", flag->GetName(), Parameters.GetChars() );
 				return ( false );
 			}
 
