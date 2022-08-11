@@ -82,6 +82,7 @@ static	int	STACK_ARGS	browsermenu_ServerNameCompareFunc( const void *arg1, const
 static	int	STACK_ARGS	browsermenu_MapNameCompareFunc( const void *arg1, const void *arg2 );
 static	int	STACK_ARGS	browsermenu_PlayersCompareFunc( const void *arg1, const void *arg2 );
 
+#define NUM_COLUMNS			5
 #define	NUM_SERVER_SLOTS	8
 
 CUSTOM_CVAR( Int, menu_browser_servers, 0, CVAR_ARCHIVE )
@@ -121,27 +122,43 @@ bool FOptionMenuServerBrowserLine::Activate()
 int FOptionMenuServerBrowserLine::Draw(FOptionMenuDescriptor *desc, int y, int indent, bool selected)
 {
 	const int serverNum = g_iSortedServers[ mSlotNum + g_sortedServerListOffest ];
+	const int localIndent = indent - 80 * CleanXfac_1;
+
+	// [AK] Predetermine the x-positions of every column.
+	int columnXPositions[NUM_COLUMNS] = { 16, 48, 160, 224, 272 };
+	for ( unsigned int i = 0; i < NUM_COLUMNS; i++ )
+		columnXPositions[i] = columnXPositions[i] * CleanXfac_1 + localIndent;
+
+	// [AK] If this is the first server slot on the list, draw the column headers above it.
+	if ( mSlotNum == 0 )
+	{
+		const char *columnNames[NUM_COLUMNS] = { "PING", "NAME", "MAP", "TYPE", "PLYRS" };
+		const int headerY = y - 2 * OptionSettings.mLinespacing * CleanYfac_1;
+
+		for ( unsigned int i = 0; i < NUM_COLUMNS; i++ )
+			screen->DrawText( SmallFont, CR_UNTRANSLATED, columnXPositions[i], headerY, columnNames[i], DTA_CleanNoMove_1, true, TAG_DONE );
+	}
+
 	if ( M_ShouldShowServer ( serverNum ) == false )
 		return 0;
 
 	char szString[256];
 	int color = ( serverNum == g_lSelectedServer ) ? CR_ORANGE : CR_GRAY;
-	int localIndent = indent - 80 * CleanXfac_1;
 
 	// Draw ping.
 	sprintf( szString, "%d", static_cast<int> (BROWSER_GetPing( serverNum )));
-	screen->DrawText( SmallFont, color, 16 * CleanXfac_1 + localIndent, y, szString, DTA_CleanNoMove_1, true, TAG_DONE );
+	screen->DrawText( SmallFont, color, columnXPositions[0], y, szString, DTA_CleanNoMove_1, true, TAG_DONE );
 
 	// Draw name.
 	strncpy( szString, BROWSER_GetHostName( serverNum ), 12 );
 	szString[12] = 0;
 	if ( strlen( BROWSER_GetHostName( serverNum )) > 12 )
 		sprintf( szString + strlen ( szString ), "..." );
-	screen->DrawText( SmallFont, color, 48 * CleanXfac_1 + localIndent, y, szString, DTA_CleanNoMove_1, true, TAG_DONE );
+	screen->DrawText( SmallFont, color, columnXPositions[1], y, szString, DTA_CleanNoMove_1, true, TAG_DONE );
 
 	// Draw map.
 	strncpy( szString, BROWSER_GetMapname( serverNum ), 8 );
-	screen->DrawText( SmallFont, color, /*128*/160 * CleanXfac_1 + localIndent, y, szString, DTA_CleanNoMove_1, true, TAG_DONE );
+	screen->DrawText( SmallFont, color, columnXPositions[2], y, szString, DTA_CleanNoMove_1, true, TAG_DONE );
 	/*
 	// Draw wad.
 	if ( BROWSER_Get
@@ -150,11 +167,11 @@ int FOptionMenuServerBrowserLine::Draw(FOptionMenuDescriptor *desc, int y, int i
 	*/
 	// Draw gametype.
 	strncpy( szString, GAMEMODE_GetShortName( BROWSER_GetGameMode( serverNum )), 8 );
-	screen->DrawText( SmallFont, color, 224 * CleanXfac_1 + localIndent, y, szString, DTA_CleanNoMove_1, true, TAG_DONE );
+	screen->DrawText( SmallFont, color, columnXPositions[3], y, szString, DTA_CleanNoMove_1, true, TAG_DONE );
 
 	// Draw players.
 	sprintf( szString, "%d/%d", static_cast<int> (BROWSER_GetNumPlayers( serverNum )), static_cast<int> (BROWSER_GetMaxClients( serverNum )));
-	screen->DrawText( SmallFont, color, 272 * CleanXfac_1 + localIndent, y, szString, DTA_CleanNoMove_1, true, TAG_DONE );
+	screen->DrawText( SmallFont, color, columnXPositions[4], y, szString, DTA_CleanNoMove_1, true, TAG_DONE );
 	return localIndent;
 }
 
@@ -361,14 +378,6 @@ public:
 	void Drawer()
 	{
 		Super::Drawer();
-
-		int y = 25;
-		screen->DrawText( SmallFont, CR_UNTRANSLATED, 16, y, "PING", DTA_Clean, true, TAG_DONE );
-		screen->DrawText( SmallFont, CR_UNTRANSLATED, 48, y, "NAME", DTA_Clean, true, TAG_DONE );
-		screen->DrawText( SmallFont, CR_UNTRANSLATED, /*128*/160, y, "MAP", DTA_Clean, true, TAG_DONE );
-		//screen->DrawText( SmallFont, CR_UNTRANSLATED, 160, y, "WAD", DTA_Clean, true, TAG_DONE );
-		screen->DrawText( SmallFont, CR_UNTRANSLATED, 224, y, "TYPE", DTA_Clean, true, TAG_DONE );
-		screen->DrawText( SmallFont, CR_UNTRANSLATED, 272, y, "PLYRS", DTA_Clean, true, TAG_DONE );
 
 		FString str;
 		const int numServers = static_cast<int> ( M_CalcLastSortedIndex( ) );
