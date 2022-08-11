@@ -258,7 +258,7 @@ OptionMenu ZA_Browser
 	StaticText	" "
 	Command		"Refresh",			"querymaster"
 	Submenu		"Get server info",			"ZA_ServerInfo"
-	Command		"Join game!",			"menu_join_selected_server"
+	SafeCommand	"Join game!",			"menu_join_selected_server"
 }
 
 // =================================================================================================
