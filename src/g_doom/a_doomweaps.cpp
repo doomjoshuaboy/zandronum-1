@@ -249,6 +249,15 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Saw)
 	{
 		if (!weapon->DepleteAmmo (weapon->bAltFire))
 			return;
+
+		// [AK] If we're the server, tell the clients that this player lost ammo.
+		if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( weapon->Owner ) && ( weapon->Owner->player ))
+		{
+			if ( weapon->Ammo1 )
+				SERVERCOMMANDS_TakeInventory( weapon->Owner->player - players, weapon->AmmoType1, weapon->Ammo1->Amount );
+			if ( weapon->Ammo2 )
+				SERVERCOMMANDS_TakeInventory( weapon->Owner->player - players, weapon->AmmoType2, weapon->Ammo2->Amount );
+		}
 	}
 
 	P_LineAttack (self, angle, Range, slope, damage, NAME_Melee, pufftype, false, &linetarget, &actualdamage);
