@@ -1081,6 +1081,10 @@ static bool callvote_CheckValidity( FString &Command, FString &Parameters )
 		break;
 	case VOTECMD_NEXTMAP:
 	case VOTECMD_NEXTSECRET:
+
+		// [AK] Only let the server check if there's a (secret) exit map. If it's valid on the server's
+		// end, then it should automatically be valid for the clients.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		{
 			const char *next = ( ulVoteCmd == VOTECMD_NEXTSECRET ? G_GetSecretExitMap() : G_GetExitMap() );
 
