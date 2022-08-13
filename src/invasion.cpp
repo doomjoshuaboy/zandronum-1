@@ -1320,6 +1320,10 @@ ULONG INVASION_GetCurrentWave( void )
 void INVASION_SetCurrentWave( ULONG ulWave )
 {
 	g_CurrentWave = ulWave;
+
+	// [AK] (Re)build the current wave string.
+	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+		invasion_BuildCurrentWaveString( );
 }
 
 //*****************************************************************************
