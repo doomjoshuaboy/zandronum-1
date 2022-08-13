@@ -690,6 +690,9 @@ void INVASION_Tick( void )
 						INVASION_StartCountdown(( sv_invasioncountdowntime * TICRATE ) - 1 );
 					else
 						INVASION_StartCountdown(( 10 * TICRATE ) - 1 );
+
+					// [AK] Respawn any dead players and pop the join queue before starting the next wave.
+					GAMEMODE_RespawnDeadSpectatorsAndPopQueue( );
 				}
 			}
 		}
