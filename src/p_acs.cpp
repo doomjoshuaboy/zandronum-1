@@ -7736,7 +7736,8 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 
 		case ACSF_GetActorSectorLocation:
 			{
-				const TArray<FString *> *sectorInfoNames = &level.info->SectorInfo.Names;
+				const bool bCheckPointSectors = !!args[1];
+				const TArray<FString *> *sectorInfoNames = bCheckPointSectors ? &level.info->SectorInfo.PointNames : &level.info->SectorInfo.Names;
 				const AActor *pActor = SingleActorFromTID( args[0], activator );
 
 				// [AK] Make sure that the actor is valid.
@@ -7744,9 +7745,31 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 				{
 					ULONG ulSectorNum = pActor->Sector->sectornum;
 
-					// [AK] Check if the sector that the actor is in has a designated name.
-					if (( sectorInfoNames->Size( ) > ulSectorNum ) && (( *sectorInfoNames )[ulSectorNum] != NULL ))
-						return GlobalACSStrings.AddString( *( *sectorInfoNames )[ulSectorNum] );
+					// [AK] Point sector numbers are stored in a multidimensional array. If we want to return
+					// the name of the point sector that the actor is in, then we must check each array until
+					// we find a match.
+					if ( bCheckPointSectors )
+					{
+						const TArray<TArray<unsigned int> *> *pointSectorNumbers = &level.info->SectorInfo.Points;
+						TArray<unsigned int> *pointNumberArray;
+
+						for ( unsigned int i = 0; i < pointSectorNumbers->Size( ); i++ )
+						{
+							pointNumberArray = ( *pointSectorNumbers )[i];
+
+							for ( unsigned int j = 0; j < pointNumberArray->Size( ); j++ )
+							{
+								if (( *pointNumberArray )[j] == ulSectorNum )
+									return GlobalACSStrings.AddString( *( *sectorInfoNames )[i] );
+							}
+						}
+					}
+					else
+					{
+						// [AK] Check if the sector that the actor is in has a designated name.
+						if (( sectorInfoNames->Size( ) > ulSectorNum ) && (( *sectorInfoNames )[ulSectorNum] != NULL ))
+							return GlobalACSStrings.AddString( *( *sectorInfoNames )[ulSectorNum] );
+					}
 				}
 
 				return GlobalACSStrings.AddString( "" );
