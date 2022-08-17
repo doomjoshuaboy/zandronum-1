@@ -5205,7 +5205,7 @@ void AActor::PostBeginPlay ()
 		// [AK] If we want to force GAMEEVENT_ACTOR_SPAWNED on every actor, then at least ignore 
 		// the less imporant actors unless they have the USESPAWNEVENTSCRIPT flag enabled.
 		if (( STFlags & STFL_USESPAWNEVENTSCRIPT ) || (( gameinfo.bForceSpawnEventScripts ) && ( bNotImportant == false )))
-			GAMEMODE_HandleEvent( GAMEEVENT_ACTOR_SPAWNED, this );
+			GAMEMODE_HandleEvent( GAMEEVENT_ACTOR_SPAWNED, this, !!( STFlags & STFL_LEVELSPAWNED ));
 	}
 }
 
