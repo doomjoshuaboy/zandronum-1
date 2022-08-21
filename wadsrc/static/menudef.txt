@@ -1347,6 +1347,7 @@ OptionMenu GameplayOptions
 	Option "Server picks teams (ST/CTF)", "sv_noteamselect", "YesNo"
 	Option "Keep teams across levels", "sv_keepteams", "YesNo"
 	Option "Apply LMS spectator settings",	"sv_applylmsspectatorsettings", "YesNo"
+	Option "Don't hide enemy player stats",	"sv_donthidestats", "YesNo"
 	Option "Medals",				"sv_nomedals", "NoYes"
 	// [TP] --
 

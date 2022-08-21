@@ -3840,7 +3840,8 @@ bool SERVER_IsPlayerAllowedToKnowHealth( ULONG ulPlayer, ULONG ulPlayer2 )
 		return ( false );
 
 	// If these players's are not teammates, then disallow knowledge of health.
-	if ( players[ulPlayer].mo->IsTeammate( players[ulPlayer2].mo ) == false )
+	// [JS] Unless ZADF_DONT_HIDE_STATS is enabled.
+	if (( players[ulPlayer].mo->IsTeammate( players[ulPlayer2].mo ) == false ) && (( zadmflags & ZADF_DONT_HIDE_STATS ) == false ))
 		return ( false );
 
 	// Passed all checks!
@@ -6564,12 +6565,16 @@ static bool server_ChangeTeam( BYTESTREAM_s *pByteStream )
 
 	// [AK] Now that they're on the new team, send the client the current health and armor of their new teammates.
 	// These commands invoke SERVER_IsPlayerAllowedToKnowHealth, so only their teammates' stats are updated.
-	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	// This isn't necessary if ZADF_DONT_HIDE_STATS is enabled because the stats of all players should already be synced.
+	if (( zadmflags & ZADF_DONT_HIDE_STATS ) == false )
 	{
-		if ( ulIdx != static_cast<ULONG>( g_lCurrentClient ))
+		for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 		{
-			SERVERCOMMANDS_SetPlayerHealth( ulIdx, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
-			SERVERCOMMANDS_SetPlayerArmor( ulIdx, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
+			if ( ulIdx != static_cast<ULONG>( g_lCurrentClient ))
+			{
+				SERVERCOMMANDS_SetPlayerHealth( ulIdx, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
+				SERVERCOMMANDS_SetPlayerArmor( ulIdx, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
+			}
 		}
 	}
 

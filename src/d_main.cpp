@@ -595,6 +595,28 @@ CUSTOM_CVAR (Int, zadmflags, 0, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK | CVAR_GAMEM
 	if (( self ^ self.GetPastValue() ) & ZADF_FORCE_SOFTWARE_PITCH_LIMITS )
 		P_ResetPlayerPitchLimits();
 
+	// [AK] If we're the server and just turned sv_donthidestats on, update the health and armor
+	// of all enemy players, for all players.
+	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ((( self ^ self.GetPastValue() ) & ZADF_DONT_HIDE_STATS ) & ( self & ZADF_DONT_HIDE_STATS )))
+	{
+		for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+		{
+			// [AK] Don't update enemy player stats for bots.
+			if (( players[ulIdx].bIsBot ) || ( players[ulIdx].mo == NULL ))
+				continue;
+
+			for ( ULONG ulOtherIdx = 0; ulOtherIdx < MAXPLAYERS; ulOtherIdx++ )
+			{
+				// [AK] Don't update the player's own stats for themselves.
+				if (( ulOtherIdx != ulIdx ) && ( players[ulIdx].mo->IsTeammate( players[ulOtherIdx].mo ) == false ))
+				{
+					SERVERCOMMANDS_SetPlayerHealth( ulOtherIdx, ulIdx, SVCF_ONLYTHISCLIENT );
+					SERVERCOMMANDS_SetPlayerArmor( ulOtherIdx, ulIdx, SVCF_ONLYTHISCLIENT );
+				}
+			}
+		}
+	}
+
 	// [BB] If we're the server, tell clients that the dmflags changed.
 	// [AK] Moved everything into a separate function to avoid code duplication.
 	SERVER_FlagsetChanged( self );
@@ -633,6 +655,7 @@ CVAR (Flag, sv_forcesoftwarepitchlimits, zadmflags, ZADF_FORCE_SOFTWARE_PITCH_LI
 CVAR (Flag, sv_shootthroughallies, zadmflags, ZADF_SHOOT_THROUGH_ALLIES);
 CVAR (Flag, sv_dontpushallies, zadmflags, ZADF_DONT_PUSH_ALLIES);
 CVAR (Flag, sv_dontkeepjoinqueue, zadmflags, ZADF_DONT_KEEP_JOIN_QUEUE);
+CVAR (Flag, sv_donthidestats, zadmflags, ZADF_DONT_HIDE_STATS);
 
 // Old name kept for compatibility
 CVAR (Flag, sv_forcegldefaults,		zadmflags, ZADF_FORCE_VIDEO_DEFAULTS);
