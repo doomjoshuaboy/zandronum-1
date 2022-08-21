@@ -754,6 +754,42 @@ CUSTOM_CVAR( Bool, sv_broadcast, true, CVAR_ARCHIVE|CVAR_NOSETBYACS )
 // Name of this server on launchers.
 CUSTOM_CVAR( String, sv_hostname, "Unnamed " GAMENAME " server", CVAR_ARCHIVE|CVAR_NOSETBYACS|CVAR_SERVERINFO )
 {
+	FString tempHostname = self;
+	FString cleanedHostname;
+
+	// [AK] Uncolorize the string, just in case, before we clean it up.
+	V_UnColorizeString( tempHostname );
+
+	// [AK] Remove any unacceptable characters from the string.
+	for ( unsigned int i = 0; i < tempHostname.Len( ); i++ )
+	{
+		// [AK] Don't accept undisplayable system ASCII.
+		if ( tempHostname[i] <= 31 )
+			continue;
+
+		// [AK] Don't accept escape codes unless they're used before color codes (e.g. '\c').
+		if (( tempHostname[i] == 92 ) && (( i >= tempHostname.Len( ) - 1 ) || ( tempHostname[i+1] != 'c' )))
+			continue;
+
+		cleanedHostname += tempHostname[i];
+	}
+
+	// [AK] Finally, remove any trailing crap from the cleaned hostname string.
+	V_RemoveTrailingCrapFromFString( cleanedHostname );
+
+	// [AK] If the string is empty, then there was only crap. Reset sv_hostname back to default.
+	// Likewise, if the string is different from the original, set sv_hostname to the cleaned string.
+	if ( cleanedHostname.IsEmpty( ))
+	{
+		self.ResetToDefault( );
+		return;
+	}
+	else if ( tempHostname.Compare( cleanedHostname ) != 0 )
+	{
+		self = cleanedHostname;
+		return;
+	}
+
 	SERVERCONSOLE_UpdateTitleString( (const char *)self );
 
 	// [AK] Notify the clients about the new hostname.
