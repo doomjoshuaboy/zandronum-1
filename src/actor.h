@@ -676,6 +676,7 @@ enum
 	AMETA_BloodType,		// Blood replacement type
 	AMETA_BloodType2,		// Bloodsplatter replacement type
 	AMETA_BloodType3,		// AxeBlood replacement type
+	AMETA_SelfObituary,		// [SB] Used when a player kills themselves with this actor
 };
 
 struct FDropItem 

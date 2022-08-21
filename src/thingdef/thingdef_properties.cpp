@@ -848,6 +848,15 @@ DEFINE_PROPERTY(hitobituary, S, Actor)
 }
 
 //==========================================================================
+// [SB]
+//==========================================================================
+DEFINE_PROPERTY(selfobituary, S, Actor)
+{
+	PROP_STRING_PARM(str, 0);
+	info->Class->Meta.SetMetaString (AMETA_SelfObituary, str);
+}
+
+//==========================================================================
 //
 //==========================================================================
 DEFINE_PROPERTY(donthurtshooter, 0, Actor)

@@ -271,8 +271,6 @@ xx(MDK)
 xx(Cast) // 'damage type' for the cast call
 
 // [BB] Skulltag Damage types
-xx(Grenade)
-xx(BFG10k)
 xx(SpawnTelefrag)
 xx(Reflection)
 xx(DeadSpectate)

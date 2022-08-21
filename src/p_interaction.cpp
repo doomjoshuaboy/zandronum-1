@@ -273,17 +273,26 @@ void ClientObituary (AActor *self, AActor *inflictor, AActor *attacker, int dmgf
 	{
 		if (attacker == self)
 		{
-			// [BB] Added switch here.
-			switch (mod)
-			{
-			// [BC] Obituaries for killing yourself with Skulltag weapons.
-			case NAME_Grenade:	messagename = "OB_GRENADE_SELF";	break;
-			case NAME_BFG10k:	messagename = "OB_BFG10K_SELF";		break;
-			}
 			if (messagename != NULL)
 				message = GStrings(messagename);
 			else
-				message = GStrings("OB_KILLEDSELF");
+			{
+				// [SB] Replaced Skulltag's hardcoded obituaries for killing oneself with
+				// the BFG 10k and grenades with a new SelfObituary property.
+				if (inflictor != NULL && inflictor != attacker)
+				{
+					message = inflictor->GetClass()->Meta.GetMetaString (AMETA_SelfObituary);
+				}
+				// [SB] Just in case the player somehow manages to shoot themselves...
+				if (message == NULL && (dmgflags & DMG_PLAYERATTACK) && attacker->player->ReadyWeapon != NULL)
+				{
+					message = attacker->player->ReadyWeapon->GetClass()->Meta.GetMetaString (AMETA_SelfObituary);
+				}
+				if (message == NULL)
+				{
+					message = GStrings("OB_KILLEDSELF");
+				}
+			}
 		}
 		else if (attacker->player == NULL)
 		{
