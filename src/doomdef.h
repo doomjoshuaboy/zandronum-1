@@ -392,6 +392,9 @@ enum
 
 	// [AK] If enabled, the join queue is cleared between level changes.
 	ZADF_DONT_KEEP_JOIN_QUEUE = 1 << 23,
+
+	// [JS] Players can spy other players' stats in PVP gamemodes.
+	ZADF_DONT_HIDE_STATS = 1 << 24,
 };
 
 // [RH] Compatibility flags.
