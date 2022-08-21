@@ -1060,12 +1060,15 @@ void CHAT_PrintChatString( ULONG ulPlayer, ULONG ulMode, const char *pszString )
 		V_RemoveColorCodes( ChatString );
 
 	// [BB] Remove any kind of trailing crap.
+	// [AK] Temporarily uncolorize the chat string so that V_RemoveTrailingCrapFromFString removes trailing color codes.
+	V_UnColorizeString ( ChatString );
 	V_RemoveTrailingCrapFromFString ( ChatString );
 
 	// [BB] If the chat string is empty now, it only contained crap and is ignored.
 	if ( ChatString.IsEmpty() )
 		return;
 
+	V_ColorizeString ( ChatString );
 	OutString += ChatString;
 
 	// [AK] Only save chat messages for non-private chat messages.
@@ -1077,7 +1080,9 @@ void CHAT_PrintChatString( ULONG ulPlayer, ULONG ulMode, const char *pszString )
 		// [AK] Remove any kind of trailing crap in the copy string and then save it. We shouldn't
 		// have to check if it's empty because we already did so in the original string. The only
 		// difference is that the copy is guaranteed to still have its color codes.
+		V_UnColorizeString( ChatStringToSave );
 		V_RemoveTrailingCrapFromFString( ChatStringToSave );
+		V_ColorizeString( ChatStringToSave );
 		g_SavedChatMessages[ulPlayer].put( ChatStringToSave );
 
 		// [AK] Trigger an event script indicating that a chat message was received.

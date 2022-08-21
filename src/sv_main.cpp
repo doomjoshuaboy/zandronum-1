@@ -1189,6 +1189,8 @@ void SERVER_SendChatMessage( ULONG ulPlayer, ULONG ulMode, const char *pszString
 	FString cleanedChatString = pszString;
 
 	// [BB] Remove any kind of trailing crap.
+	// [AK] Temporarily uncolorize the chat string so that V_RemoveTrailingCrapFromFString removes trailing color codes.
+	V_UnColorizeString ( cleanedChatString );
 	V_RemoveTrailingCrapFromFString ( cleanedChatString );
 
 	// [K6] Idk why is this part processed as FString, but let me join in on the fun and possibly strip ascii control characters.
@@ -1199,6 +1201,8 @@ void SERVER_SendChatMessage( ULONG ulPlayer, ULONG ulMode, const char *pszString
 	// [BB] If the chat string is empty now, it only contained crap and is ignored.
 	if ( cleanedChatString.IsEmpty() )
 		return;
+
+	V_ColorizeString ( cleanedChatString );
 
 	// [BB] Replace the pointer to the chat string, with the cleaned version.
 	// This way the code below doesn't need to be altered.
