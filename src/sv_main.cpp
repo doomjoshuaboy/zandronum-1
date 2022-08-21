@@ -6558,6 +6558,17 @@ static bool server_ChangeTeam( BYTESTREAM_s *pByteStream )
 	// Set the new team.
 	PLAYER_SetTeam( &players[g_lCurrentClient], lDesiredTeam, true );
 
+	// [AK] Now that they're on the new team, send the client the current health and armor of their new teammates.
+	// These commands invoke SERVER_IsPlayerAllowedToKnowHealth, so only their teammates' stats are updated.
+	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if ( ulIdx != static_cast<ULONG>( g_lCurrentClient ))
+		{
+			SERVERCOMMANDS_SetPlayerHealth( ulIdx, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
+			SERVERCOMMANDS_SetPlayerArmor( ulIdx, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
+		}
+	}
+
 	// [AK] Set the client's gametic so that it doesn't think it's lagging.
 	g_aClients[g_lCurrentClient].ulClientGameTic = ulGametic;
 
