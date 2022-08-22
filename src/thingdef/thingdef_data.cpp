@@ -383,6 +383,8 @@ static FFlagDef WeaponFlags[] =
 	DEFINE_FLAG(WIF, ALLOW_WITH_RESPAWN_INVUL, AWeapon, WeaponFlags), // [BB] Marks weapons that can be used while respawn invulnerability is active.
 	DEFINE_FLAG(WIF, NOLMS, AWeapon, WeaponFlags), // [BB] Marks weapons that are not given to the player in LMS.
 	DEFINE_FLAG(WIF, ALT_USES_BOTH, AWeapon, WeaponFlags),
+	DEFINE_FLAG(WIF, GIVEFISTINGMEDAL, AWeapon, WeaponFlags), // [AK] Gives the "fisting" medal when the player gets a frag with a melee attack from this weapon.
+	DEFINE_FLAG(WIF, GIVESPAMMEDAL, AWeapon, WeaponFlags), // [AK] Gives the "spam" medal when the player frags more than one player in a single tic with this weapon.
 };
 
 static FFlagDef PlayerPawnFlags[] =

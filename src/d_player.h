@@ -618,8 +618,8 @@ public:
 	// The last tick this player got an "Excellent!" medal.
 	ULONG		ulLastExcellentTick;
 
-	// The last tick this player killed someone with the BFG9000.
-	ULONG		ulLastBFGFragTick;
+	// The last tick this player got a frag with a weapon that gives the "Spam" medal.
+	ULONG		ulLastSpamTick;
 
 	// Number of consecutive hits the player has made with his weapon without missing.
 	ULONG		ulConsecutiveHits;

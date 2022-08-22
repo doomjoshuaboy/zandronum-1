@@ -325,7 +325,7 @@ player_t::player_t()
   ulDeathCount( 0 ),
   ulLastFragTick( 0 ),
   ulLastExcellentTick( 0 ),
-  ulLastBFGFragTick( 0 ),
+  ulLastSpamTick( 0 ),
   ulConsecutiveHits( 0 ),
   ulConsecutiveRailgunHits( 0 ),
   ulFragsWithoutDeath( 0 ),
@@ -489,7 +489,7 @@ player_t &player_t::operator=(const player_t &p)
 	ulDeathCount = p.ulDeathCount;
 	ulLastFragTick = p.ulLastFragTick;
 	ulLastExcellentTick = p.ulLastExcellentTick;
-	ulLastBFGFragTick = p.ulLastBFGFragTick;
+	ulLastSpamTick = p.ulLastSpamTick;
 	ulConsecutiveHits = p.ulConsecutiveHits;
 	ulConsecutiveRailgunHits = p.ulConsecutiveRailgunHits;
 	ulFragsWithoutDeath = p.ulFragsWithoutDeath;
