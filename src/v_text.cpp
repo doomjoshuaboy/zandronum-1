@@ -774,10 +774,12 @@ void V_RemoveTrailingCrap( char *pszString )
 			int i = 0;
 			for ( i = ulStringLength-2; i >= 2; --i )
 			{
-				if ( pszString[i] == '[' )
+				// [AK] We should keep checking for "\c[" until we reach the beginning of the string,
+				// in case the string contains something like "\c[X[[[]".
+				if ( ( pszString[i] == '[' ) && V_ColorCodeStart ( pszString, i-2 ) )
 					break;
 			}
-			if ( ( i >= 2 ) && V_ColorCodeStart ( pszString, i-2 ) )
+			if ( i >= 2 )
 			{
 				pszString[i-2] = 0;
 				ulStringLength = static_cast<ULONG>(strlen( pszString ));
