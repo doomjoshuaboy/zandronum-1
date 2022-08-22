@@ -2284,7 +2284,7 @@ void PLAYER_ResetSpecialCounters ( player_t *pPlayer )
 
 	pPlayer->ulLastExcellentTick = 0;
 	pPlayer->ulLastFragTick = 0;
-	pPlayer->ulLastBFGFragTick = 0;
+	pPlayer->ulLastSpamTick = 0;
 	pPlayer->ulConsecutiveHits = 0;
 	pPlayer->ulConsecutiveRailgunHits = 0;
 	pPlayer->ulDeathsWithoutFrag = 0;

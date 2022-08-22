@@ -4455,6 +4455,14 @@ AActor *P_LineAttack(AActor *t1, angle_t angle, fixed_t distance,
 				{
 					*actualdamage = newdam;
 				}
+
+				// [AK] If this was a melee attack from a player that's using a weapon that gives the "fisting"
+				// medal and they just killed another player with it, award them with the medal.
+				if (( flags & LAF_ISMELEEATTACK ) && ( trace.Actor->player ) && ( trace.Actor->health <= 0 ))
+				{
+					if (( t1->player ) && ( t1->player->ReadyWeapon ) && ( t1->player->ReadyWeapon->WeaponFlags & WIF_GIVEFISTINGMEDAL ))
+						MEDAL_GiveMedal( t1->player - players, MEDAL_FISTING );
+				}
 			}
 			if (!(puffDefaults != NULL && puffDefaults->flags3&MF3_BLOODLESSIMPACT))
 			{

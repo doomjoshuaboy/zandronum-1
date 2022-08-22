@@ -367,6 +367,8 @@ enum
 	// [BC] New weapon info definitions.
 	WIF_ALLOW_WITH_RESPAWN_INVUL	= 0x00020000,	// The player can continue to wield this weapon even with respawn invulnerability active.
 	WIF_NOLMS						= 0x00040000,	// Don't give this weapon in LMS games.
+	WIF_GIVEFISTINGMEDAL			= 0x00080000,	// Gives the player a "fisting" medal when they get a frag with a melee attack from this weapon.
+	WIF_GIVESPAMMEDAL				= 0x00100000,	// Gives the player a "spam" medal when they frag more than one player in a single tic with this weapon.
 
 	WIF_CHEATNOTWEAPON	=	0x08000000,	// Give cheat considers this not a weapon (used by Sigil)
 
