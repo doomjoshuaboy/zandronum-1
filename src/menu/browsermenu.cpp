@@ -105,6 +105,10 @@ CUSTOM_CVAR( Bool, menu_browser_showfull, true, CVAR_ARCHIVE )
 {
 	M_BuildServerList();
 }
+CUSTOM_CVAR( String, menu_browser_filtername, "", CVAR_ARCHIVE ) // [AK]
+{
+	M_BuildServerList();
+}
 
 // =================================================================================================
 //
@@ -479,6 +483,24 @@ bool M_ShouldShowServer( LONG lServer )
 			return ( false );
 	}
 
+	// [AK] Only show servers containing words that we want to filter in.
+	if ( strlen( menu_browser_filtername ) > 0 )
+	{
+		FString hostName = BROWSER_GetHostName( lServer );
+		FString filterName = menu_browser_filtername.GetGenericRep( CVAR_String ).String;
+
+		// [AK] A filter string that's longer than the server's name obviously means that it can't be shown.
+		if ( filterName.Len( ) > hostName.Len( ))
+			return ( false );
+
+		// [AK] Set both strings to lowercase first.
+		hostName.ToLower( );
+		filterName.ToLower( );
+
+		if ( strstr( hostName, filterName ) == NULL )
+			return ( false );
+	}
+
 	return ( true );
 }
 
@@ -585,6 +607,13 @@ static int STACK_ARGS browsermenu_PlayersCompareFunc( const void *arg1, const vo
 CCMD( querymaster )
 {
 	M_RefreshServers();
+}
+
+//*****************************************************************************
+// [AK]
+CCMD ( menu_clear_browser_filter )
+{
+	menu_browser_filtername = "";
 }
 
 //*****************************************************************************
