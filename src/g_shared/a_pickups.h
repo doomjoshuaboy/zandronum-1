@@ -365,8 +365,8 @@ enum
 	WIF_DEHAMMO	=			0x00010000,	// Uses Doom's original amount of ammo for the respective attack functions so that old DEHACKED patches work as intended.
 										// AmmoUse1 will be set to the first attack's ammo use so that checking for empty weapons still works
 	// [BC] New weapon info definitions.
-	WIF_ALLOW_WITH_RESPAWN_INVUL	= 0x00008000,	// The player can continue to wield this weapon even with respawn invulnerability active.
-	WIF_NOLMS						= 0x00010000,	// Don't give this weapon in LMS games.
+	WIF_ALLOW_WITH_RESPAWN_INVUL	= 0x00020000,	// The player can continue to wield this weapon even with respawn invulnerability active.
+	WIF_NOLMS						= 0x00040000,	// Don't give this weapon in LMS games.
 
 	WIF_CHEATNOTWEAPON	=	0x08000000,	// Give cheat considers this not a weapon (used by Sigil)
 
