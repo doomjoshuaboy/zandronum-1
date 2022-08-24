@@ -168,6 +168,10 @@ bool D_ShouldOverridePlayerColors()
 	if ( NETWORK_GetState() == NETSTATE_SERVER )
 		return false;
 
+	// [AK] If sv_dontoverrideplayercolors is enabled, then we obviously can't override.
+	if ( zadmflags & ZADF_DONT_OVERRIDE_PLAYER_COLORS )
+		return false;
+
 	bool withteams = !!( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS );
 
 	switch ( OverridePlayerColorsValue ( (int) cl_overrideplayercolors ))

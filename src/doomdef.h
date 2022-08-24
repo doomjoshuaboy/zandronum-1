@@ -395,6 +395,9 @@ enum
 
 	// [JS] Players can spy other players' stats in PVP gamemodes.
 	ZADF_DONT_HIDE_STATS = 1 << 24,
+
+	// [AK] Prevents player colors from being overriden.
+	ZADF_DONT_OVERRIDE_PLAYER_COLORS = 1 << 25,
 };
 
 // [RH] Compatibility flags.

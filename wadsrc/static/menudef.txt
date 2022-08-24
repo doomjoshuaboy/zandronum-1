@@ -1317,6 +1317,7 @@ OptionMenu GameplayOptions
 	Option "Shoot through allies",	"sv_shootthroughallies", "YesNo"
 	Option "Attacks push allies",	"sv_dontpushallies", "NoYes"
 	Option "Clear join queue between levels",	"sv_dontkeepjoinqueue", "YesNo"
+	Option "Don't override player colors",	"sv_dontoverrideplayercolors", "YesNo"
 	// [TP] --
 
 	StaticText " "

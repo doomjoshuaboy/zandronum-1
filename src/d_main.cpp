@@ -617,6 +617,11 @@ CUSTOM_CVAR (Int, zadmflags, 0, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK | CVAR_GAMEM
 		}
 	}
 
+	// [AK] If we changed sv_dontoverrideplayercolors, rebuild the player translations.
+	// The server doesn't need to do this.
+	if (( NETWORK_GetState( ) != NETSTATE_SERVER ) && (( self ^ self.GetPastValue() ) & ZADF_DONT_OVERRIDE_PLAYER_COLORS ))
+		D_UpdatePlayerColors();
+
 	// [BB] If we're the server, tell clients that the dmflags changed.
 	// [AK] Moved everything into a separate function to avoid code duplication.
 	SERVER_FlagsetChanged( self );
@@ -656,6 +661,7 @@ CVAR (Flag, sv_shootthroughallies, zadmflags, ZADF_SHOOT_THROUGH_ALLIES);
 CVAR (Flag, sv_dontpushallies, zadmflags, ZADF_DONT_PUSH_ALLIES);
 CVAR (Flag, sv_dontkeepjoinqueue, zadmflags, ZADF_DONT_KEEP_JOIN_QUEUE);
 CVAR (Flag, sv_donthidestats, zadmflags, ZADF_DONT_HIDE_STATS);
+CVAR (Flag, sv_dontoverrideplayercolors, zadmflags, ZADF_DONT_OVERRIDE_PLAYER_COLORS);
 
 // Old name kept for compatibility
 CVAR (Flag, sv_forcegldefaults,		zadmflags, ZADF_FORCE_VIDEO_DEFAULTS);
