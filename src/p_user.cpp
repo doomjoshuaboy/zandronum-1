@@ -3261,7 +3261,8 @@ void P_DeathThink (player_t *player)
 			return;
 	}
 
-	if ( level.time >= player->respawn_time )
+	// [AK] Don't allow players to respawn during the result sequence, in case sv_forcerespawn is on.
+	if ( level.time >= player->respawn_time && GAMEMODE_IsGameInResultSequence( ) == false )
 	{
 		if (((( player->cmd.ucmd.buttons & BT_USE ) || ( ( player->userinfo.GetClientFlags() & CLIENTFLAGS_RESPAWNONFIRE ) && ( player->cmd.ucmd.buttons & BT_ATTACK ) && (( player->oldbuttons & BT_ATTACK ) == false ))) || 
 			(( deathmatch || teamgame || alwaysapplydmflags ) &&
