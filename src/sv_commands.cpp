@@ -2142,6 +2142,8 @@ void SERVERCOMMANDS_SpawnPuff( AActor *pActor, ULONG ulPlayerExtra, ServerComman
 			ulState = STATE_MELEE;
 		else if ( pActor->state == pActor->FindState( NAME_Crash ) )
 			ulState = STATE_CRASH;
+		else if ( pActor->state == pActor->FindState( NAME_Death, NAME_Extreme, true ) )
+			ulState = STATE_XDEATH;
 		bool bSendTranslation = pActor->Translation != 0;
 		SERVERCOMMANDS_SpawnPuffNoNetID( pActor, ulState, bSendTranslation, ulPlayerExtra, flags );
 		return;
