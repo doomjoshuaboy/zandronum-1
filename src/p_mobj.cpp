@@ -6424,6 +6424,13 @@ AActor *P_SpawnPuff (AActor *source, const PClass *pufftype, fixed_t x, fixed_t 
 	}
 	else if ((flags & PF_HITTHINGBLEED) && (crashstate = puff->FindState(NAME_Death, NAME_Extreme, true)) != NULL)
 	{
+		// [AK] The server needs to tell the state to the clients later.
+		ulState = STATE_XDEATH;
+		// [AK] When spawning the puff, the server won't tell the clients the
+		// netID. This needs special handling, otherwise sound won't work.
+		// Freeing the ID needs to be done before setting the state!
+		puff->FreeNetID();
+
 		puff->SetState (crashstate);
 	}
 	else if ((flags & PF_MELEERANGE) && puff->MeleeState != NULL)

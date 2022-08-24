@@ -5661,6 +5661,12 @@ void ServerCommands::SpawnPuffNoNetID::Execute()
 		if ( state )
 			puff->SetState( state );
 		break;
+	case STATE_XDEATH:
+
+		state = puff->FindState( NAME_Death, NAME_Extreme, true );
+		if ( state )
+			puff->SetState( state );
+		break;
 	}
 }
 
