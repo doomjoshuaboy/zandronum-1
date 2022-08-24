@@ -4290,6 +4290,18 @@ AActor* GAME_SelectRandomSpotForArtifact ( const PClass *pArtifactType, const TA
 		const int i = pr_dmspawn() % Spots.Size();
 
 		pArtifact = Spawn( pArtifactType, Spots[i].x, Spots[i].y, ONFLOORZ, ALLOW_REPLACE );
+
+		// [AK] Sanity check: if the artifact didn't spawn, move onto the next spot.
+		if ( pArtifact == NULL )
+			continue;
+
+		// [AK] If useplayerstartz is enabled, make sure the artifact is also on whatever 3D floor the spot is located at.
+		if ( level.flags & LEVEL_USEPLAYERSTARTZ )
+		{
+			pArtifact->z += Spots[i].z;
+			P_FindFloorCeiling( pArtifact, FFCF_SAMESECTOR | FFCF_ONLY3DFLOORS | FFCF_3DRESTRICT );
+		}
+
 		const DWORD spawnFlags = pArtifact->flags;
 		// [BB] Ensure that the artifact is solid, otherwise P_TestMobjLocation won't complain if a player already is at the proposed position.
 		pArtifact->flags |= MF_SOLID;
@@ -4306,7 +4318,16 @@ AActor* GAME_SelectRandomSpotForArtifact ( const PClass *pArtifactType, const TA
 
 	// [BB] If there is no free spot, just select one and spawn the artifact there.
 	const int spotNum = pr_dmspawn() % Spots.Size();
-	return Spawn( pArtifactType, Spots[spotNum].x, Spots[spotNum].y, ONFLOORZ, ALLOW_REPLACE );
+	pArtifact = Spawn( pArtifactType, Spots[spotNum].x, Spots[spotNum].y, ONFLOORZ, ALLOW_REPLACE );
+
+	// [AK] Again, if useplayerstartz is enabled, move the artifact to whatever 3D floor the spot is located at.
+	if (( pArtifact != NULL ) && ( level.flags & LEVEL_USEPLAYERSTARTZ ))
+	{
+		pArtifact->z += Spots[spotNum].z;
+		P_FindFloorCeiling( pArtifact, FFCF_SAMESECTOR | FFCF_ONLY3DFLOORS | FFCF_3DRESTRICT );
+	}
+
+	return pArtifact;
 }
 
 //*****************************************************************************
