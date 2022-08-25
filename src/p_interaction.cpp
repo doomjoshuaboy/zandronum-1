@@ -2650,7 +2650,7 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 		D_UpdatePlayerColors();
 
 	// [AK] The spectator count has changed, so refresh the HUD.
-	HUD_Refresh( );
+	HUD_ShouldRefreshBeforeRendering( );
 }
 
 //*****************************************************************************
