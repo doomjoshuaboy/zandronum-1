@@ -1079,7 +1079,7 @@ void GAMEMODE_SetState( GAMESTATE_e GameState )
 
 //*****************************************************************************
 //
-LONG GAMEMODE_HandleEvent ( const GAMEEVENT_e Event, AActor *pActivator, const int DataOne, const int DataTwo, const int OverrideResult )
+LONG GAMEMODE_HandleEvent ( const GAMEEVENT_e Event, AActor *pActivator, const int DataOne, const int DataTwo, const bool bRunNow, const int OverrideResult )
 {
 	// [BB] Clients don't start scripts.
 	if ( NETWORK_InClientMode() )
@@ -1090,13 +1090,6 @@ LONG GAMEMODE_HandleEvent ( const GAMEEVENT_e Event, AActor *pActivator, const i
 	// the middle of another event).
 	const LONG lOldResult = GAMEMODE_GetEventResult( );
 	GAMEMODE_SetEventResult( OverrideResult );
-
-	// [AK] Allow events that are triggered by an actor spawning or
-	// taking damage to be executed immediately, in case any of the
-	// actor pointers that were responsible for calling the event
-	// become NULL after one tic.
-	// Also allow chat events to be executed immediately.
-	const bool bRunNow = ( Event == GAMEEVENT_ACTOR_SPAWNED || Event == GAMEEVENT_ACTOR_DAMAGED || Event == GAMEEVENT_ACTOR_ARMORDAMAGED || Event == GAMEEVENT_CHAT );
 
 	// [BB] The activator of the event activates the event script.
 	// The first argument is the type, e.g. GAMEEVENT_PLAYERFRAGS,
@@ -1138,7 +1131,7 @@ bool GAMEMODE_HandleDamageEvent ( AActor *target, AActor *inflictor, AActor *sou
 	temp->master = source;
 	temp->tracer = inflictor;
 
-	damage = GAMEMODE_HandleEvent( DamageEvent, temp, damage, GlobalACSStrings.AddString( mod ), damage );
+	damage = GAMEMODE_HandleEvent( DamageEvent, temp, damage, GlobalACSStrings.AddString( mod ), true, damage );
 
 	// [AK] Destroy the temporary actor after executing all event scripts.
 	temp->Destroy( );
