@@ -124,6 +124,7 @@
 #include "md5.h"
 #include "za_database.h"
 #include "st_hud.h"
+#include "p_acs.h"
 
 #include "st_start.h"
 #include "templates.h"
@@ -3331,6 +3332,10 @@ void D_DoomMain (void)
 
 UNSAFE_CCMD(restart)
 {
+	// [AK] This function may not be used by ConsoleCommand.
+	if ( ACS_IsCalledFromConsoleCommand( ))
+		return;
+
 	// remove command line args that would get in the way during restart
 	Args->RemoveArgs("-iwad");
 	Args->RemoveArgs("-deh");
