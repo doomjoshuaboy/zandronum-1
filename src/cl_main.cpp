@@ -9301,6 +9301,10 @@ CCMD( connect )
 {
 	const char	*pszDemoName;
 
+	// [AK] This function may not be used by ConsoleCommand.
+	if ( ACS_IsCalledFromConsoleCommand( ))
+		return;
+
 	// Servers can't connect to other servers!
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		return;
@@ -9354,6 +9358,10 @@ CCMD( connect )
 //
 CCMD( disconnect )
 {
+	// [AK] This function may not be used by ConsoleCommand.
+	if ( ACS_IsCalledFromConsoleCommand( ))
+		return;
+
 	// Nothing to do if we're not in client mode!
 	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
 		return;
@@ -9385,6 +9393,10 @@ CCMD( timeout )
 //
 CCMD( reconnect )
 {
+	// [AK] This function may not be used by ConsoleCommand.
+	if ( ACS_IsCalledFromConsoleCommand( ))
+		return;
+
 	// If we're in the middle of a game, we first need to disconnect from the server.
 	if ( g_ConnectionState != CTS_DISCONNECTED )
 		CLIENT_QuitNetworkGame( NULL );
