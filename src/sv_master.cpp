@@ -754,7 +754,7 @@ CUSTOM_CVAR( Bool, sv_broadcast, true, CVAR_ARCHIVE|CVAR_NOSETBYACS )
 // Name of this server on launchers.
 CUSTOM_CVAR( String, sv_hostname, "Unnamed " GAMENAME " server", CVAR_ARCHIVE|CVAR_NOSETBYACS|CVAR_SERVERINFO )
 {
-	FString tempHostname = self;
+	FString tempHostname = self.GetGenericRep( CVAR_String ).String;
 	FString cleanedHostname;
 
 	// [AK] Uncolorize the string, just in case, before we clean it up.
