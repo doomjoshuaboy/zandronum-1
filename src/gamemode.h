@@ -133,6 +133,8 @@ typedef enum
 	GAMEEVENT_ACTOR_SPAWNED,
 	GAMEEVENT_ACTOR_DAMAGED,
 	GAMEEVENT_ACTOR_ARMORDAMAGED,
+	GAMEEVENT_DOMINATION_CONTROL,
+	GAMEEVENT_DOMINATION_POINT,
 } GAMEEVENT_e;
 
 //*****************************************************************************
