@@ -1057,9 +1057,21 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_BFGSpray)
 		for (j = 0; j < damagecnt; ++j)
 			damage += (pr_bfgspray() & 7) + 1;
 
+		// [AK] Added dmgflags, which will handle MF3_FOILINVUL and also check if the spray type should
+		// also award the player with the "spam" medal.
+		int dmgflags = 0;
+		if ( spray != NULL )
+		{
+			if ( spray->flags3 & MF3_FOILINVUL )
+				dmgflags |= DMG_FOILINVUL;
+
+			if ( spray->STFlags & STFL_GIVESPAMMEDAL )
+				dmgflags = DMG_GIVE_SPAM_MEDAL_ON_FRAG;
+		}
+
 		thingToHit = linetarget;
 		int newdam = P_DamageMobj (thingToHit, self->target, self->target, damage, spray != NULL? FName(spray->DamageType) : FName(NAME_BFGSplash), 
-			spray != NULL && (spray->flags3 & MF3_FOILINVUL)? DMG_FOILINVUL : 0);
+			/*spray != NULL && (spray->flags3 & MF3_FOILINVUL)? DMG_FOILINVUL : 0*/ dmgflags);
 		P_TraceBleed (newdam > 0 ? newdam : damage, thingToHit, self->target);
 	}
 }
