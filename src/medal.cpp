@@ -147,7 +147,7 @@ void	medal_TriggerMedal( ULONG ulPlayer, ULONG ulMedal );
 void	medal_SelectIcon( ULONG ulPlayer );
 void	medal_CheckForFirstFrag( ULONG ulPlayer );
 void	medal_CheckForDomination( ULONG ulPlayer );
-void	medal_CheckForSpam( ULONG ulPlayer );
+void	medal_CheckForFistingOrSpam( ULONG ulPlayer, int dmgflags );
 void	medal_CheckForExcellent( ULONG ulPlayer );
 void	medal_CheckForTermination( ULONG ulDeadPlayer, ULONG ulPlayer );
 void	medal_CheckForLlama( ULONG ulDeadPlayer, ULONG ulPlayer );
@@ -546,7 +546,7 @@ void MEDAL_ClearMedalQueue( ULONG ulPlayer )
 
 //*****************************************************************************
 //
-void MEDAL_PlayerDied( ULONG ulPlayer, ULONG ulSourcePlayer )
+void MEDAL_PlayerDied( ULONG ulPlayer, ULONG ulSourcePlayer, int dmgflags )
 {
 	if ( PLAYER_IsValidPlayerWithMo ( ulPlayer ) == false )
 		return;
@@ -562,7 +562,7 @@ void MEDAL_PlayerDied( ULONG ulPlayer, ULONG ulSourcePlayer )
 
 		medal_CheckForFirstFrag( ulSourcePlayer );
 		medal_CheckForDomination( ulSourcePlayer );
-		medal_CheckForSpam( ulSourcePlayer );
+		medal_CheckForFistingOrSpam( ulSourcePlayer, dmgflags );
 		medal_CheckForExcellent( ulSourcePlayer );
 		medal_CheckForTermination( ulPlayer, ulSourcePlayer );
 		medal_CheckForLlama( ulPlayer, ulSourcePlayer );
@@ -1174,18 +1174,15 @@ void medal_CheckForDomination( ULONG ulPlayer )
 
 //*****************************************************************************
 //
-void medal_CheckForSpam( ULONG ulPlayer )
+void medal_CheckForFistingOrSpam( ULONG ulPlayer, int dmgflags )
 {
-	if ( players[ulPlayer].ReadyWeapon == NULL )
-		return;
+	// [AK] Check if we should award the player with a "fisting" medal.
+	if ( dmgflags & DMG_GIVE_FISTING_MEDAL_ON_FRAG )
+		MEDAL_GiveMedal( ulPlayer, MEDAL_FISTING );
 
-	// [AK] A weapon shouldn't cause this MeansOfDeath.
-	if ( MeansOfDeath == NAME_Telefrag )
-		return;
-
-	// [AK] If this is the second frag this player has gotten THIS TICK with a weapon
-	// that gives the "SPAM!" medal, award the player with one.
-	if ( players[ulPlayer].ReadyWeapon->WeaponFlags & WIF_GIVESPAMMEDAL )
+	// [AK] Check if we should award the player with a "spam" medal if this is the second
+	// frag this player has gotten THIS TICK with a projectile or puff that awards one.
+	if ( dmgflags & DMG_GIVE_SPAM_MEDAL_ON_FRAG )
 	{
 		if ( players[ulPlayer].ulLastSpamTick == static_cast<unsigned> (level.time) )
 		{

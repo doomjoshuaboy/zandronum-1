@@ -454,10 +454,22 @@ void AActor::Die (AActor *source, AActor *inflictor, int dmgflags)
 	if ( player )
 	{
 		const ULONG ulPlayer = player - players;
+		int dmgflagsCopy = dmgflags;
+
+		// [AK] If the inflictor has the GIVEFISTINGMEDAL or GIVESPAMMEDAL flags, then the attacker
+		// (assuming that they're also a player) can get a "fisting" or "spam" medal.
+		if ( inflictor )
+		{
+			if ( inflictor->STFlags & STFL_GIVEFISTINGMEDAL )
+				dmgflagsCopy |= DMG_GIVE_FISTING_MEDAL_ON_FRAG;
+
+			if ( inflictor->STFlags & STFL_GIVESPAMMEDAL )
+				dmgflagsCopy |= DMG_GIVE_SPAM_MEDAL_ON_FRAG;
+		}
 
 		// [BC] Check to see if any medals need to be awarded.
 		if ( NETWORK_InClientMode( ) == false )
-			MEDAL_PlayerDied( ulPlayer, (( source ) && ( source->player )) ? static_cast<ULONG>( source->player - players ) : MAXPLAYERS );
+			MEDAL_PlayerDied( ulPlayer, (( source ) && ( source->player )) ? static_cast<ULONG>( source->player - players ) : MAXPLAYERS, dmgflagsCopy );
 
 		// [AK] Increment this player's death count.
 		PLAYER_SetDeaths( &players[ulPlayer], players[ulPlayer].ulDeathCount + 1, false );

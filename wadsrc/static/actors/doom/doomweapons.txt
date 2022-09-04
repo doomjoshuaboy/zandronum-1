@@ -25,7 +25,7 @@ ACTOR Fist : Weapon
 	+WEAPON.WIMPY_WEAPON
 	+WEAPON.MELEEWEAPON
 	+WEAPON.ALLOW_WITH_RESPAWN_INVUL
-	+WEAPON.GIVEFISTINGMEDAL // [AK]
+	+GIVEFISTINGMEDAL // [AK]
 	States
 	{
 	Ready:
@@ -532,7 +532,6 @@ ACTOR BFG9000 : DoomWeapon 2006
 	Weapon.AmmoType "Cell"
 	+WEAPON.NOAUTOFIRE
 	+WEAPON.NOLMS
-	+WEAPON.GIVESPAMMEDAL // [AK]
 	Inventory.PickupMessage "$GOTBFG9000"
 	Tag "$TAG_BFG9000"
 	States
@@ -579,6 +578,7 @@ ACTOR BFGBall
 	Damage 100
 	Projectile
 	+RANDOMIZE
+	+GIVESPAMMEDAL // [AK]
 	RenderStyle Add
 	Alpha 0.75
 	DeathSound "weapons/bfgx"
@@ -600,6 +600,7 @@ ACTOR BFGExtra
 {
 	+NOBLOCKMAP
 	+NOGRAVITY
+	+GIVESPAMMEDAL // [AK]
 	RenderStyle Add
 	Alpha 0.75
 	DamageType "BFGSplash"
