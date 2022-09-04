@@ -66,6 +66,7 @@
 #include "team.h"
 #include "sectinfo.h"
 #include "cl_demo.h"
+#include "p_acs.h"
 
 #define SCORERATE	(TICRATE*3)
 
@@ -163,7 +164,14 @@ void DOMINATION_Tick(void)
 		{
 			if(PointOwners[i] != 255)
 			{
-				TEAM_SetPointCount(PointOwners[i], TEAM_GetPointCount(PointOwners[i]) + 1, false);
+				// [AK] Trigger an event script when this team gets a point from a point sector.
+				// The first argument is the team that owns the sector and the second argument is the name
+				// of the sector. Don't let event scripts change the result value to anything less than zero.
+				LONG lResult = MAX<LONG>( GAMEMODE_HandleEvent( GAMEEVENT_DOMINATION_POINT, NULL, PointOwners[i], ACS_PushAndReturnDynamicString( level.info->SectorInfo.PointNames[i]->GetChars( )), true ), 0 );
+				
+				if ( lResult != 0 )
+					TEAM_SetPointCount( PointOwners[i], TEAM_GetPointCount( PointOwners[i] ) + lResult, false );
+
 				if( pointlimit && (TEAM_GetPointCount(PointOwners[i]) >= pointlimit) )
 				{
 					DOMINATION_WinSequence(0);
@@ -231,6 +239,11 @@ void DOMINATION_EnterSector(player_t *toucher)
 			// [BB] The team already owns the point, nothing to do.
 			if ( toucher->Team == PointOwners[point] )
 				continue;
+
+			// [AK] Trigger an event script when the player takes ownership of a point sector. This
+			// must be called before DOMINATION_SetOwnership so that the original owner of the sector
+			// is sent as the first argument. The second argument is the name of the sector.
+			GAMEMODE_HandleEvent( GAMEEVENT_DOMINATION_CONTROL, toucher->mo, PointOwners[point], ACS_PushAndReturnDynamicString( level.info->SectorInfo.PointNames[point]->GetChars( )));
 
 			DOMINATION_SetOwnership(point, toucher);
 
