@@ -801,7 +801,7 @@ void V_RemoveTrailingCrap( char *pszString )
 			if ( pChar > strrchr(pszString, ']') )
 			{
 				const int index = pChar - pszString;
-				if ( ( index > 2 ) && V_ColorCodeStart ( pszString, index-2 ) )
+				if ( ( index >= 2 ) && V_ColorCodeStart ( pszString, index-2 ) )
 				{
 					pszString[index-2] = 0;
 					ulStringLength = static_cast<ULONG>(strlen( pszString ));
