@@ -74,6 +74,7 @@
 -	- Fixed: players could still respawn (albeit frozen) during the result sequence if sv_forcerespawn was on. [Kaminsky]
 -	- Fixed: puffs didn't enter their XDeath states in online games. [Kaminsky]
 -	- Fixed: spawning game mode artifacts like the possession stone and terminator ball didn't correctly account for useplayerstartz. [Kaminsky]
+-	- Fixed: cl_telespy still teleported a spectator when they were already looking through their own eyes. [Kaminsky]
 !	- The result value of GAMEEVENT_MEDALS event scripts can now be used to determine whether or not the player receives the medal. [Kaminsky]
 !	- GAMEMODE flags are now validated after all GAMEMODE lumps have been parsed instead of after each one. The internal game mode name (e.g. "TeamLMS") is now printed with the error message instead of the actual name. [Kaminsky]
 !	- Added an extra check to ensure that game modes have a (short) name. [Kaminsky]

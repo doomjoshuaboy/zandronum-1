@@ -1147,13 +1147,16 @@ void G_FinishChangeSpy( ULONG ulPlayer )
 {
 	// [AK] If we're a spectator and want to teleport ourselves to the player we just
 	// spied on, do it when we switch back to our own view.
-	if (( cl_telespy ) && ( ulPlayer == consoleplayer ) && ( players[consoleplayer].bSpectating ) && ( players[consoleplayer].camera ))
+	if (( cl_telespy ) && ( ulPlayer == consoleplayer ) && ( players[consoleplayer].bSpectating ))
 	{
-		P_TeleportMove( players[consoleplayer].mo, players[consoleplayer].camera->x,
-			players[consoleplayer].camera->y, players[consoleplayer].camera->z, false );
+		if (( players[consoleplayer].camera ) && ( players[consoleplayer].camera != players[consoleplayer].mo ))
+		{
+			P_TeleportMove( players[consoleplayer].mo, players[consoleplayer].camera->x,
+				players[consoleplayer].camera->y, players[consoleplayer].camera->z, false );
 
-		players[consoleplayer].mo->angle = players[consoleplayer].camera->angle;
-		players[consoleplayer].mo->pitch = players[consoleplayer].camera->pitch;
+			players[consoleplayer].mo->angle = players[consoleplayer].camera->angle;
+			players[consoleplayer].mo->pitch = players[consoleplayer].camera->pitch;
+		}
 	}
 
 	players[consoleplayer].camera = players[ulPlayer].mo;
