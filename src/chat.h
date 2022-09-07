@@ -100,6 +100,7 @@ const char	*CHAT_GetChatMessage( ULONG ulPlayer, ULONG ulOffset ); // [AK]
 void		CHAT_AddChatMessage( ULONG ulPlayer, const char *pszString ); // [AK]
 void		CHAT_ClearChatMessages( ULONG ulPlayer ); // [AK]
 void		CHAT_SerializeMessages( FArchive &arc ); // [AK]
+void		CHAT_StripASCIIControlCharacters( FString &ChatString );
 void		CHAT_PrintChatString( ULONG ulPlayer, ULONG ulMode, const char *pszString );
 bool		CHAT_CanPrivateChatToTeammatesOnly( void );
 bool		CHAT_CanSendPrivateMessageTo( ULONG ulSender, ULONG ulReceiver );

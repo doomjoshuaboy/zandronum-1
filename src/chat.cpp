@@ -933,6 +933,14 @@ void CHAT_SerializeMessages( FArchive &arc )
 
 //*****************************************************************************
 //
+void CHAT_StripASCIIControlCharacters( FString &ChatString )
+{
+	static const char strips[] = { 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,29,30,31,127,0 };
+	ChatString.StripChars( strips );
+}
+
+//*****************************************************************************
+//
 void CHAT_PrintChatString( ULONG ulPlayer, ULONG ulMode, const char *pszString )
 {
 	ULONG		ulChatLevel = 0;
@@ -1064,6 +1072,9 @@ void CHAT_PrintChatString( ULONG ulPlayer, ULONG ulMode, const char *pszString )
 	V_UnColorizeString ( ChatString );
 	V_RemoveTrailingCrapFromFString ( ChatString );
 
+	// [AK] Also remove any unwanted ASCII control characters (except TEXTCOLOR_ESCAPE).
+	CHAT_StripASCIIControlCharacters ( ChatString );
+
 	// [BB] If the chat string is empty now, it only contained crap and is ignored.
 	if ( ChatString.IsEmpty() )
 		return;
@@ -1082,6 +1093,8 @@ void CHAT_PrintChatString( ULONG ulPlayer, ULONG ulMode, const char *pszString )
 		// difference is that the copy is guaranteed to still have its color codes.
 		V_UnColorizeString( ChatStringToSave );
 		V_RemoveTrailingCrapFromFString( ChatStringToSave );
+		CHAT_StripASCIIControlCharacters( ChatStringToSave );
+
 		V_ColorizeString( ChatStringToSave );
 		g_SavedChatMessages[ulPlayer].put( ChatStringToSave );
 
