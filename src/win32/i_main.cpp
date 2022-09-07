@@ -1390,6 +1390,21 @@ DWORD WINAPI MainDoomThread( LPVOID )
 		0, FALSE, DUPLICATE_SAME_ACCESS);
 	MainThreadID = GetCurrentThreadId();
 
+	// [AK] This was copied from the WinMain function above.
+#if !defined(_DEBUG) && defined(_M_X64)
+	if (MainThread != INVALID_HANDLE_VALUE)
+	{
+		static bool setJumpResult = false;
+		RtlCaptureContext(&MainThreadContext);
+		if (setJumpResult)
+		{
+			ExitFatally(0);
+			return 0;
+		}
+		setJumpResult = true;
+	}
+#endif
+
 	try
 	{
 		D_DoomMain( );
