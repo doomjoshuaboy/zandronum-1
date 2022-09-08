@@ -395,6 +395,9 @@ void FGLRenderer::RenderScene(int recursion)
 
 	int pass;
 
+	// [AK] Take care of gl_texture and ZADF_FORCE_VIDEO_DEFAULTS.
+	OVERRIDE_GL_TEXTURE_IF_NECESSARY
+
 	if (mLightCount > 0 && gl_fixedcolormap == CM_DEFAULT && gl_lights && gl_dynlight_shader)
 	{
 		pass = GLPASS_ALL;
