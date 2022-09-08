@@ -89,6 +89,7 @@
 !	- The "fisting" medal is now only awarded if the player frags another player with a melee hitscan attack, or with a projectile or puff that awards the medal, as it should be. [Kaminsky]
 !	- The "spam" medal is now only awarded if the player frags another player with a projectile or puff that awards the medal, as it should be. [Kaminsky]
 !	- Blacklisted the connect, disconnect, reconnect, and restart CCMDs from ConsoleCommand. [Kaminsky]
+!	- gl_texture is now forced to be true when sv_forcevideodefaults is true. [Kaminsky]
 
 
 3.1
