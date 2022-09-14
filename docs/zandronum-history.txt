@@ -90,7 +90,7 @@
 !	- The "spam" medal is now only awarded if the player frags another player with a projectile or puff that awards the medal, as it should be. [Kaminsky]
 !	- Blacklisted the connect, disconnect, reconnect, and restart CCMDs from ConsoleCommand. [Kaminsky]
 !	- gl_texture is now forced to be true when sv_forcevideodefaults is true. [Kaminsky]
-!	- cl_identifytarget now prints "ally" if the target is a teammate of the player being spied on, instead of the local player. [Kaminsky]
+!	- cl_identifytarget now prints "ally" if the target is a teammate of the player being spied on, instead of the local player. Also, it now always prints a player's skin with their current class, if unmorphed. If cl_skins is 0, then the skin is always printed as "base" instead. [Kaminsky]
 
 
 3.1
