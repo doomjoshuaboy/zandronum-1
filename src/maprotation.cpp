@@ -560,6 +560,10 @@ CCMD( maplist )
 //
 CCMD( clearmaplist )
 {
+	// [AK] Don't let clients clear the map rotation list for themselves.
+	if ( NETWORK_InClientMode( ))
+		return;
+
 	// Reset the map list.
 	MAPROTATION_Construct( );
 
