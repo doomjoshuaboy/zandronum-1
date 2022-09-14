@@ -1882,7 +1882,10 @@ void DBaseStatusBar::DrawTargetName ()
 				targetInfoMsg += '\n';
 				targetInfoMsg.AppendFormat( TEXTCOLOR_GREEN "%s", szClassString );
 			}
+		}
 
+		if (( pTargetPlayer->mo != NULL ) && ( pTargetPlayer->mo->IsTeammate( camera )))
+		{
 			targetInfoMsg += "\\n\\cqAlly";
 		}
 		else
