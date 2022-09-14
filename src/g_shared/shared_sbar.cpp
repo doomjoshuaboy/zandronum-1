@@ -1869,18 +1869,46 @@ void DBaseStatusBar::DrawTargetName ()
 			// [AK] Print this player's class.
 			if ( cl_identifytarget >= IDENTIFY_TARGET_CLASS )
 			{
-				const char *szClassString;
+				FString classString;
 
-				// [Cata] Display in this priority: Morph Class > Class > Skin.
+				// [AK] Display the name of the class the player is current playing as.
+				// If they're supposed to be morphed, don't print the name of their skin.
 				if ( pTargetPlayer->MorphedPlayerClass )
-					szClassString = pTargetPlayer->MorphedPlayerClass->TypeName.GetChars();
-				else if ( PlayerClasses.Size() > 1 )
-					szClassString = GetPrintableDisplayName( pTargetPlayer->cls );
+				{
+					classString = pTargetPlayer->MorphedPlayerClass->TypeName.GetChars( );
+				}
 				else
-					szClassString = skins[pTargetPlayer->userinfo.GetSkin()].name;
+				{
+					FString skinString;
+
+					if ( PlayerClasses.Size( ) > 1 )
+						classString = GetPrintableDisplayName( pTargetPlayer->cls );
+
+					if ( classString.IsNotEmpty( ))
+						classString += " - ";
+
+					// [AK] Get the name of the player's current skin, if skins are enabled.
+					// Their skin should only be displayed if they're playing the class meant
+					// for it. Otherwise, print "base" instead.
+					if ( cl_skins )
+					{
+						const int skin = pTargetPlayer->userinfo.GetSkin( );
+
+						for ( unsigned int i = 0; i < PlayerClasses.Size( ); i++ )
+						{
+							if (( pTargetPlayer->cls == PlayerClasses[i].Type ) && ( PlayerClasses[i].CheckSkin( skin )))
+							{
+								skinString += skins[skin].name;
+								break;
+							}
+						}
+					}
+
+					classString += skinString.IsNotEmpty( ) ? skinString : "Base";
+				}
 
 				targetInfoMsg += '\n';
-				targetInfoMsg.AppendFormat( TEXTCOLOR_GREEN "%s", szClassString );
+				targetInfoMsg.AppendFormat( TEXTCOLOR_GREEN "%s", classString.GetChars( ));
 			}
 		}
 

@@ -25,7 +25,7 @@ OptionValue ZA_IdentifyTargetLevels
 	1.0, "Name"
 	2.0, "Health and armor"
 	3.0, "Weapon and ammo"
-	4.0, "Class or skin"
+	4.0, "Class and skin"
 }
 
 OptionMenu ZA_MultiplayerOptions
