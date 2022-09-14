@@ -1886,18 +1886,16 @@ void DBaseStatusBar::DrawTargetName ()
 
 		if (( pTargetPlayer->mo != NULL ) && ( pTargetPlayer->mo->IsTeammate( camera )))
 		{
-			targetInfoMsg += "\\n\\cqAlly";
+			targetInfoMsg += "\n" TEXTCOLOR_DARKGREEN "Ally";
 		}
 		else
 		{
-			targetInfoMsg += "\\n\\crEnemy";
+			targetInfoMsg += "\n" TEXTCOLOR_DARKRED "Enemy";
 
 			// If this player is carrying the terminator artifact, display his name in red.
 			if ( (terminator) && (pTargetPlayer->cheats2 & CF2_TERMINATORARTIFACT) )
 				ulTextColor = CR_RED;
 		}
-
-		V_ColorizeString( targetInfoMsg );
 
 		pMsg = new DHUDMessageFadeOut( SmallFont, targetInfoMsg,
 			1.5f,
