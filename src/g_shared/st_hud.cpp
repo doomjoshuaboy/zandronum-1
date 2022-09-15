@@ -710,7 +710,6 @@ void HUD_DrawCoopInfo( void )
 
 		// [BB] Draw player name.
 		drawString = players[i].userinfo.GetName();
-		V_ColorizeString( drawString );
 		EColorRange nameColor = CR_GREY;
 		// [BB] If the player is on a team, use the team's text color.
 		if ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS )
@@ -737,8 +736,8 @@ void HUD_DrawCoopInfo( void )
 			int healthPercentage = ( 100 * players[i].mo->health ) / players[i].mo->GetMaxHealth();
 
 			AInventory* pArmor = players[i].mo->FindInventory(RUNTIME_CLASS(ABasicArmor));
-			drawString.Format( "%d \\cD/ %d", players[i].mo->health, pArmor ? pArmor->Amount : 0 );
-			V_ColorizeString( drawString );
+			drawString.Format( "%d" TEXTCOLOR_GREEN " / %d", players[i].mo->health, pArmor ? pArmor->Amount : 0 );
+
 			if ( healthPercentage > 75 )
 				healthColor = CR_GREEN;
 			else if ( healthPercentage > 50 )
@@ -757,12 +756,12 @@ void HUD_DrawCoopInfo( void )
 		{
 			drawString = players[i].ReadyWeapon->GetTag();
 			if ( players[i].ReadyWeapon->Ammo1 && ( ( dmflags & DF_INFINITE_AMMO ) == false ) )
-				drawString.AppendFormat( " \\cf%d", players[i].ReadyWeapon->Ammo1->Amount );
+				drawString.AppendFormat( TEXTCOLOR_GOLD " %d", players[i].ReadyWeapon->Ammo1->Amount );
 			else
-				drawString += " \\cg-";
+				drawString += TEXTCOLOR_RED " -";
 			if ( players[i].ReadyWeapon->Ammo2 && ( ( dmflags & DF_INFINITE_AMMO ) == false ) )
-				drawString.AppendFormat( " \\cf%d", players[i].ReadyWeapon->Ammo2->Amount );
-			V_ColorizeString( drawString );
+				drawString.AppendFormat( TEXTCOLOR_GOLD " %d", players[i].ReadyWeapon->Ammo2->Amount );
+
 			HUD_DrawTextAligned ( CR_GREEN, curYPos, drawString.GetChars(), drawLeft, g_bScale );
 		}
 
