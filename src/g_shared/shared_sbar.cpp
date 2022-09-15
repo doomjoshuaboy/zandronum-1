@@ -1784,11 +1784,8 @@ player_t	*P_PlayerScan( AActor *mo );
 void DBaseStatusBar::DrawTargetName ()
 {
 	// [BC] The player may not have a body between intermission-less maps.
-	if (( CPlayer->camera == NULL ) ||
-		( viewactive == false ))
-	{
+	if (( CPlayer->camera == NULL ) || ( viewactive == false ))
 		return;
-	}
 
 	// Break out if we don't want to identify the target, or
 	// a medal has just been awarded and is being displayed.
@@ -1805,13 +1802,10 @@ void DBaseStatusBar::DrawTargetName ()
 	// Look for players directly in front of the player.
 	if ( camera )
 	{
-		player_t			*pTargetPlayer;
-		ULONG				ulTextColor;
-		FString				targetInfoMsg;
-		DHUDMessageFadeOut	*pMsg;
+		FString targetInfoMsg;
 
 		// Search for a player directly in front of the camera. If none are found, exit.
-		pTargetPlayer = P_PlayerScan( camera );
+		player_t *pTargetPlayer = P_PlayerScan( camera );
 		if ( pTargetPlayer == NULL )
 			return;
 
@@ -1820,12 +1814,12 @@ void DBaseStatusBar::DrawTargetName ()
 			return;
 
 		// Build the string and text color;
-		ulTextColor = CR_GRAY;
-		targetInfoMsg.Format( "%s", pTargetPlayer->userinfo.GetName());
+		EColorRange color = CR_GRAY;
+		targetInfoMsg.Format( "%s", pTargetPlayer->userinfo.GetName( ));
 
 		// Attempt to use the team color.
-		if (( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS ) && ( pTargetPlayer->bOnTeam ))
-			ulTextColor = TEAM_GetTextColor( pTargetPlayer->Team );
+		if (( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSONTEAMS ) && ( pTargetPlayer->bOnTeam ))
+			color = static_cast<EColorRange>( TEAM_GetTextColor( pTargetPlayer->Team ));
 
 		// [AK] If this player is our teammate, print more information about them.
 		if (( pTargetPlayer->mo != NULL ) && ( pTargetPlayer->mo->IsTeammate( players[consoleplayer].mo )))
@@ -1833,7 +1827,7 @@ void DBaseStatusBar::DrawTargetName ()
 			// [AK] Print this player's current health and armor.
 			if ( cl_identifytarget >= IDENTIFY_TARGET_HEALTH )
 			{
-				int healthPercentage = ( 100 * pTargetPlayer->mo->health ) / pTargetPlayer->mo->GetMaxHealth();
+				int healthPercentage = ( 100 * pTargetPlayer->mo->health ) / pTargetPlayer->mo->GetMaxHealth( );
 				targetInfoMsg += '\n';
 
 				if ( healthPercentage <= 25 )
@@ -1853,7 +1847,7 @@ void DBaseStatusBar::DrawTargetName ()
 			if (( cl_identifytarget >= IDENTIFY_TARGET_WEAPON ) && ( pTargetPlayer->ReadyWeapon ))
 			{
 				targetInfoMsg += '\n';
-				targetInfoMsg.AppendFormat( TEXTCOLOR_GREEN "%s", pTargetPlayer->ReadyWeapon->GetTag());
+				targetInfoMsg.AppendFormat( TEXTCOLOR_GREEN "%s", pTargetPlayer->ReadyWeapon->GetTag( ));
 
 				// [AK] If this weapon uses ammo, print the amount as well.
 				if ( pTargetPlayer->ReadyWeapon->Ammo1 )
@@ -1921,20 +1915,12 @@ void DBaseStatusBar::DrawTargetName ()
 			targetInfoMsg += "\n" TEXTCOLOR_DARKRED "Enemy";
 
 			// If this player is carrying the terminator artifact, display his name in red.
-			if ( (terminator) && (pTargetPlayer->cheats2 & CF2_TERMINATORARTIFACT) )
-				ulTextColor = CR_RED;
+			if (( terminator ) && ( pTargetPlayer->cheats2 & CF2_TERMINATORARTIFACT ))
+				color = CR_RED;
 		}
 
-		pMsg = new DHUDMessageFadeOut( SmallFont, targetInfoMsg,
-			1.5f,
-			gameinfo.gametype == GAME_Doom ? 0.96f : 0.95f,
-			0,
-			0,
-			(EColorRange)ulTextColor,
-			2.f,
-			0.35f );
-
-		AttachMessage( pMsg, MAKE_ID('P','N','A','M') );
+		DHUDMessageFadeOut *pMsg = new DHUDMessageFadeOut( SmallFont, targetInfoMsg, 1.5f, gameinfo.gametype == GAME_Doom ? 0.96f : 0.95f, 0, 0, color, 2.f, 0.35f );
+		AttachMessage( pMsg, MAKE_ID( 'P', 'N', 'A', 'M' ));
 	}
 }
 
