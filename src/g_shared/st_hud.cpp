@@ -59,6 +59,7 @@
 #include "gi.h"
 #include "c_bind.h"
 #include "cl_demo.h"
+#include "cl_main.h"
 #include "g_game.h"
 #include "callvote.h"
 #include "scoreboard.h"
@@ -68,7 +69,19 @@
 #include "cooperative.h"
 #include "invasion.h"
 #include "domination.h"
+#include "lastmanstanding.h"
 #include "sbar.h"
+#include "p_trace.h"
+
+// [AK] Message levels used for cl_identifytarget.
+enum
+{
+	IDENTIFY_TARGET_OFF,
+	IDENTIFY_TARGET_NAME,
+	IDENTIFY_TARGET_HEALTH,
+	IDENTIFY_TARGET_WEAPON,
+	IDENTIFY_TARGET_CLASS,
+};
 
 //*****************************************************************************
 //	VARIABLES
@@ -132,6 +145,7 @@ static	void	HUD_DrawFragMessage( void );
 //*****************************************************************************
 //	CONSOLE VARIABLES
 
+CVAR( Int, cl_identifytarget, IDENTIFY_TARGET_NAME, CVAR_ARCHIVE )
 CVAR( Bool, cl_drawcoopinfo, true, CVAR_ARCHIVE )
 CVAR( Bool, r_drawspectatingstring, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG )
 CVAR( Bool, r_drawrespawnstring, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG )
@@ -378,6 +392,197 @@ void HUD_ShouldRefreshBeforeRendering( void )
 		return;
 
 	g_bRefreshBeforeRendering = true;
+}
+
+//*****************************************************************************
+//
+static player_t *HUD_ScanForTarget( AActor *pSource )
+{
+	FTraceResults trace;
+
+	angle_t angle = pSource->angle >> ANGLETOFINESHIFT;
+	angle_t pitch = static_cast<angle_t>( pSource->pitch ) >> ANGLETOFINESHIFT;
+	fixed_t vx = FixedMul( finecosine[pitch], finecosine[angle] );
+	fixed_t vy = FixedMul( finecosine[pitch], finesine[angle] );
+	fixed_t vz = -finesine[pitch];
+	fixed_t eyez = pSource->player ? pSource->player->viewz : pSource->z + pSource->height / 2;
+
+	if ( Trace( pSource->x,	// Actor x
+		pSource->y, // Actor y
+		eyez,	// Actor z
+		pSource->Sector,
+		vx,
+		vy,
+		vz,
+		( 32 * 64 * FRACUNIT ) /* MISSILERANGE */,	// Maximum distance
+		MF_SHOOTABLE,	// Actor mask
+		ML_BLOCKEVERYTHING,	// Wall mask
+		pSource,		// Actor to ignore
+		trace,	// Result
+		TRACE_NoSky,	// Trace flags
+		NULL ) == false )	// Callback
+	// Did not spot anything anything.
+	{
+		return ( NULL );
+	}
+	else
+	{
+		// Return NULL if we did not hit an actor.
+		if ( trace.HitType != TRACE_HitActor )
+			return ( NULL );
+
+		// Return NULL if the actor we hit is not a player.
+		if ( trace.Actor->player == NULL )
+			return ( NULL );
+
+		// Return the player we found.
+		return ( trace.Actor->player );
+	}
+}
+
+//*****************************************************************************
+//
+void HUD_DrawTargetName( player_t *pPlayer )
+{
+	// [BC] The player may not have a body between intermission-less maps.
+	if (( pPlayer->camera == NULL ) || ( viewactive == false ))
+		return;
+
+	// Break out if we don't want to identify the target, or
+	// a medal has just been awarded and is being displayed.
+	if (( cl_identifytarget == IDENTIFY_TARGET_OFF ) || ( zadmflags & ZADF_NO_IDENTIFY_TARGET ) || ( MEDAL_GetDisplayedMedal( pPlayer->camera->player - players ) != NUM_MEDALS ))
+		return;
+
+	// Don't do any of this while still receiving a snapshot.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( CLIENT_GetConnectionState( ) == CTS_RECEIVINGSNAPSHOT ))
+		return;
+
+	if (( pPlayer->bSpectating ) && ( lastmanstanding || teamlms ) && ( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS ))
+		return;
+
+	// Look for players directly in front of the player.
+	if ( camera )
+	{
+		FString targetInfoMsg;
+
+		// Search for a player directly in front of the camera. If none are found, exit.
+		player_t *pTargetPlayer = HUD_ScanForTarget( camera );
+		if ( pTargetPlayer == NULL )
+			return;
+
+		// [CK] If the player shouldn't be identified from decorate flags, ignore them
+		if ( pTargetPlayer->mo != NULL && ( pTargetPlayer->mo->STFlags & STFL_DONTIDENTIFYTARGET ) != 0 ) 
+			return;
+
+		// Build the string and text color;
+		EColorRange color = CR_GRAY;
+		targetInfoMsg.Format( "%s", pTargetPlayer->userinfo.GetName( ));
+
+		// Attempt to use the team color.
+		if (( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSONTEAMS ) && ( pTargetPlayer->bOnTeam ))
+			color = static_cast<EColorRange>( TEAM_GetTextColor( pTargetPlayer->Team ));
+
+		// [AK] If this player is our teammate, print more information about them.
+		if (( pTargetPlayer->mo != NULL ) && ( pTargetPlayer->mo->IsTeammate( players[consoleplayer].mo )))
+		{
+			// [AK] Print this player's current health and armor.
+			if ( cl_identifytarget >= IDENTIFY_TARGET_HEALTH )
+			{
+				int healthPercentage = ( 100 * pTargetPlayer->mo->health ) / pTargetPlayer->mo->GetMaxHealth( );
+				targetInfoMsg += '\n';
+
+				if ( healthPercentage <= 25 )
+					targetInfoMsg += TEXTCOLOR_RED;
+				else if ( healthPercentage <= 50 )
+					targetInfoMsg += TEXTCOLOR_ORANGE;
+				else if ( healthPercentage <= 75 )
+					targetInfoMsg += TEXTCOLOR_GOLD;
+				else
+					targetInfoMsg += TEXTCOLOR_GREEN;
+
+				AInventory *armor = pTargetPlayer->mo->FindInventory( RUNTIME_CLASS( ABasicArmor ));
+				targetInfoMsg.AppendFormat( "%d" TEXTCOLOR_GREEN " / %d", pTargetPlayer->mo->health, armor ? armor->Amount : 0 );
+			}
+
+			// [AK] Print this player's current weapon if they have one.
+			if (( cl_identifytarget >= IDENTIFY_TARGET_WEAPON ) && ( pTargetPlayer->ReadyWeapon ))
+			{
+				targetInfoMsg += '\n';
+				targetInfoMsg.AppendFormat( TEXTCOLOR_GREEN "%s", pTargetPlayer->ReadyWeapon->GetTag( ));
+
+				// [AK] If this weapon uses ammo, print the amount as well.
+				if ( pTargetPlayer->ReadyWeapon->Ammo1 )
+				{
+					targetInfoMsg.AppendFormat( TEXTCOLOR_GOLD " %d", pTargetPlayer->ReadyWeapon->Ammo1->Amount );
+
+					// [AK] If this weapon also has a secondary ammo type, print that amount too.
+					if ( pTargetPlayer->ReadyWeapon->Ammo2 )
+						targetInfoMsg.AppendFormat( " %d", pTargetPlayer->ReadyWeapon->Ammo2->Amount );
+				}
+			}
+
+			// [AK] Print this player's class.
+			if ( cl_identifytarget >= IDENTIFY_TARGET_CLASS )
+			{
+				FString classString;
+
+				// [AK] Display the name of the class the player is current playing as.
+				// If they're supposed to be morphed, don't print the name of their skin.
+				if ( pTargetPlayer->MorphedPlayerClass )
+				{
+					classString = pTargetPlayer->MorphedPlayerClass->TypeName.GetChars( );
+				}
+				else
+				{
+					FString skinString;
+
+					if ( PlayerClasses.Size( ) > 1 )
+						classString = GetPrintableDisplayName( pTargetPlayer->cls );
+
+					if ( classString.IsNotEmpty( ))
+						classString += " - ";
+
+					// [AK] Get the name of the player's current skin, if skins are enabled.
+					// Their skin should only be displayed if they're playing the class meant
+					// for it. Otherwise, print "base" instead.
+					if ( cl_skins )
+					{
+						const int skin = pTargetPlayer->userinfo.GetSkin( );
+
+						for ( unsigned int i = 0; i < PlayerClasses.Size( ); i++ )
+						{
+							if (( pTargetPlayer->cls == PlayerClasses[i].Type ) && ( PlayerClasses[i].CheckSkin( skin )))
+							{
+								skinString += skins[skin].name;
+								break;
+							}
+						}
+					}
+
+					classString += skinString.IsNotEmpty( ) ? skinString : "Base";
+				}
+
+				targetInfoMsg += '\n';
+				targetInfoMsg.AppendFormat( TEXTCOLOR_GREEN "%s", classString.GetChars( ));
+			}
+		}
+
+		if (( pTargetPlayer->mo != NULL ) && ( pTargetPlayer->mo->IsTeammate( camera )))
+		{
+			targetInfoMsg += "\n" TEXTCOLOR_DARKGREEN "Ally";
+		}
+		else
+		{
+			targetInfoMsg += "\n" TEXTCOLOR_DARKRED "Enemy";
+
+			// If this player is carrying the terminator artifact, display his name in red.
+			if (( terminator ) && ( pTargetPlayer->cheats2 & CF2_TERMINATORARTIFACT ))
+				color = CR_RED;
+		}
+
+		DHUDMessageFadeOut *pMsg = new DHUDMessageFadeOut( SmallFont, targetInfoMsg, 1.5f, gameinfo.gametype == GAME_Doom ? 0.96f : 0.95f, 0, 0, color, 2.f, 0.35f );
+		StatusBar->AttachMessage( pMsg, MAKE_ID( 'P', 'N', 'A', 'M' ));
+	}
 }
 
 //*****************************************************************************
