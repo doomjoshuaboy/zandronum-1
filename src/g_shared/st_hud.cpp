@@ -83,6 +83,15 @@ enum
 	IDENTIFY_TARGET_CLASS,
 };
 
+// [AK] Message levels used for cl_identifymonsters.
+enum
+{
+	IDENTIFY_MONSTERS_OFF,
+	IDENTIFY_MONSTERS_NAME,
+	IDENTIFY_MONSTERS_DROPITEMS,
+	IDENTIFY_MONSTERS_GHOST,
+};
+
 //*****************************************************************************
 //	VARIABLES
 
@@ -146,6 +155,7 @@ static	void	HUD_DrawFragMessage( void );
 //	CONSOLE VARIABLES
 
 CVAR( Int, cl_identifytarget, IDENTIFY_TARGET_NAME, CVAR_ARCHIVE )
+CVAR( Int, cl_identifymonsters, IDENTIFY_MONSTERS_OFF, CVAR_ARCHIVE )
 CVAR( Bool, cl_drawcoopinfo, true, CVAR_ARCHIVE )
 CVAR( Bool, r_drawspectatingstring, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG )
 CVAR( Bool, r_drawrespawnstring, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG )
@@ -396,7 +406,7 @@ void HUD_ShouldRefreshBeforeRendering( void )
 
 //*****************************************************************************
 //
-static player_t *HUD_ScanForTarget( AActor *pSource )
+static AActor *HUD_ScanForTarget( AActor *pSource )
 {
 	FTraceResults trace;
 
@@ -431,12 +441,8 @@ static player_t *HUD_ScanForTarget( AActor *pSource )
 		if ( trace.HitType != TRACE_HitActor )
 			return ( NULL );
 
-		// Return NULL if the actor we hit is not a player.
-		if ( trace.Actor->player == NULL )
-			return ( NULL );
-
-		// Return the player we found.
-		return ( trace.Actor->player );
+		// Return the actor we found.
+		return ( trace.Actor );
 	}
 }
 
@@ -463,32 +469,55 @@ void HUD_DrawTargetName( player_t *pPlayer )
 	// Look for players directly in front of the player.
 	if ( camera )
 	{
-		FString targetInfoMsg;
-
-		// Search for a player directly in front of the camera. If none are found, exit.
-		player_t *pTargetPlayer = HUD_ScanForTarget( camera );
-		if ( pTargetPlayer == NULL )
+		// Search for a player or monster directly in front of the camera. If none are found, exit.
+		AActor *pTargetActor = HUD_ScanForTarget( camera );
+		if (( pTargetActor == NULL ) || (( pTargetActor->player == NULL ) && (( pTargetActor->flags3 & MF3_ISMONSTER ) == false )))
 			return;
 
-		// [CK] If the player shouldn't be identified from decorate flags, ignore them
-		if ( pTargetPlayer->mo != NULL && ( pTargetPlayer->mo->STFlags & STFL_DONTIDENTIFYTARGET ) != 0 ) 
+		// [CK] If the actor shouldn't be identified from decorate flags, ignore them.
+		// [AK] Likewise, ignore monsters if we don't want to identify them.
+		if ((( pTargetActor->STFlags & STFL_DONTIDENTIFYTARGET ) != 0 ) || (( cl_identifymonsters == IDENTIFY_MONSTERS_OFF ) && ( pTargetActor->flags3 & MF3_ISMONSTER )))
 			return;
 
 		// Build the string and text color;
 		EColorRange color = CR_GRAY;
-		targetInfoMsg.Format( "%s", pTargetPlayer->userinfo.GetName( ));
+		FString targetInfoMsg;
+
+		if ( pTargetActor->player )
+		{
+			targetInfoMsg = pTargetActor->player->userinfo.GetName( );
+		}
+		else
+		{
+			targetInfoMsg = pTargetActor->GetTag( );
+
+			// [AK] Colorize the string in case the actor's name tag contains unformatted color codes.
+			V_ColorizeString( targetInfoMsg );
+		}
 
 		// Attempt to use the team color.
-		if (( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSONTEAMS ) && ( pTargetPlayer->bOnTeam ))
-			color = static_cast<EColorRange>( TEAM_GetTextColor( pTargetPlayer->Team ));
-
-		// [AK] If this player is our teammate, print more information about them.
-		if (( pTargetPlayer->mo != NULL ) && ( pTargetPlayer->mo->IsTeammate( players[consoleplayer].mo )))
+		if ( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSONTEAMS )
 		{
-			// [AK] Print this player's current health and armor.
+			ULONG ulTeam = TEAM_None;
+
+			// [AK] If the target is not a player, then check their designated team.
+			if ( pTargetActor->player == NULL )
+				ulTeam = pTargetActor->DesignatedTeam;
+			else if ( pTargetActor->player->bOnTeam )
+				ulTeam = pTargetActor->player->Team;
+
+			// [AK] Only change the text color if this actor's team is valid.
+			if (( ulTeam != TEAM_None ) && ( TEAM_CheckIfValid( ulTeam )))
+				color = static_cast<EColorRange>( TEAM_GetTextColor( ulTeam ));
+		}
+
+		// [AK] If this actor is friendly to us, print more information about them.
+		if ( pTargetActor->IsFriend( players[consoleplayer].mo ))
+		{
+			// [AK] Print this actor's current health and armor.
 			if ( cl_identifytarget >= IDENTIFY_TARGET_HEALTH )
 			{
-				int healthPercentage = ( 100 * pTargetPlayer->mo->health ) / pTargetPlayer->mo->GetMaxHealth( );
+				int healthPercentage = ( 100 * pTargetActor->health ) / ( pTargetActor->player ? pTargetActor->player->mo->GetMaxHealth( ) : pTargetActor->SpawnHealth( ));
 				targetInfoMsg += '\n';
 
 				if ( healthPercentage <= 25 )
@@ -500,74 +529,126 @@ void HUD_DrawTargetName( player_t *pPlayer )
 				else
 					targetInfoMsg += TEXTCOLOR_GREEN;
 
-				AInventory *armor = pTargetPlayer->mo->FindInventory( RUNTIME_CLASS( ABasicArmor ));
-				targetInfoMsg.AppendFormat( "%d" TEXTCOLOR_GREEN " / %d", pTargetPlayer->mo->health, armor ? armor->Amount : 0 );
+				AInventory *armor = pTargetActor->FindInventory( RUNTIME_CLASS( ABasicArmor ));
+				targetInfoMsg.AppendFormat( "%d" TEXTCOLOR_GREEN " / %d", pTargetActor->health, armor ? armor->Amount : 0 );
 			}
 
-			// [AK] Print this player's current weapon if they have one.
-			if (( cl_identifytarget >= IDENTIFY_TARGET_WEAPON ) && ( pTargetPlayer->ReadyWeapon ))
+			if ( pTargetActor->player )
 			{
-				targetInfoMsg += '\n';
-				targetInfoMsg.AppendFormat( TEXTCOLOR_GREEN "%s", pTargetPlayer->ReadyWeapon->GetTag( ));
-
-				// [AK] If this weapon uses ammo, print the amount as well.
-				if ( pTargetPlayer->ReadyWeapon->Ammo1 )
+				// [AK] Print this player's current weapon if they have one.
+				if (( cl_identifytarget >= IDENTIFY_TARGET_WEAPON ) && ( pTargetActor->player->ReadyWeapon ))
 				{
-					targetInfoMsg.AppendFormat( TEXTCOLOR_GOLD " %d", pTargetPlayer->ReadyWeapon->Ammo1->Amount );
+					targetInfoMsg += '\n';
+					targetInfoMsg.AppendFormat( TEXTCOLOR_GREEN "%s", pTargetActor->player->ReadyWeapon->GetTag( ));
 
-					// [AK] If this weapon also has a secondary ammo type, print that amount too.
-					if ( pTargetPlayer->ReadyWeapon->Ammo2 )
-						targetInfoMsg.AppendFormat( " %d", pTargetPlayer->ReadyWeapon->Ammo2->Amount );
-				}
-			}
-
-			// [AK] Print this player's class.
-			if ( cl_identifytarget >= IDENTIFY_TARGET_CLASS )
-			{
-				FString classString;
-
-				// [AK] Display the name of the class the player is current playing as.
-				// If they're supposed to be morphed, don't print the name of their skin.
-				if ( pTargetPlayer->MorphedPlayerClass )
-				{
-					classString = pTargetPlayer->MorphedPlayerClass->TypeName.GetChars( );
-				}
-				else
-				{
-					FString skinString;
-
-					if ( PlayerClasses.Size( ) > 1 )
-						classString = GetPrintableDisplayName( pTargetPlayer->cls );
-
-					if ( classString.IsNotEmpty( ))
-						classString += " - ";
-
-					// [AK] Get the name of the player's current skin, if skins are enabled.
-					// Their skin should only be displayed if they're playing the class meant
-					// for it. Otherwise, print "base" instead.
-					if ( cl_skins )
+					// [AK] If this weapon uses ammo, print the amount as well.
+					if ( pTargetActor->player->ReadyWeapon->Ammo1 )
 					{
-						const int skin = pTargetPlayer->userinfo.GetSkin( );
+						targetInfoMsg.AppendFormat( TEXTCOLOR_GOLD " %d", pTargetActor->player->ReadyWeapon->Ammo1->Amount );
 
-						for ( unsigned int i = 0; i < PlayerClasses.Size( ); i++ )
+						// [AK] If this weapon also has a secondary ammo type, print that amount too.
+						if ( pTargetActor->player->ReadyWeapon->Ammo2 )
+							targetInfoMsg.AppendFormat( " %d", pTargetActor->player->ReadyWeapon->Ammo2->Amount );
+					}
+				}
+
+				// [AK] Print this player's class.
+				if ( cl_identifytarget >= IDENTIFY_TARGET_CLASS )
+				{
+					FString classString;
+
+					// [AK] Display the name of the class the player is current playing as.
+					// If they're supposed to be morphed, don't print the name of their skin.
+					if ( pTargetActor->player->MorphedPlayerClass )
+					{
+						classString = pTargetActor->player->MorphedPlayerClass->TypeName.GetChars( );
+					}
+					else
+					{
+						FString skinString;
+
+						if ( PlayerClasses.Size( ) > 1 )
+							classString = GetPrintableDisplayName( pTargetActor->player->cls );
+
+						if ( classString.IsNotEmpty( ))
+							classString += " - ";
+
+						// [AK] Get the name of the player's current skin, if skins are enabled.
+						// Their skin should only be displayed if they're playing the class meant
+						// for it. Otherwise, print "base" instead.
+						if ( cl_skins )
 						{
-							if (( pTargetPlayer->cls == PlayerClasses[i].Type ) && ( PlayerClasses[i].CheckSkin( skin )))
+							const int skin = pTargetActor->player->userinfo.GetSkin( );
+
+							for ( unsigned int i = 0; i < PlayerClasses.Size( ); i++ )
 							{
-								skinString += skins[skin].name;
-								break;
+								if (( pTargetActor->player->cls == PlayerClasses[i].Type ) && ( PlayerClasses[i].CheckSkin( skin )))
+								{
+									skinString += skins[skin].name;
+									break;
+								}
 							}
 						}
+
+						classString += skinString.IsNotEmpty( ) ? skinString : "Base";
 					}
 
-					classString += skinString.IsNotEmpty( ) ? skinString : "Base";
+					targetInfoMsg += '\n';
+					targetInfoMsg.AppendFormat( TEXTCOLOR_GREEN "%s", classString.GetChars( ));
 				}
-
-				targetInfoMsg += '\n';
-				targetInfoMsg.AppendFormat( TEXTCOLOR_GREEN "%s", classString.GetChars( ));
 			}
 		}
 
-		if (( pTargetPlayer->mo != NULL ) && ( pTargetPlayer->mo->IsTeammate( camera )))
+		if ( pTargetActor->flags3 & MF3_ISMONSTER )
+		{
+			// [AK] Print a list of this monster's drop items if we want to.
+			if ( cl_identifymonsters >= IDENTIFY_MONSTERS_DROPITEMS )
+			{
+				FDropItem *pDropItems = pTargetActor->GetDropItems( );
+				FString dropItemList;
+
+				while ( pDropItems )
+				{
+					const PClass *pClass = PClass::FindClass( pDropItems->Name );
+
+					// [AK] Ignore items that are invalid or have no chance of spawning.
+					if (( pClass != NULL ) && ( pDropItems->probability > -1 ))
+					{
+						if ( dropItemList.IsNotEmpty( ))
+							dropItemList += ", ";
+
+						dropItemList += pDropItems->Name.GetChars( );
+
+						// [AK] Include this item's probability if applicable.
+						if ( pDropItems->probability < 255 )
+						{
+							float fProbabilityPercentage = clamp( static_cast<float>(( pDropItems->probability + 1 ) * 100 ) / 256.f, 0.f, 100.f );
+
+							// [AK] When the probability is less than 1%, display it with two decimals.
+							// Otherwise, display it with one decimal.
+							if ( fProbabilityPercentage < 1.f )
+								dropItemList.AppendFormat( " (%.2f%%)", fProbabilityPercentage );
+							else
+								dropItemList.AppendFormat( " (%.1f%%)", fProbabilityPercentage );
+						}
+					}
+
+					pDropItems = pDropItems->Next;
+				}
+
+				if ( dropItemList.IsNotEmpty( ))
+				{
+					targetInfoMsg += '\n';
+					targetInfoMsg.AppendFormat( TEXTCOLOR_BLACK "%s", dropItemList.GetChars( ));
+				}
+			}
+
+			// [AK] Indicate if this monster is a ghost.
+			if (( cl_identifymonsters >= IDENTIFY_MONSTERS_GHOST ) && ( pTargetActor->flags3 & MF3_GHOST ))
+				targetInfoMsg += "\n" TEXTCOLOR_DARKGRAY "Is a ghost";
+		}
+
+		if ( pTargetActor->IsFriend( camera ))
 		{
 			targetInfoMsg += "\n" TEXTCOLOR_DARKGREEN "Ally";
 		}
@@ -576,7 +657,7 @@ void HUD_DrawTargetName( player_t *pPlayer )
 			targetInfoMsg += "\n" TEXTCOLOR_DARKRED "Enemy";
 
 			// If this player is carrying the terminator artifact, display his name in red.
-			if (( terminator ) && ( pTargetPlayer->cheats2 & CF2_TERMINATORARTIFACT ))
+			if (( terminator ) && ( pTargetActor->player ) && ( pTargetActor->player->cheats2 & CF2_TERMINATORARTIFACT ))
 				color = CR_RED;
 		}
 
