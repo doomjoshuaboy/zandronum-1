@@ -58,12 +58,10 @@
 #include "../version.h"
 // [BC] New #includes.
 #include "cl_demo.h"
-#include "cl_main.h"
 #include "deathmatch.h"
 #include "team.h"
 #include "stats.h"
 #include "chat.h"
-#include "lastmanstanding.h"
 #include "network.h"
 #include "gamemode.h"
 #include "st_hud.h"
@@ -207,8 +205,6 @@ void ST_LoadCrosshair(bool alwaysload)
 	CrosshairNum = num;
 	CrosshairImage = TexMan[TexMan.CheckForTexture(name, FTexture::TEX_MiscPatch)];
 }
-
-CVAR( Int, cl_identifytarget, IDENTIFY_TARGET_NAME, CVAR_ARCHIVE );
 
 EXTERN_CVAR( Bool, cl_stfullscreenhud );
 //---------------------------------------------------------------------------
@@ -1630,7 +1626,7 @@ void DBaseStatusBar::DrawTopStuff (EHudState state)
 	if (ShowLog && MustDrawLog(state)) DrawLog ();
 
 	// [BC] Draw the name of the player that's in our crosshair.
-	DrawTargetName( );
+	HUD_DrawTargetName( CPlayer );
 
 	// [BB] Possibly draw info of the other players (health, armor, ...)
 	HUD_DrawCoopInfo( );
@@ -1780,149 +1776,6 @@ void DBaseStatusBar::DrawWaiting () const
 	}
 }
 */
-player_t	*P_PlayerScan( AActor *mo );
-void DBaseStatusBar::DrawTargetName ()
-{
-	// [BC] The player may not have a body between intermission-less maps.
-	if (( CPlayer->camera == NULL ) || ( viewactive == false ))
-		return;
-
-	// Break out if we don't want to identify the target, or
-	// a medal has just been awarded and is being displayed.
-	if (( cl_identifytarget == IDENTIFY_TARGET_OFF ) || ( zadmflags & ZADF_NO_IDENTIFY_TARGET ) || ( MEDAL_GetDisplayedMedal( CPlayer->camera->player - players ) != NUM_MEDALS ))
-		return;
-
-	// Don't do any of this while still receiving a snapshot.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( CLIENT_GetConnectionState( ) == CTS_RECEIVINGSNAPSHOT ))
-		return;
-
-	if (( CPlayer->bSpectating ) && ( lastmanstanding || teamlms ) && ( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS ))
-		return;
-
-	// Look for players directly in front of the player.
-	if ( camera )
-	{
-		FString targetInfoMsg;
-
-		// Search for a player directly in front of the camera. If none are found, exit.
-		player_t *pTargetPlayer = P_PlayerScan( camera );
-		if ( pTargetPlayer == NULL )
-			return;
-
-		// [CK] If the player shouldn't be identified from decorate flags, ignore them
-		if ( pTargetPlayer->mo != NULL && ( pTargetPlayer->mo->STFlags & STFL_DONTIDENTIFYTARGET ) != 0 ) 
-			return;
-
-		// Build the string and text color;
-		EColorRange color = CR_GRAY;
-		targetInfoMsg.Format( "%s", pTargetPlayer->userinfo.GetName( ));
-
-		// Attempt to use the team color.
-		if (( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSONTEAMS ) && ( pTargetPlayer->bOnTeam ))
-			color = static_cast<EColorRange>( TEAM_GetTextColor( pTargetPlayer->Team ));
-
-		// [AK] If this player is our teammate, print more information about them.
-		if (( pTargetPlayer->mo != NULL ) && ( pTargetPlayer->mo->IsTeammate( players[consoleplayer].mo )))
-		{
-			// [AK] Print this player's current health and armor.
-			if ( cl_identifytarget >= IDENTIFY_TARGET_HEALTH )
-			{
-				int healthPercentage = ( 100 * pTargetPlayer->mo->health ) / pTargetPlayer->mo->GetMaxHealth( );
-				targetInfoMsg += '\n';
-
-				if ( healthPercentage <= 25 )
-					targetInfoMsg += TEXTCOLOR_RED;
-				else if ( healthPercentage <= 50 )
-					targetInfoMsg += TEXTCOLOR_ORANGE;
-				else if ( healthPercentage <= 75 )
-					targetInfoMsg += TEXTCOLOR_GOLD;
-				else
-					targetInfoMsg += TEXTCOLOR_GREEN;
-
-				AInventory *armor = pTargetPlayer->mo->FindInventory( RUNTIME_CLASS( ABasicArmor ));
-				targetInfoMsg.AppendFormat( "%d" TEXTCOLOR_GREEN " / %d", pTargetPlayer->mo->health, armor ? armor->Amount : 0 );
-			}
-
-			// [AK] Print this player's current weapon if they have one.
-			if (( cl_identifytarget >= IDENTIFY_TARGET_WEAPON ) && ( pTargetPlayer->ReadyWeapon ))
-			{
-				targetInfoMsg += '\n';
-				targetInfoMsg.AppendFormat( TEXTCOLOR_GREEN "%s", pTargetPlayer->ReadyWeapon->GetTag( ));
-
-				// [AK] If this weapon uses ammo, print the amount as well.
-				if ( pTargetPlayer->ReadyWeapon->Ammo1 )
-				{
-					targetInfoMsg.AppendFormat( TEXTCOLOR_GOLD " %d", pTargetPlayer->ReadyWeapon->Ammo1->Amount );
-
-					// [AK] If this weapon also has a secondary ammo type, print that amount too.
-					if ( pTargetPlayer->ReadyWeapon->Ammo2 )
-						targetInfoMsg.AppendFormat( " %d", pTargetPlayer->ReadyWeapon->Ammo2->Amount );
-				}
-			}
-
-			// [AK] Print this player's class.
-			if ( cl_identifytarget >= IDENTIFY_TARGET_CLASS )
-			{
-				FString classString;
-
-				// [AK] Display the name of the class the player is current playing as.
-				// If they're supposed to be morphed, don't print the name of their skin.
-				if ( pTargetPlayer->MorphedPlayerClass )
-				{
-					classString = pTargetPlayer->MorphedPlayerClass->TypeName.GetChars( );
-				}
-				else
-				{
-					FString skinString;
-
-					if ( PlayerClasses.Size( ) > 1 )
-						classString = GetPrintableDisplayName( pTargetPlayer->cls );
-
-					if ( classString.IsNotEmpty( ))
-						classString += " - ";
-
-					// [AK] Get the name of the player's current skin, if skins are enabled.
-					// Their skin should only be displayed if they're playing the class meant
-					// for it. Otherwise, print "base" instead.
-					if ( cl_skins )
-					{
-						const int skin = pTargetPlayer->userinfo.GetSkin( );
-
-						for ( unsigned int i = 0; i < PlayerClasses.Size( ); i++ )
-						{
-							if (( pTargetPlayer->cls == PlayerClasses[i].Type ) && ( PlayerClasses[i].CheckSkin( skin )))
-							{
-								skinString += skins[skin].name;
-								break;
-							}
-						}
-					}
-
-					classString += skinString.IsNotEmpty( ) ? skinString : "Base";
-				}
-
-				targetInfoMsg += '\n';
-				targetInfoMsg.AppendFormat( TEXTCOLOR_GREEN "%s", classString.GetChars( ));
-			}
-		}
-
-		if (( pTargetPlayer->mo != NULL ) && ( pTargetPlayer->mo->IsTeammate( camera )))
-		{
-			targetInfoMsg += "\n" TEXTCOLOR_DARKGREEN "Ally";
-		}
-		else
-		{
-			targetInfoMsg += "\n" TEXTCOLOR_DARKRED "Enemy";
-
-			// If this player is carrying the terminator artifact, display his name in red.
-			if (( terminator ) && ( pTargetPlayer->cheats2 & CF2_TERMINATORARTIFACT ))
-				color = CR_RED;
-		}
-
-		DHUDMessageFadeOut *pMsg = new DHUDMessageFadeOut( SmallFont, targetInfoMsg, 1.5f, gameinfo.gametype == GAME_Doom ? 0.96f : 0.95f, 0, 0, color, 2.f, 0.35f );
-		AttachMessage( pMsg, MAKE_ID( 'P', 'N', 'A', 'M' ));
-	}
-}
 
 void DBaseStatusBar::FlashItem (const PClass *itemtype)
 {

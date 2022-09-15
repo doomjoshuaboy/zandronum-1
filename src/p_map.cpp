@@ -5473,58 +5473,6 @@ void P_UseItems( player_t *pPlayer )
 	}
 }
 */
-/*
-================
-=
-= P_PlayerScan
-=
-= Looks for other players directly in front of the player.
-================
-*/
-
-player_t *P_PlayerScan( AActor *pSource )
-{
-	FTraceResults trace;
-
-	angle_t angle = pSource->angle >> ANGLETOFINESHIFT;
-	angle_t pitch = static_cast<angle_t>( pSource->pitch ) >> ANGLETOFINESHIFT;
-	fixed_t vx = FixedMul( finecosine[pitch], finecosine[angle] );
-	fixed_t vy = FixedMul( finecosine[pitch], finesine[angle] );
-	fixed_t vz = -finesine[pitch];
-	fixed_t eyez = pSource->player ? pSource->player->viewz : pSource->z + pSource->height / 2;
-
-	if ( Trace( pSource->x,	// Actor x
-		pSource->y, // Actor y
-		eyez,	// Actor z
-		pSource->Sector,
-		vx,
-		vy,
-		vz,
-		( 32 * 64 * FRACUNIT ) /* MISSILERANGE */,	// Maximum distance
-		MF_SHOOTABLE,	// Actor mask
-		ML_BLOCKEVERYTHING,	// Wall mask
-		pSource,		// Actor to ignore
-		trace,	// Result
-		TRACE_NoSky,	// Trace flags
-		NULL ) == false )	// Callback
-	// Did not spot anything anything.
-	{
-		return ( NULL );
-	}
-	else
-	{
-		// Return NULL if we did not hit an actor.
-		if ( trace.HitType != TRACE_HitActor )
-			return ( NULL );
-
-		// Return NULL if the actor we hit is not a player.
-		if ( trace.Actor->player == NULL )
-			return ( NULL );
-
-		// Return the player we found.
-		return ( trace.Actor->player );
-	}
-}
 
 //==========================================================================
 //
