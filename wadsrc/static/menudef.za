@@ -28,6 +28,14 @@ OptionValue ZA_IdentifyTargetLevels
 	4.0, "Class and skin"
 }
 
+OptionValue ZA_IdentifyMonsterLevels
+{
+	0.0, "Off"
+	1.0, "Name"
+	2.0, "Drop items"
+	3.0, "Ghost"
+}
+
 OptionMenu ZA_MultiplayerOptions
 {
 	Title "MULTIPLAYER OPTIONS"
@@ -59,6 +67,7 @@ OptionMenu ZA_MultiplayerOptions
 	Option		"Taunts",					"cl_taunts",				"OnOff"
 	Option		"Icons",					"cl_icons",					"OnOff"
 	Option		"Identify player level",			"cl_identifytarget",		"ZA_IdentifyTargetLevels"
+	Option		"Identify monster level",			"cl_identifymonsters",		"ZA_IdentifyMonsterLevels"
 	Option		"Show spawn spots",			"cl_showspawns",			"YesNo"
 	Option		"Free chasecam",			"cl_freechase",				"YesNo"
 	Option		"Teleport to spied player",	"cl_telespy",				"YesNo"
