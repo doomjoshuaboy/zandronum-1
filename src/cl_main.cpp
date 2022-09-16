@@ -2272,6 +2272,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 				}
 				else
 				{
+					// [AK] Close the server setup menu if we're still in it.
+					if ( M_InServerSetupMenu( ))
+						M_ClearMenus( );
+
 					g_HasRCONAccess = false;
 				}
 				break;
@@ -9496,7 +9500,15 @@ CCMD( send_password )
 	}
 
 	if ( g_ConnectionState == CTS_ACTIVE )
-		CLIENTCOMMANDS_RequestRCON( argv[1] );
+		CLIENTCOMMANDS_ChangeRCONStatus( true, argv[1] );
+}
+
+//*****************************************************************************
+//
+CCMD( rcon_logout )
+{
+	if ( g_ConnectionState == CTS_ACTIVE )
+		CLIENTCOMMANDS_ChangeRCONStatus( false, NULL );
 }
 
 //*****************************************************************************

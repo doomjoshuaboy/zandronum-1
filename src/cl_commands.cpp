@@ -577,10 +577,14 @@ void CLIENTCOMMANDS_RequestJoin( const char *pszJoinPassword )
 
 //*****************************************************************************
 //
-void CLIENTCOMMANDS_RequestRCON( const char *pszRCONPassword )
+void CLIENTCOMMANDS_ChangeRCONStatus( const bool bIsLoggingIn, const char *pszRCONPassword )
 {
-	CLIENT_GetLocalBuffer( )->ByteStream.WriteByte( CLC_REQUESTRCON );
-	CLIENT_GetLocalBuffer( )->ByteStream.WriteString( pszRCONPassword );
+	CLIENT_GetLocalBuffer( )->ByteStream.WriteByte( CLC_CHANGERCONSTATUS );
+	CLIENT_GetLocalBuffer( )->ByteStream.WriteByte( bIsLoggingIn );
+
+	// [AK] It's only necessary to send the RCON password if we're trying to log in.
+	if ( bIsLoggingIn )
+		CLIENT_GetLocalBuffer( )->ByteStream.WriteString( pszRCONPassword );
 }
 
 //*****************************************************************************
