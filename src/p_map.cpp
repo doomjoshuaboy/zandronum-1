@@ -4778,6 +4778,10 @@ struct RailData
 	TArray<SRailHit> RailHits;
 	bool StopAtOne;
 	bool StopAtInvul;
+
+	// [AK] Added caller and hitscan puff actor pointers.
+	AActor *pCaller;
+	AActor *pPuff;
 };
 
 static ETraceStatus ProcessRailHit(FTraceResults &res, void *userdata)
@@ -4786,6 +4790,12 @@ static ETraceStatus ProcessRailHit(FTraceResults &res, void *userdata)
 	if (res.HitType != TRACE_HitActor)
 	{
 		return TRACE_Stop;
+	}
+
+	// [AK] Check if this player can shoot through their teammates if ZADF_SHOOT_THROUGH_ALLIES is enabled.
+	if ( PLAYER_CannotAffectAllyWith( data->pCaller, res.Actor, data->pPuff, ZADF_SHOOT_THROUGH_ALLIES ))
+	{
+		return TRACE_Skip;
 	}
 
 	// Invulnerable things completely block the shot
@@ -4864,6 +4874,10 @@ void P_RailAttack(AActor *source, int damage, int offset_xy, fixed_t offset_z, i
 
 	flags = (puffDefaults->flags6 & MF6_NOTRIGGER) ? 0 : TRACE_PCross | TRACE_Impact;
 	rail_data.StopAtInvul = (puffDefaults->flags3 & MF3_FOILINVUL) ? false : true;
+
+	// [AK] Remember the actor who fired the rail and the puff actor that is supposed to spawn.
+	rail_data.pCaller = source;
+	rail_data.pPuff = puffDefaults;
 
 	Trace(x1, y1, shootz, source->Sector, vx, vy, vz,
 		distance, MF_SHOOTABLE, ML_BLOCKEVERYTHING, source, trace,
