@@ -88,7 +88,7 @@ void	CLIENTCOMMANDS_SendBackupWeaponSelect( void );
 void	CLIENTCOMMANDS_Taunt( void );
 void	CLIENTCOMMANDS_Spectate( void );
 void	CLIENTCOMMANDS_RequestJoin( const char *pszJoinPassword );
-void	CLIENTCOMMANDS_RequestRCON( const char *pszRCONPassword );
+void	CLIENTCOMMANDS_ChangeRCONStatus( bool bIsLoggingIn, const char *pszRCONPassword );
 void	CLIENTCOMMANDS_RCONCommand( const char *pszCommand );
 void	CLIENTCOMMANDS_Suicide( void );
 void	CLIENTCOMMANDS_ChangeTeam( const char *pszJoinPassword, LONG lDesiredTeam );

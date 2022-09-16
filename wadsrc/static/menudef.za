@@ -619,6 +619,7 @@ OptionMenu ZA_ServerSetupMenu
 	Submenu		"Voting setup",				"ZA_VotingSetupMenu"
 	Submenu		"Gameplay Options",			"GameplayOptions"
 	Submenu		"Compatibility Options",	"CompatibilityOptions"
+	Command		"Log out of RCON",			"rcon_logout"
 	StaticText	" "
 	TextField	"Server name",				"sv_hostname"
 	TextField	"Website",					"sv_website"

@@ -4826,7 +4826,7 @@ bool SERVER_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 		// Client wishes to join the game after spectating.
 		return ( server_RequestJoin( pByteStream ));
-	case CLC_REQUESTRCON:
+	case CLC_CHANGERCONSTATUS:
 
 		// Client is attempting to gain remote control access to the server.
 		return ( server_RequestRCON( pByteStream ));
@@ -6372,29 +6372,54 @@ static bool server_RequestJoin( BYTESTREAM_s *pByteStream )
 static bool server_RequestRCON( BYTESTREAM_s *pByteStream )
 {
 	const char	*pszUserPassword;
-
-	// If the user password matches our PW, and we have a PW set, give him RCON access.
-	pszUserPassword = pByteStream->ReadString();
+	const bool bIsLoggingIn = !!pByteStream->ReadByte(); // [AK]
 
 	// [BB] If the client is flooding the server with commands, the client is
 	// kicked and we don't need to handle the command.
 	if ( server_CheckForClientCommandFlood ( g_lCurrentClient ) == true )
 		return ( true );
 
-	if (( strlen( sv_rconpassword ) > 0 ) && ( strcmp( sv_rconpassword, pszUserPassword ) == 0 ))
+	if ( bIsLoggingIn )
 	{
-		g_aClients[g_lCurrentClient].bRCONAccess = true;
-		SERVER_PrintfPlayer( g_lCurrentClient, "RCON access granted.\n" );
-		Printf( "RCON access for %s is granted!\n", players[g_lCurrentClient].userinfo.GetName() );
+		// If the user password matches our PW, and we have a PW set, give him RCON access.
+		pszUserPassword = pByteStream->ReadString();
+
+		if ( g_aClients[g_lCurrentClient].bRCONAccess )
+		{
+			SERVER_PrintfPlayer( g_lCurrentClient, "You already have RCON access.\n" );
+			return ( false );
+		}
+
+		if (( strlen( sv_rconpassword ) > 0 ) && ( strcmp( sv_rconpassword, pszUserPassword ) == 0 ))
+		{
+			g_aClients[g_lCurrentClient].bRCONAccess = true;
+			SERVER_PrintfPlayer( g_lCurrentClient, "RCON access granted.\n" );
+			Printf( "RCON access for %s is granted!\n", players[g_lCurrentClient].userinfo.GetName() );
+
+			SERVERCOMMANDS_RCONAccess( g_lCurrentClient );
+		}
+		else
+		{
+			g_aClients[g_lCurrentClient].bRCONAccess = false;
+			SERVER_PrintfPlayer( g_lCurrentClient, "Incorrect RCON password.\n" );
+			Printf( "Incorrect RCON password attempt from %s.\n", players[g_lCurrentClient].userinfo.GetName() );
+		}
 	}
 	else
 	{
+		if ( g_aClients[g_lCurrentClient].bRCONAccess == false )
+		{
+			SERVER_PrintfPlayer( g_lCurrentClient, "You don't have RCON access.\n" );
+			return ( false );
+		}
+
 		g_aClients[g_lCurrentClient].bRCONAccess = false;
-		SERVER_PrintfPlayer( g_lCurrentClient, "Incorrect RCON password.\n" );
-		Printf( "Incorrect RCON password attempt from %s.\n", players[g_lCurrentClient].userinfo.GetName() );
+		SERVER_PrintfPlayer( g_lCurrentClient, "You have logged out of RCON.\n" );
+		Printf( "%s has logged out of RCON.\n", players[g_lCurrentClient].userinfo.GetName() );
+
+		SERVERCOMMANDS_RCONAccess( g_lCurrentClient );
 	}
 
-	SERVERCOMMANDS_RCONAccess( g_lCurrentClient );
 	return ( false );
 }
 
