@@ -5668,10 +5668,11 @@ APlayerPawn *P_SpawnPlayer (FPlayerStart *mthing, int playernum, int flags)
 		}
 
 		// [Dusk] If we are sharing keys, give this player the keys that have been found.
+		// [AK] Make sure to give them the keys if they changed their class.
 		if (( flags & SPF_CLIENTUPDATE ) &&
 			( zadmflags & ZADF_SHARE_KEYS ) &&
 			( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
-			( state == PST_ENTER || state == PST_ENTERNOINVENTORY ))
+			( state == PST_ENTER || state == PST_ENTERNOINVENTORY || oldPlayerClass != p->CurrentPlayerClass ))
 		{
 			SERVER_SyncSharedKeys( p - players, true );
 		}
