@@ -764,7 +764,8 @@ void AActor::Die (AActor *source, AActor *inflictor, int dmgflags)
 			// [BC] Don't respawn quite so fast on forced respawn. It sounds weird when your
 			// scream isn't completed.
 			// [RK] We can add on a custom force respawn delay instead drawn from the forcerespawn time CVAR
-			if ( dmflags & DF_FORCE_RESPAWN )
+			// [AK] The forced respawn time shouldn't apply to players who don't have any lives left.
+			if (( dmflags & DF_FORCE_RESPAWN ) && ( bNoMoreLivesLeft == false ))
 				player->respawn_time += ( sv_forcerespawntime == 0 ? TICRATE/2 : sv_forcerespawntime * TICRATE );
 		}
 
