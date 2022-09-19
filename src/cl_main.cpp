@@ -3428,10 +3428,11 @@ void ServerCommands::SpawnPlayer::Execute()
 
 	// If the console player is being respawned, and watching another player in demo
 	// mode, allow the player to continue watching that player.
+	// [AK] And also if the console player just became a dead spectator.
 	if ((( pPlayer - players ) == consoleplayer ) &&
 		( pPlayer->camera ) &&
 		( pPlayer->camera != pPlayer->mo ) &&
-		( CLIENTDEMO_IsPlaying( )))
+		( CLIENTDEMO_IsPlaying( ) || isDeadSpectator ))
 	{
 		pCameraActor = pPlayer->camera;
 	}
@@ -3614,6 +3615,7 @@ void ServerCommands::SpawnPlayer::Execute()
 	pPlayer->DesiredFOV = pPlayer->FOV = 90.f;
 	// If the console player was watching another player in demo mode, continue to follow
 	// that other player.
+	// [AK] And also if the console player just became a dead spectator.
 	if ( pCameraActor )
 		pPlayer->camera = pCameraActor;
 	else

@@ -5414,6 +5414,9 @@ APlayerPawn *P_SpawnPlayer (FPlayerStart *mthing, int playernum, int flags)
 	if ( !(flags & SPF_TEMPPLAYER) )
 		TEAM_EnsurePlayerHasValidClass ( p );
 
+	// [AK] Remember the actor that this player was spying on before respawning them.
+	AActor *pOldCamera = p->camera;
+
 	// [BB] We may not filter coop inventory if the player changed the player class.
 	// Thus we need to keep track of the old class.
 	const BYTE oldPlayerClass = p->CurrentPlayerClass;
@@ -5602,6 +5605,11 @@ APlayerPawn *P_SpawnPlayer (FPlayerStart *mthing, int playernum, int flags)
 
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 	{
+		// [AK] If the local player just turned into a dead spectator and were looking through another
+		// actor's eyes other than their own, let them continue viewing from that actor.
+		if (( p == &players[consoleplayer] ) && ( pOldCamera != NULL ) && ( pOldCamera != oldactor ) && ( p->bDeadSpectator ))
+			p->camera = pOldCamera;
+
 		// [AK] Only check if the local player is looking at the player being spawned.
 		if (( playeringame[consoleplayer] ) && ( players[consoleplayer].camera == oldactor ))
 		{
