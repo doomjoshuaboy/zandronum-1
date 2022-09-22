@@ -154,21 +154,21 @@ typedef enum
 typedef struct
 {
 	// Flags for this game mode.
-	ULONG	ulFlags;
+	ULONG ulFlags;
 
 	// [RC] The name of this game mode.
-	char	szName[32];
+	FString Name;
 
 	// This is what's displayed in the internal browser for a server's game mode.
-	char	szShortName[9];
+	FString ShortName;
 
 	// This is the name of the texture that displays when we press the F1 key in
 	// this game mode.
-	char	szF1Texture[9];
+	FString F1Texture;
 
 	// [AK] All of the gameplay or compatibility flags we set for this game mode
 	// (dmflags, compatflags, lmsallowedweapons, lmsspectatorsettings, etc.).
-	LONG	lFlagsets[NUM_FLAGSETS][3];
+	LONG lFlagsets[NUM_FLAGSETS][3];
 
 } GAMEMODE_s;
 
@@ -181,10 +181,10 @@ void		GAMEMODE_ParseGameSettingBlock ( FScanner &sc, const GAMEMODE_e GameMode, 
 void		GAMEMODE_ParseGamemodeInfo( void );
 ULONG		GAMEMODE_GetFlags( GAMEMODE_e GameMode );
 ULONG		GAMEMODE_GetCurrentFlags( void );
-char		*GAMEMODE_GetShortName( GAMEMODE_e GameMode );
-char		*GAMEMODE_GetName( GAMEMODE_e GameMode );
-char		*GAMEMODE_GetCurrentName( void );
-char		*GAMEMODE_GetF1Texture( GAMEMODE_e GameMode );
+const char	*GAMEMODE_GetShortName( GAMEMODE_e GameMode );
+const char	*GAMEMODE_GetName( GAMEMODE_e GameMode );
+const char	*GAMEMODE_GetCurrentName( void );
+const char	*GAMEMODE_GetF1Texture( GAMEMODE_e GameMode );
 int			GAMEMODE_GetFlagsetMask( GAMEMODE_e GameMode, FIntCVar *Flagset, bool bLocked = false );
 int			GAMEMODE_GetCurrentFlagsetMask( FIntCVar *Flagset, bool bLocked = false );
 void		GAMEMODE_DetermineGameMode( void );

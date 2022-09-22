@@ -178,20 +178,23 @@ void GAMEMODE_ParseGamemodeInfoLump ( FScanner &sc, const GAMEMODE_e GameMode )
 		else if (0 == stricmp (sc.String, "name"))
 		{
 			sc.MustGetString();
-			strncpy( g_GameModes[GameMode].szName, sc.String, 31 );
-			g_GameModes[GameMode].szName[31] = 0;
+			g_GameModes[GameMode].Name = sc.String;
 		}
 		else if (0 == stricmp (sc.String, "shortname"))
 		{
 			sc.MustGetString();
-			strncpy( g_GameModes[GameMode].szShortName, sc.String, 8 );
-			g_GameModes[GameMode].szShortName[8] = 0;
+			g_GameModes[GameMode].ShortName = sc.String;
+
+			// [AK] Limit the short name to only 8 characters.
+			g_GameModes[GameMode].ShortName.Truncate( 8 );
 		}
 		else if (0 == stricmp (sc.String, "f1texture"))
 		{
 			sc.MustGetString();
-			strncpy( g_GameModes[GameMode].szF1Texture, sc.String, 8 );
-			g_GameModes[GameMode].szF1Texture[8] = 0;
+			g_GameModes[GameMode].F1Texture = sc.String;
+
+			// [AK] The F1 texture cannot exceed more than 8 characters.
+			g_GameModes[GameMode].F1Texture.Truncate( 8 );
 		}
 		else if ((0 == stricmp (sc.String, "gamesettings")) || (0 == stricmp (sc.String, "lockedgamesettings")))
 		{
@@ -340,9 +343,9 @@ void GAMEMODE_ParseGamemodeInfo( void )
 		name.ToLower( );
 
 		// [AK] Make sure the game mode has a (short) name.
-		if ( strlen( g_GameModes[i].szName ) == 0 )
+		if ( g_GameModes[i].Name.IsEmpty( ))
 			I_Error( "\"%s\" has no name.", name.GetChars( ));
-		if ( strlen( g_GameModes[i].szShortName ) == 0 )
+		if ( g_GameModes[i].ShortName.IsEmpty( ))
 			I_Error( "\"%s\" has no short name.", name.GetChars( ));
 
 		// [AK] Get the game mode type (cooperative, deathmatch, or team game). There shouldn't be more than one enabled or none at all.
@@ -383,39 +386,39 @@ ULONG GAMEMODE_GetCurrentFlags( void )
 
 //*****************************************************************************
 //
-char *GAMEMODE_GetShortName( GAMEMODE_e GameMode )
+const char *GAMEMODE_GetShortName( GAMEMODE_e GameMode )
 {
 	if ( GameMode >= NUM_GAMEMODES )
 		return ( NULL );
 
-	return ( g_GameModes[GameMode].szShortName );
+	return ( g_GameModes[GameMode].ShortName.GetChars( ));
 }
 
 //*****************************************************************************
 //
-char *GAMEMODE_GetName( GAMEMODE_e GameMode )
+const char *GAMEMODE_GetName( GAMEMODE_e GameMode )
 {
 	if ( GameMode >= NUM_GAMEMODES )
 		return ( NULL );
 
-	return ( g_GameModes[GameMode].szName );
+	return ( g_GameModes[GameMode].Name.GetChars( ));
 }
 
 //*****************************************************************************
 //
-char *GAMEMODE_GetCurrentName( void )
+const char *GAMEMODE_GetCurrentName( void )
 {
-	return ( g_GameModes[g_CurrentGameMode].szName );
+	return ( g_GameModes[g_CurrentGameMode].Name.GetChars( ));
 }
 
 //*****************************************************************************
 //
-char *GAMEMODE_GetF1Texture( GAMEMODE_e GameMode )
+const char *GAMEMODE_GetF1Texture( GAMEMODE_e GameMode )
 {
 	if ( GameMode >= NUM_GAMEMODES )
 		return ( NULL );
 
-	return ( g_GameModes[GameMode].szF1Texture );
+	return ( g_GameModes[GameMode].F1Texture.GetChars( ));
 }
 
 //*****************************************************************************

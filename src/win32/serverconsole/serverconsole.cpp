@@ -1822,8 +1822,10 @@ void SERVERCONSOLE_SetCurrentMapname( const char *pszString )
 		SERVERCONSOLE_UpdateTitleString( sv_hostname.GetGenericRep( CVAR_String ).String );
 	}
 
-	FString fsMapMode = "";
-	fsMapMode.Format( "%s | %s", strupr( GAMEMODE_GetName( GAMEMODE_GetCurrentMode( ))), pszString );
+	FString fsMapMode = GAMEMODE_GetCurrentName( );
+	fsMapMode.ToUpper( );
+	fsMapMode.AppendFormat( " | %s", pszString );
+
 	SetDlgItemText( g_hDlg, IDC_MAPMODE, fsMapMode.GetChars( ));
 }
 
