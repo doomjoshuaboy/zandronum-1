@@ -166,6 +166,9 @@ typedef struct
 	// this game mode.
 	FString F1Texture;
 
+	// [AK] The announcer sound (e.g. "welcome to...") that plays at the start of a level.
+	FString WelcomeSound;
+
 	// [AK] All of the gameplay or compatibility flags we set for this game mode
 	// (dmflags, compatflags, lmsallowedweapons, lmsspectatorsettings, etc.).
 	LONG lFlagsets[NUM_FLAGSETS][3];
@@ -185,6 +188,7 @@ const char	*GAMEMODE_GetShortName( GAMEMODE_e GameMode );
 const char	*GAMEMODE_GetName( GAMEMODE_e GameMode );
 const char	*GAMEMODE_GetCurrentName( void );
 const char	*GAMEMODE_GetF1Texture( GAMEMODE_e GameMode );
+const char	*GAMEMODE_GetWelcomeSound( GAMEMODE_e GameMode );
 int			GAMEMODE_GetFlagsetMask( GAMEMODE_e GameMode, FIntCVar *Flagset, bool bLocked = false );
 int			GAMEMODE_GetCurrentFlagsetMask( FIntCVar *Flagset, bool bLocked = false );
 void		GAMEMODE_DetermineGameMode( void );

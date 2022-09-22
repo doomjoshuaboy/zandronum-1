@@ -173,6 +173,7 @@ CTF
 	Name "Capture the Flag"
 	ShortName "CTF"
 	F1Texture "F1_CTF"
+	WelcomeSound "WelcomeToCTF"
 }
 
 // One flag CTF
@@ -187,6 +188,7 @@ OneFlagCTF
 	Name "1-Flag CTF"
 	ShortName "1F-CTF"
 	F1Texture "F1_1FCTF"
+	WelcomeSound "WelcomeToOneFlagCTF"
 }
 
 // Skulltag
@@ -200,6 +202,7 @@ Skulltag
 	Name "Skulltag"
 	ShortName "ST"
 	F1Texture "F1_ST"
+	WelcomeSound "WelcomeToST"
 }
 
 // Domination
