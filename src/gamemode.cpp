@@ -196,6 +196,11 @@ void GAMEMODE_ParseGamemodeInfoLump ( FScanner &sc, const GAMEMODE_e GameMode )
 			// [AK] The F1 texture cannot exceed more than 8 characters.
 			g_GameModes[GameMode].F1Texture.Truncate( 8 );
 		}
+		else if (0 == stricmp (sc.String, "welcomesound"))
+		{
+			sc.MustGetString();
+			g_GameModes[GameMode].WelcomeSound = sc.String;
+		}
 		else if ((0 == stricmp (sc.String, "gamesettings")) || (0 == stricmp (sc.String, "lockedgamesettings")))
 		{
 			GAMEMODE_ParseGameSettingBlock( sc, GameMode, !stricmp( sc.String, "lockedgamesettings" ));
@@ -419,6 +424,16 @@ const char *GAMEMODE_GetF1Texture( GAMEMODE_e GameMode )
 		return ( NULL );
 
 	return ( g_GameModes[GameMode].F1Texture.GetChars( ));
+}
+
+//*****************************************************************************
+//
+const char *GAMEMODE_GetWelcomeSound( GAMEMODE_e GameMode )
+{
+	if ( GameMode >= NUM_GAMEMODES )
+		return ( NULL );
+
+	return ( g_GameModes[GameMode].WelcomeSound.GetChars( ));
 }
 
 //*****************************************************************************

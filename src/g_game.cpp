@@ -1785,19 +1785,13 @@ void G_Ticker ()
 		// Tick the medal system.
 		MEDAL_Tick( );
 
-		// Play "Welcome" sounds for teamgame modes.
-		if ( g_ulLevelIntroTicks < TICRATE )
+		// [AK] Play "welcome" sounds for any game modes that have defined one.
+		if (( g_ulLevelIntroTicks < TICRATE ) && ( ++g_ulLevelIntroTicks == TICRATE ))
 		{
-			g_ulLevelIntroTicks++;
-			if ( g_ulLevelIntroTicks == TICRATE )
-			{
-				if ( oneflagctf )
-					ANNOUNCER_PlayEntry( cl_announcer, "WelcomeToOneFlagCTF" );
-				else if ( ctf )
-					ANNOUNCER_PlayEntry( cl_announcer, "WelcomeToCTF" );
-				else if ( skulltag )
-					ANNOUNCER_PlayEntry( cl_announcer, "WelcomeToST" );
-			}
+			const char *pszWelcomeSound = GAMEMODE_GetWelcomeSound( GAMEMODE_GetCurrentMode( ));
+
+			if ( pszWelcomeSound != NULL )
+				ANNOUNCER_PlayEntry( cl_announcer, pszWelcomeSound );
 		}
 
 		// Apply end level delay.
