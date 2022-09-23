@@ -692,7 +692,7 @@ void LASTMANSTANDING_SetStartNextMatchOnLevelLoad( bool bStart )
 //*****************************************************************************
 //	CONSOLE COMMANDS/VARIABLES
 
-CVAR( Int, sv_lmscountdowntime, 10, CVAR_ARCHIVE );
+CVAR( Int, sv_lmscountdowntime, 10, CVAR_ARCHIVE | CVAR_GAMEPLAYSETTING );
 CUSTOM_CVAR( Int, winlimit, 0, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK )
 {
 	if ( self >= 256 )
@@ -710,8 +710,8 @@ CUSTOM_CVAR( Int, winlimit, 0, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK )
 	}
 }
 
-// [AK] Added CVAR_GAMEMODELOCK.
-CUSTOM_CVAR( Int, lmsallowedweapons, LMS_AWF_ALLALLOWED, CVAR_SERVERINFO | CVAR_GAMEMODELOCK )
+// [AK] Added CVAR_GAMEPLAYFLAGSET.
+CUSTOM_CVAR( Int, lmsallowedweapons, LMS_AWF_ALLALLOWED, CVAR_SERVERINFO | CVAR_GAMEPLAYFLAGSET )
 {
 	SERVER_FlagsetChanged( self );
 }
@@ -726,8 +726,8 @@ CVAR( Flag, lms_allowplasma, lmsallowedweapons, LMS_AWF_PLASMA );
 CVAR( Flag, lms_allowrailgun, lmsallowedweapons, LMS_AWF_RAILGUN );
 CVAR( Flag, lms_allowchainsaw, lmsallowedweapons, LMS_AWF_CHAINSAW );
 
-// [AK] Added CVAR_GAMEMODELOCK.
-CUSTOM_CVAR( Int, lmsspectatorsettings, LMS_SPF_VIEW, CVAR_SERVERINFO | CVAR_GAMEMODELOCK )
+// [AK] Added CVAR_GAMEPLAYFLAGSET.
+CUSTOM_CVAR( Int, lmsspectatorsettings, LMS_SPF_VIEW, CVAR_SERVERINFO | CVAR_GAMEPLAYFLAGSET )
 {
 	// [AK] If LMS_SPF_VIEW is disabled and we're spying on an enemy player,
 	// revert our view back to our own eyes.

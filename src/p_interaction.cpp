@@ -1145,7 +1145,7 @@ void P_AutoUseStrifeHealth (player_t *player)
 */
 
 // [TIHan/Spleen] Factor for damage dealt to players by monsters.
-CUSTOM_CVAR (Float, sv_coop_damagefactor, 1.0f, CVAR_SERVERINFO)
+CUSTOM_CVAR (Float, sv_coop_damagefactor, 1.0f, CVAR_SERVERINFO | CVAR_GAMEPLAYSETTING)
 {
 	if (self <= 0)
 		self = 1.0f;

@@ -418,10 +418,10 @@ CCMD (turn180)
 }
 
 // [BB] If possible use team starts in deathmatch game modes with teams, e.g. TDM, TLMS.
-CVAR( Bool, sv_useteamstartsindm, false, CVAR_SERVERINFO )
+CVAR( Bool, sv_useteamstartsindm, false, CVAR_SERVERINFO | CVAR_GAMEPLAYSETTING )
 
 // [BB] In cooperative game modes players are spawned at random player starts instead of the one designated for them.
-CVAR( Bool, sv_randomcoopstarts, false, CVAR_SERVERINFO )
+CVAR( Bool, sv_randomcoopstarts, false, CVAR_SERVERINFO | CVAR_GAMEPLAYSETTING )
 
 CCMD (weapnext)
 {

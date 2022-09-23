@@ -1631,7 +1631,7 @@ static void invasion_BuildCurrentWaveString( void )
 //*****************************************************************************
 //	CONSOLE COMMANDS/VARIABLES
 
-CVAR( Int, sv_invasioncountdowntime, 10, CVAR_ARCHIVE );
+CVAR( Int, sv_invasioncountdowntime, 10, CVAR_ARCHIVE | CVAR_GAMEPLAYSETTING );
 CUSTOM_CVAR( Int, wavelimit, 0, CVAR_CAMPAIGNLOCK | CVAR_SERVERINFO )
 {
 	if ( self >= 256 )
@@ -1648,4 +1648,4 @@ CUSTOM_CVAR( Int, wavelimit, 0, CVAR_CAMPAIGNLOCK | CVAR_SERVERINFO )
 		SERVERCONSOLE_UpdateScoreboard( );
 	}
 }
-CVAR( Bool, sv_usemapsettingswavelimit, true, CVAR_ARCHIVE );
+CVAR( Bool, sv_usemapsettingswavelimit, true, CVAR_ARCHIVE | CVAR_GAMEPLAYSETTING );
