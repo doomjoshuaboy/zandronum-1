@@ -704,6 +704,6 @@ void possession_DisplayScoreInfo( ULONG ulPlayer )
 //*****************************************************************************
 //	CONSOLE COMMANDS/VARIABLES
 
-CVAR( Int, sv_possessioncountdowntime, 10, CVAR_ARCHIVE );
-CVAR( Int, sv_possessionholdtime, 30, CVAR_ARCHIVE );
-CVAR( Bool, sv_usemapsettingspossessionholdtime, true, CVAR_ARCHIVE );
+CVAR( Int, sv_possessioncountdowntime, 10, CVAR_ARCHIVE | CVAR_GAMEPLAYSETTING );
+CVAR( Int, sv_possessionholdtime, 30, CVAR_ARCHIVE | CVAR_GAMEPLAYSETTING );
+CVAR( Bool, sv_usemapsettingspossessionholdtime, true, CVAR_ARCHIVE | CVAR_GAMEPLAYSETTING );

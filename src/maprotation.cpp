@@ -628,5 +628,5 @@ CCMD (insertmapsilent) {
 //*****************************************************************************
 //	CONSOLE VARIABLES
 
-CVAR( Bool, sv_maprotation, true, CVAR_ARCHIVE );
-CVAR( Bool, sv_randommaprotation, false, CVAR_ARCHIVE );
+CVAR( Bool, sv_maprotation, true, CVAR_ARCHIVE | CVAR_GAMEPLAYSETTING );
+CVAR( Bool, sv_randommaprotation, false, CVAR_ARCHIVE | CVAR_GAMEPLAYSETTING );

@@ -1064,7 +1064,7 @@ static bool callvote_CheckValidity( FString &Command, FString &Parameters )
 			}
 
 			// [AK] Don't call the vote if this flag is supposed to be locked in the current game mode.
-			if ( flag->GetBitVal() & GAMEMODE_GetCurrentFlagsetMask( flag->GetValueVar(), true ))
+			if ( GAMEMODE_IsGameplaySettingLocked( flag ))
 			{
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 					SERVER_PrintfPlayer( SERVER_GetCurrentClient( ), "%s cannot be changed in this game mode.\n", flag->GetName() );

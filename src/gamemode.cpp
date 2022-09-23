@@ -72,10 +72,10 @@
 //*****************************************************************************
 //	CONSOLE VARIABLES
 
-CVAR( Bool, instagib, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CAMPAIGNLOCK );
-CVAR( Bool, buckshot, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CAMPAIGNLOCK );
+CVAR( Bool, instagib, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CAMPAIGNLOCK | CVAR_GAMEPLAYSETTING );
+CVAR( Bool, buckshot, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CAMPAIGNLOCK | CVAR_GAMEPLAYSETTING );
 
-CVAR( Bool, sv_suddendeath, true, CVAR_SERVERINFO | CVAR_LATCH );
+CVAR( Bool, sv_suddendeath, true, CVAR_SERVERINFO | CVAR_LATCH | CVAR_GAMEPLAYSETTING );
 
 //*****************************************************************************
 //	VARIABLES
@@ -121,47 +121,8 @@ void GAMEMODE_Tick( void )
 
 //*****************************************************************************
 //
-FFlagCVar *GAMEMODE_ParserMustGetFlagset ( FScanner &sc, const GAMEMODE_e GameMode, FLAGSET_e &Flagset )
-{
-	sc.MustGetString();
-	FBaseCVar *cvar = FindCVar( sc.String, NULL );
-
-	// [AK] Make sure this a flag-type CVar.
-	if (( cvar == NULL ) || ( cvar->IsFlagCVar() == false ))
-		sc.ScriptError ( "'%s' is not a valid flag CVar.", sc.String );
-
-	FFlagCVar* flag = static_cast<FFlagCVar *>( cvar );
-	FIntCVar* flagset = flag->GetValueVar();
-
-	// [AK] Make sure the flag belongs to a valid gameplay or compatibility flagset.
-	if ( flagset == &dmflags )
-		Flagset = FLAGSET_DMFLAGS;
-	else if ( flagset == &dmflags2 )
-		Flagset = FLAGSET_DMFLAGS2;
-	else if ( flagset == &compatflags )
-		Flagset = FLAGSET_COMPATFLAGS;
-	else if ( flagset == &compatflags2 )
-		Flagset = FLAGSET_COMPATFLAGS2;
-	else if ( flagset == &zadmflags )
-		Flagset = FLAGSET_ZADMFLAGS;
-	else if ( flagset == &zacompatflags )
-		Flagset = FLAGSET_ZACOMPATFLAGS;
-	else if ( flagset == &lmsallowedweapons )
-		Flagset = FLAGSET_LMSALLOWEDWEAPONS;
-	else if ( flagset == &lmsspectatorsettings )
-		Flagset = FLAGSET_LMSSPECTATORSETTINGS;
-	else
-		sc.ScriptError ( "Invalid gameplay or compatibility flag '%s'.", sc.String, sc.Line );
-
-	return flag;
-}
-
-//*****************************************************************************
-//
 void GAMEMODE_ParseGamemodeInfoLump ( FScanner &sc, const GAMEMODE_e GameMode )
 {
-	FLAGSET_e flagset;
-
 	sc.MustGetStringName("{");
 	while (!sc.CheckString("}"))
 	{
@@ -207,12 +168,21 @@ void GAMEMODE_ParseGamemodeInfoLump ( FScanner &sc, const GAMEMODE_e GameMode )
 		}
 		else if (0 == stricmp (sc.String, "removegamesetting"))
 		{
-			FFlagCVar *flag = GAMEMODE_ParserMustGetFlagset( sc, GameMode, flagset );
-			ULONG ulBit = flag->GetBitVal();
+			sc.MustGetString();
+			FBaseCVar *pCVar = FindCVar( sc.String, NULL );
 
-			g_GameModes[GameMode].lFlagsets[flagset][FLAGSET_VALUE] &= ~ulBit;
-			g_GameModes[GameMode].lFlagsets[flagset][FLAGSET_MASK] &= ~ulBit;
-			g_GameModes[GameMode].lFlagsets[flagset][FLAGSET_LOCKEDMASK] &= ~ulBit;
+			// [AK] Make sure that this CVar exists.
+			if ( pCVar == NULL )
+				sc.ScriptError( "'%s' is not a CVar.", sc.String );
+			
+			for ( unsigned int i = 0; i < g_GameModes[GameMode].GameplaySettings.Size( ); i++ )
+			{
+				if ( pCVar == g_GameModes[GameMode].GameplaySettings[i].pCVar )
+				{
+					g_GameModes[GameMode].GameplaySettings.Delete( i );
+					break;
+				}
+			}
 		}
 		else
 			sc.ScriptError ( "Unknown option '%s', on line %d in GAMEMODE.", sc.String, sc.Line );
@@ -221,80 +191,113 @@ void GAMEMODE_ParseGamemodeInfoLump ( FScanner &sc, const GAMEMODE_e GameMode )
 
 //*****************************************************************************
 //
-void GAMEMODE_ParseGameSettingBlock ( FScanner &sc, const GAMEMODE_e GameMode, bool bLockFlags, bool bResetFlags )
+void GAMEMODE_ParseGameSettingBlock ( FScanner &sc, const GAMEMODE_e GameMode, bool bLockCVars, bool bResetCVars )
 {
-	FLAGSET_e flagset;
 	sc.MustGetStringName( "{" );
 	
-	// [AK] If this is the start of a "defaultgamesettings" or "defaultlockedgamesettings" block, reset the
-	// flagsets of all game modes to zero. We don't want to do this more than once in a single GAMEMODE lump,
-	// in case both blocks are declared in the same lump.
-	if (( GameMode == NUM_GAMEMODES ) && ( bResetFlags ))
+	// [AK] If this is the start of a "defaultgamesettings" or "defaultlockedgamesettings" block, empty the CVar
+	// list for all game modes. We don't want to do this more than once in a single GAMEMODE lump in case both
+	// blocks are declared in the same lump.
+	if (( GameMode == NUM_GAMEMODES ) && ( bResetCVars ))
 	{
 		for ( unsigned int mode = GAMEMODE_COOPERATIVE; mode < NUM_GAMEMODES; mode++ )
-		{
-			for ( unsigned int set = FLAGSET_DMFLAGS; set < NUM_FLAGSETS; set++ )
-			{
-				g_GameModes[mode].lFlagsets[set][FLAGSET_VALUE] = 0;
-				g_GameModes[mode].lFlagsets[set][FLAGSET_MASK] = 0;
-				g_GameModes[mode].lFlagsets[set][FLAGSET_LOCKEDMASK] = 0;
-			}
-		}
+			g_GameModes[mode].GameplaySettings.Clear( );
 	}
 
 	while ( !sc.CheckString( "}" ))
 	{
-		FFlagCVar *flag = GAMEMODE_ParserMustGetFlagset( sc, GameMode, flagset );
-		ULONG ulBit = flag->GetBitVal();
-		bool bEnableFlag;
-	
-		// [AK] There must be an equal sign following the name of the flag.
-		sc.MustGetStringName( "=" );
-		sc.GetString();
+		sc.MustGetString( );
+		FBaseCVar *pCVar = FindCVar( sc.String, NULL );
 
-		if ( stricmp( sc.String, "true" ) == 0 )
-			bEnableFlag = true;
-		else if ( stricmp( sc.String, "false" ) == 0 )
-			bEnableFlag = false;
-		else
-			bEnableFlag = !!atoi( sc.String );
+		// [AK] Make sure that this CVar exists.
+		if ( pCVar == NULL )
+			sc.ScriptError( "'%s' is not a CVar.", sc.String );
 
-		// [AK] If this flag was added inside a "defaultgamesettings" or "defaultlockedgamesettings" block, apply
-		// it to all the game modes. Otherwise, just apply it to the one we specified.
-		if ( GameMode == NUM_GAMEMODES )
+		// [AK] Only CVars with the CVAR_GAMEPLAYSETTING flag are acceptable. If it's a flag CVar, then only
+		// the flagset CVar needs the flag. Mask CVars aren't allowed to keep this implementation simple.
+		if ( pCVar->IsFlagCVar( ) == false )
 		{
-			for ( unsigned int mode = GAMEMODE_COOPERATIVE; mode < NUM_GAMEMODES; mode++ )
+			if (( pCVar->GetFlags( ) & CVAR_GAMEPLAYSETTING ) == false )
 			{
-				// [AK] Enable or disable the flag as desired.
-				if ( bEnableFlag )
-					g_GameModes[mode].lFlagsets[flagset][FLAGSET_VALUE] |= ulBit;
+				if ( pCVar->GetFlags( ) & CVAR_GAMEPLAYFLAGSET )
+					sc.ScriptError( "Only include flag CVars belonging to '%s' in the game settings block.", pCVar->GetName( ));
 				else
-					g_GameModes[mode].lFlagsets[flagset][FLAGSET_VALUE] &= ~ulBit;
-
-				g_GameModes[mode].lFlagsets[flagset][FLAGSET_MASK] |= ulBit;
-
-				// [AK] Lock this flag so it can't be manually changed.
-				if ( bLockFlags )
-					g_GameModes[mode].lFlagsets[flagset][FLAGSET_LOCKEDMASK] |= ulBit;
-				else
-					g_GameModes[mode].lFlagsets[flagset][FLAGSET_LOCKEDMASK] &= ~ulBit;
+					sc.ScriptError( "'%s' cannot be used in a game settings block.", pCVar->GetName( ));
 			}
 		}
-		else
+		else if (( static_cast<FFlagCVar *>( pCVar )->GetValueVar( )->GetFlags( ) & CVAR_GAMEPLAYFLAGSET ) == false )
 		{
-			// [AK] Enable or disable the flag as desired.
-			if ( bEnableFlag )
-				g_GameModes[GameMode].lFlagsets[flagset][FLAGSET_VALUE] |= ulBit;
-			else
-				g_GameModes[GameMode].lFlagsets[flagset][FLAGSET_VALUE] &= ~ulBit;
+			sc.ScriptError( "'%s' is a flag that cannot be used in a game settings block.", pCVar->GetName( ));
+		}
 
-			g_GameModes[GameMode].lFlagsets[flagset][FLAGSET_MASK] |= ulBit;
+		// [AK] There must be an equal sign and value after the name of the CVar.
+		sc.MustGetStringName( "=" );
+		sc.MustGetString( );
 
-			// [AK] Lock this flag so it can't be manually changed.
-			if ( bLockFlags )
-				g_GameModes[GameMode].lFlagsets[flagset][FLAGSET_LOCKEDMASK] |= ulBit;
-			else
-				g_GameModes[GameMode].lFlagsets[flagset][FLAGSET_LOCKEDMASK] &= ~ulBit;
+		GAMEPLAYSETTING_s Setting;
+		Setting.pCVar = pCVar;
+
+		switch ( pCVar->GetRealType( ))
+		{
+			case CVAR_Bool:
+			case CVAR_Dummy:
+			{
+				if ( stricmp( sc.String, "true" ) == 0 )
+					Setting.Val.Bool = true;
+				else if ( stricmp( sc.String, "false" ) == 0 )
+					Setting.Val.Bool = false;
+				else
+					Setting.Val.Bool = !!atoi( sc.String );
+
+				Setting.Type = CVAR_Bool;
+				break;
+			}
+
+			case CVAR_Float:
+			{
+				Setting.Val.Float = static_cast<float>( atof( sc.String ));
+				Setting.Type = CVAR_Float;
+				break;
+			}
+
+			default:
+			{
+				Setting.Val.Int = atoi( sc.String );
+				Setting.Type = CVAR_Int;
+				break;
+			}
+		}
+
+		Setting.DefaultVal = Setting.Val;
+		Setting.bIsLocked = bLockCVars;
+
+		for ( unsigned int mode = GAMEMODE_COOPERATIVE; mode < NUM_GAMEMODES; mode++ )
+		{
+			// [AK] If this CVar was added inside a "defaultgamesettings" or "defaultlockedgamesettings" block, apply
+			// it to all the game modes. Otherwise, just apply it to the one we specified.
+			if (( GameMode == NUM_GAMEMODES ) || ( GameMode == static_cast<GAMEMODE_e>( mode )))
+			{
+				bool bPushToList = true;
+
+				// [AK] Check if this CVar is already in the list. We don't want to have multiple copies of the same CVar.
+				for ( unsigned int i = 0; i < g_GameModes[GameMode].GameplaySettings.Size( ); i++ )
+				{
+					if ( g_GameModes[GameMode].GameplaySettings[i].pCVar == Setting.pCVar )
+					{
+						// [AK] A locked CVar always replaces any unlocked copies of the same CVar that already exist.
+						// On the other hand, an unlocked CVar cannot replace any locked copies and will be discarded instead.
+						if (( g_GameModes[GameMode].GameplaySettings[i].bIsLocked ) && ( Setting.bIsLocked == false ))
+							bPushToList = false;
+						else
+							g_GameModes[GameMode].GameplaySettings.Delete( i );
+
+						break;
+					}
+				}
+
+				if ( bPushToList )
+					g_GameModes[GameMode].GameplaySettings.Push( Setting );
+			}
 		}
 	}
 }
@@ -434,40 +437,6 @@ const char *GAMEMODE_GetWelcomeSound( GAMEMODE_e GameMode )
 		return ( NULL );
 
 	return ( g_GameModes[GameMode].WelcomeSound.GetChars( ));
-}
-
-//*****************************************************************************
-//
-int GAMEMODE_GetFlagsetMask( GAMEMODE_e GameMode, FIntCVar *Flagset, bool bLocked )
-{
-	ULONG ulMask = bLocked ? FLAGSET_LOCKEDMASK : FLAGSET_MASK;
-
-	if ( Flagset == &dmflags )
-		return ( g_GameModes[GameMode].lFlagsets[FLAGSET_DMFLAGS][ulMask] );
-	else if ( Flagset == &dmflags2 )
-		return ( g_GameModes[GameMode].lFlagsets[FLAGSET_DMFLAGS2][ulMask] );
-	else if ( Flagset == &compatflags )
-		return ( g_GameModes[GameMode].lFlagsets[FLAGSET_COMPATFLAGS][ulMask] );
-	else if ( Flagset == &compatflags2 )
-		return ( g_GameModes[GameMode].lFlagsets[FLAGSET_COMPATFLAGS2][ulMask] );
-	else if ( Flagset == &zadmflags )
-		return ( g_GameModes[GameMode].lFlagsets[FLAGSET_ZADMFLAGS][ulMask] );
-	else if ( Flagset == &zacompatflags )
-		return ( g_GameModes[GameMode].lFlagsets[FLAGSET_ZACOMPATFLAGS][ulMask] );
-	else if ( Flagset == &lmsallowedweapons )
-		return ( g_GameModes[GameMode].lFlagsets[FLAGSET_LMSALLOWEDWEAPONS][ulMask] );
-	else if ( Flagset == &lmsspectatorsettings )
-		return ( g_GameModes[GameMode].lFlagsets[FLAGSET_LMSSPECTATORSETTINGS][ulMask] );
-	
-	// [AK] We passed an invalid flagset, just return zero.
-	return ( 0 );
-}
-
-//*****************************************************************************
-//
-int GAMEMODE_GetCurrentFlagsetMask( FIntCVar *Flagset, bool bLocked )
-{
-	return ( GAMEMODE_GetFlagsetMask( g_CurrentGameMode, Flagset, bLocked ) );
 }
 
 //*****************************************************************************
@@ -1396,49 +1365,43 @@ void GAMEMODE_SetLimit( GAMELIMIT_e GameLimit, int value )
 
 //*****************************************************************************
 //
-void GAMEMODE_ReconfigureGameSettings( bool bLockedOnly )
+bool GAMEMODE_IsGameplaySettingLocked( FBaseCVar *pCVar )
 {
-	ULONG ulMask = bLockedOnly ? FLAGSET_LOCKEDMASK : FLAGSET_MASK;
-	LONG *flagset;
-	UCVarValue value;
+	for ( unsigned int i = 0; i < g_GameModes[g_CurrentGameMode].GameplaySettings.Size( ); i++ )
+	{
+		if ( g_GameModes[g_CurrentGameMode].GameplaySettings[i].bIsLocked == false )
+			continue;
 
-	// [AK] Apply the mask to dmflags, but don't change the values of any unlocked flags.
-	flagset = g_GameModes[g_CurrentGameMode].lFlagsets[FLAGSET_DMFLAGS];
-	value.Int = ( dmflags & ~flagset[ulMask] ) | ( flagset[FLAGSET_VALUE] & flagset[ulMask] );
-	dmflags.ForceSet( value, CVAR_Int );
+		// [AK] If this CVar matches one that's locked on the list, then it's obviously locked.
+		if ( pCVar == g_GameModes[g_CurrentGameMode].GameplaySettings[i].pCVar )
+			return true;
+	}
 
-	// ...and dmflags2.
-	flagset = g_GameModes[g_CurrentGameMode].lFlagsets[FLAGSET_DMFLAGS2];
-	value.Int = ( dmflags2 & ~flagset[ulMask] ) | ( flagset[FLAGSET_VALUE] & flagset[ulMask] );
-	dmflags2.ForceSet( value, CVAR_Int );
+	return false;
+}
 
-	// ...and compatflags.
-	flagset = g_GameModes[g_CurrentGameMode].lFlagsets[FLAGSET_COMPATFLAGS];
-	value.Int = ( compatflags & ~flagset[ulMask] ) | ( flagset[FLAGSET_VALUE] & flagset[ulMask] );
-	compatflags.ForceSet( value, CVAR_Int );
+//*****************************************************************************
+//
+void GAMEMODE_ResetGameplaySettings( bool bLockedOnly, bool bResetToDefault )
+{
+	for ( unsigned int i = 0; i < g_GameModes[g_CurrentGameMode].GameplaySettings.Size( ); i++ )
+	{
+		GAMEPLAYSETTING_s *const pSetting = &g_GameModes[g_CurrentGameMode].GameplaySettings[i];
 
-	// ...and compatflags2.
-	flagset = g_GameModes[g_CurrentGameMode].lFlagsets[FLAGSET_COMPATFLAGS2];
-	value.Int = ( compatflags2 & ~flagset[ulMask] ) | ( flagset[FLAGSET_VALUE] & flagset[ulMask] );
-	compatflags2.ForceSet( value, CVAR_Int );
+		// [AK] Only reset unlocked CVars if we need to.
+		if (( bLockedOnly ) && ( pSetting->bIsLocked == false ))
+			continue;
 
-	// ...and zadmflags.
-	flagset = g_GameModes[g_CurrentGameMode].lFlagsets[FLAGSET_ZADMFLAGS];
-	value.Int = ( zadmflags & ~flagset[ulMask] ) | ( flagset[FLAGSET_VALUE] & flagset[ulMask] );
-	zadmflags.ForceSet( value, CVAR_Int );
+		// [AK] Do we also want to reset this CVar to its default value?
+		if ( bResetToDefault )
+			pSetting->Val = pSetting->DefaultVal;
 
-	// ...and zacompatflags.
-	flagset = g_GameModes[g_CurrentGameMode].lFlagsets[FLAGSET_ZACOMPATFLAGS];
-	value.Int = ( zacompatflags & ~flagset[ulMask] ) | ( flagset[FLAGSET_VALUE] & flagset[ulMask] );
-	zacompatflags.ForceSet( value, CVAR_Int );
+		const bool bWasLocked = pSetting->bIsLocked;
 
-	// ...and lmsallowedweapons.
-	flagset = g_GameModes[g_CurrentGameMode].lFlagsets[FLAGSET_LMSALLOWEDWEAPONS];
-	value.Int = ( lmsallowedweapons & ~flagset[ulMask] ) | ( flagset[FLAGSET_VALUE] & flagset[ulMask] );
-	lmsallowedweapons.ForceSet( value, CVAR_Int );
-
-	// ...and lmsspectatorsettings.
-	flagset = g_GameModes[g_CurrentGameMode].lFlagsets[FLAGSET_LMSSPECTATORSETTINGS];
-	value.Int = ( lmsspectatorsettings & ~flagset[ulMask] ) | ( flagset[FLAGSET_VALUE] & flagset[ulMask] );
-	lmsspectatorsettings.ForceSet( value, CVAR_Int );
+		// [AK] If this CVar is supposed to be locked, then temporarily disable the lock, change the
+		// CVar's value, and restore the lock when we're done.
+		pSetting->bIsLocked = false;
+		pSetting->pCVar->ForceSet( pSetting->Val, pSetting->Type );
+		pSetting->bIsLocked = bWasLocked;
+	}
 }
