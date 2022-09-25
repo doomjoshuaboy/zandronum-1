@@ -1133,7 +1133,10 @@ static void HUD_RenderCountdown( ULONG ulTimeLeft )
 	else
 	{
 		// [AK] TLMS and team possession should still keep "team" in the title for consistency.
-		text = invasion ? INVASION_GetCurrentWaveString( ) : GAMEMODE_GetCurrentName( );
+		if ( invasion )
+			text = INVASION_GetCurrentWaveString( );
+		else
+			text = GAMEMODE_GetCurrentName( );
 
 		// [AK] Append "co-op" to the end of "survival".
 		if (( survival ) && ( text.CompareNoCase( "Survival" ) == 0 ))
