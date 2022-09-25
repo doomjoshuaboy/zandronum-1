@@ -5370,6 +5370,7 @@ enum EACSFunctions
 	ACSF_GetEventResult,
 	ACSF_GetActorSectorLocation,
 	ACSF_ChangeTeamScore,
+	ACSF_SetGameplaySetting,
 
 	// ZDaemon
 	ACSF_GetTeamScore = 19620,	// (int team)
@@ -7827,6 +7828,53 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 							return 1;
 						}
 					}
+				}
+
+				return 0;
+			}
+
+		case ACSF_SetGameplaySetting:
+			{
+				const char *pszName = FBehavior::StaticLookupString( args[0] );
+				FBaseCVar *pCVar = FindCVar( pszName, NULL );
+
+				// [AK] Ignore invalid CVars, especially those which are latched (e.g. sv_maxlives and sv_maxteams).
+				if (( pCVar == NULL ) || ( pCVar->GetFlags() & ( CVAR_IGNORE | CVAR_NOSET | CVAR_LATCH )))
+					return 0;
+
+				// [AK] Make sure that the CVar can be used in a game settings block.
+				if (( pCVar->GetFlags() & CVAR_GAMEPLAYSETTING ) || (( pCVar->IsFlagCVar() ) && ( static_cast<FFlagCVar *>( pCVar )->GetValueVar()->GetFlags() & CVAR_GAMEPLAYFLAGSET )))
+				{
+					UCVarValue Val;
+					ECVarType Type;
+
+					switch ( pCVar->GetRealType() )
+					{
+						case CVAR_Bool:
+						case CVAR_Dummy:
+						{
+							Val.Bool = !!args[1];
+							Type = CVAR_Bool;
+							break;
+						}
+					
+						case CVAR_Float:
+						{
+							Val.Float = FIXED2FLOAT( args[1] );
+							Type = CVAR_Float;
+							break;
+						}
+					
+						default:
+						{
+							Val.Int = args[1];
+							Type = CVAR_Int;
+							break;
+						}
+					}
+
+					GAMEMODE_SetGameplaySetting( pCVar, Val, Type );
+					return 1;
 				}
 
 				return 0;

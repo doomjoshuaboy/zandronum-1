@@ -225,6 +225,7 @@ void		GAMEMODE_SetModifier( MODIFIER_e Modifier );
 ULONG		GAMEMODE_GetCountdownTicks( void );
 player_t	*GAMEMODE_GetArtifactCarrier( void );
 void		GAMEMODE_SetLimit( GAMELIMIT_e GameLimit, int value );
+void		GAMEMODE_SetGameplaySetting( FBaseCVar *pCVar, UCVarValue Val, ECVarType Type );
 bool		GAMEMODE_IsGameplaySettingLocked( FBaseCVar *pCVar );
 void		GAMEMODE_ResetGameplaySettings( bool bLockedOnly, bool bResetToDefault );
 
