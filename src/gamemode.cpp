@@ -1365,6 +1365,43 @@ void GAMEMODE_SetLimit( GAMELIMIT_e GameLimit, int value )
 
 //*****************************************************************************
 //
+void GAMEMODE_SetGameplaySetting( FBaseCVar *pCVar, UCVarValue Val, ECVarType Type )
+{
+	GAMEPLAYSETTING_s *pSetting = NULL;
+	bool bWasLocked = false;
+
+	// [AK] Check if this CVar was already configured in the current game mode.
+	for ( unsigned int i = 0; i < g_GameModes[g_CurrentGameMode].GameplaySettings.Size( ); i++ )
+	{
+		if ( g_GameModes[g_CurrentGameMode].GameplaySettings[i].pCVar != pCVar )
+			continue;
+
+		pSetting = &g_GameModes[g_CurrentGameMode].GameplaySettings[i];
+		break;
+	}
+
+	// [AK] If this CVar is supposed to be locked, then temporarily disable the lock.
+	if ( pSetting != NULL )
+	{
+		bWasLocked = pSetting->bIsLocked;
+		pSetting->bIsLocked = false;
+	}
+
+	pCVar->ForceSet( Val, Type );
+
+	// [AK] After changing the value of the CVar, its saved value must also be updated.
+	// This assumes that the function's arguments "Val" and "Type" are equal to the
+	// corresponding members in GAMESETTING_s of the same CVar.
+	// Restore the lock too, if necessary.
+	if ( pSetting != NULL )
+	{
+		pSetting->bIsLocked = bWasLocked;
+		pSetting->Val = Val;
+	}
+}
+
+//*****************************************************************************
+//
 bool GAMEMODE_IsGameplaySettingLocked( FBaseCVar *pCVar )
 {
 	for ( unsigned int i = 0; i < g_GameModes[g_CurrentGameMode].GameplaySettings.Size( ); i++ )
@@ -1396,12 +1433,6 @@ void GAMEMODE_ResetGameplaySettings( bool bLockedOnly, bool bResetToDefault )
 		if ( bResetToDefault )
 			pSetting->Val = pSetting->DefaultVal;
 
-		const bool bWasLocked = pSetting->bIsLocked;
-
-		// [AK] If this CVar is supposed to be locked, then temporarily disable the lock, change the
-		// CVar's value, and restore the lock when we're done.
-		pSetting->bIsLocked = false;
-		pSetting->pCVar->ForceSet( pSetting->Val, pSetting->Type );
-		pSetting->bIsLocked = bWasLocked;
+		GAMEMODE_SetGameplaySetting( pSetting->pCVar, pSetting->Val, pSetting->Type );
 	}
 }
