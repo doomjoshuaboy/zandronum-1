@@ -448,11 +448,7 @@ CUSTOM_CVAR( Int, sv_allowprivatechat, PRIVATECHAT_EVERYONE, CVAR_ARCHIVE | CVAR
 	}
 
 	// [AK] Notify the clients about the change.
-	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( gamestate != GS_STARTUP ))
-	{
-		SERVER_Printf( "%s changed to: %d\n", self.GetName( ), self.GetGenericRep( CVAR_Int ).Int );
-		SERVERCOMMANDS_SetGameModeLimits( );
-	}
+	SERVER_SettingChanged( self, false );
 }
 
 //*****************************************************************************
@@ -467,11 +463,7 @@ CUSTOM_CVAR( Float, sv_respawndelaytime, 1.0f, CVAR_ARCHIVE | CVAR_SERVERINFO | 
 	}
 
 	// [AK] Notify the clients about the change.
-	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( gamestate != GS_STARTUP ))
-	{
-		SERVER_Printf( "%s changed to: %.1f\n", self.GetName( ), static_cast<float>( self ));
-		SERVERCOMMANDS_SetGameModeLimits( );
-	}
+	SERVER_SettingChanged( self, false, 1 );
 }
 
 //*****************************************************************************
@@ -4492,6 +4484,46 @@ void SERVER_FlagsetChanged( FIntCVar& flagset, int maxflags )
 		SERVERCOMMANDS_SetLMSAllowedWeapons( );
 	else
 		SERVERCOMMANDS_SetGameDMFlags( );
+}
+
+//*****************************************************************************
+//
+// [AK] Prints the name of a CVar and its new value to the console, sends an update
+// to the clients, and possibly updates the server console's scoreboard.
+//
+void SERVER_SettingChanged( FBaseCVar &cvar, bool bUpdateConsole, int maxDecimals )
+{
+	// [AK] Only continue if we're the server.
+	if (( NETWORK_GetState( ) != NETSTATE_SERVER ) || ( gamestate == GS_STARTUP ))
+		return;
+
+	FString result;
+
+	// [AK] Store the CVar's value into a string so that we can print it.
+	switch ( cvar.GetRealType( ))
+	{
+		case CVAR_Float:
+			if ( maxDecimals <= 0 )
+				result.Format( "%f", cvar.GetGenericRep( CVAR_Float ).Float );
+			else
+				result.Format( "%.*f", maxDecimals, cvar.GetGenericRep( CVAR_Float ).Float );
+			break;
+
+		case CVAR_String:
+			result = cvar.GetGenericRep( CVAR_String ).String;
+			break;
+
+		default:
+			result.Format( "%d", cvar.GetGenericRep( CVAR_Int ).Int );
+			break;
+	}
+
+	SERVER_Printf( "%s changed to: %s\n", cvar.GetName( ), result.GetChars( ));
+	SERVERCOMMANDS_SetGameModeLimits( );
+
+	// [AK] Update the server console's score if necessary.
+	if ( bUpdateConsole )
+		SERVERCONSOLE_UpdateScoreboard( );
 }
 
 //*****************************************************************************
