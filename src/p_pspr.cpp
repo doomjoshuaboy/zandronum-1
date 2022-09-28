@@ -73,11 +73,8 @@ CUSTOM_CVAR( Int, sv_fastweapons, 0, CVAR_SERVERINFO )
 	if ( self < 0 )
 		self = 0;
 
-	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( gamestate != GS_STARTUP ))
-	{
-		SERVER_Printf( "%s changed to: %d\n", self.GetName( ), (int)self );
-		SERVERCOMMANDS_SetGameModeLimits( );
-	}
+	// [AK] Notify the clients about the change.
+	SERVER_SettingChanged( self, false );
 }
 
 // [AK] CVars that control how the weapon bobs, sways, or offsets based on the player's pitch. 

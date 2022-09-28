@@ -67,11 +67,6 @@
 #include "team.h"
 #include "v_video.h"
 
-//*****************************************************************************
-//	MISC CRAP THAT SHOULDN'T BE HERE BUT HAS TO BE BECAUSE OF SLOPPY CODING
-
-void	SERVERCONSOLE_UpdateScoreboard( );
-
 EXTERN_CVAR( Int,  cl_respawninvuleffect )
 
 //*****************************************************************************
@@ -472,12 +467,6 @@ CUSTOM_CVAR( Int, duellimit, 0, CVAR_CAMPAIGNLOCK )
 	if ( self < 0 )
 		self = 0;
 
-	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( gamestate != GS_STARTUP ))
-	{
-		SERVER_Printf( "%s changed to: %d\n", self.GetName( ), (int)self );
-		SERVERCOMMANDS_SetGameModeLimits( );
-
-		// Update the scoreboard.
-		SERVERCONSOLE_UpdateScoreboard( );
-	}
+	// [AK] Update the clients and update the server console.
+	SERVER_SettingChanged( self, true );
 }

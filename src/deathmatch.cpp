@@ -69,11 +69,6 @@
 #include "g_level.h"
 
 //*****************************************************************************
-//	MISC CRAP THAT SHOULDN'T BE HERE BUT HAS TO BE BECAUSE OF SLOPPY CODING
-
-void	SERVERCONSOLE_UpdateScoreboard( );
-
-//*****************************************************************************
 //	CONSOLE COMMANDS/VARIABLES
 
 CUSTOM_CVAR( Bool, deathmatch, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CAMPAIGNLOCK )
@@ -328,14 +323,8 @@ CUSTOM_CVAR( Int, fraglimit, 0, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK )
 		return;
 	}
 
-	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( gamestate != GS_STARTUP ))
-	{
-		SERVER_Printf( "%s changed to: %d\n", self.GetName( ), (int)self );
-		SERVERCOMMANDS_SetGameModeLimits( );
-
-		// Update the scoreboard.
-		SERVERCONSOLE_UpdateScoreboard( );
-	}
+	// [AK] Update the clients and update the server console.
+	SERVER_SettingChanged( self, true );
 }
 
 //*****************************************************************************
@@ -354,14 +343,8 @@ CUSTOM_CVAR( Float, timelimit, 0.0f, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK )
 		return;
 	}
 
-	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( gamestate != GS_STARTUP ))
-	{
-		SERVER_Printf( "%s changed to: %.2f\n", self.GetName( ), static_cast<float>(self) );
-		SERVERCOMMANDS_SetGameModeLimits( );
-
-		// Update the scoreboard.
-		SERVERCONSOLE_UpdateScoreboard( );
-	}
+	// [AK] Update the clients and update the server console.
+	SERVER_SettingChanged( self, true, 2 );
 }
 
 // [AM] Set or unset a map as being a "lobby" map.
@@ -388,11 +371,7 @@ CUSTOM_CVAR(String, lobby, "", CVAR_SERVERINFO)
 		}
 
 		// Update the client about the lobby map if necessary.
-		if ((NETWORK_GetState() == NETSTATE_SERVER) && (gamestate != GS_STARTUP))
-		{
-			SERVER_Printf(PRINT_HIGH, "%s changed to: %s\n", self.GetName(), *self);
-			SERVERCOMMANDS_SetGameModeLimits();
-		}
+		SERVER_SettingChanged( self, false );
 	}
 }
 

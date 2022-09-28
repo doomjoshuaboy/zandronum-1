@@ -1118,12 +1118,8 @@ CUSTOM_CVAR (Float, sv_coop_damagefactor, 1.0f, CVAR_SERVERINFO | CVAR_GAMEPLAYS
 	if (self <= 0)
 		self = 1.0f;
 
-	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( gamestate != GS_STARTUP ))
-	{
-		SERVER_Printf( "%s changed to: %.2f\n", self.GetName( ), (float)self );
-		SERVERCOMMANDS_SetGameModeLimits( );
-		SERVERCONSOLE_UpdateScoreboard();
-	}
+	// [AK] Notify the clients about the change and update the server console.
+	SERVER_SettingChanged( self, true, 2 );
 }
 
 // [TIHan/Spleen] Apply factor for damage dealt to players by monsters.
