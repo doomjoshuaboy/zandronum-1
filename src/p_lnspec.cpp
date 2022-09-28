@@ -2099,8 +2099,6 @@ FUNC( LS_Player_SetTeam )
 	return ( true );
 }
 
-void SERVERCONSOLE_UpdatePlayerInfo( LONG lPlayer, ULONG ulUpdateFlags );
-void SERVERCONSOLE_UpdateScoreboard( void );
 FUNC( LS_Team_Score )
 // Team_Score (int howmuch, bool nogrin)
 {
