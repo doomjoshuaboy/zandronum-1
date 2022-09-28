@@ -66,7 +66,8 @@
 
 // [SO] 1=Weapons states are all 1 tick
 //		2=states with a function 1 tick, others 0 ticks.
-CUSTOM_CVAR( Int, sv_fastweapons, 0, CVAR_SERVERINFO )
+// [AK] Added CVAR_GAMEPLAYSETTING.
+CUSTOM_CVAR( Int, sv_fastweapons, 0, CVAR_SERVERINFO | CVAR_GAMEPLAYSETTING )
 {
 	if ( self >= 3 )
 		self = 2;
