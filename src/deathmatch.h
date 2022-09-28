@@ -85,8 +85,6 @@ EXTERN_CVAR( Bool, teampossession )
 EXTERN_CVAR( Int, fraglimit )
 EXTERN_CVAR( Float, timelimit )
 EXTERN_CVAR( String, lobby )
-EXTERN_CVAR( Bool, instagib )
-EXTERN_CVAR( Bool, buckshot )
 
 EXTERN_CVAR( Bool, cl_noammoswitch )
 EXTERN_CVAR( Bool, cl_useoriginalweaponorder )

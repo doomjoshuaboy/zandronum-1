@@ -71,6 +71,8 @@
 //*****************************************************************************
 //  EXTERNAL CONSOLE VARIABLES
 
+EXTERN_CVAR( Bool, instagib )
+EXTERN_CVAR( Bool, buckshot )
 EXTERN_CVAR( Bool, sv_suddendeath )
 
 //*****************************************************************************
