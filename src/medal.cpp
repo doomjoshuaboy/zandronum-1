@@ -303,7 +303,7 @@ void MEDAL_GiveMedal( ULONG ulPlayer, ULONG ulMedal )
 	if (( ulPlayer >= MAXPLAYERS ) ||
 		(( deathmatch || teamgame ) == false ) ||
 		( players[ulPlayer].mo == NULL ) ||
-		( cl_medals == false ) ||
+		(( NETWORK_GetState( ) != NETSTATE_SERVER ) && ( cl_medals == false )) ||
 		( zadmflags & ZADF_NO_MEDALS ) ||
 		( ulMedal >= NUM_MEDALS ))
 	{
