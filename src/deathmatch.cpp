@@ -400,9 +400,6 @@ CUSTOM_CVAR(String, lobby, "", CVAR_SERVERINFO)
 CVAR( Bool, cl_noammoswitch, true, CVAR_ARCHIVE );
 CVAR( Bool, cl_useoriginalweaponorder, false, CVAR_ARCHIVE );
 
-// Allow the display of large frag messages.
-CVAR( Bool, cl_showlargefragmessages, true, CVAR_ARCHIVE );
-
 /*
 CCMD( showweaponstates )
 {

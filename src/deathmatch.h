@@ -90,7 +90,6 @@ EXTERN_CVAR( Bool, buckshot )
 
 EXTERN_CVAR( Bool, cl_noammoswitch )
 EXTERN_CVAR( Bool, cl_useoriginalweaponorder )
-EXTERN_CVAR( Bool, cl_showlargefragmessages )
 
 EXTERN_CVAR( Bool, sv_cheats )
 EXTERN_CVAR( Int, sv_fastweapons )

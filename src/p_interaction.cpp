@@ -75,7 +75,6 @@
 #include "team.h"
 #include "cl_commands.h"
 #include "cl_demo.h"
-#include "win32/g15/g15.h"
 #include "r_data/r_translate.h"
 #include "p_enemy.h"
 #include "r_data/colormaps.h"
@@ -926,39 +925,8 @@ void AActor::Die (AActor *source, AActor *inflictor, int dmgflags)
 		Destroy();
 	}
 
-	if (( (GAMEMODE_GetCurrentFlags() & GMF_COOPERATIVE) == false ) &&
-		( NETWORK_GetState( ) != NETSTATE_SERVER ) &&
-		( NETWORK_InClientMode() == false ) &&
-		( GAMEMODE_IsGameInProgress() ))
-	{
-		if (( player ) && ( source ) && ( source->player ) && ( player != source->player ) && ( MeansOfDeath != NAME_SpawnTelefrag ))
-		{
-			if ((( ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSEARNFRAGS ) == false ) || (( fraglimit == 0 ) || ( source->player->fragcount < fraglimit ))) &&
-				(( ( ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSEARNWINS ) && !( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS ) ) == false ) || (( winlimit == 0 ) || ( source->player->ulWins < static_cast<ULONG>(winlimit) ))) &&
-				(( ( ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSEARNWINS ) && ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS ) ) == false ) || (( winlimit == 0 ) || ( TEAM_GetWinCount( source->player->Team ) < winlimit ))))
-			{
-				// Display a large "You were fragged by <name>." message in the middle of the screen.
-				if (( player - players ) == consoleplayer )
-				{
-					if ( cl_showlargefragmessages )
-						HUD_PrepareToDrawFragMessage( source->player, true );
-					
-					if ( G15_IsReady() ) // [RC] Also show the message on the Logitech G15 (if enabled).
-						G15_ShowLargeFragMessage( source->player->userinfo.GetName(), false );
-				}
-
-				// Display a large "You fragged <name>!" message in the middle of the screen.
-				else if (( source->player - players ) == consoleplayer )
-				{
-					if ( cl_showlargefragmessages )
-						HUD_PrepareToDrawFragMessage( player, false );
-					
-					if ( G15_IsReady() ) // [RC] Also show the message on the Logitech G15 (if enabled).
-						G15_ShowLargeFragMessage( player->userinfo.GetName(), true );
-				}
-			}
-		}
-	}
+	// [AK] Try to draw a large frag message if we (the consoleplayer) were fragged (by) another player.
+	HUD_PrepareToDrawFragMessage( player, source, MeansOfDeath );
 
 	// [RH] Death messages
 	if (( player ) && ( NETWORK_InClientMode() == false ))

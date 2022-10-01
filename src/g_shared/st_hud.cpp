@@ -72,6 +72,7 @@
 #include "lastmanstanding.h"
 #include "sbar.h"
 #include "p_trace.h"
+#include "win32/g15/g15.h"
 
 // [AK] Message levels used for cl_identifytarget.
 enum
@@ -156,6 +157,7 @@ static	void	HUD_DrawFragMessage( void );
 
 CVAR( Int, cl_identifytarget, IDENTIFY_TARGET_NAME, CVAR_ARCHIVE )
 CVAR( Int, cl_identifymonsters, IDENTIFY_MONSTERS_OFF, CVAR_ARCHIVE )
+CVAR( Bool, cl_showlargefragmessages, true, CVAR_ARCHIVE )
 CVAR( Bool, cl_drawcoopinfo, true, CVAR_ARCHIVE )
 CVAR( Bool, r_drawspectatingstring, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG )
 CVAR( Bool, r_drawrespawnstring, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG )
@@ -1272,10 +1274,54 @@ void HUD_DrawSUBSMessage( const char *pszMessage, EColorRange color, float fHold
 
 //*****************************************************************************
 //
-void HUD_PrepareToDrawFragMessage( player_t *pPlayer, bool bFraggedBy )
+void HUD_PrepareToDrawFragMessage( player_t *pPlayer, AActor *pSource, int MeansOfDeath )
 {
-	g_pFragMessagePlayer = pPlayer;
-	g_bFraggedBy = bFraggedBy;
+	// [AK] Don't display large frag messages in a cooperative games.
+	if ( GAMEMODE_GetCurrentFlags( ) & GMF_COOPERATIVE )
+		return;
+
+	// [AK] Make sure that the target and source are valid players, who aren't the same player either.
+	// Large frag messages also don't display when the player dies from a spawn telefrag.
+	if (( pPlayer == NULL ) || ( pSource == NULL ) || ( pSource->player == NULL ) || ( pPlayer == pSource->player ) || ( MeansOfDeath == NAME_SpawnTelefrag ))
+		return;
+
+	// [AK] Large frag messages should only be displayed when the game's in progress.
+	if ( GAMEMODE_IsGameInProgress( ) == false )
+		return;
+
+	const ULONG ulGameModeFlags = GAMEMODE_GetCurrentFlags( );
+
+	if (((( ulGameModeFlags & GMF_PLAYERSEARNFRAGS ) == false ) || (( fraglimit == 0 ) || ( pSource->player->fragcount < fraglimit ))) &&
+		(((( ulGameModeFlags & GMF_PLAYERSEARNWINS ) && !( ulGameModeFlags & GMF_PLAYERSONTEAMS )) == false ) || (( winlimit == 0 ) || ( pSource->player->ulWins < static_cast<ULONG>( winlimit )))) &&
+		(((( ulGameModeFlags & GMF_PLAYERSEARNWINS ) && ( ulGameModeFlags & GMF_PLAYERSONTEAMS )) == false ) || (( winlimit == 0 ) || ( TEAM_GetWinCount( pSource->player->Team ) < winlimit ))))
+	{
+		// Prepare a large "You were fragged by <name>." message in the middle of the screen.
+		if ( pPlayer == &players[consoleplayer] )
+		{
+			if ( cl_showlargefragmessages )
+			{
+				g_pFragMessagePlayer = pSource->player;
+				g_bFraggedBy = true;
+			}
+
+			// [RC] Also show the message on the Logitech G15 (if enabled).
+			if ( G15_IsReady( ))
+				G15_ShowLargeFragMessage( pSource->player->userinfo.GetName( ), false );
+		}
+		// Prepare a large "You fragged <name>!" message in the middle of the screen.
+		else if ( static_cast<int>( pSource->player - players ) == consoleplayer )
+		{
+			if ( cl_showlargefragmessages )
+			{
+				g_pFragMessagePlayer = pPlayer;
+				g_bFraggedBy = false;
+			}
+
+			// [RC] Also show the message on the Logitech G15 (if enabled).
+			if ( G15_IsReady( ))
+				G15_ShowLargeFragMessage( pPlayer->userinfo.GetName( ), true );
+		}
+	}
 }
 
 //*****************************************************************************
