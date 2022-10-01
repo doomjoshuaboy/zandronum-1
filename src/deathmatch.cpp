@@ -299,40 +299,6 @@ CUSTOM_CVAR( Bool, teampossession, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CA
 }
 
 //*****************************************************************************
-//
-CCMD( spectate )
-{
-	// [BB] When playing a demo enter free spectate mode.
-	if ( CLIENTDEMO_IsPlaying( ) == true )
-	{
-		C_DoCommand( "demo_spectatefreely" );
-		return;
-	}
-
-	// [BB] The server can't use this.
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-	{
-		Printf ( "CCMD spectate can't be used on the server\n" );
-		return;
-	}
-
-	// If we're a client, inform the server that we wish to spectate.
-	// [BB] This also serves as way to leave the join queue.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
-	{
-		CLIENTCOMMANDS_Spectate( );
-		return;
-	}
-
-	// Already a spectator!
-	if ( PLAYER_IsTrueSpectator( &players[consoleplayer] ))
-		return;
-
-	// Make the player a spectator.
-	PLAYER_SetSpectator( &players[consoleplayer], true, false );
-}
-
-//*****************************************************************************
 //*****************************************************************************
 //
 CUSTOM_CVAR( Int, fraglimit, 0, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK )
