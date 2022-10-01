@@ -3944,25 +3944,8 @@ void ServerCommands::KillPlayer::Execute()
 		}
 	}
 
-	if (( (GAMEMODE_GetCurrentFlags() & GMF_COOPERATIVE) == false ) &&
-		( cl_showlargefragmessages ) &&
-		( ulSourcePlayer < MAXPLAYERS ) &&
-		( static_cast<ULONG>( player - players ) != ulSourcePlayer ) &&
-		( MOD != NAME_SpawnTelefrag ) &&
-		( GAMEMODE_IsGameInProgress() ))
-	{
-		if ((( ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSEARNFRAGS ) == false ) || (( fraglimit == 0 ) || ( players[ulSourcePlayer].fragcount < fraglimit ))) &&
-			(( ( ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSEARNWINS ) && !( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS ) ) == false ) || (( winlimit == 0 ) || ( players[ulSourcePlayer].ulWins < static_cast<ULONG>(winlimit) ))) &&
-			(( ( ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSEARNWINS ) && ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS ) ) == false ) || (( winlimit == 0 ) || ( TEAM_GetWinCount( players[ulSourcePlayer].Team ) < winlimit ))))
-		{
-			// Display a large "You were fragged by <name>." message in the middle of the screen.
-			if ( player == &players[consoleplayer] )
-				HUD_PrepareToDrawFragMessage( &players[ulSourcePlayer], true );
-			// Display a large "You fragged <name>!" message in the middle of the screen.
-			else if ( ulSourcePlayer == static_cast<ULONG>(consoleplayer) )
-				HUD_PrepareToDrawFragMessage( player, false );
-		}
-	}
+	// [AK] Try to draw a large frag message if we (the consoleplayer) were fragged (by) another player.
+	HUD_PrepareToDrawFragMessage( player, source, MOD );
 
 	// [BB] Temporarily change the ReadyWeapon of ulSourcePlayer to the one the server told us.
 	AWeapon *pSavedReadyWeapon = ( ulSourcePlayer < MAXPLAYERS ) ? players[ulSourcePlayer].ReadyWeapon : NULL;
