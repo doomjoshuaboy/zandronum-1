@@ -3911,6 +3911,9 @@ void ServerCommands::DamagePlayerWithType::Execute()
 //
 void ServerCommands::KillPlayer::Execute()
 {
+	// [AK] Check if this player's killer was another valid player.
+	const ULONG ulSourcePlayer = (( source ) && ( source->player ) && ( source->player->mo == source )) ? source->player - players : MAXPLAYERS;
+
 	// Set the player's new health.
 	player->health = player->mo->health = health;
 
@@ -3926,23 +3929,6 @@ void ServerCommands::KillPlayer::Execute()
 	// If health on the status bar is less than 0%, make it 0%.
 	if ( player->health <= 0 )
 		player->health = 0;
-
-	// [TP] FIXME: Wouldn't this be much easier to compute using source->player?
-	ULONG ulSourcePlayer = MAXPLAYERS;
-	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if (( playeringame[ulIdx] == false ) ||
-			( players[ulIdx].mo == NULL ))
-		{
-			continue;
-		}
-
-		if ( players[ulIdx].mo == source )
-		{
-			ulSourcePlayer = ulIdx;
-			break;
-		}
-	}
 
 	// [AK] Try to draw a large frag message if we (the consoleplayer) were fragged (by) another player.
 	HUD_PrepareToDrawFragMessage( player, source, MOD );
