@@ -4480,7 +4480,10 @@ void SERVER_FlagsetChanged( FIntCVar& flagset, int maxflags )
 	if ( flagsChanged > maxflags )
 		result.Format( "%d flags changed", flagsChanged );
 
-	SERVER_Printf( "%s changed to: %d (%s)\n", flagset.GetName( ), value, result.GetChars() );
+	if ( result.IsNotEmpty( ))
+		SERVER_Printf( "%s changed to: %d (%s)\n", flagset.GetName( ), value, result.GetChars( ));
+	else
+		SERVER_Printf( "%s changed to: %d\n", flagset.GetName( ), value );
 
 	// [AK] We also need to tell the clients to update the changed flagset.
 	if ( &flagset == &lmsspectatorsettings )
