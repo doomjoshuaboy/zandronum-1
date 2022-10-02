@@ -4436,6 +4436,10 @@ void SERVER_FlagsetChanged( FIntCVar& flagset, int maxflags )
 	if (( NETWORK_GetState( ) != NETSTATE_SERVER ) || ( gamestate == GS_STARTUP ) || ( value == oldValue ))
 		return;
 
+	// [AK] Don't do anything with lmsallowedweapons unless we're playing (T)LMS.
+	if (( &flagset == &lmsallowedweapons ) && ( lastmanstanding == false ) && ( teamlms == false ))
+		return;
+
 	FString result;
 	int flagsChanged = 0;
 
@@ -4480,18 +4484,11 @@ void SERVER_FlagsetChanged( FIntCVar& flagset, int maxflags )
 
 	// [AK] We also need to tell the clients to update the changed flagset.
 	if ( &flagset == &lmsspectatorsettings )
-	{
 		SERVERCOMMANDS_SetLMSSpectatorSettings( );
-	}
 	else if ( &flagset == &lmsallowedweapons )
-	{
-		if (( lastmanstanding ) || ( teamlms ))
-			SERVERCOMMANDS_SetLMSAllowedWeapons( );
-	}
+		SERVERCOMMANDS_SetLMSAllowedWeapons( );
 	else
-	{
 		SERVERCOMMANDS_SetGameDMFlags( );
-	}
 }
 
 //*****************************************************************************
