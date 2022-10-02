@@ -4479,11 +4479,11 @@ void SERVER_FlagsetChanged( FIntCVar& flagset, int maxflags )
 	SERVER_Printf( "%s changed to: %d (%s)\n", flagset.GetName( ), value, result.GetChars() );
 
 	// [AK] We also need to tell the clients to update the changed flagset.
-	if ( flagset == *lmsspectatorsettings )
+	if ( &flagset == &lmsspectatorsettings )
 	{
 		SERVERCOMMANDS_SetLMSSpectatorSettings( );
 	}
-	else if ( flagset == *lmsallowedweapons )
+	else if ( &flagset == &lmsallowedweapons )
 	{
 		if (( lastmanstanding ) || ( teamlms ))
 			SERVERCOMMANDS_SetLMSAllowedWeapons( );
