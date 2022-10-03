@@ -233,53 +233,57 @@ void FBaseCVar::SetGenericRep (UCVarValue value, ECVarType type)
 			Printf( "%s cannot be changed during a campaign.\n", GetName( ));
 			return;
 		}
-		// [AK] Check if we (indirectly) changed any flags locked in the current game mode.
-		else if ( Flags & CVAR_GAMEPLAYFLAGSET )
+		// [AK] Locked CVars need to be treated as unlocked for clients that are gaining RCON access.
+		else if (( NETWORK_InClientMode( ) == false ) || ( CLIENT_GainingRCONAccess( ) == false ))
 		{
-			int oldValue = GetGenericRep( CVAR_Int ).Int;
-			int newValue = ToInt( value, type );
-			int changedBits = ( oldValue ^ newValue );
-			int lockedBitMask = 0;
-
-			// [AK] If we changed any flags that are supposed to be locked, we need to switch them back.
-			// Also print the names of all affected locked flags.
-			for ( unsigned int i = 0; i < 32; i++ )
+			// [AK] Check if we (indirectly) changed any flags locked in the current game mode.
+			if ( Flags & CVAR_GAMEPLAYFLAGSET )
 			{
-				int bit = ( 1 << i );
+				int oldValue = GetGenericRep( CVAR_Int ).Int;
+				int newValue = ToInt( value, type );
+				int changedBits = ( oldValue ^ newValue );
+				int lockedBitMask = 0;
 
-				if ( changedBits & bit )
+				// [AK] If we changed any flags that are supposed to be locked, we need to switch them back.
+				// Also print the names of all affected locked flags.
+				for ( unsigned int i = 0; i < 32; i++ )
 				{
-					for ( FBaseCVar* cvar = CVars; cvar; cvar = cvar->GetNext( ))
+					int bit = ( 1 << i );
+
+					if ( changedBits & bit )
 					{
-						if ( cvar->IsFlagCVar( ) == false )
-							continue;
-
-						FFlagCVar *flag = static_cast<FFlagCVar *>( cvar );
-
-						if (( flag->GetValueVar( ) == this ) && ( flag->GetBitVal( ) == bit ) && ( GAMEMODE_IsGameplaySettingLocked( flag )))
+						for ( FBaseCVar* cvar = CVars; cvar; cvar = cvar->GetNext( ))
 						{
-							lockedBitMask |= bit;
+							if ( cvar->IsFlagCVar( ) == false )
+								continue;
 
-							Printf( "%s cannot be changed in this game mode.\n", flag->GetName( ));
-							break;
+							FFlagCVar *flag = static_cast<FFlagCVar *>( cvar );
+
+							if (( flag->GetValueVar( ) == this ) && ( flag->GetBitVal( ) == bit ) && ( GAMEMODE_IsGameplaySettingLocked( flag )))
+							{
+								lockedBitMask |= bit;
+
+								Printf( "%s cannot be changed in this game mode.\n", flag->GetName( ));
+								break;
+							}
 						}
 					}
 				}
-			}
 
-			// [AK] Did we have to change some locked flags? Determine what value the flagset should be now.
-			// It's also easier if we switch the CVar type to an integer.
-			if ( lockedBitMask != 0 )
-			{
-				value.Int = ( newValue & ~lockedBitMask ) | ( oldValue & lockedBitMask );
-				type = CVAR_Int;
+				// [AK] Did we have to change some locked flags? Determine what value the flagset should be now.
+				// It's also easier if we switch the CVar type to an integer.
+				if ( lockedBitMask != 0 )
+				{
+					value.Int = ( newValue & ~lockedBitMask ) | ( oldValue & lockedBitMask );
+					type = CVAR_Int;
+				}
 			}
-		}
-		// [AK] Don't change this CVar if it's locked in the current game mode.
-		else if (( Flags & CVAR_GAMEPLAYSETTING ) && ( GAMEMODE_IsGameplaySettingLocked( this )))
-		{
-			Printf( "%s cannot be changed in this game mode.\n", GetName( ));
-			return;
+			// [AK] Don't change this CVar if it's locked in the current game mode.
+			else if (( Flags & CVAR_GAMEPLAYSETTING ) && ( GAMEMODE_IsGameplaySettingLocked( this )))
+			{
+				Printf( "%s cannot be changed in this game mode.\n", GetName( ));
+				return;
+			}
 		}
 	}
 
