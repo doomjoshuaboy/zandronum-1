@@ -1424,6 +1424,10 @@ bool GAMEMODE_IsGameplaySettingLocked( FBaseCVar *pCVar )
 //
 void GAMEMODE_ResetGameplaySettings( bool bLockedOnly, bool bResetToDefault )
 {
+	// [AK] Don't let clients reset the CVars by themselves. The server will update them accordingly.
+	if ( NETWORK_InClientMode( ))
+		return;
+
 	for ( unsigned int i = 0; i < g_GameModes[g_CurrentGameMode].GameplaySettings.Size( ); i++ )
 	{
 		GAMEPLAYSETTING_s *const pSetting = &g_GameModes[g_CurrentGameMode].GameplaySettings[i];
