@@ -53,24 +53,6 @@
 #include "c_cvars.h"
 
 //*****************************************************************************
-//	DEFINES
-
-enum
-{
-	RAILCOLOR_BLUE,
-	RAILCOLOR_RED,
-	RAILCOLOR_YELLOW,
-	RAILCOLOR_BLACK,
-	RAILCOLOR_SILVER,
-	RAILCOLOR_GOLD,
-	RAILCOLOR_GREEN,
-	RAILCOLOR_WHITE,
-	RAILCOLOR_PURPLE,
-	RAILCOLOR_ORANGE,
-	RAILCOLOR_RAINBOW
-};
-
-//*****************************************************************************
 //  EXTERNAL CONSOLE VARIABLES
 
 EXTERN_CVAR( Bool, deathmatch )
