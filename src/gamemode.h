@@ -178,7 +178,7 @@ typedef struct
 //	PROTOTYPES
 
 void		GAMEMODE_Tick( void );
-void		GAMEMODE_ParseGamemodeInfoLump ( FScanner &sc, const GAMEMODE_e GameMode );
+void		GAMEMODE_ParseGameModeBlock ( FScanner &sc, const GAMEMODE_e GameMode );
 void		GAMEMODE_ParseGameSettingBlock ( FScanner &sc, const GAMEMODE_e GameMode, bool bLockCVars, bool bResetCVars = false );
 void		GAMEMODE_ParseGamemodeInfo( void );
 ULONG		GAMEMODE_GetFlags( GAMEMODE_e GameMode );

@@ -121,7 +121,7 @@ void GAMEMODE_Tick( void )
 
 //*****************************************************************************
 //
-void GAMEMODE_ParseGamemodeInfoLump ( FScanner &sc, const GAMEMODE_e GameMode )
+void GAMEMODE_ParseGameModeBlock ( FScanner &sc, const GAMEMODE_e GameMode )
 {
 	sc.MustGetStringName("{");
 	while (!sc.CheckString("}"))
@@ -337,7 +337,7 @@ void GAMEMODE_ParseGamemodeInfo( void )
 			else
 			{
 				GAMEMODE_e GameMode = static_cast<GAMEMODE_e>( sc.MustGetEnumName( "gamemode", "GAMEMODE_", GetValueGAMEMODE_e, true ));
-				GAMEMODE_ParseGamemodeInfoLump ( sc, GameMode );
+				GAMEMODE_ParseGameModeBlock ( sc, GameMode );
 			}
 		}
 	}
