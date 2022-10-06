@@ -8074,10 +8074,10 @@ static void	server_LogPacket( BYTESTREAM_s *pByteStream, NETADDRESS_s Address, c
 	if ( !g_HackerIPList.isIPInList( Address ) )
 	{
 		IPStringArray szAddress;
-		Address.ToIPStringArray ( szAddress );
+		szAddress.SetFrom( Address );
 		std::string reason;
 		reason = "Hacker";
-		g_HackerIPList.addEntry( szAddress[0], szAddress[1], szAddress[2],  szAddress[3], "", pszReason, reason, SERVERBAN_ParseBanLength ( "perm" ) );
+		g_HackerIPList.addEntry( szAddress, "", pszReason, reason, SERVERBAN_ParseBanLength ( "perm" ) );
 	}
 
 	// Write the start of the log entry.
