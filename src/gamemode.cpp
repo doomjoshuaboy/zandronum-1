@@ -121,54 +121,55 @@ void GAMEMODE_Tick( void )
 
 //*****************************************************************************
 //
-void GAMEMODE_ParseGameModeBlock ( FScanner &sc, const GAMEMODE_e GameMode )
+void GAMEMODE_ParseGameModeBlock( FScanner &sc, const GAMEMODE_e GameMode )
 {
-	sc.MustGetStringName("{");
-	while (!sc.CheckString("}"))
-	{
-		sc.MustGetString();
+	sc.MustGetStringName( "{" );
 
-		if (0 == stricmp (sc.String, "removeflag"))
+	while ( !sc.CheckString( "}" ))
+	{
+		sc.MustGetString( );
+
+		if ( stricmp( sc.String, "removeflag" ) == 0 )
 		{
 			g_GameModes[GameMode].ulFlags &= ~sc.MustGetEnumName( "flag", "GMF_", GetValueGMF );
 		}
-		else if (0 == stricmp (sc.String, "addflag"))
+		else if ( stricmp( sc.String, "addflag" ) == 0 )
 		{
 			g_GameModes[GameMode].ulFlags |= sc.MustGetEnumName( "flag", "GMF_", GetValueGMF );
 		}
-		else if (0 == stricmp (sc.String, "name"))
+		else if ( stricmp( sc.String, "name" ) == 0 )
 		{
-			sc.MustGetString();
+			sc.MustGetString( );
 			g_GameModes[GameMode].Name = sc.String;
 		}
-		else if (0 == stricmp (sc.String, "shortname"))
+		else if ( stricmp( sc.String, "shortname" ) == 0 )
 		{
-			sc.MustGetString();
+			sc.MustGetString( );
 			g_GameModes[GameMode].ShortName = sc.String;
 
 			// [AK] Limit the short name to only 8 characters.
 			g_GameModes[GameMode].ShortName.Truncate( 8 );
 		}
-		else if (0 == stricmp (sc.String, "f1texture"))
+		else if ( stricmp( sc.String, "f1texture" ) == 0 )
 		{
-			sc.MustGetString();
+			sc.MustGetString( );
 			g_GameModes[GameMode].F1Texture = sc.String;
 
 			// [AK] The F1 texture cannot exceed more than 8 characters.
 			g_GameModes[GameMode].F1Texture.Truncate( 8 );
 		}
-		else if (0 == stricmp (sc.String, "welcomesound"))
+		else if ( stricmp( sc.String, "welcomesound" ) == 0 )
 		{
-			sc.MustGetString();
+			sc.MustGetString( );
 			g_GameModes[GameMode].WelcomeSound = sc.String;
 		}
-		else if ((0 == stricmp (sc.String, "gamesettings")) || (0 == stricmp (sc.String, "lockedgamesettings")))
+		else if (( stricmp( sc.String, "gamesettings" ) == 0 ) || ( stricmp( sc.String, "lockedgamesettings" ) == 0 ))
 		{
 			GAMEMODE_ParseGameSettingBlock( sc, GameMode, !stricmp( sc.String, "lockedgamesettings" ));
 		}
-		else if (0 == stricmp (sc.String, "removegamesetting"))
+		else if ( stricmp( sc.String, "removegamesetting" ) == 0 )
 		{
-			sc.MustGetString();
+			sc.MustGetString( );
 			FBaseCVar *pCVar = FindCVar( sc.String, NULL );
 
 			// [AK] Make sure that this CVar exists.
@@ -185,13 +186,15 @@ void GAMEMODE_ParseGameModeBlock ( FScanner &sc, const GAMEMODE_e GameMode )
 			}
 		}
 		else
-			sc.ScriptError ( "Unknown option '%s', on line %d in GAMEMODE.", sc.String, sc.Line );
+		{
+			sc.ScriptError( "Unknown option '%s', on line %d in GAMEMODE.", sc.String, sc.Line );
+		}
 	}
 }
 
 //*****************************************************************************
 //
-void GAMEMODE_ParseGameSettingBlock ( FScanner &sc, const GAMEMODE_e GameMode, bool bLockCVars, bool bResetCVars )
+void GAMEMODE_ParseGameSettingBlock( FScanner &sc, const GAMEMODE_e GameMode, bool bLockCVars, bool bResetCVars )
 {
 	sc.MustGetStringName( "{" );
 	
@@ -304,40 +307,40 @@ void GAMEMODE_ParseGameSettingBlock ( FScanner &sc, const GAMEMODE_e GameMode, b
 
 //*****************************************************************************
 //
-void GAMEMODE_ParseGamemodeInfo( void )
+void GAMEMODE_ParseGameModeInfo( void )
 {
 	int lastlump = 0, lump;
 
-	while ((lump = Wads.FindLump ("GAMEMODE", &lastlump)) != -1)
+	while (( lump = Wads.FindLump( "GAMEMODE", &lastlump )) != -1 )
 	{
-		FScanner sc(lump);
+		FScanner sc( lump );
 		bool bParsedDefGameSettings = false;
 		bool bParsedDefLockedSettings = false;
 
-		while (sc.GetString ())
+		while ( sc.GetString( ))
 		{
-			if (stricmp(sc.String, "defaultgamesettings") == 0)
+			if ( stricmp( sc.String, "defaultgamesettings" ) == 0 )
 			{
 				// [AK] Don't allow more than one "defaultgamesettings" block in the same lump.
 				if ( bParsedDefGameSettings )
 					sc.ScriptError( "There is already a \"DefaultGameSettings\" block defined in this lump." );
 
-				GAMEMODE_ParseGameSettingBlock( sc, NUM_GAMEMODES, false, !( bParsedDefGameSettings || bParsedDefLockedSettings ) );
+				GAMEMODE_ParseGameSettingBlock( sc, NUM_GAMEMODES, false, !( bParsedDefGameSettings || bParsedDefLockedSettings ));
 				bParsedDefGameSettings = true;
 			}
-			else if (stricmp(sc.String, "defaultlockedgamesettings") == 0)
+			else if ( stricmp( sc.String, "defaultlockedgamesettings" ) == 0 )
 			{
 				// [AK] Don't allow more than one "defaultlockedgamesettings" block in the same lump.
 				if ( bParsedDefLockedSettings )
 					sc.ScriptError( "There is already a \"DefaultLockedGameSettings\" block defined in this lump." );
 
-				GAMEMODE_ParseGameSettingBlock( sc, NUM_GAMEMODES, true, !( bParsedDefGameSettings || bParsedDefLockedSettings ) );
+				GAMEMODE_ParseGameSettingBlock( sc, NUM_GAMEMODES, true, !( bParsedDefGameSettings || bParsedDefLockedSettings ));
 				bParsedDefLockedSettings = true;
 			}
 			else
 			{
 				GAMEMODE_e GameMode = static_cast<GAMEMODE_e>( sc.MustGetEnumName( "gamemode", "GAMEMODE_", GetValueGAMEMODE_e, true ));
-				GAMEMODE_ParseGameModeBlock ( sc, GameMode );
+				GAMEMODE_ParseGameModeBlock( sc, GameMode );
 			}
 		}
 	}
