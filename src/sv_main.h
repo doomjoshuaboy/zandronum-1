@@ -85,6 +85,9 @@
 // [AK] Maximum amount of gametics of recent commands from a client that we can store.
 #define MAX_RECENT_COMMANDS			15
 
+// [AK] Maximum amount of characters that can be put in sv_hostname.
+#define MAX_HOSTNAME_LENGTH			160
+
 // This is for the server console, but since we normally can't include that (win32 stuff),
 // we can just put it here.
 #define	UDF_NAME					0x00000001

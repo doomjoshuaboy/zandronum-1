@@ -774,6 +774,9 @@ CUSTOM_CVAR( String, sv_hostname, "Unnamed " GAMENAME " server", CVAR_ARCHIVE|CV
 		cleanedHostname += tempHostname[i];
 	}
 
+	// [AK] Truncate incredibly long hostnames. Whatever limit that we allow should be more than enough.
+	cleanedHostname.Truncate( MAX_HOSTNAME_LENGTH );
+
 	// [AK] Finally, remove any trailing crap from the cleaned hostname string.
 	V_RemoveTrailingCrapFromFString( cleanedHostname );
 
