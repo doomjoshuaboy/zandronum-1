@@ -93,7 +93,7 @@
 !	- The server now updates a spectator's lagging status to all clients and the mini lag icon on the scoreboard now shows for spectators. [Kaminsky]
 !	- By default, the join queue is no longer cleared between levels for all game modes like in duel. The old behaviour can be restored by enabling the new dmflag "sv_dontkeepjoinqueue" which also works in duel. [Kaminsky]
 !	- Unlagged now restores a player's old height when reconciling them. [Kaminsky]
-!	- sv_hostname is now cleaned up so that any unacceptable characters and trailing crap are removed. [Kaminsky]
+!	- sv_hostname is now cleaned up so that any unacceptable characters and trailing crap are removed. Also, it's now limited to a maximum length of 160 characters to avoid incredibly long server names. [Kaminsky]
 !	- The "fisting" medal is now only awarded if the player frags another player with a melee hitscan attack, or with a projectile or puff that awards the medal, as it should be. [Kaminsky]
 !	- The "spam" medal is now only awarded if the player frags another player with a projectile or puff that awards the medal, as it should be. [Kaminsky]
 !	- Blacklisted the connect, disconnect, reconnect, and restart CCMDs from ConsoleCommand. [Kaminsky]
