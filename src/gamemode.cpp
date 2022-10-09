@@ -77,6 +77,17 @@ CVAR( Bool, buckshot, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CAMPAIGNLOCK | 
 
 CVAR( Bool, sv_suddendeath, true, CVAR_SERVERINFO | CVAR_LATCH | CVAR_GAMEPLAYSETTING );
 
+CUSTOM_CVAR( Int, sv_maxlives, 0, CVAR_SERVERINFO | CVAR_LATCH | CVAR_GAMEPLAYSETTING )
+{
+	if ( self >= 256 )
+		self = 255;
+	if ( self < 0 )
+		self = 0;
+
+	// [AK] Notify the clients about the change.
+	SERVER_SettingChanged( self, false );
+}
+
 //*****************************************************************************
 //	VARIABLES
 
