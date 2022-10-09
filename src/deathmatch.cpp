@@ -296,7 +296,8 @@ CUSTOM_CVAR( Bool, teampossession, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CA
 //*****************************************************************************
 //*****************************************************************************
 //
-CUSTOM_CVAR( Int, fraglimit, 0, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK )
+// [AK] Added CVAR_GAMEPLAYSETTING.
+CUSTOM_CVAR( Int, fraglimit, 0, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK | CVAR_GAMEPLAYSETTING )
 {
 /* [BB] Do we need this in ST?
 	// Check for the fraglimit being hit because the fraglimit is being
@@ -329,7 +330,8 @@ CUSTOM_CVAR( Int, fraglimit, 0, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK )
 
 //*****************************************************************************
 //
-CUSTOM_CVAR( Float, timelimit, 0.0f, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK )
+// [AK] Added CVAR_GAMEPLAYSETTING.
+CUSTOM_CVAR( Float, timelimit, 0.0f, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK | CVAR_GAMEPLAYSETTING )
 {
 	// [BB] SHRT_MAX is a pretty arbitrary limit considering that timelimit is a float,
 	// Nevertheless, we should put some limit here. SHRT_MAX allows for a limit of
