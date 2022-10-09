@@ -88,6 +88,34 @@ CUSTOM_CVAR( Int, sv_maxlives, 0, CVAR_SERVERINFO | CVAR_LATCH | CVAR_GAMEPLAYSE
 	SERVER_SettingChanged( self, false );
 }
 
+// [AM] Set or unset a map as being a "lobby" map.
+CUSTOM_CVAR( String, lobby, "", CVAR_SERVERINFO )
+{
+	if ( strcmp( *self, "" ) == 0 )
+	{
+		// Lobby map is empty.  Tell the client that if necessary.
+		if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( gamestate != GS_STARTUP ))
+		{
+			SERVER_Printf( PRINT_HIGH, "%s unset\n", self.GetName( ));
+			SERVERCOMMANDS_SetGameModeLimits( );
+		}
+	}
+	else
+	{
+		// Prevent setting a lobby map that doesn't exist.
+		level_info_t *map = FindLevelByName( *self );
+		if ( map == NULL )
+		{
+			Printf( "map %s doesn't exist.\n", *self );
+			self = "";
+			return;
+		}
+
+		// Update the client about the lobby map if necessary.
+		SERVER_SettingChanged( self, false );
+	}
+}
+
 //*****************************************************************************
 //	VARIABLES
 
