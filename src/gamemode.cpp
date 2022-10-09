@@ -143,6 +143,24 @@ static	LONG					g_lEventResult = 1;
 //*****************************************************************************
 //	FUNCTIONS
 
+bool GAMEPLAYSETTING_s::IsOutOfScope( void )
+{
+	if ( Scope != GAMESCOPE_OFFLINEANDONLINE )
+	{
+		// [AK] "offlineonly" settings are not applied in online games.
+		if (( Scope == GAMESCOPE_OFFLINEONLY ) && ( NETWORK_GetState( ) == NETSTATE_SERVER ))
+			return true;
+
+		// [AK] "onlineonly" settings are not applied in offline games.
+		if (( Scope == GAMESCOPE_ONLINEONLY ) && ( NETWORK_GetState( ) != NETSTATE_SERVER ))
+			return true;
+	}
+
+	return false;
+}
+
+//*****************************************************************************
+//
 void GAMEMODE_Tick( void )
 {
 	static GAMESTATE_e oldState = GAMESTATE_UNSPECIFIED;
@@ -242,6 +260,7 @@ void GAMEMODE_ParseGameModeBlock( FScanner &sc, const GAMEMODE_e GameMode )
 //
 void GAMEMODE_ParseGameSettingBlock( FScanner &sc, const GAMEMODE_e GameMode, bool bLockCVars, bool bResetCVars )
 {
+	GAMESCOPE_e Scope = GAMESCOPE_OFFLINEANDONLINE;
 	sc.MustGetStringName( "{" );
 	
 	// [AK] If this is the start of a "defaultgamesettings" or "defaultlockedgamesettings" block, empty the CVar
@@ -253,9 +272,34 @@ void GAMEMODE_ParseGameSettingBlock( FScanner &sc, const GAMEMODE_e GameMode, bo
 			g_GameModes[mode].GameplaySettings.Clear( );
 	}
 
-	while ( !sc.CheckString( "}" ))
+	// [AK] Keep looping until we exited out of all blocks.
+	while ( true )
 	{
 		sc.MustGetString( );
+
+		// [AK] "offlineonly" or "onlineonly" indicate the start of a new subblock and scope. CVars added into
+		// either of these subblocks are only set in offline or online games respectively.
+		if (( stricmp( sc.String, "offlineonly" ) == 0 ) || ( stricmp( sc.String, "onlineonly" ) == 0 ))
+		{
+			// [AK] Don't start a new subblock while in the middle of another subblock.
+			if ( Scope != GAMESCOPE_OFFLINEANDONLINE )
+				sc.ScriptError( "Tried to start a new \"%s\" subblock in the middle of an \"%s\" subblock.", sc.String, Scope == GAMESCOPE_OFFLINEONLY ? "offlineonly" : "onlineonly" );
+			
+			Scope = ( stricmp( sc.String, "offlineonly" ) == 0 ) ? GAMESCOPE_OFFLINEONLY : GAMESCOPE_ONLINEONLY;
+			sc.MustGetStringName( "{" );
+			continue;
+		}
+		// [AK] This indicates the closing of a (sub)block.
+		else if ( stricmp( sc.String, "}" ) == 0 )
+		{
+			// [AK] If we're not in an "offlineonly" or "onlineonly" subblock, then exit out of the game settings block entirely.
+			if ( Scope == GAMESCOPE_OFFLINEANDONLINE )
+				break;
+			
+			Scope = GAMESCOPE_OFFLINEANDONLINE;
+			continue;
+		}
+
 		FBaseCVar *pCVar = FindCVar( sc.String, NULL );
 
 		// [AK] Make sure that this CVar exists.
@@ -327,20 +371,40 @@ void GAMEMODE_ParseGameSettingBlock( FScanner &sc, const GAMEMODE_e GameMode, bo
 			if (( GameMode == NUM_GAMEMODES ) || ( GameMode == static_cast<GAMEMODE_e>( mode )))
 			{
 				bool bPushToList = true;
+				Setting.Scope = Scope;
 
 				// [AK] Check if this CVar is already in the list. We don't want to have multiple copies of the same CVar.
 				for ( unsigned int i = 0; i < g_GameModes[GameMode].GameplaySettings.Size( ); i++ )
 				{
 					if ( g_GameModes[GameMode].GameplaySettings[i].pCVar == Setting.pCVar )
 					{
-						// [AK] A locked CVar always replaces any unlocked copies of the same CVar that already exist.
-						// On the other hand, an unlocked CVar cannot replace any locked copies and will be discarded instead.
-						if (( g_GameModes[GameMode].GameplaySettings[i].bIsLocked ) && ( Setting.bIsLocked == false ))
-							bPushToList = false;
-						else
-							g_GameModes[GameMode].GameplaySettings.Delete( i );
+						// [AK] Check if these two CVars have the same scope (i.e. offline or online games only), or if the
+						// new CVar that we're trying to add has no scope (i.e. works in both offline and online games).
+						if (( g_GameModes[GameMode].GameplaySettings[i].Scope == Setting.Scope ) || ( Setting.Scope == GAMESCOPE_OFFLINEANDONLINE ))
+						{
+							// [AK] A locked CVar always replaces any unlocked copies of the same CVar that already exist.
+							// On the other hand, an unlocked CVar cannot replace any locked copies.
+							if (( g_GameModes[GameMode].GameplaySettings[i].bIsLocked ) && ( Setting.bIsLocked == false ))
+							{
+								// [AK] If the new/unlocked CVar has no scope, but the old/locked CVar is "offlineonly" or "onlineonly",
+								// then change the new CVar's scope so that it's opposite to the old CVar's. The two CVars can then co-exist.
+								// Otherwise, the new CVar must be discarded.
+								if ( g_GameModes[GameMode].GameplaySettings[i].Scope != Setting.Scope )
+									Setting.Scope = g_GameModes[GameMode].GameplaySettings[i].Scope != GAMESCOPE_OFFLINEONLY ? GAMESCOPE_OFFLINEONLY : GAMESCOPE_ONLINEONLY;
+								else
+									bPushToList = false;
 
-						break;
+								break;
+							}
+
+							g_GameModes[GameMode].GameplaySettings.Delete( i );
+						}
+						// [AK] If the old CVar has no scope, but the new CVar is "offlineonly" or "onlineonly", just change the old CVar's
+						// scope so that it becomes opposite to the new CVar's. The two CVars can then co-exist.
+						else if ( g_GameModes[GameMode].GameplaySettings[i].Scope == GAMESCOPE_OFFLINEANDONLINE )
+						{
+							g_GameModes[GameMode].GameplaySettings[i].Scope = Setting.Scope != GAMESCOPE_OFFLINEONLY ? GAMESCOPE_OFFLINEONLY : GAMESCOPE_ONLINEONLY;
+						}
 					}
 				}
 
@@ -1437,6 +1501,11 @@ void GAMEMODE_SetGameplaySetting( FBaseCVar *pCVar, UCVarValue Val, ECVarType Ty
 		if ( g_GameModes[g_CurrentGameMode].GameplaySettings[i].pCVar != pCVar )
 			continue;
 
+		// [AK] CVars that are "offlineonly" should only be set in offline games, and
+		// CVars that are "onlineonly" should only be set in online games.
+		if ( g_GameModes[g_CurrentGameMode].GameplaySettings[i].IsOutOfScope( ))
+			continue;
+
 		pSetting = &g_GameModes[g_CurrentGameMode].GameplaySettings[i];
 		break;
 	}
@@ -1472,7 +1541,12 @@ bool GAMEMODE_IsGameplaySettingLocked( FBaseCVar *pCVar )
 
 		// [AK] If this CVar matches one that's locked on the list, then it's obviously locked.
 		if ( pCVar == g_GameModes[g_CurrentGameMode].GameplaySettings[i].pCVar )
-			return true;
+		{
+			// [AK] CVars that are "offlineonly" are only locked in offline games, and if they're
+			// "onlineonly" then they're only locked in online games.
+			if ( g_GameModes[g_CurrentGameMode].GameplaySettings[i].IsOutOfScope( ) == false )
+				return true;
+		}
 	}
 
 	return false;
@@ -1490,8 +1564,9 @@ void GAMEMODE_ResetGameplaySettings( bool bLockedOnly, bool bResetToDefault )
 	{
 		GAMEPLAYSETTING_s *const pSetting = &g_GameModes[g_CurrentGameMode].GameplaySettings[i];
 
-		// [AK] Only reset unlocked CVars if we need to.
-		if (( bLockedOnly ) && ( pSetting->bIsLocked == false ))
+		// [AK] Only reset unlocked CVars if we need to. Also, CVars that are "offlineonly" should only
+		// be reset in offline games, and CVars that are "onlineonly" should only be reset in online games.
+		if ((( bLockedOnly ) && ( pSetting->bIsLocked == false )) || ( pSetting->IsOutOfScope( )))
 			continue;
 
 		// [AK] Do we also want to reset this CVar to its default value?

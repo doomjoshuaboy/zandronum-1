@@ -131,6 +131,14 @@ typedef enum
 } GAMELIMIT_e;
 
 //*****************************************************************************
+typedef enum
+{
+	GAMESCOPE_OFFLINEANDONLINE = 0,
+	GAMESCOPE_OFFLINEONLY,
+	GAMESCOPE_ONLINEONLY
+} GAMESCOPE_e;
+
+//*****************************************************************************
 //	STRUCTURES
 
 typedef struct
@@ -150,6 +158,11 @@ typedef struct
 
 	// [AK] The CVar is locked and cannot be changed from the console.
 	bool bIsLocked;
+
+	// [AK] What kind of game (i.e. offline, online, or both) is the CVar's value applied.
+	GAMESCOPE_e Scope;
+
+	bool IsOutOfScope( void );
 
 } GAMEPLAYSETTING_s;
 
