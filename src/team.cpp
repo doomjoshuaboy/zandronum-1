@@ -2232,7 +2232,7 @@ CCMD( changeteam )
 //*****************************************************************************
 //*****************************************************************************
 //
-CUSTOM_CVAR( Int, pointlimit, 0, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK )
+CUSTOM_CVAR( Int, pointlimit, 0, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK | CVAR_GAMEPLAYSETTING )
 {
 	if ( self >= 65536 )
 		self = 65535;

@@ -1382,33 +1382,45 @@ player_t *GAMEMODE_GetArtifactCarrier( void )
 void GAMEMODE_SetLimit( GAMELIMIT_e GameLimit, int value )
 {
 	UCVarValue Val;
-	Val.Int = value;
 
-	switch ( GameLimit )
+	if ( GameLimit == GAMELIMIT_TIME )
 	{
-		case GAMELIMIT_FRAGS:
-			fraglimit.ForceSet( Val, CVAR_Int );
-			break;
+		Val.Float = FIXED2FLOAT( value );
+		GAMEMODE_SetGameplaySetting( &timelimit, Val, CVAR_Float );
+	}
+	else
+	{
+		FBaseCVar *pCVar = NULL;
+		Val.Int = value;
 
-		case GAMELIMIT_POINTS:
-			pointlimit.ForceSet( Val, CVAR_Int );
-			break;
+		switch ( GameLimit )
+		{
+			case GAMELIMIT_FRAGS:
+				pCVar = &fraglimit;
+				break;
 
-		case GAMELIMIT_DUELS:
-			duellimit.ForceSet( Val, CVAR_Int );
-			break;
+			case GAMELIMIT_POINTS:
+				pCVar = &pointlimit;
+				break;
 
-		case GAMELIMIT_WINS:
-			winlimit.ForceSet( Val, CVAR_Int );
-			break;
+			case GAMELIMIT_DUELS:
+				pCVar = &duellimit;
+				break;
 
-		case GAMELIMIT_WAVES:
-			wavelimit.ForceSet( Val, CVAR_Int );
-			break;
+			case GAMELIMIT_WINS:
+				pCVar = &winlimit;
+				break;
 
-		default:
-			I_Error( "GAMEMODE_SetLimit: Unhandled GameLimit\n." );
-			break;
+			case GAMELIMIT_WAVES:
+				pCVar = &wavelimit;
+				break;
+
+			default:
+				I_Error( "GAMEMODE_SetLimit: Unhandled GameLimit\n." );
+				break;
+		}
+
+		GAMEMODE_SetGameplaySetting( pCVar, Val, CVAR_Int );
 	}
 }
 

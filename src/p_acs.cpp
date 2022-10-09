@@ -7384,16 +7384,7 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 
 		case ACSF_SetGamemodeLimit:
 			{
-				GAMELIMIT_e limit = static_cast<GAMELIMIT_e> ( args[0] );
-
-				if ( limit == GAMELIMIT_TIME )
-				{
-					UCVarValue Val;
-					Val.Float = FIXED2FLOAT( args[1] );
-					timelimit.ForceSet( Val, CVAR_Float );
-				}
-				else
-					GAMEMODE_SetLimit( limit, args[1] );
+				GAMEMODE_SetLimit( static_cast<GAMELIMIT_e>( args[0] ), args[1] );
 				break;
 			}
 
