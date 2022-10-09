@@ -76,6 +76,8 @@ EXTERN_CVAR( Bool, buckshot )
 EXTERN_CVAR( Bool, sv_suddendeath )
 EXTERN_CVAR( Int, sv_maxlives )
 
+EXTERN_CVAR( String, lobby )
+
 //*****************************************************************************
 typedef enum
 {
