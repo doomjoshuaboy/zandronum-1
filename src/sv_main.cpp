@@ -6163,8 +6163,6 @@ static bool server_UpdateClientPing( BYTESTREAM_s *pByteStream )
 	}
 	else
 	{
-		ULONG oldPing = p->ulPing;
-		ULONG ulPingAverages = p->ulPingAverages;
 		p->ulPing = ( p->ulPingAverages * p->ulPing + currentPing ) / ( 1 + p->ulPingAverages );
 		// [BB] The most recent ping measurement should always have a noticeable influence on the average ping.
 		if ( p->ulPingAverages < 20 )
