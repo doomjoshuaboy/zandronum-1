@@ -82,7 +82,7 @@ void	CLIENTCOMMANDS_Say( ULONG ulMode, const char *pszString, ULONG ulPlayer = M
 void	CLIENTCOMMANDS_Ignore( ULONG ulPlayer, bool bIgnore, LONG lTicks = -1 );
 void	CLIENTCOMMANDS_ClientMove( void );
 void	CLIENTCOMMANDS_MissingPacket( void );
-void	CLIENTCOMMANDS_Pong( ULONG ulTime );
+void	CLIENTCOMMANDS_Pong( unsigned int time );
 void	CLIENTCOMMANDS_WeaponSelect( const PClass *pType );
 void	CLIENTCOMMANDS_SendBackupWeaponSelect( void );
 void	CLIENTCOMMANDS_Taunt( void );

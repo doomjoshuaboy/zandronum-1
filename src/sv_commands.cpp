@@ -212,10 +212,10 @@ void SendPrivateMessageToRCONClients( ServerCommands::PlayerSay &command, ULONG 
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_Ping( ULONG ulTime )
+void SERVERCOMMANDS_Ping( unsigned int time )
 {
 	ServerCommands::Ping command;
-	command.SetTime( ulTime );
+	command.SetTime( time );
 	command.sendCommandToClients();
 }
 
