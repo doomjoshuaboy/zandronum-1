@@ -84,6 +84,7 @@
 -	- Fixed: cl_medals also affected the server and could prevent players from earning any medals if disabled. [Kaminsky]
 -	- Fixed: the server didn't always update the correct flagset (e.g. dmflags, compatflags, lmsspectatorsettings) to the clients. [Kaminsky]
 -	- Fixed: the server would still print which flags have changed for lmsallowedweapons when the current game mode wasn't (T)LMS. [Kaminsky]
+-	- Fixed: Every client's ping would be stuck at zero on a Linux server that was running for more than 24 consecutive days. [Kaminsky]
 !	- The result value of GAMEEVENT_MEDALS event scripts can now be used to determine whether or not the player receives the medal. [Kaminsky]
 !	- GAMEMODE flags are now validated after all GAMEMODE lumps have been parsed instead of after each one. The internal game mode name (e.g. "TeamLMS") is now printed with the error message instead of the actual name. [Kaminsky]
 !	- Added an extra check to ensure that game modes have a (short) name. [Kaminsky]

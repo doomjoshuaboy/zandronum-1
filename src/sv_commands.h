@@ -82,7 +82,7 @@ DEFINE_TFLAGS_OPERATORS (ServerCommandFlags)
 //	PROTOTYPES
 
 // General protocol commands. These handle connecting to and being part of the server.
-void	SERVERCOMMANDS_Ping( ULONG ulTime );
+void	SERVERCOMMANDS_Ping( unsigned int time );
 void	SERVERCOMMANDS_Nothing( ULONG ulPlayer, bool bReliable = false );
 void	SERVERCOMMANDS_BeginSnapshot( ULONG ulPlayer );
 void	SERVERCOMMANDS_EndSnapshot( ULONG ulPlayer );

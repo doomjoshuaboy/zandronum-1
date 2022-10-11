@@ -6145,16 +6145,14 @@ static bool server_MissingPacket( BYTESTREAM_s *pByteStream )
 //
 static bool server_UpdateClientPing( BYTESTREAM_s *pByteStream )
 {
-	ULONG	ulPing;
-
-	ulPing = pByteStream->ReadLong();
-
+	const unsigned int oldTime = pByteStream->ReadLong( );
 	const unsigned int nowTime = I_MSTime( );
+
 	// [BB] This ping information from the client doesn't make sense.
-	if ( ulPing > nowTime )
+	if ( oldTime > nowTime )
 		return false;
 
-	ULONG currentPing = (nowTime - ulPing);
+	ULONG currentPing = nowTime - oldTime;
 	const ULONG ticLength = 1000 / TICRATE;
 	player_t *p = &players[g_lCurrentClient];
 	// [BB] Lag spike, reset the averaging.
