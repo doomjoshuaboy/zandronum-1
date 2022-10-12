@@ -1792,7 +1792,7 @@ void SERVER_DetermineConnectionType( BYTESTREAM_s *pByteStream )
 
 			Printf( "Unknown challenge (%d) from %s. Ignoring IP for 10 seconds.\n", static_cast<int> (lCommand), NETWORK_GetFromAddress().ToString() );
 			// [BB] Block all further challenges of this IP for ten seconds to prevent log flooding.
-			g_floodProtectionIPQueue.addAddress ( NETWORK_GetFromAddress( ), g_lGameTime / 1000 );
+			SERVER_IgnoreIP( NETWORK_GetFromAddress( ));
 
 #ifdef CREATE_PACKET_LOG
 			server_LogPacket(pByteStream,  NETWORK_GetFromAddress( ), "Unknown connection challenge.");
@@ -2389,7 +2389,7 @@ void SERVER_ClientError( ULONG ulClient, ULONG ulErrorCode )
 	Printf( "%s disconnected. Ignoring IP for 10 seconds.\n", g_aClients[ulClient].Address.ToString() );
 
 	// [BB] Block this IP for ten seconds to prevent log flooding.
-	g_floodProtectionIPQueue.addAddress ( g_aClients[ulClient].Address, g_lGameTime / 1000 );
+	SERVER_IgnoreIP( g_aClients[ulClient].Address );
 
 	// [BB] Be sure to properly disconnect the client.
 	SERVER_DisconnectClient( ulClient, false, false );
