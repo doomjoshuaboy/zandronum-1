@@ -63,6 +63,9 @@
 // to go into a separate header for technical reasons.
 #include "gamemode_enums.h"
 
+#define GAMETYPE_MASK ( GMF_COOPERATIVE | GMF_DEATHMATCH | GMF_TEAMGAME )
+#define EARNTYPE_MASK ( GMF_PLAYERSEARNKILLS | GMF_PLAYERSEARNFRAGS | GMF_PLAYERSEARNPOINTS | GMF_PLAYERSEARNWINS )
+
 // [CK] Event defines
 #define GAMEEVENT_CAPTURE_NOASSIST -1	// The third arg meaning no player assisted
 #define GAMEEVENT_RETURN_TIMEOUTRETURN 0
