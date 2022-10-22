@@ -470,12 +470,12 @@ void GAMEMODE_ParseGameModeInfo( void )
 			I_Error( "\"%s\" has no short name.", name.GetChars( ));
 
 		// [AK] Get the game mode type (cooperative, deathmatch, or team game). There shouldn't be more than one enabled or none at all.
-		ULONG ulFlags = g_GameModes[i].ulFlags & ( GMF_COOPERATIVE | GMF_DEATHMATCH | GMF_TEAMGAME );
+		ULONG ulFlags = g_GameModes[i].ulFlags & GAMETYPE_MASK;
 		if (( ulFlags == 0 ) || (( ulFlags & ( ulFlags - 1 )) != 0 ))
 			I_Error( "Can't determine if \"%s\" is cooperative, deathmatch, or team-based.", name.GetChars( ));
 
 		// [AK] Get the type of "players earn" flag this game mode is currently using.
-		ulFlags = g_GameModes[i].ulFlags & ( GMF_PLAYERSEARNKILLS | GMF_PLAYERSEARNFRAGS | GMF_PLAYERSEARNPOINTS | GMF_PLAYERSEARNWINS );
+		ulFlags = g_GameModes[i].ulFlags & EARNTYPE_MASK;
 
 		// [AK] If all of these flags were removed or if more than one was added, then throw an error.
 		if ( ulFlags == 0 )
