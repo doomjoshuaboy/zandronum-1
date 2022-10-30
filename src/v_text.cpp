@@ -669,9 +669,9 @@ void V_CleanPlayerName( FString &String, bool bPrintWarning )
 			// [AK] Ignore color codes, also taking into account those that use square brackets.
 			if ( tempColorizedString[j] == TEXTCOLOR_ESCAPE )
 			{
-				if (( String[++j] != '\0' ) && ( String[j] == '[' ))
+				if (( tempColorizedString[++j] != '\0' ) && ( tempColorizedString[j] == '[' ))
 				{
-					while (( String[j] != '\0') && ( String[j] != ']' ))
+					while (( tempColorizedString[j] != '\0') && ( tempColorizedString[j] != ']' ))
 					{
 						j++;
 					}
