@@ -771,6 +771,10 @@ void V_RemoveTrailingCrap( char *pszString )
 		// [BB] Remove trailing color code of type "\c[X]".
 		else if ( pszString[ulStringLength-1] == ']' )
 		{
+			// [AK] "\c[X]]" is not a trailing color code.
+			if ( ( ulStringLength > 2 ) && ( pszString[ulStringLength-2] == ']' ) )
+				break;
+
 			int i = 0;
 			for ( i = ulStringLength-2; i >= 2; --i )
 			{
