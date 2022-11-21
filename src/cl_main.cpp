@@ -4190,28 +4190,7 @@ void ServerCommands::SetPlayerKillCount::Execute()
 //
 void ServerCommands::SetPlayerStatus::Execute()
 {
-	switch ( type )
-	{
-		case PLAYERSTATUS_CHATTING:
-			player->bChatting = value;
-			break;
-
-		case PLAYERSTATUS_INCONSOLE:
-			player->bInConsole = value;
-			break;
-
-		case PLAYERSTATUS_INMENU:
-			player->bInMenu = value;
-			break;
-
-		case PLAYERSTATUS_LAGGING:
-			player->bLagging = value;
-			break;
-
-		case PLAYERSTATUS_READYTOGOON:
-			player->bReadyToGoOn = value;
-			break;
-	}
+	PLAYER_SetStatus( player, type, value );
 }
 
 //*****************************************************************************

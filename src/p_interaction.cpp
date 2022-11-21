@@ -2821,6 +2821,114 @@ void PLAYER_SetDeaths( player_t *pPlayer, ULONG ulDeaths, bool bInformClients )
 
 //*****************************************************************************
 //
+void PLAYER_SetStatus( player_t *pPlayer, ULONG ulType, bool bEnable, ULONG ulFlags )
+{
+	if ( pPlayer == NULL )
+		return;
+
+	switch ( ulType )
+	{
+		case PLAYERSTATUS_CHATTING:
+		{
+			if ( pPlayer->bChatting == bEnable )
+				return;
+
+			pPlayer->bChatting = bEnable;
+
+			// [AK] Tell the server we're beginning to or have stopped chatting.
+			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( ulFlags & PLAYERSTATUS_CLIENTSHOULDSENDUPDATE ))
+			{
+				if ( bEnable )
+					CLIENTCOMMANDS_StartChat( );
+				else
+					CLIENTCOMMANDS_EndChat( );
+			}
+
+			break;
+		}
+
+		case PLAYERSTATUS_INCONSOLE:
+		{
+			// [BB] Don't change the displayed console status when a demo is played.
+			if (( CLIENTDEMO_IsPlaying( )) || ( pPlayer->bInConsole == bEnable ))
+				return;
+
+			pPlayer->bInConsole = bEnable;
+
+			// [AK] Tell the server that we entered or exited the console.
+			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( ulFlags & PLAYERSTATUS_CLIENTSHOULDSENDUPDATE ))
+			{
+				if ( bEnable )
+					CLIENTCOMMANDS_EnterConsole( );
+				else
+					CLIENTCOMMANDS_ExitConsole( );
+			}
+
+			break;
+		}
+
+		case PLAYERSTATUS_INMENU:
+		{
+			// [BB] Don't change the displayed menu status when a demo is played.
+			if (( CLIENTDEMO_IsPlaying( )) || ( pPlayer->bInMenu == bEnable ))
+				return;
+
+			pPlayer->bInMenu = bEnable;
+
+			// [AK] Tell the server that we entered or exited the menu.
+			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( ulFlags & PLAYERSTATUS_CLIENTSHOULDSENDUPDATE ))
+			{
+				if ( bEnable )
+					CLIENTCOMMANDS_EnterMenu( );
+				else
+					CLIENTCOMMANDS_ExitMenu( );
+			}
+
+			break;
+		}
+
+		case PLAYERSTATUS_LAGGING:
+		{
+			if ( pPlayer->bLagging == bEnable )
+				return;
+
+			pPlayer->bLagging = bEnable;
+			break;
+		}
+
+		case PLAYERSTATUS_READYTOGOON:
+		{
+			if ( pPlayer->bReadyToGoOn == bEnable )
+				return;
+
+			pPlayer->bReadyToGoOn = bEnable;
+			break;
+		}
+
+		default:
+			return;
+	}
+
+	// [AK] If we're the server, tell the clients that this player's status changed,
+	// except when we update this player's "ready to go on" status if everyone's ready.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
+		if (( ulType != PLAYERSTATUS_READYTOGOON ) || ( SERVER_IsEveryoneReadyToGoOn( ) == false ))
+		{
+			const ULONG ulPlayer = pPlayer - players;
+
+			// [AK] Should we skip sending an update to the client whose status we're changing?
+			// This is if the client already changed the status on their end.
+			if ( ulFlags & PLAYERSTATUS_SERVERSHOULDSKIPCLIENT )
+				SERVERCOMMANDS_SetPlayerStatus( ulPlayer, static_cast<PlayerStatusType>( ulType ), ulPlayer, SVCF_SKIPTHISCLIENT );
+			else
+				SERVERCOMMANDS_SetPlayerStatus( ulPlayer, static_cast<PlayerStatusType>( ulType ));
+		}
+	}
+}
+
+//*****************************************************************************
+//
 LONG PLAYER_GetHealth( ULONG ulPlayer )
 {
 	return players[ulPlayer].health;

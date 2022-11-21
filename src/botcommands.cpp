@@ -2056,9 +2056,7 @@ static void botcmd_Say( CSkullBot *pBot )
 	}
 
 	// We can now get rid of the chat bubble above the bot's head.
-	pBot->GetPlayer( )->bChatting = false;
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SetPlayerStatus( pBot->GetPlayer( ) - players, PLAYERSTATUS_CHATTING );
+	PLAYER_SetStatus( pBot->GetPlayer( ), PLAYERSTATUS_CHATTING, false );
 }
 
 //*****************************************************************************
@@ -2071,9 +2069,7 @@ static void botcmd_SayFromFile( CSkullBot *pBot )
 	CChatFile	*pFile;
 
 	// We can now get rid of the chat bubble above the bot's head.
-	pBot->GetPlayer( )->bChatting = false;
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SetPlayerStatus( pBot->GetPlayer( ) - players, PLAYERSTATUS_CHATTING );
+	PLAYER_SetStatus( pBot->GetPlayer( ), PLAYERSTATUS_CHATTING, false );
 
 	sprintf( szSection, "%s", pBot->m_ScriptData.aszStringStack[pBot->m_ScriptData.lStringStackPosition - 1] );
 	pBot->PopStringStack( );
@@ -2129,9 +2125,7 @@ static void botcmd_SayFromChatFile( CSkullBot *pBot )
 	CChatFile	*pFile;
 
 	// We can now get rid of the chat bubble above the bot's head.
-	pBot->GetPlayer( )->bChatting = false;
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SetPlayerStatus( pBot->GetPlayer( ) - players, PLAYERSTATUS_CHATTING );
+	PLAYER_SetStatus( pBot->GetPlayer( ), PLAYERSTATUS_CHATTING, false );
 
 	sprintf( szSection, "%s", pBot->m_ScriptData.aszStringStack[pBot->m_ScriptData.lStringStackPosition - 1] );
 	pBot->PopStringStack( );
@@ -2180,18 +2174,14 @@ static void botcmd_SayFromChatFile( CSkullBot *pBot )
 //
 static void botcmd_BeginChatting( CSkullBot *pBot )
 {
-	pBot->GetPlayer( )->bChatting = true;
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SetPlayerStatus( pBot->GetPlayer( ) - players, PLAYERSTATUS_CHATTING );
+	PLAYER_SetStatus( pBot->GetPlayer( ), PLAYERSTATUS_CHATTING, true );
 }
 
 //*****************************************************************************
 //
 static void botcmd_StopChatting( CSkullBot *pBot )
 {
-	pBot->GetPlayer( )->bChatting = false;
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SetPlayerStatus( pBot->GetPlayer( ) - players, PLAYERSTATUS_CHATTING );
+	PLAYER_SetStatus( pBot->GetPlayer( ), PLAYERSTATUS_CHATTING, false );
 }
 
 //*****************************************************************************
@@ -2608,9 +2598,7 @@ static void botcmd_SayFromLump( CSkullBot *pBot )
 	CChatFile	*pFile;
 
 	// We can now get rid of the chat bubble above the bot's head.
-	pBot->GetPlayer( )->bChatting = false;
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SetPlayerStatus( pBot->GetPlayer( ) - players, PLAYERSTATUS_CHATTING );
+	PLAYER_SetStatus( pBot->GetPlayer( ), PLAYERSTATUS_CHATTING, false );
 
 	sprintf( szSection, "%s", pBot->m_ScriptData.aszStringStack[pBot->m_ScriptData.lStringStackPosition - 1] );
 	pBot->PopStringStack( );
@@ -2666,9 +2654,7 @@ static void botcmd_SayFromChatLump( CSkullBot *pBot )
 	CChatFile	*pFile;
 
 	// We can now get rid of the chat bubble above the bot's head.
-	pBot->GetPlayer( )->bChatting = false;
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SetPlayerStatus( pBot->GetPlayer( ) - players, PLAYERSTATUS_CHATTING );
+	PLAYER_SetStatus( pBot->GetPlayer( ), PLAYERSTATUS_CHATTING, false );
 
 	sprintf( szSection, "%s", pBot->m_ScriptData.aszStringStack[pBot->m_ScriptData.lStringStackPosition - 1] );
 	pBot->PopStringStack( );

@@ -845,22 +845,14 @@ void CHAT_SetChatMode( ULONG ulMode )
 
 		if ( ulMode != CHATMODE_NONE )
 		{
-			pPlayer->bChatting = true;
-
-			// Tell the server we're beginning to chat.
-			if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
-				CLIENTCOMMANDS_StartChat( );
+			PLAYER_SetStatus( pPlayer, PLAYERSTATUS_CHATTING, true, PLAYERSTATUS_CLIENTSHOULDSENDUPDATE );
 
 			// [AK] Ensure that the cursor starts off as white.
 			g_ulChatTicker = 0;
 		}
 		else
 		{
-			pPlayer->bChatting = false;
-
-			// Tell the server we're done chatting.
-			if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
-				CLIENTCOMMANDS_EndChat( );
+			PLAYER_SetStatus( pPlayer, PLAYERSTATUS_CHATTING, false, PLAYERSTATUS_CLIENTSHOULDSENDUPDATE );
 		}
 
 	}

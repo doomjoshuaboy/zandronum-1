@@ -1082,19 +1082,13 @@ void SERVER_CheckTimeouts( void )
 			// Have not heard from the client in at least one second; mark him as
 			// lagging and tell clients.
 			if ( players[ulIdx].bLagging == false )
-			{
-				players[ulIdx].bLagging = true;
-				SERVERCOMMANDS_SetPlayerStatus( ulIdx, PLAYERSTATUS_LAGGING );
-			}
+				PLAYER_SetStatus( &players[ulIdx], PLAYERSTATUS_LAGGING, true );
 		}
 		else
 		{
 			// Player is no longer lagging. Tell clients.
 			if ( players[ulIdx].bLagging )
-			{
-				players[ulIdx].bLagging = false;
-				SERVERCOMMANDS_SetPlayerStatus( ulIdx, PLAYERSTATUS_LAGGING );
-			}
+				PLAYER_SetStatus( &players[ulIdx], PLAYERSTATUS_LAGGING, false );
 		}
 	}
 }
@@ -4767,48 +4761,25 @@ bool SERVER_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 		if ( server_CheckForClientMinorCommandFlood ( g_lCurrentClient ) == true )
 			return ( true );
 
+		// Client is beginning to type.
 		if ( lCommand == CLC_STARTCHAT )
-		{
-			// Client is beginning to type.
-			players[g_lCurrentClient].bChatting = true;
-
-			// Tell clients about the change in this player's chatting status.
-			SERVERCOMMANDS_SetPlayerStatus( g_lCurrentClient, PLAYERSTATUS_CHATTING );
-		}
+			PLAYER_SetStatus( &players[g_lCurrentClient], PLAYERSTATUS_CHATTING, true, PLAYERSTATUS_SERVERSHOULDSKIPCLIENT );
+		// Client is done talking.
 		else if ( lCommand == CLC_ENDCHAT )
-		{
-			// Client is done talking.
-			players[g_lCurrentClient].bChatting = false;
-
-			// Tell clients about the change in this player's chatting status.
-			SERVERCOMMANDS_SetPlayerStatus( g_lCurrentClient, PLAYERSTATUS_CHATTING );
-		}
+			PLAYER_SetStatus( &players[g_lCurrentClient], PLAYERSTATUS_CHATTING, false, PLAYERSTATUS_SERVERSHOULDSKIPCLIENT );
+		// Player has entered the console - give him an icon.
 		else if ( lCommand == CLC_ENTERCONSOLE )
-		{
-
-			// Player has entered the console - give him an icon.
-			players[g_lCurrentClient].bInConsole = true;
-			SERVERCOMMANDS_SetPlayerStatus( g_lCurrentClient, PLAYERSTATUS_INCONSOLE );
-		}
+			PLAYER_SetStatus( &players[g_lCurrentClient], PLAYERSTATUS_INCONSOLE, true, PLAYERSTATUS_SERVERSHOULDSKIPCLIENT );
+		// Player has left the console - remove his icon.
 		else if ( lCommand == CLC_EXITCONSOLE )
-		{
-			// Player has left the console - remove his icon.
-			players[g_lCurrentClient].bInConsole = false;
-			SERVERCOMMANDS_SetPlayerStatus( g_lCurrentClient, PLAYERSTATUS_INCONSOLE );
-		}
+			PLAYER_SetStatus( &players[g_lCurrentClient], PLAYERSTATUS_INCONSOLE, false, PLAYERSTATUS_SERVERSHOULDSKIPCLIENT );
+		// Player has entered the menu - give him an icon.
 		else if ( lCommand == CLC_ENTERMENU )
-		{
-
-			// Player has entered the console - give him an icon.
-			players[g_lCurrentClient].bInMenu = true;
-			SERVERCOMMANDS_SetPlayerStatus( g_lCurrentClient, PLAYERSTATUS_INMENU );
-		}
+			PLAYER_SetStatus( &players[g_lCurrentClient], PLAYERSTATUS_INMENU, true, PLAYERSTATUS_SERVERSHOULDSKIPCLIENT );
+		// Player has left the menu - remove his icon.
 		else if ( lCommand == CLC_EXITMENU )
-		{
-			// Player has left the console - remove his icon.
-			players[g_lCurrentClient].bInMenu = false;
-			SERVERCOMMANDS_SetPlayerStatus( g_lCurrentClient, PLAYERSTATUS_INMENU );
-		}
+			PLAYER_SetStatus( &players[g_lCurrentClient], PLAYERSTATUS_INMENU, false, PLAYERSTATUS_SERVERSHOULDSKIPCLIENT );
+
 		return false;
 	case CLC_IGNORE:
 
@@ -4901,10 +4872,7 @@ bool SERVER_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 		// Toggle this player (specator)'s "ready to go on" status.
 		// [RC] Now a permanent choice.
-		players[g_lCurrentClient].bReadyToGoOn = true;
-
-		if ( SERVER_IsEveryoneReadyToGoOn( ) == false )
-			SERVERCOMMANDS_SetPlayerStatus( g_lCurrentClient, PLAYERSTATUS_READYTOGOON );
+		PLAYER_SetStatus( &players[g_lCurrentClient], PLAYERSTATUS_READYTOGOON, true );
 
 		return false;
 	case CLC_CHANGEDISPLAYPLAYER:
@@ -6070,23 +6038,15 @@ bool ClientMoveCommand::process( const ULONG ulClient ) const
 	{
 		// [K6/BB] The client is pressing a button, so not afk.
 		g_aClients[ulClient].lLastActionTic = gametic;
+
 		if ( pPlayer->bChatting )
-		{
-			pPlayer->bChatting = false;
-			SERVERCOMMANDS_SetPlayerStatus( ulClient, PLAYERSTATUS_CHATTING );
-		}
+			PLAYER_SetStatus( &players[ulClient], PLAYERSTATUS_CHATTING, false );
 
 		if ( pPlayer->bInConsole )
-		{
-			pPlayer->bInConsole = false;
-			SERVERCOMMANDS_SetPlayerStatus( ulClient, PLAYERSTATUS_INCONSOLE );
-		}
+			PLAYER_SetStatus( &players[ulClient], PLAYERSTATUS_INCONSOLE, false );
 
 		if ( pPlayer->bInMenu )
-		{
-			pPlayer->bInMenu = false;
-			SERVERCOMMANDS_SetPlayerStatus( ulClient, PLAYERSTATUS_INMENU );
-		}
+			PLAYER_SetStatus( &players[ulClient], PLAYERSTATUS_INMENU, false );
 	}
 
 	return ( false );

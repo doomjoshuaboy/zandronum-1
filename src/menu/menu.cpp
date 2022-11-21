@@ -341,13 +341,7 @@ void M_StartControlPanel (bool makeSound)
 	BackbuttonTime = 0;
 	BackbuttonAlpha = 0;
 
-	// [BB] Don't change the displayed menu status when a demo is played.
-	if ( CLIENTDEMO_IsPlaying() == false )
-		players[consoleplayer].bInMenu = true;
-
-	// [RC] Tell the server so we get an "in menu" icon.
-	if ( NETWORK_GetState() == NETSTATE_CLIENT )
-		CLIENTCOMMANDS_EnterMenu();
+	PLAYER_SetStatus( &players[consoleplayer], PLAYERSTATUS_INMENU, true, PLAYERSTATUS_CLIENTSHOULDSENDUPDATE );
 }
 
 //=============================================================================
@@ -870,17 +864,7 @@ void M_ClearMenus ()
 	ServerSetupMenu = NULL;
 	ServerMenuEnabled = false;
 
-	// [BB] We are not in menu anymore, so set bInMenu if necessary.
-	if ( players[consoleplayer].bInMenu )
-	{
-		// [BB] Don't change the displayed menu status when a demo is played.
-		if ( CLIENTDEMO_IsPlaying() == false )
-			players[consoleplayer].bInMenu = false;
-
-		// [RC] Tell the server so our "in Menu" icon is removed.
-		if ( NETWORK_GetState() == NETSTATE_CLIENT )
-			CLIENTCOMMANDS_ExitMenu();
-	}
+	PLAYER_SetStatus( &players[consoleplayer], PLAYERSTATUS_INMENU, false, PLAYERSTATUS_CLIENTSHOULDSENDUPDATE );
 }
 
 //=============================================================================
