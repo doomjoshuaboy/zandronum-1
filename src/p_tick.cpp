@@ -357,26 +357,8 @@ void P_Ticker (void)
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
 		// Increment individual player time.
-		if ( NETWORK_InClientMode() == false )
-		{
-			if ( playeringame[ulIdx] )
-			{
-				players[ulIdx].ulTime++;
-
-				// Potentially update the scoreboard or send out an update.
-				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				{
-					if (( players[ulIdx].ulTime % ( TICRATE * 60 )) == 0 )
-					{
-						// Send out the updated time field to all clients.
-						SERVERCOMMANDS_UpdatePlayerTime( ulIdx );
-
-						// Update the console as well.
-						SERVERCONSOLE_UpdatePlayerInfo( ulIdx, UDF_TIME );
-					}
-				}
-			}
-		}
+		if (( NETWORK_InClientMode( ) == false ) && ( playeringame[ulIdx] ))
+			PLAYER_SetTime( &players[ulIdx], players[ulIdx].ulTime + 1 );
 
 		// Clients "think" every time we process a movement command.
 		// [BB] The server has to think for lagging clients, otherwise they aren't affected by things like sector damage.

@@ -4416,7 +4416,7 @@ void ServerCommands::UpdatePlayerExtraData::Execute()
 //
 void ServerCommands::UpdatePlayerTime::Execute()
 {
-	player->ulTime = time * ( TICRATE * 60 );
+	PLAYER_SetTime( player, time * ( TICRATE * 60 ));
 }
 
 //*****************************************************************************

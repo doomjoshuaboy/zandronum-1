@@ -2821,6 +2821,30 @@ void PLAYER_SetDeaths( player_t *pPlayer, ULONG ulDeaths, bool bInformClients )
 
 //*****************************************************************************
 //
+void PLAYER_SetTime( player_t *pPlayer, ULONG ulTime )
+{
+	if ( pPlayer == NULL )
+		return;
+
+	// Set the player's time.
+	pPlayer->ulTime = ulTime;
+
+	// Potentially update the scoreboard or send out an update.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
+		if (( pPlayer->ulTime % ( TICRATE * 60 )) == 0 )
+		{
+			// Send out the updated time field to all clients.
+			SERVERCOMMANDS_UpdatePlayerTime( pPlayer - players );
+
+			// Update the console as well.
+			SERVERCONSOLE_UpdatePlayerInfo( pPlayer - players, UDF_TIME );
+		}
+	}
+}
+
+//*****************************************************************************
+//
 void PLAYER_SetStatus( player_t *pPlayer, ULONG ulType, bool bEnable, ULONG ulFlags )
 {
 	if ( pPlayer == NULL )
