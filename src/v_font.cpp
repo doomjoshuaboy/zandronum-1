@@ -2404,7 +2404,6 @@ void V_InitFontColors ()
 					parms.Push (tparm);
 				}
 			}
-			std::atomic_thread_fence(std::memory_order_acquire);
 			info.ParmLen[parmchoice] = parms.Size() - info.StartParm[parmchoice];
 			if (info.ParmLen[0] == 0)
 			{

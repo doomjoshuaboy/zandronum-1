@@ -9,7 +9,6 @@
 
 #pragma once
 
-
 #if defined(__GNUC__) && !defined(__forceinline)
 #define __forceinline __inline__ __attribute__((always_inline))
 #endif

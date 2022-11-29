@@ -35,8 +35,6 @@ endif( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" S
 
 option( DYN_FLUIDSYNTH "Dynamically load fluidsynth" ON )
 
-
-
 if( CMAKE_SIZEOF_VOID_P MATCHES "8" )
 	set( X64 64 )
 endif( CMAKE_SIZEOF_VOID_P MATCHES "8" )
@@ -64,28 +62,33 @@ set( MINOR_VERSIONS "64" "61" "50" "49" "48" "47" "46" "45" "44" "43" "42" "41"
 set( MAJOR_VERSIONS "44" "34" "28" "26" "24" "22" "20" )
 
 if( NOT FMOD_DIR_VERSIONS )
-    set( FMOD_DIR_VERSIONS "" )
+	set( FMOD_DIR_VERSIONS "" )
 endif( NOT FMOD_DIR_VERSIONS )
 if( NOT FMOD_VERSIONS )
-    set( FMOD_VERSIONS "" )
+	set( FMOD_VERSIONS "" )
 endif( NOT FMOD_VERSIONS )
 if( NOT FMOD_LOCAL_INC_DIRS )
-    set( FMOD_LOCAL_INC_DIRS "" )
+	set( FMOD_LOCAL_INC_DIRS "" )
 endif( NOT FMOD_LOCAL_INC_DIRS )
 if( NOT FMOD_LOCAL_LIB_DIRS )
-    set( FMOD_LOCAL_LIB_DIRS "" )
+	set( FMOD_LOCAL_LIB_DIRS "" )
 endif( NOT FMOD_LOCAL_LIB_DIRS )
 
 set( FMOD_DIR_VERSIONS ${FMOD_DIR_VERSIONS} "../fmod" )
 foreach( majver ${MAJOR_VERSIONS} )
-    foreach( minver ${MINOR_VERSIONS} )
-        set( FMOD_VERSIONS ${FMOD_VERSIONS} "fmodex${X64}-4.${majver}.${minver}" )
-        set( FMOD_DIR_VERSIONS ${FMOD_DIR_VERSIONS} "${CMAKE_HOME_DIRECTORY}/fmodapi4${majver}${minver}linux${X64}" )
-    endforeach( minver ${MINOR_VERSIONS} )
-    foreach( dir ${FMOD_DIR_VERSIONS} )
-        set( FMOD_LOCAL_INC_DIRS ${FMOD_LOCAL_INC_DIRS} "${dir}/api/inc" )
-        set( FMOD_LOCAL_LIB_DIRS ${FMOD_LOCAL_LIB_DIRS} "${dir}/api/lib" )
-    endforeach( dir ${FMOD_DIR_VERSIONS} )
+	foreach( minver ${MINOR_VERSIONS} )
+		set( FMOD_VERSIONS ${FMOD_VERSIONS} "fmodex${X64}-4.${majver}.${minver}" )
+		# FMOD Ex version 4.44 unified 32-bit and 64-bit linux packages into one.
+		if( NOT majver EQUAL "44" )
+			set( FMOD_DIR_VERSIONS ${FMOD_DIR_VERSIONS} "${CMAKE_HOME_DIRECTORY}/fmodapi4${majver}${minver}linux${X64}" )
+		else()
+			set( FMOD_DIR_VERSIONS ${FMOD_DIR_VERSIONS} "${CMAKE_HOME_DIRECTORY}/fmodapi4${majver}${minver}linux" )
+		endif()
+	endforeach( minver ${MINOR_VERSIONS} )
+	foreach( dir ${FMOD_DIR_VERSIONS} )
+		set( FMOD_LOCAL_INC_DIRS ${FMOD_LOCAL_INC_DIRS} "${dir}/api/inc" )
+		set( FMOD_LOCAL_LIB_DIRS ${FMOD_LOCAL_LIB_DIRS} "${dir}/api/lib" )
+	endforeach( dir ${FMOD_DIR_VERSIONS} )
 endforeach( majver ${MAJOR_VERSIONS} )
 
 if( NOT ZDOOM_LIBS )
@@ -296,6 +299,7 @@ if( NOT NO_GL )
 	include_directories( ${OPENGL_INCLUDE_DIR} )
 endif( NOT NO_GL )
 
+# Decide on the name of the FMOD library we want to use.
 if( NOT NO_FMOD )
  	# Search for FMOD include files
  	if( NOT WIN32 )
@@ -372,6 +376,7 @@ else()
 endif()
 # Search for FMOD include files
 
+if( NO_FMOD )
 if( NOT WIN32 )
 	find_path( FMOD_INCLUDE_DIR fmod.hpp
 		PATHS ${FMOD_LOCAL_INC_DIRS} )
@@ -413,7 +418,7 @@ else( FMOD_LIBRARY )
 		message( SEND_ERROR "Could not find FMOD library" )
 	endif ( NOT NO_SOUND )
 endif( FMOD_LIBRARY )
-
+endif( NO_FMOD )
 
 # Search for FluidSynth
 
@@ -793,7 +798,7 @@ set( PLAT_SDL_SOURCES
 	sdl/i_main.cpp
 	sdl/i_movie.cpp
 	sdl/i_system.cpp
-    sdl/i_timer.cpp
+	sdl/i_timer.cpp
 	sdl/sdlvideo.cpp
 	sdl/sdlglvideo.cpp
 	sdl/st_start.cpp )
@@ -1400,6 +1405,7 @@ add_executable( zdoom WIN32 MACOSX_BUNDLE
 	resourcefiles/resourcefile.cpp
 	sfmt/SFMT.cpp
 	sound/fmodsound.cpp
+	sound/oalsound.cpp
 	sound/i_music.cpp
 	sound/i_sound.cpp
 	sound/music_cd.cpp
@@ -1632,12 +1638,12 @@ if ( WIN32 )
 endif ( WIN32 )
 
 if( APPLE )
-    set( LINK_FRAMEWORKS "-framework CoreFoundation -framework Carbon -framework Cocoa -framework IOKit -framework OpenGL")
+    set( LINK_FRAMEWORKS "-framework CoreFoundation -framework Carbon -framework Cocoa -framework IOKit -framework OpenGL -framework OpenAL")
     
     set_target_properties(zdoom PROPERTIES
         LINK_FLAGS "${LINK_FRAMEWORKS}"
         MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/sdl/osx/zandronum-info.plist"
-        XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "Apple Development" )
+        XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "doomjoshuaboy" )
             
     if( NOT NO_FMOD )
         # Fix fmod link so that it can be found in the app bundle.

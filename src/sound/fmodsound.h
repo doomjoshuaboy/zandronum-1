@@ -3,6 +3,9 @@
 
 #ifndef NO_SOUND
 #include "i_sound.h"
+
+#ifndef NO_FMOD
+
 #include "fmod_wrap.h"
 
 class FMODSoundRenderer : public SoundRenderer
@@ -127,4 +130,5 @@ private:
 };
 
 #endif
+#endif //NO_FMOD
 #endif //NO_SOUND

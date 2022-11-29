@@ -509,14 +509,11 @@ def main():
 	argparser.add_argument('--header', required = True)
 	args = argparser.parse_args()
 
-<<<<<<< HEAD
 	# Hax sys.path so that python can find all the modules under Windows
 	import sys
 	import os.path
 	sys.path.insert(1, os.path.dirname(os.path.realpath(__file__)))
 
-=======
->>>>>>> 77ff70ccd (Initial commit)
 	# Parse the specification file
 	from spec import NetworkSpec
 	spec = NetworkSpec()
@@ -544,8 +541,5 @@ def main():
 		return 0
 
 if __name__ == '__main__':
-<<<<<<< HEAD
 	from sys import exit
-=======
->>>>>>> 77ff70ccd (Initial commit)
 	exit(main())

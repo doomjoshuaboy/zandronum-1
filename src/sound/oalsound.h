@@ -67,6 +67,7 @@
 #include "efx.h"
 #endif
 
+
 class OpenALSoundStream;
 
 class OpenALSoundRenderer : public SoundRenderer

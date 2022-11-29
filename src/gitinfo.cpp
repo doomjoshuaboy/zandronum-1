@@ -34,7 +34,7 @@
 ** file needs to be recompiled.
 */
 
-#include "gitinfo_arm.h"
+#include "gitinfo.h"
 #include "version.h"
 
 const char *GetGitDescription()

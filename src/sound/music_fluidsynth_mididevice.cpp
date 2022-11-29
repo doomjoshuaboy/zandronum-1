@@ -116,17 +116,18 @@ CUSTOM_CVAR(Bool, fluid_chorus, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 		currSong->FluidSettingInt("synth.chorus.active", self);
 }
 
-CUSTOM_CVAR(Int, fluid_voices, 128, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+//*SEB Plyphony: 32 is enough, 128 is overkill for Pandora.
+CUSTOM_CVAR(Int, fluid_voices, 32, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 {
 	if (self < 16)
 		self = 16;
-	else if (self > 4096)
-		self = 4096;
+	else if (self > 64)
+		self = 64;
 	else if (currSong != NULL)
 		currSong->FluidSettingInt("synth.polyphony", self);
 }
 
-CUSTOM_CVAR(Int, fluid_interp, 1, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+CUSTOM_CVAR(Int, fluid_interp, 0, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 {
 	// Values are: 0 = FLUID_INTERP_NONE
 	//             1 = FLUID_INTERP_LINEAR

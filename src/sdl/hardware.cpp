@@ -165,7 +165,11 @@ void I_CreateRenderer()
 
 DFrameBuffer *I_SetMode (int &width, int &height, DFrameBuffer *old)
 {
+#ifdef PANDORA
+	bool fs = true;
+#else
 	bool fs = false;
+#endif
 	switch (Video->GetDisplayType ())
 	{
 	case DISPLAY_WindowOnly:
@@ -178,6 +182,9 @@ DFrameBuffer *I_SetMode (int &width, int &height, DFrameBuffer *old)
 		fs = fullscreen;
 		break;
 	}
+#ifdef PANDORA
+	if (width>800 || height>480) {width=800; height=480;};
+#endif
 	DFrameBuffer *res = Video->CreateFrameBuffer (width, height, fs, old);
 
 	/* Right now, CreateFrameBuffer cannot return NULL
@@ -330,10 +337,18 @@ CUSTOM_CVAR (Int, vid_maxfps, 200, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 	}
 }
 
+#ifdef PANDORA
+#ifndef NO_GL
+CUSTOM_CVAR (Bool, fullscreen, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOINITCALL)
+#else
+CUSTOM_CVAR (Bool, fullscreen, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+#endif
+#else
 #ifndef NO_GL
 CUSTOM_CVAR (Bool, fullscreen, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOINITCALL)
 #else
 CUSTOM_CVAR (Bool, fullscreen, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+#endif
 #endif
 {
 	if ( screen )

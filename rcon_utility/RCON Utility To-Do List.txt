@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 ===============================================================================
 
 	RCON Utility - "To Do" List
@@ -7,14 +6,4 @@
 
 - Improve support for multiple sessions
 	- mIRC-like MDI setup?
-=======
-===============================================================================
-
-	RCON Utility - "To Do" List
-	
-===============================================================================
-
-- Improve support for multiple sessions
-	- mIRC-like MDI setup?
->>>>>>> 77ff70ccd (Initial commit)
 - Player list kick/ban menu, etc

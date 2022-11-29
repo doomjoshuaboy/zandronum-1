@@ -144,7 +144,7 @@ CUSTOM_CVAR (Float, snd_waterlp, 250, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 		self = 22000;
 	}
 }
-
+#ifndef NO_FMOD
 #ifndef NO_SOUND
 
 // PRIVATE DATA DEFINITIONS ------------------------------------------------
@@ -3109,4 +3109,5 @@ FMOD_RESULT FMODSoundRenderer::SetSystemReverbProperties(const REVERB_PROPERTIES
 #endif
 }
 
+#endif //NO_FMOD
 #endif //NO_SOUND

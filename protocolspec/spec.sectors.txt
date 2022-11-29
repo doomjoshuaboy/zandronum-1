@@ -207,17 +207,12 @@ Command SetLineTexture
 EndCommand
 
 Command SetLineTextureByID
-<<<<<<< HEAD
 	UShort lineID
-=======
-	Short lineID
->>>>>>> 77ff70ccd (Initial commit)
 	String textureName
 	Bool side
 	Byte position
 EndCommand
 
-<<<<<<< HEAD
 Command SetLineTextureOffset
 	Line line
 	Fixed XOffset
@@ -252,8 +247,6 @@ Command SetLineTextureScaleByID
 	Byte flags
 EndCommand
 
-=======
->>>>>>> 77ff70ccd (Initial commit)
 Command SetSomeLineFlags
 	Line line
 	Long blockFlags

@@ -153,11 +153,7 @@ EndCommand
 
 Command KillThing
 	Actor victim
-<<<<<<< HEAD
 	Variable health
-=======
-	Short health
->>>>>>> 77ff70ccd (Initial commit)
 	String<Name> damageType
 	Actor source with NullAllowed
 	Actor inflictor with NullAllowed
@@ -218,7 +214,6 @@ Command SetThingProperty
 	Long value
 EndCommand
 
-<<<<<<< HEAD
 Command SetThingStringProperty
 	ExtendedCommand
 	Actor actor
@@ -226,8 +221,6 @@ Command SetThingStringProperty
 	String value
 EndCommand
 
-=======
->>>>>>> 77ff70ccd (Initial commit)
 Command SetThingSound
 	Actor actor
 	Byte soundType

@@ -278,20 +278,20 @@ void FGLRenderer::ClearBorders()
 	gl_RenderState.EnableTexture(false);
 	gl_RenderState.Apply(true);
 
-	glBegin(GL_TRIANGLES);          // Each set of 3 vertices form a triangle
-	glColor3f(0.0f, 0.0f, 1.0f); // Blue
-	glVertex2f(0.1f, -0.6f);
-	glVertex2f(0.7f, -0.6f);
-	glVertex2f(0.4f, -0.1f);
+	glBegin(GL_QUADS);
+	// upper quad
+	glVertex2i(0, borderHeight);
+	glVertex2i(0, 0);
+	glVertex2i(width, 0);
+	glVertex2i(width, borderHeight);
 
-	glColor3f(1.0f, 0.0f, 0.0f); // Red
-	glVertex2f(0.3f, -0.4f);
-	glColor3f(0.0f, 1.0f, 0.0f); // Green
-	glVertex2f(0.9f, -0.4f);
-	glColor3f(0.0f, 0.0f, 1.0f); // Blue
-	glVertex2f(0.6f, -0.9f);
+	// lower quad
+	glVertex2i(0, trueHeight);
+	glVertex2i(0, trueHeight - borderHeight);
+	glVertex2i(width, trueHeight - borderHeight);
+	glVertex2i(width, trueHeight);
 	glEnd();
-
+	
 	gl_RenderState.EnableTexture(true);
 
 	glViewport(0, (trueHeight - height) / 2, width, height); 
