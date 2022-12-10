@@ -50,6 +50,8 @@
 #ifndef __SCOREBOARD_H__
 #define __SCOREBOARD_H__
 
+#include "scoreboard_enums.h"
+
 //*****************************************************************************
 //	DEFINES
 
@@ -83,6 +85,61 @@ enum
 	ST_WINCOUNT,
 
 	NUM_SORT_TYPES
+};
+
+//*****************************************************************************
+//
+// [AK] ColumnValue
+//
+// Allows for easy storage of different data types that a column might use.
+//
+//*****************************************************************************
+
+class ColumnValue
+{
+public:
+	ColumnValue( void ) : DataType( COLUMNDATA_UNKNOWN ) { }
+
+	inline COLUMNDATA_e GetDataType( void ) const { return DataType; }
+	template <typename T> T GetValue( void ) const;
+
+	// Int data type.
+	template <> int GetValue( void ) const { return DataType == COLUMNDATA_INT ? Int : 0; }
+	void operator= ( int value ) { Int = value; DataType = COLUMNDATA_INT; }
+	void operator= ( ULONG ulValue ) { Int = ulValue; DataType = COLUMNDATA_INT; }
+
+	// Bool data type.
+	template <> bool GetValue( void ) const { return DataType == COLUMNDATA_BOOL ? Bool : false; }
+	void operator= ( bool value ) { Bool = value; DataType = COLUMNDATA_BOOL; }
+
+	// Float data type.
+	template <> float GetValue( void ) const { return DataType == COLUMNDATA_FLOAT ? Float : 0.0f; }
+	void operator= ( float value ) { Float = value; DataType = COLUMNDATA_FLOAT; }
+
+	// String data type.
+	template <> const char *GetValue( void ) const { return DataType == COLUMNDATA_STRING ? String : NULL; }
+	template <> FString GetValue( void ) const { return DataType == COLUMNDATA_STRING ? String : NULL; }
+	void operator= ( const char *value ) { String = value; DataType = COLUMNDATA_STRING; }
+	void operator= ( FString value ) { String = value.GetChars( ); DataType = COLUMNDATA_STRING; }
+
+	// Color data type.
+	template <> PalEntry GetValue( void ) const { return DataType == COLUMNDATA_COLOR ? Int : 0; }
+	void operator= ( PalEntry value ) { Int = value; DataType = COLUMNDATA_COLOR; }
+
+	// Texture data type.
+	template <> FTexture *GetValue( void ) const { return DataType == COLUMNDATA_TEXTURE ? Texture : NULL; }
+	void operator= ( FTexture *value ) { Texture = value; DataType = COLUMNDATA_TEXTURE; }
+
+private:
+	COLUMNDATA_e DataType;
+	union
+	{
+		int Int;
+		bool Bool;
+		float Float;
+		const char *String;
+		FTexture *Texture;
+	};
 };
 
 //*****************************************************************************
