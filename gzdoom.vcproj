@@ -1734,6 +1734,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\scoreboard_enums.h"
+				>
+			</File>
+			<File
 				RelativePath=".\src\sectinfo.h"
 				>
 			</File>
