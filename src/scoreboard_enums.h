@@ -220,8 +220,8 @@ BEGIN_ENUM( COLUMNCMD_e )
 	ENUM_ELEMENT( COLUMNCMD_SHORTNAME ),
 	// How the contents inside the column are aligned (left, center, or right).
 	ENUM_ELEMENT( COLUMNCMD_ALIGNMENT ),
-	// The default width of the column, in pixels.
-	ENUM_ELEMENT( COLUMNCMD_WIDTH ),
+	// The size of the column (can be either the whole width or padding), in pixels.
+	ENUM_ELEMENT( COLUMNCMD_SIZE ),
 	// A list of game modes where this column is only active, if not empty.
 	ENUM_ELEMENT( COLUMNCMD_GAMEMODE ),
 	// The game types this column is only active in (i.e. cooperative, deathmatch, teamgame).
