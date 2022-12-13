@@ -367,6 +367,22 @@ void ScoreColumn::UpdateWidth( FFont *pHeaderFont, FFont *pRowFont )
 
 //*****************************************************************************
 //
+// [AK] ScoreColumn::DrawHeader
+//
+// Draws the column's header with the specified font and color.
+//
+//*****************************************************************************
+
+void ScoreColumn::DrawHeader( FFont *pFont, const ULONG ulColor, const LONG lYPos, const ULONG ulHeight ) const
+{
+	if (( bDisabled ) || ( ulFlags & COLUMNFLAG_DONTSHOWHEADER ))
+		return;
+
+	DrawString( bUseShortName ? ShortName.GetChars( ) : DisplayName.GetChars( ), pFont, ulColor, lYPos, ulHeight, 1.0f );
+}
+
+//*****************************************************************************
+//
 // [AK] ScoreColumn::DrawString
 //
 // Draws a string within the body of the column.
