@@ -1097,6 +1097,93 @@ ColumnValue DataScoreColumn::GetValue( const ULONG ulPlayer ) const
 
 //*****************************************************************************
 //
+// [AK] DataScoreColumn::ParseCommand
+//
+// Parses commands that are only used for data columns.
+//
+//*****************************************************************************
+
+void DataScoreColumn::ParseCommand( const FName Name, FScanner &sc, const COLUMNCMD_e Command, const FString CommandName )
+{
+	switch ( Command )
+	{
+		case COLUMNCMD_MAXLENGTH:
+		case COLUMNCMD_PREFIX:
+		case COLUMNCMD_SUFFIX:
+		{
+			// [AK] These commands are only available for text-based columns.
+			if ( GetTemplate( ) != COLUMNTEMPLATE_TEXT )
+				sc.ScriptError( "Option '%s' is only available for text-based columns.", CommandName.GetChars( ));
+
+			if ( Command == COLUMNCMD_MAXLENGTH )
+			{
+				// [AK] Since maximum length doesn't apply to integer columns, we should
+				// make sure that this command cannot be used for them.
+				if ( GetDataType( ) == COLUMNDATA_INT )
+					sc.ScriptError( "Option '%s' cannot be used with integer columns.", CommandName.GetChars( ));
+
+				sc.MustGetNumber( );
+				ulMaxLength = MAX( sc.Number, 0 );
+			}
+			else
+			{
+				sc.MustGetString( );
+
+				if ( Command == COLUMNCMD_PREFIX )
+					PrefixText = sc.String;
+				else
+					SuffixText = sc.String;
+			}
+
+			break;
+		}
+
+		case COLUMNCMD_CLIPRECTWIDTH:
+		case COLUMNCMD_CLIPRECTHEIGHT:
+		{
+			// [AK] These commands are only available for graphic-based columns.
+			if ( GetTemplate( ) != COLUMNTEMPLATE_GRAPHIC )
+				sc.ScriptError( "Option '%s' is only available for graphic-based columns.", CommandName.GetChars( ));
+
+			sc.MustGetNumber( );
+
+			if ( Command == COLUMNCMD_CLIPRECTWIDTH )
+				ulClipRectWidth = MAX( sc.Number, 0 );
+			else
+				ulClipRectHeight = MAX( sc.Number, 0 );
+
+			break;
+		}
+
+		case COLUMNCMD_TRUETEXT:
+		case COLUMNCMD_FALSETEXT:
+		{
+			// [AK] True and false text are only available for boolean columns.
+			if ( GetDataType( ) != COLUMNDATA_BOOL )
+				sc.ScriptError( "Option '%s' is only available for boolean columns.", CommandName.GetChars( ));
+
+			sc.MustGetString( );
+
+			// [AK] If the name begins with a '$', look up the string in the LANGUAGE lump.
+			const char *pszString = sc.String[0] == '$' ? GStrings[sc.String] : sc.String;
+
+			if ( Command == COLUMNCMD_TRUETEXT )
+				TrueText = pszString;
+			else
+				FalseText = pszString;
+
+			break;
+		}
+
+		// [AK] Parse any generic column commands if we reach here.
+		default:
+			ScoreColumn::ParseCommand( Name, sc, Command, CommandName );
+			break;
+	}
+}
+
+//*****************************************************************************
+//
 // [AK] DataScoreColumn::UpdateWidth
 //
 // Gets the smallest width that will fit the contents in all player rows.
