@@ -187,6 +187,8 @@ public:
 	bool ShouldUseShortName( void ) const { return bUseShortName; }
 	void SetHidden( bool bEnable );
 
+	virtual void Refresh( void );
+
 protected:
 	FString DisplayName;
 	FString ShortName;

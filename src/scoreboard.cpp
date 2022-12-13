@@ -222,6 +222,113 @@ void ScoreColumn::SetHidden( bool bEnable )
 
 //*****************************************************************************
 //
+// [AK] ScoreColumn::Refresh
+//
+// Performs checks to see if a column should be active or disabled. Such checks
+// include whether or not the current game mode can support the column, if the
+// column is allowed in offline or online games, if the column should (not)
+// appear in-game or on the intermission screen, etc.
+//
+//*****************************************************************************
+
+void ScoreColumn::Refresh( void )
+{
+	bDisabled = true;
+
+	// [AK] If the column's supposed to be hidden, stop here.
+	if ( bHidden )
+		return;
+
+	// [AK] If this column has a CVar associated with it, check to see if the column should be
+	// active based on the CVar's value. If the conditions fail, stop here.
+	if ( pCVar != NULL )
+	{
+		const bool bValue = pCVar->GetGenericRep( CVAR_Bool ).Bool;
+
+		if ( ulFlags & COLUMNFLAG_CVARMUSTBEZERO )
+		{
+			if ( bValue != false )
+				return;
+		}
+		else if ( bValue == false )
+		{
+			return;
+		}
+	}
+
+	// [AK] If the current game mode isn't allowed for this column, then it can't be active.
+	if ( GameModeList.find( GAMEMODE_GetCurrentMode( )) == GameModeList.end( ))
+		return;
+
+	const ULONG ulGameModeFlags = GAMEMODE_GetCurrentFlags( );
+
+	// [AK] Check if the current game type won't allow this column to be active.
+	if ( ulGameAndEarnTypeFlags & GAMETYPE_MASK )
+	{
+		if ((( ulGameModeFlags & ulGameAndEarnTypeFlags ) & GAMETYPE_MASK ) == 0 )
+			return;
+	}
+
+	// [AK] Check if the current game mode's earn type won't allow this column to be active.
+	if ( ulGameAndEarnTypeFlags & EARNTYPE_MASK )
+	{
+		if ((( ulGameModeFlags & ulGameAndEarnTypeFlags ) & EARNTYPE_MASK ) == 0 )
+			return;
+	}
+
+	ULONG ulRequiredFlags = 0;
+
+	// [AK] We'll check if the column requires the PLAYERONTEAMS, USEMAXLIVES, and USETEAMITEM
+	// game mode flags to be enabled. Make sure that the current game mode has all the required flags.
+	if ( ulFlags & COLUMNFLAG_REQUIRESTEAMS )
+		ulRequiredFlags |= GMF_PLAYERSONTEAMS;
+	if ( ulFlags & COLUMNFLAG_REQUIRESLIVES )
+		ulRequiredFlags |= GMF_USEMAXLIVES;
+	if ( ulFlags & COLUMNFLAG_REQUIRESTEAMITEMS )
+		ulRequiredFlags |= GMF_USETEAMITEM;
+
+	if (( ulRequiredFlags != 0 ) && (( ulRequiredFlags & ulGameModeFlags ) != ulRequiredFlags ))
+		return;
+
+	ULONG ulForbiddenFlags = 0;
+
+	// [AK] We'll also check if the column requires the aforementioned game mode flags to be disabled.
+	// If the current game mode has at least one of the flags that the column forbids, stop here.
+	if ( ulFlags & COLUMNFLAG_FORBIDTEAMS )
+		ulForbiddenFlags |= GMF_PLAYERSONTEAMS;
+	if ( ulFlags & COLUMNFLAG_FORBIDLIVES )
+		ulForbiddenFlags |= GMF_USEMAXLIVES;
+	if ( ulFlags & COLUMNFLAG_FORBIDTEAMITEMS )
+		ulForbiddenFlags |= GMF_USETEAMITEM;
+
+	if ( ulForbiddenFlags & ulGameModeFlags )
+		return;
+
+	// [AK] Next, we'll check if the column is only active in offline or online games. A column should
+	// be disabled in online games if OFFLINEONLY is enabled, and offline games if ONLINEONLY is enabled.
+	if ( NETWORK_InClientMode( ))
+	{
+		if ( ulFlags & COLUMNFLAG_OFFLINEONLY )
+			return;
+	}
+	else if ( ulFlags & COLUMNFLAG_ONLINEONLY )
+	{
+		return;
+	}
+
+	// [AK] Disable this column if it's supposed to be invisible on the intermission screen, or if it's
+	// supposed to be invisible in-game.
+	if ((( gamestate == GS_INTERMISSION ) && ( ulFlags & COLUMNFLAG_NOINTERMISSION )) ||
+		(( gamestate == GS_LEVEL ) && ( ulFlags & COLUMNFLAG_INTERMISSIONONLY )))
+	{
+		return;
+	}
+
+	bDisabled = false;
+}
+
+//*****************************************************************************
+//
 // [AK] SCOREBOARD_GetColumn
 //
 // Returns a pointer to a column by searching for its name.
