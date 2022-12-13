@@ -239,6 +239,7 @@ public:
 	virtual COLUMNTEMPLATE_e GetTemplate( void ) const;
 	virtual COLUMNDATA_e GetDataType( void ) const;
 	FString GetValueString( const ColumnValue &Value ) const;
+	ULONG GetValueWidth( const ColumnValue &Value, FFont *pFont ) const;
 
 protected:
 	const COLUMNTYPE_e NativeType;

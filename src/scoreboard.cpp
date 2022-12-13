@@ -833,6 +833,56 @@ FString DataScoreColumn::GetValueString( const ColumnValue &Value ) const
 
 //*****************************************************************************
 //
+// [AK] DataScoreColumn::GetValueWidth
+//
+// Gets the width of a value inside a ColumnValue object.
+//
+//*****************************************************************************
+
+ULONG DataScoreColumn::GetValueWidth( const ColumnValue &Value, FFont *pFont ) const
+{
+	switch ( Value.GetDataType( ))
+	{
+		case COLUMNDATA_INT:
+		case COLUMNDATA_BOOL:
+		case COLUMNDATA_FLOAT:
+		case COLUMNDATA_STRING:
+		{
+			if ( pFont == NULL )
+				return 0;
+
+			return pFont->StringWidth( GetValueString( Value ).GetChars( ));
+		}
+
+		case COLUMNDATA_COLOR:
+		{
+			// [AK] If this column must always use the shortest possible width, then return the
+			// clipping rectangle's width, whether it's zero or not.
+			if ( ulFlags & COLUMNFLAG_ALWAYSUSESHORTESTWIDTH )
+				return ulClipRectWidth;
+
+			// [AK] If the clipping rectangle's width is non-zero, return whichever is smaller:
+			// the column's size (the default width here) or the clipping rectangle's width.
+			return ulClipRectWidth > 0 ? MIN( ulSizing, ulClipRectWidth ) : ulSizing;
+		}
+
+		case COLUMNDATA_TEXTURE:
+		{
+			FTexture *pTexture = Value.GetValue<FTexture *>( );
+
+			if ( pTexture == NULL )
+				return 0;
+
+			const ULONG ulTextureWidth = pTexture->GetScaledWidth( );
+			return ulClipRectWidth > 0 ? MIN( ulTextureWidth, ulClipRectWidth ) : ulTextureWidth;
+		}
+	}
+
+	return 0;
+}
+
+//*****************************************************************************
+//
 // [AK] SCOREBOARD_GetColumn
 //
 // Returns a pointer to a column by searching for its name.
