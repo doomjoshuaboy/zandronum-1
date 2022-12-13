@@ -284,6 +284,7 @@ public:
 	CompositeScoreColumn( const char *pszName ) : ScoreColumn( pszName ) { }
 
 	virtual COLUMNTEMPLATE_e GetTemplate( void ) const { return COLUMNTEMPLATE_COMPOSITE; }
+	virtual void ParseCommand( const FName Name, FScanner &sc, const COLUMNCMD_e Command, const FString CommandName );
 	virtual void Refresh( void );
 	virtual void UpdateWidth( FFont *pHeaderFont, FFont *pRowFont );
 	virtual void DrawValue( const ULONG ulPlayer, FFont *pFont, const ULONG ulColor, const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const;

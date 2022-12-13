@@ -1286,6 +1286,72 @@ void DataScoreColumn::DrawValue( const ULONG ulPlayer, FFont *pFont, const ULONG
 
 //*****************************************************************************
 //
+// [AK] CompositeScoreColumn::ParseCommand
+//
+// Parses commands that are only used for composite columns.
+//
+//*****************************************************************************
+
+void CompositeScoreColumn::ParseCommand( const FName Name, FScanner &sc, const COLUMNCMD_e Command, const FString CommandName )
+{
+	switch ( Command )
+	{
+		case COLUMNCMD_COLUMNS:
+		{
+			SubColumns.Clear( );
+
+			do
+			{
+				sc.MustGetToken( TK_StringConst );
+
+				// [AK] Find a column from the main scoreboard object.
+				ScoreColumn *pColumn = SCOREBOARD_GetColumn( sc.String );
+
+				if ( pColumn == NULL )
+					sc.ScriptError( "Column '%s' wasn't found.", sc.String );
+
+				// [AK] Make sure that the pointer is of a DataScoreColumn object
+				// (i.e. the template isn't unknown or a composite).
+				if (( pColumn->GetTemplate( ) == COLUMNTEMPLATE_UNKNOWN ) || ( pColumn->GetTemplate( ) == COLUMNTEMPLATE_COMPOSITE ))
+					sc.ScriptError( "Column '%s' is not a data column.", sc.String );
+
+				DataScoreColumn *pDataColumn = static_cast<DataScoreColumn *>( pColumn );
+
+				// [AK] Don't add a data column that's already inside another composite column.
+				if (( pDataColumn->pCompositeColumn != NULL ) && ( pDataColumn->pCompositeColumn != this ))
+					sc.ScriptError( "Tried to put data column '%s' into composite column '%s', but it's already inside another composite column.", sc.String, Name.GetChars( ));
+
+				bool bAddToList = true;
+
+				// [AK] Make sure that this data column isn't already inside this composite column's list.
+				for ( unsigned int i = 0; i < SubColumns.Size( ); i++ )
+				{
+					if ( SubColumns[i] == pDataColumn )
+					{
+						bAddToList = false;
+						return;
+					}
+				}
+
+				if ( bAddToList )
+				{
+					pDataColumn->pCompositeColumn = this;
+					SubColumns.Push( pDataColumn );
+				}
+			} while ( sc.CheckToken( ',' ));
+
+			break;
+		}
+
+		// [AK] Parse any generic column commands if we reach here.
+		default:
+			ScoreColumn::ParseCommand( Name, sc, Command, CommandName );
+			break;
+	}
+}
+
+//*****************************************************************************
+//
 // [AK] CompositeScoreColumn::Refresh
 //
 // Refreshes the composite column and its sub-columns.
