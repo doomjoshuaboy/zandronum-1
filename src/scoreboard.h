@@ -284,6 +284,7 @@ public:
 	CompositeScoreColumn( const char *pszName ) : ScoreColumn( pszName ) { }
 
 	virtual COLUMNTEMPLATE_e GetTemplate( void ) const { return COLUMNTEMPLATE_COMPOSITE; }
+	virtual void Refresh( void );
 
 protected:
 	TArray<DataScoreColumn *> SubColumns;

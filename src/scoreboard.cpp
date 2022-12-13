@@ -1286,6 +1286,39 @@ void DataScoreColumn::DrawValue( const ULONG ulPlayer, FFont *pFont, const ULONG
 
 //*****************************************************************************
 //
+// [AK] CompositeScoreColumn::Refresh
+//
+// Refreshes the composite column and its sub-columns.
+//
+//*****************************************************************************
+
+void CompositeScoreColumn::Refresh( void )
+{
+	// [AK] Call the superclass's refresh function first.
+	ScoreColumn::Refresh( );
+
+	// [AK] If the composite column isn't disabled, then refresh the sub-columns.
+	if ( bDisabled == false )
+	{
+		for ( unsigned int i = 0; i < SubColumns.Size( ); i++ )
+		{
+			SubColumns[i]->Refresh( );
+
+			// [AK] Sub-columns cannot show their headers and need to be aligned to the left.
+			if ( SubColumns[i]->IsDisabled( ) == false )
+			{
+				if (( SubColumns[i]->GetFlags( ) & COLUMNFLAG_DONTSHOWHEADER ) == false )
+					SubColumns[i]->ulFlags |= COLUMNFLAG_DONTSHOWHEADER;
+
+				if ( SubColumns[i]->Alignment != COLUMNALIGN_LEFT )
+					SubColumns[i]->Alignment = COLUMNALIGN_LEFT;
+			}
+		}
+	}
+}
+
+//*****************************************************************************
+//
 // [AK] SCOREBOARD_GetColumn
 //
 // Returns a pointer to a column by searching for its name.
