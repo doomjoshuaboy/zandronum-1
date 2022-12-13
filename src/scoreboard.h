@@ -238,6 +238,7 @@ public:
 	inline COLUMNTYPE_e GetNativeType( void ) const { return NativeType; }
 	virtual COLUMNTEMPLATE_e GetTemplate( void ) const;
 	virtual COLUMNDATA_e GetDataType( void ) const;
+	FString GetValueString( const ColumnValue &Value ) const;
 
 protected:
 	const COLUMNTYPE_e NativeType;

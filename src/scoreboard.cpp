@@ -764,6 +764,75 @@ COLUMNDATA_e DataScoreColumn::GetDataType( void ) const
 
 //*****************************************************************************
 //
+// [AK] DataScoreColumn::GetValueString
+//
+// This is intended to be used only with text-based column data types like
+// integers, boolean, floats, and strings. It takes the input value and formats
+// it into a string, while respecting the column's maximum length. Read further
+// down to know how some data types are affected by this limit.
+//
+// Afterwards, it includes the prefix and suffix text, if applicable.
+//
+//*****************************************************************************
+
+FString DataScoreColumn::GetValueString( const ColumnValue &Value ) const
+{
+	FString text;
+
+	if ( Value.GetDataType( ) == COLUMNDATA_INT )
+	{
+		// [AK] A column's maximum length doesn't apply to integers.
+		text.Format( "%d", Value.GetValue<int>( ));
+	}
+	else if ( Value.GetDataType( ) == COLUMNDATA_FLOAT )
+	{
+		// [AK] If the maximum length of a column is non-zero, then the floating point
+		// number is rounded to the same number of decimals. Otherwise, the number is
+		// left as it is. For example, if only two decimals are allowed, then a value
+		// like 3.14159 is rounded to 3.14.
+		if ( ulMaxLength == 0 )
+			text.Format( "%f", Value.GetValue<float>( ));
+		else
+			text.Format( "%.*f", ulMaxLength, Value.GetValue<float>( ));
+	}
+	else if (( Value.GetDataType( ) == COLUMNDATA_BOOL ) || ( Value.GetDataType( ) == COLUMNDATA_STRING ))
+	{
+		// [AK] If the data type is boolean, use the column's true or false text instead.
+		if ( Value.GetDataType( ) == COLUMNDATA_BOOL )
+		{
+			text = Value.GetValue<bool>( ) ? TrueText : FalseText;
+
+			// [AK] If the true or false text are empty, then use "true" or "false" instead.
+			if ( text.IsEmpty( ))
+				text = Value.GetValue<bool>( ) ? "True" : "False";
+		}
+		else
+		{
+			text = Value.GetValue<const char *>( );
+		}
+
+		// [AK] If the number of characters in the passed string exceed the maximum
+		// length that's allowed by the column, then the string is truncated to the
+		// same length. Any trailing crap is also removed and an ellipsis is added.
+		if (( ulMaxLength > 0 ) && ( text.Len( ) > ulMaxLength ))
+		{
+			text.Truncate( ulMaxLength );
+			V_RemoveTrailingCrapFromFString( text );
+			text += "...";
+		}
+	}
+
+	if ( PrefixText.Len( ) > 0 )
+		text.Insert( 0, PrefixText.GetChars( ));
+
+	if ( SuffixText.Len( ) > 0 )
+		text += SuffixText;
+
+	return text;
+}
+
+//*****************************************************************************
+//
 // [AK] SCOREBOARD_GetColumn
 //
 // Returns a pointer to a column by searching for its name.
