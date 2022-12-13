@@ -241,6 +241,8 @@ public:
 	FString GetValueString( const ColumnValue &Value ) const;
 	ULONG GetValueWidth( const ColumnValue &Value, FFont *pFont ) const;
 
+	virtual ColumnValue GetValue( const ULONG ulPlayer ) const;
+
 protected:
 	const COLUMNTYPE_e NativeType;
 	FString PrefixText;

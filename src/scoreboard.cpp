@@ -77,6 +77,8 @@
 #include "wi_stuff.h"
 #include "c_console.h"
 #include "g_game.h"
+#include "d_netinf.h"
+#include "v_palette.h"
 
 // [AK] Implement the string table and the conversion functions for the scoreboard enums.
 #define GENERATE_ENUM_STRINGS  // Start string generation
@@ -879,6 +881,197 @@ ULONG DataScoreColumn::GetValueWidth( const ColumnValue &Value, FFont *pFont ) c
 	}
 
 	return 0;
+}
+
+//*****************************************************************************
+//
+// [AK] DataScoreColumn::GetValue
+//
+// Returns a ColumnValue object containing the value associated with a player.
+//
+//*****************************************************************************
+
+ColumnValue DataScoreColumn::GetValue( const ULONG ulPlayer ) const
+{
+	// [AK] By default, a ColumnValue object's data type is initialized to COLUMNDATA_UNKNOWN.
+	// If the result's data type is still unknown in the end, then no value was retrieved.
+	ColumnValue Result;
+
+	if ( PLAYER_IsValidPlayer( ulPlayer ))
+	{
+		switch ( NativeType )
+		{
+			case COLUMNTYPE_NAME:
+				Result = players[ulPlayer].userinfo.GetName( );
+				break;
+
+			case COLUMNTYPE_INDEX:
+				Result = ulPlayer;
+				break;
+
+			case COLUMNTYPE_TIME:
+				Result = players[ulPlayer].ulTime / ( TICRATE * 60 );
+				break;
+
+			case COLUMNTYPE_PING:
+				if ( players[ulPlayer].bIsBot )
+					Result = "BOT";
+				else
+					Result = players[ulPlayer].ulPing;
+				break;
+
+			case COLUMNTYPE_FRAGS:
+				Result = players[ulPlayer].fragcount;
+				break;
+
+			case COLUMNTYPE_POINTS:
+			case COLUMNTYPE_DAMAGE:
+				Result = players[ulPlayer].lPointCount;
+				break;
+
+			case COLUMNTYPE_WINS:
+				Result = players[ulPlayer].ulWins;
+				break;
+
+			case COLUMNTYPE_KILLS:
+				Result = players[ulPlayer].killcount;
+				break;
+
+			case COLUMNTYPE_DEATHS:
+				Result = players[ulPlayer].ulDeathCount;
+				break;
+
+			case COLUMNTYPE_SECRETS:
+				Result = players[ulPlayer].secretcount;
+				break;
+
+			case COLUMNTYPE_LIVES:
+				Result = players[ulPlayer].ulLivesLeft + 1;
+				break;
+
+			case COLUMNTYPE_HANDICAP:
+			{
+				int handicap = players[ulPlayer].userinfo.GetHandicap( );
+
+				// [AK] Only show a player's handicap if it's greater than zero.
+				if ( handicap > 0 )
+				{
+					if (( lastmanstanding ) || ( teamlms ))
+						Result = deh.MaxSoulsphere - handicap < 1 ? 1 : deh.MaxArmor - handicap;
+					else
+						Result = deh.StartHealth - handicap < 1 ? 1 : deh.StartHealth - handicap;
+				}
+
+				break;
+			}
+
+			case COLUMNTYPE_JOINQUEUE:
+			{
+				int position = JOINQUEUE_GetPositionInLine( ulPlayer );
+
+				// [AK] Only return the position if the player is in the join queue.
+				if ( position != -1 )
+					Result = position + 1;
+
+				break;
+			}
+
+			case COLUMNTYPE_VOTE:
+			{
+				ULONG ulVoteChoice = CALLVOTE_GetPlayerVoteChoice( ulPlayer );
+
+				// [AK] Check if this player either voted yes or no.
+				if ( ulVoteChoice != VOTE_UNDECIDED )
+					Result = ulVoteChoice == VOTE_YES ? "Yes" : "No";
+
+				break;
+			}
+
+			case COLUMNTYPE_PLAYERCOLOR:
+			{
+				float h, s, v, r, g, b;
+				D_GetPlayerColor( ulPlayer, &h, &s, &v, NULL );
+				HSVtoRGB( &r, &g, &b, h, s, v );
+
+				Result = PalEntry( clamp( static_cast<int>( r * 255.f ), 0, 255 ), clamp( static_cast<int>( g * 255.f ), 0, 255 ), clamp( static_cast<int>( b * 255.f ), 0, 255 ));
+				break;
+			}
+
+			case COLUMNTYPE_STATUSICON:
+				if ( players[ulPlayer].bLagging )
+					Result = TexMan.FindTexture( "LAGMINI" );
+				else if ( players[ulPlayer].bChatting )
+					Result = TexMan.FindTexture( "TLKMINI" );
+				else if ( players[ulPlayer].bInConsole )
+					Result = TexMan.FindTexture( "CONSMINI" );
+				else if ( players[ulPlayer].bInMenu )
+					Result = TexMan.FindTexture( "MENUMINI" );
+				break;
+
+			case COLUMNTYPE_READYTOGOICON:
+				if ( players[ulPlayer].bReadyToGoOn )
+					Result = TexMan.FindTexture( "RDYTOGO" );
+				break;
+
+			case COLUMNTYPE_SCOREICON:
+				if ( players[ulPlayer].mo != NULL )
+					Result = TexMan[players[ulPlayer].mo->ScoreIcon];
+				break;
+
+			case COLUMNTYPE_ARTIFACTICON:
+			{
+				player_t *pCarrier = NULL;
+
+				// [AK] In one-flag CTF, terminator, or (team) possession, check if this player is
+				// carrying the white flag, terminator sphere, or hellstone respectively.
+				if (( oneflagctf ) || ( terminator ) || ( possession ) || ( teampossession ))
+				{
+					pCarrier = GAMEMODE_GetArtifactCarrier( );
+
+					if (( pCarrier != NULL ) && ( pCarrier - players == ulPlayer ))
+					{
+						if ( oneflagctf )
+							Result = TexMan.FindTexture( "STFLA3" );
+						else if ( terminator )
+							Result = TexMan.FindTexture( "TERMINAT" );
+						else
+							Result = TexMan.FindTexture( "HELLSTON" );
+					}
+				}
+				// [AK] In CTF or skulltag, check if this player is carrying an enemy team's item.
+				else if (( ctf ) || ( skulltag ))
+				{
+					for ( ULONG ulTeam = 0; ulTeam < teams.Size( ); ulTeam++ )
+					{
+						pCarrier = TEAM_GetCarrier( ulTeam );
+
+						if (( pCarrier != NULL ) && ( pCarrier - players == ulPlayer ))
+						{
+							Result = TexMan.FindTexture( TEAM_GetSmallHUDIcon( ulTeam ));
+							break;
+						}
+					}
+				}
+
+				break;
+			}
+
+			case COLUMNTYPE_BOTSKILLICON:
+			{
+				if ( players[ulPlayer].bIsBot )
+				{
+					FString IconName;
+					IconName.Format( "BOTSKIL%d", botskill.GetGenericRep( CVAR_Int ).Int );
+
+					Result = TexMan.FindTexture( IconName.GetChars( ));
+				}
+
+				break;
+			}
+		}
+	}
+
+	return Result;
 }
 
 //*****************************************************************************
