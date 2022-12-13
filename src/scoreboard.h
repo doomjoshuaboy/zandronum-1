@@ -228,6 +228,8 @@ private:
 //
 //*****************************************************************************
 
+class CompositeScoreColumn;
+
 class DataScoreColumn : public ScoreColumn
 {
 public:
@@ -236,7 +238,8 @@ public:
 		NativeType( Type ),
 		ulMaxLength( 0 ),
 		ulClipRectWidth( 0 ),
-		ulClipRectHeight( 0 ) { }
+		ulClipRectHeight( 0 ),
+		pCompositeColumn( NULL ) { }
 
 	inline COLUMNTYPE_e GetNativeType( void ) const { return NativeType; }
 	virtual COLUMNTEMPLATE_e GetTemplate( void ) const;
@@ -258,6 +261,32 @@ protected:
 	ULONG ulMaxLength;
 	ULONG ulClipRectWidth;
 	ULONG ulClipRectHeight;
+
+	// [AK] The composite column that this column belongs to, if there is one.
+	CompositeScoreColumn *pCompositeColumn;
+
+	// [AK] Let the CompositeScoreColumn class have access to this class's protected members.
+	friend class CompositeScoreColumn;
+};
+
+//*****************************************************************************
+//
+// [AK] CompositeScoreColumn
+//
+// A column consisting of more than one data column that are tucked underneath
+// its header. The headers of the data sub-columns are never shown.
+//
+//*****************************************************************************
+
+class CompositeScoreColumn : public ScoreColumn
+{
+public:
+	CompositeScoreColumn( const char *pszName ) : ScoreColumn( pszName ) { }
+
+	virtual COLUMNTEMPLATE_e GetTemplate( void ) const { return COLUMNTEMPLATE_COMPOSITE; }
+
+protected:
+	TArray<DataScoreColumn *> SubColumns;
 };
 
 //*****************************************************************************
