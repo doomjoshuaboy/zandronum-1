@@ -1076,6 +1076,35 @@ ColumnValue DataScoreColumn::GetValue( const ULONG ulPlayer ) const
 
 //*****************************************************************************
 //
+// [AK] DataScoreColumn::UpdateWidth
+//
+// Gets the smallest width that will fit the contents in all player rows.
+//
+//*****************************************************************************
+
+void DataScoreColumn::UpdateWidth( FFont *pHeaderFont, FFont *pRowFont )
+{
+	ulShortestWidth = 0;
+
+	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if ( PLAYER_IsValidPlayer( ulIdx ) == false )
+			continue;
+
+		// [AK] Ignore true spectators if they're supposed to be excluded.
+		if (( ulFlags & COLUMNFLAG_NOSPECTATORS ) && ( PLAYER_IsTrueSpectator( &players[ulIdx] )))
+			continue;
+
+		ColumnValue Value = GetValue( ulIdx );
+		ulShortestWidth = MAX( ulShortestWidth, GetValueWidth( Value, pRowFont ));
+	}
+
+	// [AK] Call the superclass's function to finish updating the width.
+	ScoreColumn::UpdateWidth( pHeaderFont, pRowFont );
+}
+
+//*****************************************************************************
+//
 // [AK] SCOREBOARD_GetColumn
 //
 // Returns a pointer to a column by searching for its name.

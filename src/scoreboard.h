@@ -242,6 +242,7 @@ public:
 	ULONG GetValueWidth( const ColumnValue &Value, FFont *pFont ) const;
 
 	virtual ColumnValue GetValue( const ULONG ulPlayer ) const;
+	virtual void UpdateWidth( FFont *pHeaderFont, FFont *pRowFont );
 
 protected:
 	const COLUMNTYPE_e NativeType;
