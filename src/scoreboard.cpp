@@ -667,6 +667,27 @@ void ScoreColumn::DrawTexture( FTexture *pTexture, const LONG lYPos, const ULONG
 
 //*****************************************************************************
 //
+// [AK] ScoreColumn::CanDrawForPlayer
+//
+// Checks if a column can be drawn for a particular player.
+//
+//*****************************************************************************
+
+bool ScoreColumn::CanDrawForPlayer( const ULONG ulPlayer ) const
+{
+	// [AK] Don't draw if the column's disabled, or the player's invalid.
+	if (( bDisabled ) || ( PLAYER_IsValidPlayer( ulPlayer ) == false ))
+		return false;
+
+	// [AK] Don't draw for true spectators if they're meant to be excluded.
+	if (( ulFlags & COLUMNFLAG_NOSPECTATORS ) && ( PLAYER_IsTrueSpectator( &players[ulPlayer] )))
+		return false;
+
+	return true;
+}
+
+//*****************************************************************************
+//
 // [AK] ScoreColumn::FixClipRectSize
 //
 // Takes an input width and height for a clipping rectangle and ensures that
@@ -1101,6 +1122,79 @@ void DataScoreColumn::UpdateWidth( FFont *pHeaderFont, FFont *pRowFont )
 
 	// [AK] Call the superclass's function to finish updating the width.
 	ScoreColumn::UpdateWidth( pHeaderFont, pRowFont );
+}
+
+//*****************************************************************************
+//
+// [AK] DataScoreColumn::DrawValue
+//
+// Draws the value of a particular player passed into a ColumnValue object.
+//
+//*****************************************************************************
+
+void DataScoreColumn::DrawValue( const ULONG ulPlayer, FFont *pFont, const ULONG ulColor, const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const
+{
+	if ( CanDrawForPlayer( ulPlayer ) == false )
+		return;
+
+	ColumnValue Value = GetValue( ulPlayer );
+	ULONG ulColorToUse;
+
+	// [AK] The text used in the join queue and vote columns changes depending on
+	// whether the player is first in line or the vote caller respectively.
+	if ( NativeType == COLUMNTYPE_JOINQUEUE )
+	{
+		if ( JOINQUEUE_GetPositionInLine( ulPlayer ) == 0 )
+			ulColorToUse = CR_RED;
+		else
+			ulColorToUse = CR_GOLD;
+	}
+	else if ( NativeType == COLUMNTYPE_VOTE )
+	{
+		if ( CALLVOTE_GetVoteCaller( ) == ulPlayer )
+			ulColorToUse = CR_RED;
+		else
+			ulColorToUse = CR_GOLD;
+	}
+	else
+	{
+		ulColorToUse = ulColor;
+	}
+
+	switch( Value.GetDataType( ))
+	{
+		case COLUMNDATA_INT:
+		case COLUMNDATA_BOOL:
+		case COLUMNDATA_FLOAT:
+		case COLUMNDATA_STRING:
+		{
+			DrawString( GetValueString( Value ).GetChars( ), pFont, ulColorToUse, lYPos, ulHeight, fAlpha );
+			break;
+		}
+
+		case COLUMNDATA_COLOR:
+		{
+			int clipWidth = ulClipRectWidth;
+			int clipHeight = ulClipRectHeight;
+
+			// [AK] If the clipping rectangle's width is zero, use the column's width.
+			if ( clipWidth <= 0 )
+				clipWidth = ulWidth;
+
+			// [AK] If the clipping rectangle's height is zero, use the passed height.
+			if ( clipHeight <= 0 )
+				clipHeight = ulHeight;
+
+			DrawColor( Value.GetValue<PalEntry>( ), lYPos, ulHeight, fAlpha, clipWidth, clipHeight );
+			break;
+		}
+
+		case COLUMNDATA_TEXTURE:
+		{
+			DrawTexture( Value.GetValue<FTexture *>( ), lYPos, ulHeight, fAlpha, ulWidth, ulHeight );
+			break;
+		}
+	}
 }
 
 //*****************************************************************************

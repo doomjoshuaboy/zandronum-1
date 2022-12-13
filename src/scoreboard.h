@@ -195,8 +195,11 @@ public:
 	virtual void ParseCommand( const FName Name, FScanner &sc, const COLUMNCMD_e Command, const FString CommandName );
 	virtual void Refresh( void );
 	virtual void UpdateWidth( FFont *pHeaderFont, FFont *pRowFont );
+	virtual void DrawValue( const ULONG ulPlayer, FFont *pFont, const ULONG ulColor, const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const = 0;
 
 protected:
+	bool CanDrawForPlayer( const ULONG ulPlayer ) const;
+
 	FString DisplayName;
 	FString ShortName;
 	COLUMNALIGN_e Alignment;
@@ -243,6 +246,7 @@ public:
 
 	virtual ColumnValue GetValue( const ULONG ulPlayer ) const;
 	virtual void UpdateWidth( FFont *pHeaderFont, FFont *pRowFont );
+	virtual void DrawValue( const ULONG ulPlayer, FFont *pFont, const ULONG ulColor, const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const;
 
 protected:
 	const COLUMNTYPE_e NativeType;
