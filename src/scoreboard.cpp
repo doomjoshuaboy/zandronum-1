@@ -222,6 +222,166 @@ void ScoreColumn::SetHidden( bool bEnable )
 
 //*****************************************************************************
 //
+// [AK] ScoreColumn::Parse
+//
+// Parses a "column" or "compositecolumn" block in SCORINFO.
+//
+//*****************************************************************************
+
+void ScoreColumn::Parse( const FName Name, FScanner &sc )
+{
+	sc.MustGetToken( '{' );
+
+	while ( sc.CheckToken( '}' ) == false )
+	{
+		sc.MustGetString( );
+
+		if ( stricmp( sc.String, "addflag" ) == 0 )
+		{
+			ulFlags |= sc.MustGetEnumName( "column flag", "COLUMNFLAG_", GetValueCOLUMNFLAG_e );
+		}
+		else if ( stricmp( sc.String, "removeflag" ) == 0 )
+		{
+			ulFlags &= ~sc.MustGetEnumName( "column flag", "COLUMNFLAG_", GetValueCOLUMNFLAG_e );
+		}
+		else
+		{
+			COLUMNCMD_e Command = static_cast<COLUMNCMD_e>( sc.MustGetEnumName( "column command", "COLUMNCMD_", GetValueCOLUMNCMD_e, true ));
+			FString CommandName = sc.String;
+
+			sc.MustGetToken( '=' );
+			ParseCommand( Name, sc, Command, CommandName );
+		}
+	}
+
+	// [AK] Unless the ALWAYSUSESHORTESTWIDTH flag is enabled, columns must have a non-zero width.
+	if ((( ulFlags & COLUMNFLAG_ALWAYSUSESHORTESTWIDTH ) == false ) && ( ulSizing == 0 ))
+		sc.ScriptError( "Column '%s' needs a size that's greater than zero.", Name.GetChars( ));
+
+	// [AK] If the short name is longer than the display name, throw a fatal error.
+	if ( DisplayName.Len( ) < ShortName.Len( ))
+		sc.ScriptError( "Column '%s' has a short name that's greater than its display name.", Name.GetChars( ));
+}
+
+//*****************************************************************************
+//
+// [AK] ScoreColumn::ParseCommand
+//
+// Parses commands that are shared by all (data and composite) columns.
+//
+//*****************************************************************************
+
+void ScoreColumn::ParseCommand( const FName Name, FScanner &sc, const COLUMNCMD_e Command, const FString CommandName )
+{
+	switch ( Command )
+	{
+		case COLUMNCMD_DISPLAYNAME:
+		case COLUMNCMD_SHORTNAME:
+		{
+			sc.MustGetString( );
+
+			// [AK] If the name begins with a '$', look up the string in the LANGUAGE lump.
+			const char *pszString = sc.String[0] == '$' ? GStrings[sc.String] : sc.String;
+
+			if ( Command == COLUMNCMD_DISPLAYNAME )
+				DisplayName = pszString;
+			else
+				ShortName = pszString;
+
+			break;
+		}
+
+		case COLUMNCMD_ALIGNMENT:
+		{
+			Alignment = static_cast<COLUMNALIGN_e>( sc.MustGetEnumName( "alignment", "COLUMNALIGN_", GetValueCOLUMNALIGN_e ));
+			break;
+		}
+
+		case COLUMNCMD_SIZE:
+		{
+			sc.MustGetNumber( );
+			ulSizing = MAX( sc.Number, 0 );
+			break;
+		}
+
+		case COLUMNCMD_GAMEMODE:
+		case COLUMNCMD_GAMETYPE:
+		case COLUMNCMD_EARNTYPE:
+		{
+			// [AK] Clear all game modes.
+			if ( Command == COLUMNCMD_GAMEMODE )
+				GameModeList.clear( );
+			// ...or reset all game type flags.
+			else if ( Command == COLUMNCMD_GAMETYPE )
+				ulGameAndEarnTypeFlags &= ~GAMETYPE_MASK;
+			// ...or reset all earn type flags.
+			else
+				ulGameAndEarnTypeFlags &= ~EARNTYPE_MASK;
+
+			do
+			{
+				sc.MustGetToken( TK_Identifier );
+
+				if ( Command == COLUMNCMD_GAMEMODE )
+				{
+					GameModeList.insert( static_cast<GAMEMODE_e>( sc.MustGetEnumName( "game mode", "GAMEMODE_", GetValueGAMEMODE_e, true )));
+				}
+				else if ( Command == COLUMNCMD_GAMETYPE )
+				{
+					ULONG ulFlag = sc.MustGetEnumName( "game type", "GMF_", GetValueGMF, true );
+
+					// [AK] Make sure there aren't other constants besides COOPERATIVE, DEATHMATCH, or TEAMGAME.
+					if (( ulFlag & GAMETYPE_MASK ) == 0 )
+						sc.ScriptError( "A game type list must contain only COOPERATIVE, DEATHMATCH, or TEAMGAME. Using '%s' is invalid.", sc.String );
+
+					ulGameAndEarnTypeFlags |= ulFlag;
+				}
+				else
+				{
+					ulGameAndEarnTypeFlags |= sc.MustGetEnumName( "earn type", "GMF_PLAYERSEARN", GetValueGMF, true );
+				}
+			} while ( sc.CheckToken( ',' ));
+
+			break;
+		}
+
+		case COLUMNCMD_CVAR:
+		{
+			sc.MustGetString( );
+
+			// [AK] Specifying "none" for the CVar clears any CVar being used by the column.
+			// This also means that a CVar named "none" (if one actually existed) can never be used.
+			if (( stricmp( sc.String, "none" ) == 0 ) && ( pCVar != NULL ))
+			{
+				pCVar->SetRefreshScoreboardBit( false );
+				pCVar = NULL;
+			}
+			else
+			{
+				FBaseCVar *pFoundCVar = FindCVar( sc.String, NULL );
+
+				// [AK] Throw an error if this CVar doesn't exist.
+				if ( pFoundCVar == NULL )
+					sc.ScriptError( "'%s' is not a CVar.", sc.String );
+
+				// [AK] Throw an error if this CVar isn't a boolean, integer, or flag.
+				if (( pFoundCVar->GetRealType( ) != CVAR_Bool ) && ( pFoundCVar->IsFlagCVar( ) == false ))
+					sc.ScriptError( "'%s' is not a boolean or flag CVar.", sc.String );
+
+				pCVar = pFoundCVar;
+				pCVar->SetRefreshScoreboardBit( true );
+			}
+
+			break;
+		}
+
+		default:
+			sc.ScriptError( "Couldn't process column command '%s' for column '%s'.", CommandName.GetChars( ), Name.GetChars( ));
+	}
+}
+
+//*****************************************************************************
+//
 // [AK] ScoreColumn::Refresh
 //
 // Performs checks to see if a column should be active or disabled. Such checks
