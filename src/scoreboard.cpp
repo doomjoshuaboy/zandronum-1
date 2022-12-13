@@ -452,15 +452,7 @@ void ScoreColumn::DrawColor( const PalEntry color, const LONG lYPos, const ULONG
 	int clipWidthToUse;
 	int clipHeightToUse;
 
-	if (( clipWidth == 0 ) || ( static_cast<ULONG>( clipWidth ) > ulWidth ))
-		clipWidthToUse = ulWidth;
-	else
-		clipWidthToUse = clipWidth;
-
-	if (( clipHeight == 0 ) || ( static_cast<ULONG>( clipHeight ) > ulHeight ))
-		clipHeightToUse = ulHeight;
-	else
-		clipHeightToUse = clipHeight;
+	FixClipRectSize( clipWidth, clipHeight, ulHeight, clipWidthToUse, clipHeightToUse );
 
 	int clipLeft = GetAlignmentPosition( clipWidthToUse );
 	int clipTop = lYPos + ( ulHeight - clipHeightToUse ) / 2;
@@ -490,15 +482,7 @@ void ScoreColumn::DrawTexture( FTexture *pTexture, const LONG lYPos, const ULONG
 
 	LONG lXPos = GetAlignmentPosition( pTexture->GetScaledWidth( ));
 
-	if (( clipWidth == 0 ) || ( static_cast<ULONG>( clipWidth ) > ulWidth ))
-		clipWidthToUse = ulWidth;
-	else
-		clipWidthToUse = clipWidth;
-
-	if (( clipHeight == 0 ) || ( static_cast<ULONG>( clipHeight ) > ulHeight ))
-		clipHeightToUse = ulHeight;
-	else
-		clipHeightToUse = clipHeight;
+	FixClipRectSize( clipWidth, clipHeight, ulHeight, clipWidthToUse, clipHeightToUse );
 
 	int clipLeft = GetAlignmentPosition( clipWidthToUse );
 	int clipTop = lYPos;
@@ -517,6 +501,29 @@ void ScoreColumn::DrawTexture( FTexture *pTexture, const LONG lYPos, const ULONG
 		DTA_ClipBottom, clipTop + clipHeightToUse,
 		DTA_Alpha, FLOAT2FIXED( fAlpha ),
 		TAG_DONE );
+}
+
+//*****************************************************************************
+//
+// [AK] ScoreColumn::FixClipRectSize
+//
+// Takes an input width and height for a clipping rectangle and ensures that
+// the "fixed" width and height aren't less than zero, or greater than the
+// column's width and the height passed into this function respectively.
+//
+//*****************************************************************************
+
+void ScoreColumn::FixClipRectSize( const int clipWidth, const int clipHeight, const ULONG ulHeight, int &fixedWidth, int &fixedHeight ) const
+{
+	if (( clipWidth <= 0 ) || ( static_cast<ULONG>( clipWidth ) > ulWidth ))
+		fixedWidth = ulWidth;
+	else
+		fixedWidth = clipWidth;
+
+	if (( clipHeight <= 0 ) || ( static_cast<ULONG>( clipHeight ) > ulHeight ))
+		fixedHeight = ulHeight;
+	else
+		fixedHeight = clipHeight;
 }
 
 //*****************************************************************************

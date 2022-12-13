@@ -209,6 +209,9 @@ protected:
 	bool bDisabled;
 	bool bHidden;
 	bool bUseShortName;
+
+private:
+	void FixClipRectSize( const int clipWidth, const int clipHeight, const ULONG ulHeight, int &fixedWidth, int &fixedHeight ) const;
 };
 
 //*****************************************************************************
