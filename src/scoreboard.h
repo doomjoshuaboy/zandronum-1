@@ -286,6 +286,7 @@ public:
 	virtual COLUMNTEMPLATE_e GetTemplate( void ) const { return COLUMNTEMPLATE_COMPOSITE; }
 	virtual void Refresh( void );
 	virtual void UpdateWidth( FFont *pHeaderFont, FFont *pRowFont );
+	virtual void DrawValue( const ULONG ulPlayer, FFont *pFont, const ULONG ulColor, const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const;
 
 protected:
 	TArray<DataScoreColumn *> SubColumns;

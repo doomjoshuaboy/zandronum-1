@@ -1348,6 +1348,58 @@ void CompositeScoreColumn::UpdateWidth( FFont *pHeaderFont, FFont *pRowFont )
 
 //*****************************************************************************
 //
+// [AK] CompositeScoreColumn::DrawValue
+//
+// Draws the values of a particular player from all active sub-columns.
+//
+//*****************************************************************************
+
+void CompositeScoreColumn::DrawValue( const ULONG ulPlayer, FFont *pFont, const ULONG ulColor, const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const
+{
+	ColumnValue Value;
+
+	if ( CanDrawForPlayer( ulPlayer ) == false )
+		return;
+
+	const bool bIsTrueSpectator = PLAYER_IsTrueSpectator( &players[ulPlayer] );
+	const ULONG ulRowWidth = GetRowWidth( ulPlayer, pFont );
+
+	// [AK] If this row's width is zero, then there's nothing to draw, so stop here.
+	if ( ulRowWidth == 0 )
+		return;
+
+	// [AK] Determine at what position we should start drawing the contents.
+	LONG lXPos = GetAlignmentPosition( ulRowWidth );
+
+	// [AK] Draw the contents of the sub-columns!
+	for ( unsigned int i = 0; i < SubColumns.Size( ); i++ )
+	{
+		if (( SubColumns[i]->IsDisabled( )) || (( SubColumns[i]->GetFlags( ) & COLUMNFLAG_NOSPECTATORS ) && ( bIsTrueSpectator )))
+			continue;
+
+		Value = SubColumns[i]->GetValue( ulPlayer );
+
+		if ( Value.GetDataType( ) != COLUMNDATA_UNKNOWN )
+		{
+			const ULONG ulValueWidth = SubColumns[i]->GetValueWidth( Value, pFont );
+
+			// [AK] We didn't update the sub-column's x-position or width since they're part of
+			// a composite column, but we need to make sure that the contents appear properly.
+			// (i.e. Scoreboard::DrawString and Scoreboard::DrawTexture use these members to
+			// form the clipping rectangle's boundaries). What we'll do is temporarily set the
+			// members to what they need to be now, draw the value, then set them back to zero.
+			SubColumns[i]->lRelX = lXPos;
+			SubColumns[i]->ulWidth = ulValueWidth;
+			SubColumns[i]->DrawValue( ulPlayer, pFont, ulColor, lYPos, ulHeight, fAlpha );
+
+			lXPos += GetSubColumnWidth( i, ulValueWidth );
+			SubColumns[i]->lRelX = SubColumns[i]->ulWidth = 0;
+		}
+	}
+}
+
+//*****************************************************************************
+//
 // [AK] CompositeScoreColumn::GetRowWidth
 //
 // Gets the width of an entire row for a particular player.
