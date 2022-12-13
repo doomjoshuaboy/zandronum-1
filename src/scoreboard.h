@@ -50,6 +50,9 @@
 #ifndef __SCOREBOARD_H__
 #define __SCOREBOARD_H__
 
+#include <set>
+#include "gamemode.h"
+
 #include "scoreboard_enums.h"
 
 //*****************************************************************************
@@ -57,6 +60,18 @@
 
 // Maximum number of columns.
 #define MAX_COLUMNS			8
+
+//*****************************************************************************
+//
+// [AK] Column templates, either text-based, graphic-based, or composite.
+//
+enum COLUMNTEMPLATE_e
+{
+	COLUMNTEMPLATE_UNKNOWN,
+	COLUMNTEMPLATE_TEXT,
+	COLUMNTEMPLATE_GRAPHIC,
+	COLUMNTEMPLATE_COMPOSITE,
+};
 
 //*****************************************************************************
 enum
@@ -143,14 +158,62 @@ private:
 };
 
 //*****************************************************************************
+//
+// [AK] ScoreColumn
+//
+// A base class for all column types (e.g. data or composite) that will appear
+// on the scoreboard. Columns are responsible for updating themselves and
+// drawing their contents when needed.
+//
+//*****************************************************************************
+
+class ScoreColumn
+{
+public:
+	ScoreColumn( const char *pszName );
+
+	virtual COLUMNTEMPLATE_e GetTemplate( void ) const { return COLUMNTEMPLATE_UNKNOWN; }
+	const char *GetDisplayName( void ) const { return DisplayName.GetChars( ); }
+	const char *GetShortName( void ) const { return ShortName.GetChars( ); }
+	FBaseCVar *GetCVar( void ) const { return pCVar; }
+	ULONG GetFlags( void ) const { return ulFlags; }
+	ULONG GetDefaultWidth( void ) const { return ulDefaultWidth; }
+	ULONG GetShortestWidth( void ) const { return ulShortestWidth; }
+	ULONG GetWidth( void ) const { return ulWidth; }
+	LONG GetRelX( void ) const { return lRelX; }
+	LONG GetAlignmentPosition( ULONG ulContentWidth ) const;
+	bool IsDisabled( void ) const { return bDisabled; }
+	bool IsHidden( void ) const { return bHidden; }
+	bool ShouldUseShortName( void ) const { return bUseShortName; }
+	void SetHidden( bool bEnable );
+
+protected:
+	FString DisplayName;
+	FString ShortName;
+	COLUMNALIGN_e Alignment;
+	FBaseCVar *pCVar;
+	ULONG ulFlags;
+	ULONG ulGameAndEarnTypeFlags;
+	std::set<GAMEMODE_e> GameModeList;
+	ULONG ulDefaultWidth;
+	ULONG ulShortestWidth;
+	ULONG ulWidth;
+	LONG lRelX;
+	bool bDisabled;
+	bool bHidden;
+	bool bUseShortName;
+};
+
+//*****************************************************************************
 //	PROTOTYPES
 
-bool	SCOREBOARD_ShouldDrawBoard( void );
-void	SCOREBOARD_Render( ULONG ulDisplayPlayer );
-void	SCOREBOARD_Refresh( void );
-void	SCOREBOARD_ShouldRefreshBeforeRendering( void );
-void	SCOREBOARD_BuildLimitStrings( std::list<FString> &lines, bool bAcceptColors );
-LONG	SCOREBOARD_GetLeftToLimit( void );
-void	SCOREBOARD_SetNextLevel( const char *pszMapName );
+ScoreColumn		*SCOREBOARD_GetColumn( FName Name );
+bool			SCOREBOARD_ShouldDrawBoard( void );
+void			SCOREBOARD_Render( ULONG ulDisplayPlayer );
+void			SCOREBOARD_Refresh( void );
+void			SCOREBOARD_ShouldRefreshBeforeRendering( void );
+void			SCOREBOARD_BuildLimitStrings( std::list<FString> &lines, bool bAcceptColors );
+LONG			SCOREBOARD_GetLeftToLimit( void );
+void			SCOREBOARD_SetNextLevel( const char *pszMapName );
 
 #endif // __SCOREBOARD_H__

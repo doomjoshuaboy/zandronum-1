@@ -47,6 +47,7 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <set>
 #include "a_pickups.h"
 #include "c_dispatch.h"
 #include "callvote.h"
@@ -77,8 +78,16 @@
 #include "c_console.h"
 #include "g_game.h"
 
+// [AK] Implement the string table and the conversion functions for the scoreboard enums.
+#define GENERATE_ENUM_STRINGS  // Start string generation
+#include "scoreboard_enums.h"
+#undef GENERATE_ENUM_STRINGS   // Stop string generation
+
 //*****************************************************************************
 //	VARIABLES
+
+// [AK] A list of all defined columns.
+static	TMap<FName, ScoreColumn *>	g_Columns;
 
 // Player list according to rank.
 static	int		g_iSortedPlayers[MAXPLAYERS];
@@ -146,11 +155,93 @@ static	void			scoreboard_DrawIcon( const char *pszPatchName, ULONG &ulXPos, ULON
 CVAR( Bool, cl_intermissiontimer, false, CVAR_ARCHIVE );
 
 //*****************************************************************************
-//	FUNCTIONS
+//
+// [AK] ScoreColumn::ScoreColumn
+//
+// Initializes the members of a ScoreColumn object to their default values.
+//
+//*****************************************************************************
+
+ScoreColumn::ScoreColumn( const char *pszName ) :
+	DisplayName( pszName ),
+	Alignment( COLUMNALIGN_LEFT ),
+	pCVar( NULL ),
+	ulFlags( 0 ),
+	ulDefaultWidth( 0 ),
+	ulShortestWidth( 0 ),
+	ulWidth( 0 ),
+	lRelX( 0 ),
+	bDisabled( false ),
+	bHidden( false ),
+	bUseShortName( false )
+{
+	// [AK] By default, this column is active in all game types and earn types.
+	ulGameAndEarnTypeFlags = ( GAMETYPE_MASK | EARNTYPE_MASK );
+
+	// [AK] By default, this column is active in all game modes.
+	for ( ULONG ulGameMode = 0; ulGameMode < NUM_GAMEMODES; ulGameMode++ )
+		GameModeList.insert( static_cast<GAMEMODE_e>( ulGameMode ));
+}
 
 //*****************************************************************************
+//
+// [AK] ScoreColumn::GetAlignmentPosition
+//
+// Uses the width of some content (e.g. a string, color box, or texture) and
+// determines where the left-most part of that content should start with
+// respect to the column's own position, width, and alignment.
+//
+//*****************************************************************************
+
+LONG ScoreColumn::GetAlignmentPosition( ULONG ulContentWidth ) const
+{
+	if ( Alignment == COLUMNALIGN_LEFT )
+		return lRelX;
+	else if ( Alignment == COLUMNALIGN_CENTER )
+		return lRelX + ( ulWidth - ulContentWidth ) / 2;
+	else
+		return lRelX + ulWidth - ulContentWidth;
+}
+
+//*****************************************************************************
+//
+// [AK] ScoreColumn::SetHidden
+//
+// Hides (or unhides) the column, requiring the scoreboard to be refreshed.
+//
+//*****************************************************************************
+
+void ScoreColumn::SetHidden( bool bEnable )
+{
+	if ( bHidden == bEnable )
+		return;
+
+	bHidden = bEnable;
+	SCOREBOARD_ShouldRefreshBeforeRendering( );
+}
+
+//*****************************************************************************
+//
+// [AK] SCOREBOARD_GetColumn
+//
+// Returns a pointer to a column by searching for its name.
+//
+//*****************************************************************************
+
+ScoreColumn *SCOREBOARD_GetColumn( FName Name )
+{
+	ScoreColumn **pColumn = g_Columns.CheckKey( Name );
+	return ( pColumn != NULL ) ? *pColumn : NULL;
+}
+
+//*****************************************************************************
+//
+// SCOREBOARD_ShouldDrawBoard
+//
 // Checks if the user wants to see the scoreboard and is allowed to.
 //
+//*****************************************************************************
+
 bool SCOREBOARD_ShouldDrawBoard( void )
 {
 	// [AK] If the user isn't pressing their scoreboard key then return false.
