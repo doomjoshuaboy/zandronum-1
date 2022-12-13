@@ -367,6 +367,144 @@ void ScoreColumn::UpdateWidth( FFont *pHeaderFont, FFont *pRowFont )
 
 //*****************************************************************************
 //
+// [AK] ScoreColumn::DrawString
+//
+// Draws a string within the body of the column.
+//
+//*****************************************************************************
+
+void ScoreColumn::DrawString( const char *pszString, FFont *pFont, const ULONG ulColor, const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const
+{
+	if (( pszString == NULL ) || ( pFont == NULL ))
+		return;
+
+	const ULONG ulLength = strlen( pszString );
+
+	// [AK] Don't bother drawing the string if it's empty.
+	if ( ulLength == 0 )
+		return;
+
+	LONG lXPos = GetAlignmentPosition( pFont->StringWidth( pszString ));
+	ULONG ulLargestCharHeight = 0;
+
+	// [AK] Get the largest character height so the string is aligned within the centre of the specified height.
+	for ( unsigned int i = 0; i < ulLength; i++ )
+	{
+		FTexture *pCharTexture = pFont->GetChar( pszString[i], NULL );
+
+		if ( pCharTexture != NULL )
+		{
+			const ULONG ulTextureHeight = pCharTexture->GetScaledHeight( );
+
+			if ( ulTextureHeight > ulLargestCharHeight )
+				ulLargestCharHeight = ulTextureHeight;
+		}
+	}
+
+	int clipLeft = lRelX;
+	int clipWidth = ulWidth;
+	int clipTop = lYPos;
+	int clipHeight = ulHeight;
+
+	LONG lNewYPos = lYPos + ( clipHeight - ulLargestCharHeight ) / 2;
+
+	// [AK] We must take into account the virtual screen's size when setting up the clipping rectangle.
+	// Nothing should be drawn outside of this rectangle (i.e. the column's boundaries).
+	if ( g_bScale )
+		screen->VirtualToRealCoordsInt( clipLeft, clipTop, clipWidth, clipHeight, con_virtualwidth, con_virtualheight, false, !con_scaletext_usescreenratio );
+
+	screen->DrawText( pFont, ulColor, lXPos, lNewYPos, pszString,
+		DTA_UseVirtualScreen, g_bScale,
+		DTA_ClipLeft, clipLeft,
+		DTA_ClipRight, clipLeft + clipWidth,
+		DTA_ClipTop, clipTop,
+		DTA_ClipBottom, clipTop + clipHeight,
+		DTA_Alpha, FLOAT2FIXED( fAlpha ),
+		TAG_DONE );
+}
+
+//*****************************************************************************
+//
+// [AK] ScoreColumn::DrawColor
+//
+// Draws a hexadecimal color within the body of the column.
+//
+//*****************************************************************************
+
+void ScoreColumn::DrawColor( const PalEntry color, const LONG lYPos, const ULONG ulHeight, const float fAlpha, const int clipWidth, const int clipHeight ) const
+{
+	int clipWidthToUse;
+	int clipHeightToUse;
+
+	if (( clipWidth == 0 ) || ( static_cast<ULONG>( clipWidth ) > ulWidth ))
+		clipWidthToUse = ulWidth;
+	else
+		clipWidthToUse = clipWidth;
+
+	if (( clipHeight == 0 ) || ( static_cast<ULONG>( clipHeight ) > ulHeight ))
+		clipHeightToUse = ulHeight;
+	else
+		clipHeightToUse = clipHeight;
+
+	int clipLeft = GetAlignmentPosition( clipWidthToUse );
+	int clipTop = lYPos + ( ulHeight - clipHeightToUse ) / 2;
+
+	// [AK] We must take into account the virtual screen's size.
+	if ( g_bScale )
+		screen->VirtualToRealCoordsInt( clipLeft, clipTop, clipWidthToUse, clipHeightToUse, con_virtualwidth, con_virtualheight, false, !con_scaletext_usescreenratio );
+
+	screen->Dim( color, fAlpha, clipLeft, clipTop, clipWidthToUse, clipHeightToUse );
+}
+
+//*****************************************************************************
+//
+// [AK] ScoreColumn::DrawTexture
+//
+// Draws a texture within the body of the column.
+//
+//*****************************************************************************
+
+void ScoreColumn::DrawTexture( FTexture *pTexture, const LONG lYPos, const ULONG ulHeight, const float fAlpha, const int clipWidth, const int clipHeight ) const
+{
+	int clipWidthToUse;
+	int clipHeightToUse;
+
+	if ( pTexture == NULL )
+		return;
+
+	LONG lXPos = GetAlignmentPosition( pTexture->GetScaledWidth( ));
+
+	if (( clipWidth == 0 ) || ( static_cast<ULONG>( clipWidth ) > ulWidth ))
+		clipWidthToUse = ulWidth;
+	else
+		clipWidthToUse = clipWidth;
+
+	if (( clipHeight == 0 ) || ( static_cast<ULONG>( clipHeight ) > ulHeight ))
+		clipHeightToUse = ulHeight;
+	else
+		clipHeightToUse = clipHeight;
+
+	int clipLeft = GetAlignmentPosition( clipWidthToUse );
+	int clipTop = lYPos;
+
+	LONG lNewYPos = lYPos + ( ulHeight - pTexture->GetScaledHeight( )) / 2;
+
+	// [AK] We must take into account the virtual screen's size.
+	if ( g_bScale )
+		screen->VirtualToRealCoordsInt( clipLeft, clipTop, clipWidthToUse, clipHeightToUse, con_virtualwidth, con_virtualheight, false, !con_scaletext_usescreenratio );
+
+	screen->DrawTexture( pTexture, lXPos, lNewYPos,
+		DTA_UseVirtualScreen, g_bScale,
+		DTA_ClipLeft, clipLeft,
+		DTA_ClipRight, clipLeft + clipWidthToUse,
+		DTA_ClipTop, clipTop,
+		DTA_ClipBottom, clipTop + clipHeightToUse,
+		DTA_Alpha, FLOAT2FIXED( fAlpha ),
+		TAG_DONE );
+}
+
+//*****************************************************************************
+//
 // [AK] SCOREBOARD_GetColumn
 //
 // Returns a pointer to a column by searching for its name.
