@@ -177,7 +177,7 @@ public:
 	const char *GetShortName( void ) const { return ShortName.GetChars( ); }
 	FBaseCVar *GetCVar( void ) const { return pCVar; }
 	ULONG GetFlags( void ) const { return ulFlags; }
-	ULONG GetDefaultWidth( void ) const { return ulDefaultWidth; }
+	ULONG GetSizing( void ) const { return ulSizing; }
 	ULONG GetShortestWidth( void ) const { return ulShortestWidth; }
 	ULONG GetWidth( void ) const { return ulWidth; }
 	LONG GetRelX( void ) const { return lRelX; }
@@ -197,7 +197,7 @@ protected:
 	ULONG ulFlags;
 	ULONG ulGameAndEarnTypeFlags;
 	std::set<GAMEMODE_e> GameModeList;
-	ULONG ulDefaultWidth;
+	ULONG ulSizing;
 	ULONG ulShortestWidth;
 	ULONG ulWidth;
 	LONG lRelX;

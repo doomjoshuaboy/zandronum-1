@@ -167,7 +167,7 @@ ScoreColumn::ScoreColumn( const char *pszName ) :
 	Alignment( COLUMNALIGN_LEFT ),
 	pCVar( NULL ),
 	ulFlags( 0 ),
-	ulDefaultWidth( 0 ),
+	ulSizing( 0 ),
 	ulShortestWidth( 0 ),
 	ulWidth( 0 ),
 	lRelX( 0 ),
