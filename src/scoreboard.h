@@ -217,6 +217,40 @@ private:
 };
 
 //*****************************************************************************
+//
+// [AK] DataScoreColumn
+//
+// A column of data, this supports all the native types (e.g. frags, points,
+// (wins, etc.) and handles the player's values.
+//
+//*****************************************************************************
+
+class DataScoreColumn : public ScoreColumn
+{
+public:
+	DataScoreColumn( COLUMNTYPE_e Type, const char *pszName ) :
+		ScoreColumn( pszName ),
+		NativeType( Type ),
+		ulMaxLength( 0 ),
+		ulClipRectWidth( 0 ),
+		ulClipRectHeight( 0 ) { }
+
+	inline COLUMNTYPE_e GetNativeType( void ) const { return NativeType; }
+	virtual COLUMNTEMPLATE_e GetTemplate( void ) const;
+	virtual COLUMNDATA_e GetDataType( void ) const;
+
+protected:
+	const COLUMNTYPE_e NativeType;
+	FString PrefixText;
+	FString SuffixText;
+	FString TrueText;
+	FString FalseText;
+	ULONG ulMaxLength;
+	ULONG ulClipRectWidth;
+	ULONG ulClipRectHeight;
+};
+
+//*****************************************************************************
 //	PROTOTYPES
 
 ScoreColumn		*SCOREBOARD_GetColumn( FName Name );

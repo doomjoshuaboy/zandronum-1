@@ -688,6 +688,82 @@ void ScoreColumn::FixClipRectSize( const int clipWidth, const int clipHeight, co
 
 //*****************************************************************************
 //
+// [AK] DataScoreColumn::GetTemplate
+//
+// Returns the template (i.e. either text-based or graphic-based) based on the
+// data type of the column. If the data type's unknown for any reason, then
+// the template is also unknown.
+//
+//*****************************************************************************
+
+COLUMNTEMPLATE_e DataScoreColumn::GetTemplate( void ) const
+{
+	switch ( GetDataType( ))
+	{
+		case COLUMNDATA_INT:
+		case COLUMNDATA_BOOL:
+		case COLUMNDATA_FLOAT:
+		case COLUMNDATA_STRING:
+			return COLUMNTEMPLATE_TEXT;
+
+		case COLUMNDATA_COLOR:
+		case COLUMNDATA_TEXTURE:
+			return COLUMNTEMPLATE_GRAPHIC;
+
+		default:
+			return COLUMNTEMPLATE_UNKNOWN;
+	}
+}
+
+//*****************************************************************************
+//
+// [AK] DataScoreColumn::GetDataType
+//
+// Returns the column's data type based on its native type. For example, frags
+// are stored as integers, so the frags column would use the integer data type.
+//
+//*****************************************************************************
+
+COLUMNDATA_e DataScoreColumn::GetDataType( void ) const
+{
+	switch ( NativeType )
+	{
+		case COLUMNTYPE_INDEX:
+		case COLUMNTYPE_TIME:
+		case COLUMNTYPE_PING:
+		case COLUMNTYPE_FRAGS:
+		case COLUMNTYPE_POINTS:
+		case COLUMNTYPE_WINS:
+		case COLUMNTYPE_KILLS:
+		case COLUMNTYPE_DEATHS:
+		case COLUMNTYPE_SECRETS:
+		case COLUMNTYPE_LIVES:
+		case COLUMNTYPE_DAMAGE:
+		case COLUMNTYPE_HANDICAP:
+		case COLUMNTYPE_JOINQUEUE:
+			return COLUMNDATA_INT;
+
+		case COLUMNTYPE_NAME:
+		case COLUMNTYPE_VOTE:
+			return COLUMNDATA_STRING;
+
+		case COLUMNTYPE_PLAYERCOLOR:
+			return COLUMNDATA_COLOR;
+
+		case COLUMNTYPE_STATUSICON:
+		case COLUMNTYPE_READYTOGOICON:
+		case COLUMNTYPE_SCOREICON:
+		case COLUMNTYPE_ARTIFACTICON:
+		case COLUMNTYPE_BOTSKILLICON:
+			return COLUMNDATA_TEXTURE;
+
+		default:
+			return COLUMNDATA_UNKNOWN;
+	}
+}
+
+//*****************************************************************************
+//
 // [AK] SCOREBOARD_GetColumn
 //
 // Returns a pointer to a column by searching for its name.
