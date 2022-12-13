@@ -188,6 +188,7 @@ public:
 	void SetHidden( bool bEnable );
 
 	virtual void Refresh( void );
+	virtual void UpdateWidth( FFont *pHeaderFont, FFont *pRowFont );
 
 protected:
 	FString DisplayName;

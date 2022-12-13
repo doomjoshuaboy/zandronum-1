@@ -329,6 +329,44 @@ void ScoreColumn::Refresh( void )
 
 //*****************************************************************************
 //
+// [AK] ScoreColumn::UpdateWidth
+//
+// Determines what the width of the column should be right now.
+//
+//*****************************************************************************
+
+void ScoreColumn::UpdateWidth( FFont *pHeaderFont, FFont *pRowFont )
+{
+	// [AK] Check if the column must be disabled if its contents are empty.
+	if (( ulShortestWidth == 0 ) && ( ulFlags & COLUMNFLAG_DISABLEIFEMPTY ))
+	{
+		bDisabled = true;
+		return;
+	}
+
+	ULONG ulHeaderWidth = 0;
+
+	// [AK] If the header is visible on this column, then grab its width.
+	if ((( ulFlags & COLUMNFLAG_DONTSHOWHEADER ) == false ) && ( pHeaderFont != NULL ))
+		ulHeaderWidth = pHeaderFont->StringWidth( bUseShortName ? ShortName.GetChars( ) : DisplayName.GetChars( ));
+
+	// [AK] Always use the shortest (or header) width if required. In this case,
+	// the sizing is added onto the shortest width as padding instead.
+	if ( ulFlags & COLUMNFLAG_ALWAYSUSESHORTESTWIDTH )
+		ulWidth = MAX( ulShortestWidth, ulHeaderWidth ) + ulSizing;
+	// [AK] Otherwise, set the column's width to whichever is bigger: the sizing
+	// (which becomes the default width of the column), the shortest width, or
+	// the header's width.
+	else
+		ulWidth = MAX( ulSizing, MAX( ulShortestWidth, ulHeaderWidth ));
+
+	// [AK] If the column's width is still zero, just disable it.
+	if ( ulWidth == 0 )
+		bDisabled = true;
+}
+
+//*****************************************************************************
+//
 // [AK] SCOREBOARD_GetColumn
 //
 // Returns a pointer to a column by searching for its name.
