@@ -1319,6 +1319,90 @@ void CompositeScoreColumn::Refresh( void )
 
 //*****************************************************************************
 //
+// [AK] CompositeScoreColumn::UpdateWidth
+//
+// Gets the smallest width that can fit the contents of all active sub-columns
+// in all player rows.
+//
+//*****************************************************************************
+
+void CompositeScoreColumn::UpdateWidth( FFont *pHeaderFont, FFont *pRowFont )
+{
+	ulShortestWidth = 0;
+
+	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if ( PLAYER_IsValidPlayer( ulIdx ) == false )
+			continue;
+
+		// [AK] Ignore true spectators if they're supposed to be excluded.
+		if (( ulFlags & COLUMNFLAG_NOSPECTATORS ) && ( PLAYER_IsTrueSpectator( &players[ulIdx] )))
+			continue;
+
+		ulShortestWidth = MAX( ulShortestWidth, GetRowWidth( ulIdx, pRowFont ));
+	}
+
+	// [AK] Call the superclass's function to finish updating the width.
+	ScoreColumn::UpdateWidth( pHeaderFont, pRowFont );
+}
+
+//*****************************************************************************
+//
+// [AK] CompositeScoreColumn::GetRowWidth
+//
+// Gets the width of an entire row for a particular player.
+//
+//*****************************************************************************
+
+ULONG CompositeScoreColumn::GetRowWidth( const ULONG ulPlayer, FFont *pFont ) const
+{
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
+		return 0;
+
+	const bool bIsTrueSpectator = PLAYER_IsTrueSpectator( &players[ulPlayer] );
+	ULONG ulRowWidth = 0;
+
+	for ( unsigned int i = 0; i < SubColumns.Size( ); i++ )
+	{
+		// [AK] Ignore sub-columns that are disabled or cannot be shown for true spectators.
+		if (( SubColumns[i]->IsDisabled( )) || (( SubColumns[i]->GetFlags( ) & COLUMNFLAG_NOSPECTATORS ) && ( bIsTrueSpectator )))
+			continue;
+
+		ColumnValue Value = SubColumns[i]->GetValue( ulPlayer );
+
+		if ( Value.GetDataType( ) != COLUMNDATA_UNKNOWN )
+			ulRowWidth += GetSubColumnWidth( i, SubColumns[i]->GetValueWidth( Value, pFont ));
+	}
+
+	return ulRowWidth;
+}
+
+//*****************************************************************************
+//
+// [AK] CompositeScoreColumn::GetSubColumnWidth
+//
+// Gets the width of a sub-column. This requires that a ColumnValue's width is
+// determined first (using DataScoreColumn::GetValueWidth) and passed into this
+// function to work.
+//
+//*****************************************************************************
+
+ULONG CompositeScoreColumn::GetSubColumnWidth( const ULONG ulSubColumn, const ULONG ulValueWidth ) const
+{
+	if ( ulSubColumn >= SubColumns.Size( ))
+		return 0;
+
+	// [AK] If the sub-column always uses its shortest width, then sizing is treated as padding.
+	if ( SubColumns[ulSubColumn]->GetFlags( ) & COLUMNFLAG_ALWAYSUSESHORTESTWIDTH )
+		return ulValueWidth + SubColumns[ulSubColumn]->GetSizing( );
+	// [AK] Otherwise, the sizing is treated as the default width of the sub-column.
+	// Use whichever's bigger: the value's width or the sizing.
+	else
+		return MAX( SubColumns[ulSubColumn]->GetSizing( ), ulValueWidth );
+}
+
+//*****************************************************************************
+//
 // [AK] SCOREBOARD_GetColumn
 //
 // Returns a pointer to a column by searching for its name.

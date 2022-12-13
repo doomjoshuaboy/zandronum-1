@@ -285,9 +285,14 @@ public:
 
 	virtual COLUMNTEMPLATE_e GetTemplate( void ) const { return COLUMNTEMPLATE_COMPOSITE; }
 	virtual void Refresh( void );
+	virtual void UpdateWidth( FFont *pHeaderFont, FFont *pRowFont );
 
 protected:
 	TArray<DataScoreColumn *> SubColumns;
+
+private:
+	ULONG GetRowWidth( const ULONG ulPlayer, FFont *pFont ) const;
+	ULONG GetSubColumnWidth( const ULONG ulSubColumn, const ULONG ulValueWidth ) const;
 };
 
 //*****************************************************************************
