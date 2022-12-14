@@ -391,6 +391,7 @@ private:
 
 	void UpdateWidth( void );
 	void UpdateHeight( void );
+	void DrawRow( const ULONG ulPlayer, const ULONG ulDisplayPlayer, LONG &lYPos, bool &bUseLightBackground ) const;
 };
 
 //*****************************************************************************

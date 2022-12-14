@@ -1808,6 +1808,85 @@ void Scoreboard::UpdateHeight( void )
 
 //*****************************************************************************
 //
+// [AK] Scoreboard::DrawRow
+//
+// Draws a player's values and the background of their row on the scoreboard.
+//
+//*****************************************************************************
+
+void Scoreboard::DrawRow( const ULONG ulPlayer, const ULONG ulDisplayPlayer, LONG &lYPos, bool &bUseLightBackground ) const
+{
+	const bool bIsDisplayPlayer = ( ulPlayer == ulDisplayPlayer );
+	const bool bIsTrueSpectator = PLAYER_IsTrueSpectator( &players[ulPlayer] );
+	const bool bPlayerIsDead = (( players[ulPlayer].playerstate == PST_DEAD ) || ( players[ulPlayer].bDeadSpectator ));
+	ULONG ulColor = RowColor;
+
+	// [AK] Change the text color to red if we're carrying a terminator sphere.
+	if (( terminator ) && ( players[ulPlayer].cheats2 & CF2_TERMINATORARTIFACT ))
+	{
+		ulColor = CR_RED;
+	}
+	// [AK] Change the text color to match the player's team if we should.
+	else if ( ulFlags & SCOREBOARDFLAG_USETEAMTEXTCOLOR )
+	{
+		if ( PLAYER_IsTrueSpectator( &players[ulPlayer] ))
+			ulColor = CR_GREY;
+		else if ( players[ulPlayer].bOnTeam )
+			ulColor = TEAM_GetTextColor( players[ulPlayer].Team );
+	}
+	// [AK] Change the text color if this is the player we're spying.
+	else if ( bIsDisplayPlayer )
+	{
+		if ( CLIENTDEMO_IsPlaying( ))
+			ulColor = LocalRowColors[LOCALROW_COLOR_INDEMO];
+		else
+			ulColor = LocalRowColors[LOCALROW_COLOR_INGAME];
+	}
+
+	const float fBackgroundAlpha = bPlayerIsDead ? fDeadRowBackgroundAmount : fRowBackgroundAmount;
+
+	// [AK] Draw the background of the row, but only if the alpha is non-zero. In team-based game modes,
+	// the color of the background is to be the team's own color.
+	if ( fBackgroundAlpha > 0.0f )
+	{
+		if (( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSONTEAMS ) && ( players[ulPlayer].bOnTeam ))
+		{
+			float r, g, b, h, s, v;
+			ULONG ulColor = TEAM_GetColor( players[ulPlayer].Team );
+			RGBtoHSV( RPART( ulColor ) / 255.0f, GPART( ulColor ) / 255.0f, BPART( ulColor ) / 255.0f, &h, &s, &v );
+
+			// [AK] Have the background colors switch between a lighter or a darker shade of their team's color.
+			v = clamp( v + fRowBackgroundColorDiff * ( bUseLightBackground ? 1 : -1 ), 0.0f, 1.0f );
+
+			HSVtoRGB( &r, &g, &b, h, s, v );
+			PalEntry color = MAKERGB( static_cast<int>( r * 255.0f ), static_cast<int>( g * 255.0f ), static_cast<int>( b * 255.0f ));
+			DrawRowBackground( color, lYPos, fBackgroundAlpha );
+		}
+		else
+		{
+			// [AK] If the player isn't on a team, use the two background colors that are defined.
+			if ( bUseLightBackground )
+				DrawRowBackground( RowBackgroundColors[ROWBACKGROUND_COLOR_LIGHT], lYPos, fBackgroundAlpha );
+			else
+				DrawRowBackground( RowBackgroundColors[ROWBACKGROUND_COLOR_DARK], lYPos, fBackgroundAlpha );
+		}
+	}
+
+	const float fTextAlpha = bPlayerIsDead ? fDeadTextAlpha : 1.0f;
+
+	// Draw the data for each column, but only if the text alpha is non-zero.
+	if ( fTextAlpha > 0.0f )
+	{
+		for ( unsigned int i = 0; i < ColumnOrder.Size( ); i++ )
+			ColumnOrder[i]->DrawValue( ulPlayer, pRowFont, ulColor, lYPos, lRowHeight, fTextAlpha );
+	}
+
+	lYPos += lRowHeight + ulGapBetweenRows;
+	bUseLightBackground = !bUseLightBackground;
+}
+
+//*****************************************************************************
+//
 // [AK] Scoreboard::DrawBorder
 //
 // Draws a border on the scoreboard.
