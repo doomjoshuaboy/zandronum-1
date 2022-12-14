@@ -383,6 +383,8 @@ private:
 	ULONG ulPlayerList[MAXPLAYERS];
 	TArray<ScoreColumn *> ColumnOrder;
 	TArray<DataScoreColumn *> RankOrder;
+
+	void UpdateWidth( void );
 };
 
 //*****************************************************************************

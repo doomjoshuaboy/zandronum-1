@@ -1641,6 +1641,56 @@ bool Scoreboard::PlayerComparator::operator( )( const int &arg1, const int &arg2
 
 //*****************************************************************************
 //
+// [AK] Scoreboard::UpdateWidth
+//
+// Determines what the width of the scoreboard should be right now, then
+// re-positions all of the active columns based on that width.
+//
+//*****************************************************************************
+
+void Scoreboard::UpdateWidth( void )
+{
+	const ULONG ulGameModeFlags = GAMEMODE_GetCurrentFlags( );
+	ULONG ulNumActiveColumns = 0;
+
+	ulWidth = 0;
+
+	for ( unsigned int i = 0; i < ColumnOrder.Size( ); i++ )
+	{
+		if ( ColumnOrder[i]->IsDisabled( ))
+			continue;
+
+		ulWidth += ColumnOrder[i]->GetWidth( );
+		ulNumActiveColumns++;
+	}
+
+	// [AK] If the width is still zero, then no columns are visible, stop here.
+	if ( ulWidth == 0 )
+		return;
+
+	// [AK] Add the gaps between each of the active columns and the background border size to the total width.
+	ulWidth += ( ulNumActiveColumns - 1 ) * ulGapBetweenColumns + 2 * ulBackgroundBorderSize;
+	lRelX = ( HUD_GetWidth( ) - ulWidth ) / 2;
+
+	LONG lCurXPos = lRelX + ulBackgroundBorderSize;
+
+	// [AK] We got the width of the scoreboard. Now update the positions of all the columns.
+	// Do this here because we already know how many columns are active in this function.
+	for ( unsigned int i = 0; i < ColumnOrder.Size( ); i++ )
+	{
+		if ( ColumnOrder[i]->IsDisabled( ))
+			continue;
+
+		ColumnOrder[i]->lRelX = lCurXPos;
+		lCurXPos += ColumnOrder[i]->GetWidth( );
+
+		if ( --ulNumActiveColumns > 0 )
+			lCurXPos += ulGapBetweenColumns;
+	}
+}
+
+//*****************************************************************************
+//
 // [AK] SCOREBOARD_GetColumn
 //
 // Returns a pointer to a column by searching for its name.
