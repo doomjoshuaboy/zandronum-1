@@ -52,6 +52,8 @@
 
 #include <set>
 #include "gamemode.h"
+#include "tarray.h"
+#include "v_text.h"
 
 #include "scoreboard_enums.h"
 
@@ -215,6 +217,9 @@ protected:
 	bool bHidden;
 	bool bUseShortName;
 
+	// [AK] Let the Scoreboard struct have access to this class's protected members.
+	friend struct Scoreboard;
+
 private:
 	void FixClipRectSize( const int clipWidth, const int clipHeight, const ULONG ulHeight, int &fixedWidth, int &fixedHeight ) const;
 };
@@ -266,7 +271,9 @@ protected:
 	CompositeScoreColumn *pCompositeColumn;
 
 	// [AK] Let the CompositeScoreColumn class have access to this class's protected members.
+	// Also let the Scoreboard struct have access.
 	friend class CompositeScoreColumn;
+	friend struct Scoreboard;
 };
 
 //*****************************************************************************
@@ -298,9 +305,93 @@ private:
 };
 
 //*****************************************************************************
+//
+// [AK] Scoreboard
+//
+// Contains all properties and columns on the scoreboard. The scoreboard is
+// responsible for updating itself and the positions of all active columns,
+// sorting players based on a predefined rank order list, and finally drawing
+// everything on the screen when it needs to be rendered.
+//
+//*****************************************************************************
+
+struct Scoreboard
+{
+	enum LOCALROW_COLOR_e
+	{
+		LOCALROW_COLOR_INGAME,
+		LOCALROW_COLOR_INDEMO,
+
+		NUM_LOCALROW_COLORS
+	};
+
+	enum BORDER_COLOR_e
+	{
+		BORDER_COLOR_LIGHT,
+		BORDER_COLOR_DARK,
+
+		NUM_BORDER_COLORS
+	};
+
+	enum ROWBACKGROUND_COLOR_e
+	{
+		ROWBACKGROUND_COLOR_LIGHT,
+		ROWBACKGROUND_COLOR_DARK,
+
+		NUM_ROWBACKGROUND_COLORS
+	};
+
+	LONG lRelX;
+	LONG lRelY;
+	ULONG ulWidth;
+	ULONG ulHeight;
+	ULONG ulFlags;
+	FFont *pHeaderFont;
+	FFont *pRowFont;
+	EColorRange HeaderColor;
+	EColorRange RowColor;
+	EColorRange LocalRowColors[NUM_LOCALROW_COLORS];
+	FTexture *pBorderTexture;
+	PalEntry BorderColors[NUM_BORDER_COLORS];
+	PalEntry BackgroundColor;
+	PalEntry RowBackgroundColors[NUM_ROWBACKGROUND_COLORS];
+	float fRowBackgroundColorDiff;
+	float fBackgroundAmount;
+	float fRowBackgroundAmount;
+	float fDeadRowBackgroundAmount;
+	float fDeadTextAlpha;
+	ULONG ulBackgroundBorderSize;
+	ULONG ulGapBetweenHeaderAndRows;
+	ULONG ulGapBetweenColumns;
+	ULONG ulGapBetweenRows;
+	LONG lHeaderHeight;
+	LONG lRowHeight;
+	bool bDisabled;
+	bool bHidden;
+
+	Scoreboard( void );
+
+private:
+	struct PlayerComparator
+	{
+		PlayerComparator( TArray<DataScoreColumn *> *pList ) : pRankOrder( pList ) { }
+		bool operator( )( const int &arg1, const int &arg2 ) const;
+
+		const TArray<DataScoreColumn *> *pRankOrder;
+	};
+
+	ULONG ulPlayerList[MAXPLAYERS];
+	TArray<ScoreColumn *> ColumnOrder;
+	TArray<DataScoreColumn *> RankOrder;
+};
+
+//*****************************************************************************
 //	PROTOTYPES
 
 ScoreColumn		*SCOREBOARD_GetColumn( FName Name );
+bool			SCOREBOARD_IsDisabled( void );
+bool			SCOREBOARD_IsHidden( void );
+void			SCOREBOARD_SetHidden( bool bEnable );
 bool			SCOREBOARD_ShouldDrawBoard( void );
 void			SCOREBOARD_Render( ULONG ulDisplayPlayer );
 void			SCOREBOARD_Refresh( void );

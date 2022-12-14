@@ -91,6 +91,9 @@
 // [AK] A list of all defined columns.
 static	TMap<FName, ScoreColumn *>	g_Columns;
 
+// [AK] The main scoreboard object.
+static	Scoreboard	g_Scoreboard;
+
 // Player list according to rank.
 static	int		g_iSortedPlayers[MAXPLAYERS];
 
@@ -1521,6 +1524,123 @@ ULONG CompositeScoreColumn::GetSubColumnWidth( const ULONG ulSubColumn, const UL
 
 //*****************************************************************************
 //
+// [AK] Scoreboard::Scoreboard
+//
+// Initializes the members of a Scoreboard object to their default values.
+//
+//*****************************************************************************
+
+Scoreboard::Scoreboard( void ) :
+	lRelX( 0 ),
+	lRelY( 0 ),
+	ulWidth( 0 ),
+	ulHeight( 0 ),
+	ulFlags( 0 ),
+	pHeaderFont( NULL ),
+	pRowFont( NULL ),
+	HeaderColor( CR_UNTRANSLATED ),
+	RowColor( CR_UNTRANSLATED ),
+	LocalRowColors{ CR_UNTRANSLATED },
+	pBorderTexture( NULL ),
+	BorderColors{ CR_UNTRANSLATED },
+	BackgroundColor( 0 ),
+	RowBackgroundColors{ 0 },
+	fRowBackgroundColorDiff( 0.0f ),
+	fBackgroundAmount( 0.0f ),
+	fRowBackgroundAmount( 0.0f ),
+	fDeadRowBackgroundAmount( 0.0f ),
+	fDeadTextAlpha( 0.0f ),
+	ulBackgroundBorderSize( 0 ),
+	ulGapBetweenHeaderAndRows( 0 ),
+	ulGapBetweenColumns( 0 ),
+	ulGapBetweenRows( 0 ),
+	lHeaderHeight( 0 ),
+	lRowHeight( 0 ),
+	bDisabled( false ),
+	bHidden( false ) { }
+
+//*****************************************************************************
+//
+// [AK] Scoreboard::PlayerComparator
+//
+// Orders players on the scoreboard, from top to bottom, using the rank order list.
+//
+//*****************************************************************************
+
+bool Scoreboard::PlayerComparator::operator( )( const int &arg1, const int &arg2 ) const
+{
+	int result = 0;
+
+	// [AK] Sanity check: make sure that we're pointing to a rank order.
+	if ( pRankOrder == NULL )
+		return false;
+
+	// [AK] Always return false if the first player index is invalid.
+	// This is also the case when both player indices are invalid.
+	if ( PLAYER_IsValidPlayer( arg1 ) == false )
+		return false;
+
+	// [AK] Always return true if the second player index is invalid.
+	if ( PLAYER_IsValidPlayer( arg2 ) == false )
+		return true;
+
+	for ( unsigned int i = 0; i < pRankOrder->Size( ); i++ )
+	{
+		if (( *pRankOrder )[i]->IsDisabled( ))
+			continue;
+
+		const ColumnValue Value1 = ( *pRankOrder )[i]->GetValue( arg1 );
+		const ColumnValue Value2 = ( *pRankOrder )[i]->GetValue( arg2 );
+
+		// [AK] Always return false if the data type of the first value is unknown.
+		// This is also the case when both values have unknown data types.
+		if ( Value1.GetDataType( ) == COLUMNDATA_UNKNOWN )
+			return false;
+
+		// [AK] Always return true if the second value is unknown.
+		if ( Value2.GetDataType( ) == COLUMNDATA_UNKNOWN )
+			return true;
+
+		switch ( Value1.GetDataType( ))
+		{
+			case COLUMNDATA_INT:
+				result = Value1.GetValue<int>( ) - Value2.GetValue<int>( );
+				break;
+
+			case COLUMNDATA_BOOL:
+				result = static_cast<int>( Value1.GetValue<bool>( ) - Value2.GetValue<bool>( ));
+				break;
+
+			case COLUMNDATA_FLOAT:
+				result = static_cast<int>( Value1.GetValue<float>( ) - Value2.GetValue<float>( ));
+
+			case COLUMNDATA_STRING:
+			{
+				FString firstString = Value1.GetValue<const char *>( );
+				FString secondString = Value2.GetValue<const char *>( );
+
+				// [AK] Remove color codes from both strings before comparing them.
+				V_RemoveColorCodes( firstString );
+				V_RemoveColorCodes( secondString );
+
+				result = secondString.Compare( firstString );
+				break;
+			}
+
+			default:
+				break;
+		}
+
+		// [AK] If the values for this column aren't the same for both players, return the result.
+		if ( result != 0 )
+			return (( *pRankOrder )[i]->GetFlags( ) & COLUMNFLAG_REVERSEORDER ) ? ( result < 0 ) : ( result > 0 );
+	}
+
+	return false;
+}
+
+//*****************************************************************************
+//
 // [AK] SCOREBOARD_GetColumn
 //
 // Returns a pointer to a column by searching for its name.
@@ -1531,6 +1651,49 @@ ScoreColumn *SCOREBOARD_GetColumn( FName Name )
 {
 	ScoreColumn **pColumn = g_Columns.CheckKey( Name );
 	return ( pColumn != NULL ) ? *pColumn : NULL;
+}
+
+//*****************************************************************************
+//
+// [AK] SCOREBOARD_IsDisabled
+//
+// Checks if the scoreboard is disabled.
+//
+//*****************************************************************************
+
+bool SCOREBOARD_IsDisabled( void )
+{
+	return g_Scoreboard.bDisabled;
+}
+
+//*****************************************************************************
+//
+// [AK] SCOREBOARD_IsHidden
+//
+// Checks if the scoreboard is hidden.
+//
+//*****************************************************************************
+
+bool SCOREBOARD_IsHidden( void )
+{
+	return g_Scoreboard.bHidden;
+}
+
+//*****************************************************************************
+//
+// [AK] SCOREBOARD_SetHidden
+//
+// Hides (or unhides) the scoreboard, which also requires it to be refreshed.
+//
+//*****************************************************************************
+
+void SCOREBOARD_SetHidden( bool bEnable )
+{
+	if ( g_Scoreboard.bHidden == bEnable )
+		return;
+
+	g_Scoreboard.bHidden = bEnable;
+	SCOREBOARD_ShouldRefreshBeforeRendering( );
 }
 
 //*****************************************************************************
