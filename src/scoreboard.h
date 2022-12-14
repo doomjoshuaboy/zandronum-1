@@ -371,6 +371,8 @@ struct Scoreboard
 
 	Scoreboard( void );
 
+	void Refresh( const ULONG ulDisplayPlayer );
+
 private:
 	struct PlayerComparator
 	{

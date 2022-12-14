@@ -1641,6 +1641,55 @@ bool Scoreboard::PlayerComparator::operator( )( const int &arg1, const int &arg2
 
 //*****************************************************************************
 //
+// [AK] Scoreboard::Refresh
+//
+// Updates the scoreboard's width and height, re-positions the columns, and
+// sorts the players using the rank order.
+//
+//*****************************************************************************
+
+void Scoreboard::Refresh( const ULONG ulDisplayPlayer )
+{
+	bDisabled = false;
+
+	// [AK] If the scoreboard's supposed to be hidden, then disable it and stop here.
+	if ( bHidden )
+	{
+		bDisabled = true;
+		return;
+	}
+
+	// [AK] Refresh all of the scoreboard's columns, then update the widths of any active columns.
+	for ( unsigned int i = 0; i < ColumnOrder.Size( ); i++ )
+	{
+		ColumnOrder[i]->Refresh( );
+
+		if ( ColumnOrder[i]->IsDisabled( ))
+			continue;
+
+		ColumnOrder[i]->UpdateWidth( pHeaderFont, pRowFont );
+	}
+
+	UpdateWidth( );
+
+	// [AK] If the scoreboard's width is zero, then disable it and stop here.
+	if ( ulWidth == 0 )
+	{
+		bDisabled = true;
+		return;
+	}
+
+	UpdateHeight( );
+
+	// [AK] Reset the player list then sort players based on the scoreboard's rank order.
+	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+		ulPlayerList[ulIdx] = ulIdx;
+
+	std::stable_sort( ulPlayerList, ulPlayerList + MAXPLAYERS, PlayerComparator( &RankOrder ));
+}
+
+//*****************************************************************************
+//
 // [AK] Scoreboard::UpdateWidth
 //
 // Determines what the width of the scoreboard should be right now, then
