@@ -1691,6 +1691,73 @@ void Scoreboard::UpdateWidth( void )
 
 //*****************************************************************************
 //
+// [AK] Scoreboard::UpdateHeight
+//
+// Determines what the height of the scoreboard should be right now.
+//
+//*****************************************************************************
+
+void Scoreboard::UpdateHeight( void )
+{
+	const ULONG ulRowYOffset = lRowHeight + ulGapBetweenRows;
+	const ULONG ulNumActivePlayers = HUD_GetNumPlayers( );
+	const ULONG ulNumSpectators = HUD_GetNumSpectators( );
+	bool bAlreadyDrewRow = false;
+
+	ulHeight = 2 * ulBackgroundBorderSize + lHeaderHeight + ulGapBetweenHeaderAndRows;
+
+	if (( ulFlags & SCOREBOARDFLAG_DONTDRAWBORDERS ) == false )
+	{
+		// [AK] The borders are drawn in three places: above and below the column headers, and
+		// underneath all player rows. If using textures for the borders, then we must add
+		// its height three times.
+		if (( ulFlags & SCOREBOARDFLAG_USETEXTUREFORBORDERS ) && ( pBorderTexture != NULL ))
+			ulHeight += pBorderTexture->GetScaledHeight( ) * 3;
+		// [AK] Otherwise, add 6 pixels for lined borders (each border is 2 pixels tall).
+		else
+			ulHeight += 6;
+	}
+
+	// [AK] Add the total height of all rows for active players.
+	if ( ulNumActivePlayers > 0 )
+	{
+		if (( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSONTEAMS ) && (( ulFlags & SCOREBOARDFLAG_DONTSEPARATETEAMS ) == false ))
+		{
+			for ( ULONG ulTeam = 0; ulTeam < teams.Size( ); ulTeam++ )
+			{
+				ULONG ulTeamPlayerCount = TEAM_CountPlayers( ulTeam );
+
+				if ( ulTeamPlayerCount > 0 )
+				{
+					if ( bAlreadyDrewRow )
+						ulHeight += lRowHeight;
+
+					ulHeight += ulTeamPlayerCount * ulRowYOffset;
+					bAlreadyDrewRow = true;
+				}
+			}
+		}
+		else
+		{
+			ulHeight += ulNumActivePlayers * ulRowYOffset;
+			bAlreadyDrewRow = true;
+		}
+	}
+
+	// [AK] Do the same for any true spectators.
+	if ( ulNumSpectators > 0 )
+	{
+		if ( bAlreadyDrewRow )
+			ulHeight += lRowHeight;
+
+		ulHeight += ulNumSpectators * ulRowYOffset;
+	}
+
+	lRelY = ( HUD_GetHeight( ) - ulHeight ) / 2;
+}
+
+//*****************************************************************************
+//
 // [AK] SCOREBOARD_GetColumn
 //
 // Returns a pointer to a column by searching for its name.

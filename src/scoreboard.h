@@ -385,6 +385,7 @@ private:
 	TArray<DataScoreColumn *> RankOrder;
 
 	void UpdateWidth( void );
+	void UpdateHeight( void );
 };
 
 //*****************************************************************************
