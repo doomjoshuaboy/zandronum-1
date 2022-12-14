@@ -372,6 +372,9 @@ struct Scoreboard
 	Scoreboard( void );
 
 	void Refresh( const ULONG ulDisplayPlayer );
+	void DrawBorder( const EColorRange Color, LONG &lYPos, const bool bReverse ) const;
+	void DrawRowBackground( const PalEntry color, int x, int y, int width, int height, const float fAlpha ) const;
+	void DrawRowBackground( const PalEntry color, const int y, const float fAlpha ) const;
 
 private:
 	struct PlayerComparator

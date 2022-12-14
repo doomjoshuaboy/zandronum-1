@@ -79,6 +79,7 @@
 #include "g_game.h"
 #include "d_netinf.h"
 #include "v_palette.h"
+#include "r_data/r_translate.h"
 
 // [AK] Implement the string table and the conversion functions for the scoreboard enums.
 #define GENERATE_ENUM_STRINGS  // Start string generation
@@ -1803,6 +1804,129 @@ void Scoreboard::UpdateHeight( void )
 	}
 
 	lRelY = ( HUD_GetHeight( ) - ulHeight ) / 2;
+}
+
+//*****************************************************************************
+//
+// [AK] Scoreboard::DrawBorder
+//
+// Draws a border on the scoreboard.
+//
+//*****************************************************************************
+
+void Scoreboard::DrawBorder( const EColorRange Color, LONG &lYPos, const bool bReverse ) const
+{
+	if ( ulFlags & SCOREBOARDFLAG_DONTDRAWBORDERS )
+		return;
+
+	int x = lRelX + ulBackgroundBorderSize;
+	int y = lYPos;
+	int width = ulWidth - 2 * ulBackgroundBorderSize;
+	int height = 0;
+
+	if (( ulFlags & SCOREBOARDFLAG_USETEXTUREFORBORDERS ) && ( pBorderTexture != NULL ))
+	{
+		LONG lXPos = x;
+		const LONG lRight = x + width;
+
+		height = pBorderTexture->GetScaledHeight( );
+
+		if ( g_bScale )
+			screen->VirtualToRealCoordsInt( x, y, width, height, con_virtualwidth, con_virtualheight, false, !con_scaletext_usescreenratio );
+
+		while ( lXPos < lRight )
+		{
+			screen->DrawTexture( pBorderTexture, lXPos, lYPos,
+				DTA_UseVirtualScreen, g_bScale,
+				DTA_ClipLeft, x,
+				DTA_ClipRight, x + width,
+				DTA_ClipTop, y,
+				DTA_ClipBottom, y + height,
+				TAG_DONE );
+
+			lXPos += pBorderTexture->GetScaledWidth( );
+		}
+
+		lYPos += pBorderTexture->GetScaledHeight( );
+	}
+	else
+	{
+		uint32 lightColor, darkColor;
+		height = 1;
+
+		if ( g_bScale )
+			screen->VirtualToRealCoordsInt( x, y, width, height, con_virtualwidth, con_virtualheight, false, !con_scaletext_usescreenratio );
+
+		// [AK] Do we want to use the font's translation table and text color to colorize the border,
+		// or the predetermined hexadecimal colors for the border?
+		if ( ulFlags & SCOREBOARDFLAG_USEHEADERCOLORFORBORDERS )
+		{
+			// [AK] Get the translation table of the (team) header font with its corresponding color.
+			const FRemapTable *trans = pHeaderFont->GetColorTranslation( Color );
+
+			// [AK] The light color can be somewhere just past the middle of the remap table.
+			lightColor = trans->Palette[trans->NumEntries * 2 / 3];
+
+			// [AK] The dark color should be somewhere at the beginning of the remap table.
+			darkColor = trans->Palette[MIN( 1, trans->NumEntries )];
+		}
+		else
+		{
+			lightColor = BorderColors[BORDER_COLOR_LIGHT];
+			darkColor = BorderColors[BORDER_COLOR_DARK];
+		}
+
+		// [AK] The dark color goes above the light one, unless it's reversed.
+		screen->Clear( x, y, x + width, y + height, -1, bReverse ? lightColor : darkColor );
+		screen->Clear( x, y + height, x + width, y + height * 2, -1, bReverse ? darkColor : lightColor );
+		lYPos += 2;
+	}
+}
+
+//*****************************************************************************
+//
+// [AK] Scoreboard::DrawRowBackground
+//
+// Draws a row's background on the scoreboard.
+//
+//*****************************************************************************
+
+void Scoreboard::DrawRowBackground( const PalEntry color, int x, int y, int width, int height, const float fAlpha ) const
+{
+	if (( fAlpha <= 0.0f ) || ( fRowBackgroundAmount <= 0.0f ))
+		return;
+
+	if ( g_bScale )
+		screen->VirtualToRealCoordsInt( x, y, width, height, con_virtualwidth, con_virtualheight, false, !con_scaletext_usescreenratio );
+
+	screen->Dim( color, fAlpha * fRowBackgroundAmount, x, y, width, height );
+}
+
+//*****************************************************************************
+//
+void Scoreboard::DrawRowBackground( const PalEntry color, const int y, const float fAlpha ) const
+{
+	if (( fAlpha <= 0.0f ) || ( fRowBackgroundAmount <= 0.0f ))
+		return;
+
+	const int height = lRowHeight;
+
+	// [AK] If gaps must be shown in the row's background, then only draw the background where
+	// the active columns are. Otherwise, draw a single background across the scoreboard.
+	if ( ulFlags & SCOREBOARDFLAG_SHOWGAPSINROWBACKGROUND )
+	{
+		for ( unsigned int i = 0; i < ColumnOrder.Size( ); i++ )
+		{
+			if ( ColumnOrder[i]->IsDisabled( ))
+				continue;
+
+			DrawRowBackground( color, ColumnOrder[i]->GetRelX( ), y, ColumnOrder[i]->GetWidth( ), height, fAlpha );
+		}
+	}
+	else
+	{
+		DrawRowBackground( color, lRelX + ulBackgroundBorderSize, y, ulWidth - 2 * ulBackgroundBorderSize, height, fAlpha );
+	}
 }
 
 //*****************************************************************************
