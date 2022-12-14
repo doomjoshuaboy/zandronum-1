@@ -1808,6 +1808,120 @@ void Scoreboard::UpdateHeight( void )
 
 //*****************************************************************************
 //
+// [AK] Scoreboard::Render
+//
+// Draws the scoreboard's background, then everything else.
+//
+//*****************************************************************************
+
+void Scoreboard::Render( const ULONG ulDisplayPlayer )
+{
+	int clipLeft = lRelX;
+	int clipTop = lRelY;
+	int clipWidth = ulWidth;
+	int clipHeight = ulHeight;
+
+	// [AK] We must take into account the virtual screen's size.
+	if ( g_bScale )
+		screen->VirtualToRealCoordsInt( clipLeft, clipTop, clipWidth, clipHeight, con_virtualwidth, con_virtualheight, false, !con_scaletext_usescreenratio );
+
+	screen->Dim( BackgroundColor, fBackgroundAmount, clipLeft, clipTop, clipWidth, clipHeight );
+
+	LONG lYPos = lRelY + ulBackgroundBorderSize;
+	bool bUseLightBackground = true;
+	bool bAlreadyDrewRow = false;
+
+	// [AK] Draw a border above the column headers.
+	DrawBorder( HeaderColor, lYPos, false );
+
+	// [AK] Draw all of the column headers.
+	for ( unsigned int i = 0; i < ColumnOrder.Size( ); i++ )
+		ColumnOrder[i]->DrawHeader( pHeaderFont, HeaderColor, lYPos, lHeaderHeight );
+
+	lYPos += lHeaderHeight;
+
+	// [AK] Draw another border below the headers.
+	DrawBorder( HeaderColor, lYPos, true );
+	lYPos += ulGapBetweenHeaderAndRows;
+
+	// [AK] Draw rows for all active players.
+	if ( HUD_GetNumPlayers( ) > 0 )
+	{
+		if (( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSONTEAMS ) && (( ulFlags & SCOREBOARDFLAG_DONTSEPARATETEAMS ) == false ))
+		{
+			for ( ULONG ulTeam = 0; ulTeam < teams.Size( ); ulTeam++ )
+			{
+				if ( TEAM_CountPlayers( ulTeam ) == 0 )
+					continue;
+
+				// [AK] If we already drew some rows for a previous team, leave a gap between both teams.
+				if ( bAlreadyDrewRow )
+					lYPos += lRowHeight;
+
+				for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+				{
+					const ULONG ulPlayer = ulPlayerList[ulIdx];
+
+					if (( PLAYER_IsValidPlayer( ulPlayer ) == false ) || ( PLAYER_IsTrueSpectator( &players[ulPlayer] )))
+						continue;
+
+					if (( players[ulPlayer].bOnTeam == false ) || ( players[ulPlayer].Team != ulTeam ))
+						continue;
+
+					// [AK] Draw a row for this player.
+					DrawRow( ulPlayer, ulDisplayPlayer, lYPos, bUseLightBackground );
+				}
+
+				// [AK] Make sure the background of the first player of the next team is light.
+				bUseLightBackground = true;
+				bAlreadyDrewRow = true;
+			}
+		}
+		else
+		{
+			for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+			{
+				const ULONG ulPlayer = ulPlayerList[ulIdx];
+
+				if (( PLAYER_IsValidPlayer( ulPlayer ) == false ) || ( PLAYER_IsTrueSpectator( &players[ulPlayer] )))
+					continue;
+
+				// [AK] Draw a row for this player.
+				DrawRow( ulPlayer, ulDisplayPlayer, lYPos, bUseLightBackground );
+				bAlreadyDrewRow = true;
+			}
+
+			// [AK] In case there's spectators, make sure the background of the first player is light.
+			bUseLightBackground = true;
+		}
+	}
+
+	// [AK] Draw rows for any true spectators.
+	if ( HUD_GetNumSpectators( ) > 0 )
+	{
+		// [AK] If we already drew some rows, leave a gap between them and the spectator's team header.
+		if ( bAlreadyDrewRow )
+			lYPos += lRowHeight;
+
+		for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+		{
+			const ULONG ulPlayer = ulPlayerList[ulIdx];
+			if (( PLAYER_IsValidPlayer( ulPlayer ) == false ) || ( PLAYER_IsTrueSpectator( &players[ulPlayer] ) == false ))
+				continue;
+
+			// [AK] Draw a row for this player.
+			DrawRow( ulPlayer, ulDisplayPlayer, lYPos, bUseLightBackground );
+		}
+	}
+
+	// [AK] Finally, draw a border at the bottom of the scoreboard. We must subtract ulGapBetweenRows here (a bit hacky)
+	// because SCOREBOARD_s::DrawPlayerRow adds it every time a row is drawn. This isn't necessary for the last row.
+	lYPos += ulGapBetweenHeaderAndRows - ulGapBetweenRows;
+	DrawBorder( HeaderColor, lYPos, false );
+}
+
+//*****************************************************************************
+//
 // [AK] Scoreboard::DrawRow
 //
 // Draws a player's values and the background of their row on the scoreboard.
