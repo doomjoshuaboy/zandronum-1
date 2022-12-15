@@ -1221,45 +1221,48 @@ void SERVER_SendChatMessage( ULONG ulPlayer, ULONG ulMode, const char *pszString
 			return;
 	}
 
+	FString message;
+
 	// [BB] This is to make the lines readily identifiable, necessary
 	// for MiX-MaN's IRC server control tool for example.
-	if( sv_markchatlines )
-		Printf( "CHAT " );
+	if ( sv_markchatlines )
+		message = "CHAT ";
+
 	// Print this message in the server's local window.
 	if ( strnicmp( "/me", pszString, 3 ) == 0 )
 	{
-		FString message;
 		pszString += 3;
 
 		if ( ulMode == CHATMODE_PRIVATE_SEND )
 		{
 			if ( ulPlayer == MAXPLAYERS )
-				message.Format( "<To %s> ", players[ulReceiver].userinfo.GetName() );
+				message.AppendFormat( "<To %s> ", players[ulReceiver].userinfo.GetName() );
 			else
-				message.Format( "<From %s> ", players[ulPlayer].userinfo.GetName() );
+				message.AppendFormat( "<From %s> ", players[ulPlayer].userinfo.GetName() );
 		}
 
 		// [AK] Don't print the same message twice for the current RCON client.
 		CONSOLE_ShouldPrintToRCONPlayer( false );
 		message.AppendFormat( "* %s%s", ulPlayer != MAXPLAYERS ? players[ulPlayer].userinfo.GetName() : "<Server>", pszString );
-		Printf( "%s\n", message.GetChars() );
 	}
 	else
 	{
 		if ( ulMode == CHATMODE_PRIVATE_SEND )
 		{
 			if ( ulPlayer == MAXPLAYERS )
-				Printf( "<To %s>: %s\n", players[ulReceiver].userinfo.GetName(), pszString );
+				message.AppendFormat( "<To %s>: %s", players[ulReceiver].userinfo.GetName(), pszString );
 			else
-				Printf( "<From %s>: %s\n", players[ulPlayer].userinfo.GetName(), pszString );
+				message.AppendFormat( "<From %s>: %s", players[ulPlayer].userinfo.GetName(), pszString );
 		}
 		else
 		{
 			// [AK] Don't print the same message twice for the current RCON client.
 			CONSOLE_ShouldPrintToRCONPlayer( false );
-			Printf( "%s: %s\n", ulPlayer != MAXPLAYERS ? players[ulPlayer].userinfo.GetName() : "<Server>", pszString );
+			message.AppendFormat( "%s: %s", ulPlayer != MAXPLAYERS ? players[ulPlayer].userinfo.GetName() : "<Server>", pszString );
 		}
 	}
+
+	Printf( "%s\n", message.GetChars() );
 }
 
 //*****************************************************************************
