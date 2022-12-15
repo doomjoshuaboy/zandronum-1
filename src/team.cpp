@@ -754,8 +754,6 @@ void TEAM_DoWinSequence( ULONG ulTeamIdx )
 void TEAM_TimeExpired( void )
 {
 	LONG				lWinner = 0;
-	DHUDMessageFadeOut	*pMsg;
-	char				szString[64];
 	ULONG				lHighestScore;
 	ULONG				ulLeadingTeamsCount = 0;
 
@@ -792,33 +790,11 @@ void TEAM_TimeExpired( void )
 			lWinner = teams.Size( );
 
 		// If there was a tie, then go into sudden death!
-		if ( sv_suddendeath && ( (ULONG)lWinner == teams.Size( ) ) )
+		if (( sv_suddendeath ) && ( static_cast<ULONG>( lWinner ) == teams.Size( )))
 		{
 			// Only print the message the instant we reach sudden death.
-			if ( level.time == (int)( timelimit * TICRATE * 60 ))
-			{
-				sprintf( szString, "\\cdSUDDEN DEATH!" );
-				V_ColorizeString( szString );
-
-				if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-				{
-					// Display the HUD message.
-					pMsg = new DHUDMessageFadeOut( BigFont, szString,
-						160.4f,
-						75.0f,
-						320,
-						200,
-						CR_UNTRANSLATED,
-						3.0f,
-						2.0f );
-
-					StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
-				}
-				else
-				{
-					SERVERCOMMANDS_PrintHUDMessage( szString, 160.4f, 75.0f, 320, 200, HUDMESSAGETYPE_FADEOUT, CR_RED, 3.0f, 0.0f, 2.0f, "BigFont", MAKE_ID( 'C', 'N', 'T', 'R' ) );
-				}
-			}
+			if ( level.time == static_cast<int>( timelimit * TICRATE * 60 ))
+				HUD_DrawStandardMessage( "SUDDEN DEATH!", CR_GREEN, false, 3.0f, 2.0f, true );
 
 			return;
 		}
