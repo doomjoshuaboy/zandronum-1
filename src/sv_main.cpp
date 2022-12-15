@@ -275,6 +275,7 @@ CVAR( Int, sv_colorstripmethod, 0, CVAR_ARCHIVE )
 CVAR( Bool, sv_minimizetosystray, true, CVAR_ARCHIVE )
 CVAR( Int, sv_queryignoretime, 10, CVAR_ARCHIVE )
 CVAR( Bool, sv_markchatlines, false, CVAR_ARCHIVE )
+CVAR( Int, sv_distinguishteamchatlines, 0, CVAR_ARCHIVE )
 CVAR( Flag, sv_nokill, dmflags2, DF2_NOSUICIDE )
 CVAR( Bool, sv_pure, true, CVAR_SERVERINFO | CVAR_LATCH )
 CVAR( Int, sv_maxclientsperip, 2, CVAR_ARCHIVE | CVAR_SERVERINFO )
@@ -1227,6 +1228,31 @@ void SERVER_SendChatMessage( ULONG ulPlayer, ULONG ulMode, const char *pszString
 	// for MiX-MaN's IRC server control tool for example.
 	if ( sv_markchatlines )
 		message = "CHAT ";
+
+	// [AK] Distinguish team chat messages from normal chat messages if we want to.
+	if (( sv_distinguishteamchatlines > 0 ) && ( ulMode == CHATMODE_TEAM ))
+	{
+		if ( PLAYER_IsTrueSpectator( &players[ulPlayer] ))
+		{
+			message += "<SPEC> ";
+		}
+		else if ( players[ulPlayer].bOnTeam )
+		{
+			// [AK] If sv_distinguishteamchatlines is set to 1, then show the team's name.
+			// If it's greater than 1, then show the team's number instead.
+			if ( sv_distinguishteamchatlines == 1 )
+			{
+				FString teamName = TEAM_GetName( players[ulPlayer].Team );
+				teamName.ToUpper( );
+
+				message.AppendFormat( "<%s> ", teamName.GetChars( ));
+			}
+			else
+			{
+				message.AppendFormat( "<TEAM #%d> ", players[ulPlayer].Team + 1 );
+			}
+		}
+	}
 
 	// Print this message in the server's local window.
 	if ( strnicmp( "/me", pszString, 3 ) == 0 )
