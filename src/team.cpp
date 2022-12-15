@@ -731,34 +731,22 @@ WORD TEAM_GetReturnScriptOffset( ULONG ulTeamIdx )
 //
 void TEAM_DoWinSequence( ULONG ulTeamIdx )
 {
-	char				szString[32];
-	DHUDMessageFadeOut	*pMsg;
+	FString message;
+	EColorRange color;
 
 	// Display "%s WINS!" HUD message.
-	if ( ulTeamIdx < teams.Size( ) )
-		sprintf( szString, "\\c%s%s WINS!", TEAM_GetTextColorName( ulTeamIdx ), TEAM_GetName( ulTeamIdx ) );
-	else
-		sprintf( szString, "DRAW GAME!\n" );
-
-	V_ColorizeString( szString );
-
-	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+	if ( ulTeamIdx < teams.Size( ))
 	{
-		pMsg = new DHUDMessageFadeOut( BigFont, szString,
-			160.4f,
-			75.0f,
-			320,
-			200,
-			CR_UNTRANSLATED,
-			3.0f,
-			2.0f );
-
-		StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
+		message.AppendFormat( "%s WINS!", TEAM_GetName( ulTeamIdx ));
+		color = static_cast<EColorRange>( TEAM_GetTextColor( ulTeamIdx ));
 	}
 	else
 	{
-		SERVERCOMMANDS_PrintHUDMessage( szString, 160.4f, 75.0f, 320, 200, HUDMESSAGETYPE_FADEOUT, CR_RED, 3.0f, 0.0f, 0.25f, "BigFont", MAKE_ID( 'C', 'N', 'T', 'R' ) );
+		message = "DRAW GAME!";
+		color = CR_RED;
 	}
+
+	HUD_DrawStandardMessage( message.GetChars( ), color, false, 3.0f, 2.0f, true );
 }
 
 //*****************************************************************************
