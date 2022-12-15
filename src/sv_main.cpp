@@ -4437,26 +4437,27 @@ void SERVER_FlagsetChanged( FIntCVar& flagset, int maxflags )
 		if ((( value ^ oldValue ) & bit ) == 0 )
 			continue;
 
-		// [AK] Print the name of the CVar and its new value while we still can.
-		if ( ++flagsChanged <= maxflags )
+		for ( FBaseCVar* cvar = CVars; cvar; cvar = cvar->GetNext( ))
 		{
-			for ( FBaseCVar* cvar = CVars; cvar; cvar = cvar->GetNext( ) )
+			// [AK] Make sure that this CVar is a flag.
+			if ( cvar->IsFlagCVar( ) == false )
+				continue;
+
+			FFlagCVar* flagCVar = static_cast<FFlagCVar*>( cvar );
+
+			// [AK] Check if this CVar belongs to the flagset and matches the corresponding bit.
+			if (( flagCVar->GetValueVar( ) == &flagset ) && ( flagCVar->GetBitVal( ) == bit ))
 			{
-				// [AK] Make sure that this CVar is a flag.
-				if ( cvar->IsFlagCVar( ) == false )
-					continue;
-
-				FFlagCVar* flagCVar = static_cast<FFlagCVar*>( cvar );
-
-				// [AK] Check if this CVar belongs to the flagset and matches the corresponding bit.
-				if (( flagCVar->GetValueVar( ) == &flagset ) && ( flagCVar->GetBitVal( ) == bit ))
+				// [AK] Print the name of the CVar and its new value while we still can.
+				if ( ++flagsChanged <= maxflags )
 				{
 					if ( flagsChanged > 1 )
 						result += ", ";
 
 					result.AppendFormat( "%s %s", flagCVar->GetName( ), ( value & bit ) ? "ON" : "OFF" );
-					break;
 				}
+
+				break;
 			}
 		}
 	}
