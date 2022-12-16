@@ -9391,6 +9391,10 @@ CCMD( rcon )
 	char		szString[1024];
 	char		szAppend[256];
 
+	// [AK] This function may not be used by ConsoleCommand.
+	if ( ACS_IsCalledFromConsoleCommand( ))
+		return;
+
 	if ( g_ConnectionState != CTS_ACTIVE )
 		return;
 
@@ -9443,6 +9447,10 @@ CCMD( rcon )
 //
 CCMD( send_password )
 {
+	// [AK] This function may not be used by ConsoleCommand.
+	if ( ACS_IsCalledFromConsoleCommand( ))
+		return;
+
 	if ( argv.argc( ) <= 1 )
 	{
 		Printf( "Usage: send_password <password>\n" );
@@ -9457,6 +9465,10 @@ CCMD( send_password )
 //
 CCMD( rcon_logout )
 {
+	// [AK] This function may not be used by ConsoleCommand.
+	if ( ACS_IsCalledFromConsoleCommand( ))
+		return;
+
 	if ( g_ConnectionState == CTS_ACTIVE )
 		CLIENTCOMMANDS_ChangeRCONStatus( false, NULL );
 }
