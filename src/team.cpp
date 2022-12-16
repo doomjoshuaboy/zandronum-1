@@ -1945,10 +1945,10 @@ CCMD( team )
 	// with the changeteam command.
 	if ( argv.argc( ) > 1 )
 	{
-		char	szCommand[64];
+		FString command;
 
-		sprintf( szCommand, "changeteam \"%s\"", argv[1] );
-		AddCommandString( szCommand );
+		command.Format( "changeteam \"%s\"", argv[1] );
+		C_DoCommand( command.GetChars( ));
 	}
 	// If they didn't, just display which team they're on.
 	else
