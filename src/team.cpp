@@ -1941,6 +1941,10 @@ CCMD( team )
 	if ( !( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS ) )
 		return;
 
+	// The server can't do this!
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		return;
+
 	// If the played inputted a team they'd like to join (such as, "team red"), handle that
 	// with the changeteam command.
 	if ( argv.argc( ) > 1 )
