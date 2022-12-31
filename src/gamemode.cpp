@@ -374,42 +374,42 @@ void GAMEMODE_ParseGameSettingBlock( FScanner &sc, const GAMEMODE_e GameMode, bo
 				Setting.Scope = Scope;
 
 				// [AK] Check if this CVar is already in the list. We don't want to have multiple copies of the same CVar.
-				for ( unsigned int i = 0; i < g_GameModes[GameMode].GameplaySettings.Size( ); i++ )
+				for ( unsigned int i = 0; i < g_GameModes[mode].GameplaySettings.Size( ); i++ )
 				{
-					if ( g_GameModes[GameMode].GameplaySettings[i].pCVar == Setting.pCVar )
+					if ( g_GameModes[mode].GameplaySettings[i].pCVar == Setting.pCVar )
 					{
 						// [AK] Check if these two CVars have the same scope (i.e. offline or online games only), or if the
 						// new CVar that we're trying to add has no scope (i.e. works in both offline and online games).
-						if (( g_GameModes[GameMode].GameplaySettings[i].Scope == Setting.Scope ) || ( Setting.Scope == GAMESCOPE_OFFLINEANDONLINE ))
+						if (( g_GameModes[mode].GameplaySettings[i].Scope == Setting.Scope ) || ( Setting.Scope == GAMESCOPE_OFFLINEANDONLINE ))
 						{
 							// [AK] A locked CVar always replaces any unlocked copies of the same CVar that already exist.
 							// On the other hand, an unlocked CVar cannot replace any locked copies.
-							if (( g_GameModes[GameMode].GameplaySettings[i].bIsLocked ) && ( Setting.bIsLocked == false ))
+							if (( g_GameModes[mode].GameplaySettings[i].bIsLocked ) && ( Setting.bIsLocked == false ))
 							{
 								// [AK] If the new/unlocked CVar has no scope, but the old/locked CVar is "offlineonly" or "onlineonly",
 								// then change the new CVar's scope so that it's opposite to the old CVar's. The two CVars can then co-exist.
 								// Otherwise, the new CVar must be discarded.
-								if ( g_GameModes[GameMode].GameplaySettings[i].Scope != Setting.Scope )
-									Setting.Scope = g_GameModes[GameMode].GameplaySettings[i].Scope != GAMESCOPE_OFFLINEONLY ? GAMESCOPE_OFFLINEONLY : GAMESCOPE_ONLINEONLY;
+								if ( g_GameModes[mode].GameplaySettings[i].Scope != Setting.Scope )
+									Setting.Scope = g_GameModes[mode].GameplaySettings[i].Scope != GAMESCOPE_OFFLINEONLY ? GAMESCOPE_OFFLINEONLY : GAMESCOPE_ONLINEONLY;
 								else
 									bPushToList = false;
 
 								break;
 							}
 
-							g_GameModes[GameMode].GameplaySettings.Delete( i );
+							g_GameModes[mode].GameplaySettings.Delete( i );
 						}
 						// [AK] If the old CVar has no scope, but the new CVar is "offlineonly" or "onlineonly", just change the old CVar's
 						// scope so that it becomes opposite to the new CVar's. The two CVars can then co-exist.
-						else if ( g_GameModes[GameMode].GameplaySettings[i].Scope == GAMESCOPE_OFFLINEANDONLINE )
+						else if ( g_GameModes[mode].GameplaySettings[i].Scope == GAMESCOPE_OFFLINEANDONLINE )
 						{
-							g_GameModes[GameMode].GameplaySettings[i].Scope = Setting.Scope != GAMESCOPE_OFFLINEONLY ? GAMESCOPE_OFFLINEONLY : GAMESCOPE_ONLINEONLY;
+							g_GameModes[mode].GameplaySettings[i].Scope = Setting.Scope != GAMESCOPE_OFFLINEONLY ? GAMESCOPE_OFFLINEONLY : GAMESCOPE_ONLINEONLY;
 						}
 					}
 				}
 
 				if ( bPushToList )
-					g_GameModes[GameMode].GameplaySettings.Push( Setting );
+					g_GameModes[mode].GameplaySettings.Push( Setting );
 			}
 		}
 	}
