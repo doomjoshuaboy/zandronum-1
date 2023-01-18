@@ -90,6 +90,7 @@
 -	- Fixed: sv_markchatlines printed chat lines with two timestamps if sv_logfiletimestamp was enabled. [Kaminsky]
 -	- Fixed: players still respawned inside sectors with extended damage types if sv_samespawnspot was enabled. [Kaminsky]
 -	- Fixed: the Doomsphere mugshot graphics were missing in zandronum.pk3. [Kaminsky]
+-	- Fixed: a player's flash state wasn't removed when they turned into a spectator. [Kaminsky]
 !	- The result value of GAMEEVENT_MEDALS event scripts can now be used to determine whether or not the player receives the medal. [Kaminsky]
 !	- GAMEMODE flags are now validated after all GAMEMODE lumps have been parsed instead of after each one. The internal game mode name (e.g. "TeamLMS") is now printed with the error message instead of the actual name. [Kaminsky]
 !	- Added an extra check to ensure that game modes have a (short) name. [Kaminsky]
