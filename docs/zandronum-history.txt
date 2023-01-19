@@ -106,6 +106,7 @@
 !	- cl_identifytarget now prints "ally" if the target is a teammate of the player being spied on, instead of the local player. Also, it now always prints a player's skin with their current class, if unmorphed. If cl_skins is 0, then the skin is always printed as "base" instead. [Kaminsky]
 !	- The GAMEMODE lump now accepts a wider range of gameplay-related CVars that aren't limited to flags. Strictly speaking, any CVars with the CVAR_GAMEPLAYSETTING bit, or any flags whose flagset has the CVAR_GAMEPLAYFLAGSET (previously named CVAR_GAMEMODELOCK) bit. [Kaminsky]
 !	- The "maplist" CCMD now also prints "current" or "used" alongside green or red text for map entries that are currently being played or used. This change is particularly useful for consoles or logfiles that strip color codes and couldn't show the colored text. [Kaminsky]
+!	- Zandronum is now marked as DPI-aware on Windows, which prevents issues caused by the operating system automatically upscaling the game window on high-DPI displays. [DrinkyBird]
 
 
 3.1
