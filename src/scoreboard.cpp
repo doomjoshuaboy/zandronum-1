@@ -153,6 +153,10 @@ static	void			scoreboard_DoRankingListPass( ULONG ulPlayer, LONG lSpectators, LO
 static	void			scoreboard_DrawRankings( ULONG ulPlayer );
 static	void			scoreboard_DrawText( const char *pszString, EColorRange Color, ULONG &ulXPos, ULONG ulOffset, bool bOffsetRight = false );
 static	void			scoreboard_DrawIcon( const char *pszPatchName, ULONG &ulXPos, ULONG ulYPos, ULONG ulOffset, bool bOffsetRight = false );
+static	ScoreColumn		*scoreboard_ScanForColumn( FScanner &sc, const bool bMustBeDataColumn );
+
+template<typename ColumnType>
+static	bool			scoreboard_TryPushingColumnToList( FScanner &sc, TArray<ColumnType *> &ColumnList, ColumnType *pColumn, const char *pszColumnName );
 
 //*****************************************************************************
 //	CONSOLE VARIABLES
@@ -1306,42 +1310,15 @@ void CompositeScoreColumn::ParseCommand( const FName Name, FScanner &sc, const C
 
 			do
 			{
-				sc.MustGetToken( TK_StringConst );
-
-				// [AK] Find a column from the main scoreboard object.
-				ScoreColumn *pColumn = SCOREBOARD_GetColumn( sc.String );
-
-				if ( pColumn == NULL )
-					sc.ScriptError( "Column '%s' wasn't found.", sc.String );
-
-				// [AK] Make sure that the pointer is of a DataScoreColumn object
-				// (i.e. the template isn't unknown or a composite).
-				if ( pColumn->IsDataColumn( ) == false )
-					sc.ScriptError( "Column '%s' is not a data column.", sc.String );
-
-				DataScoreColumn *pDataColumn = static_cast<DataScoreColumn *>( pColumn );
+				// [AK] Make sure that the next column we scan is a data column.
+				DataScoreColumn *pDataColumn = static_cast<DataScoreColumn *>( scoreboard_ScanForColumn( sc, true ));
 
 				// [AK] Don't add a data column that's already inside another composite column.
 				if (( pDataColumn->pCompositeColumn != NULL ) && ( pDataColumn->pCompositeColumn != this ))
 					sc.ScriptError( "Tried to put data column '%s' into composite column '%s', but it's already inside another composite column.", sc.String, Name.GetChars( ));
 
-				bool bAddToList = true;
-
-				// [AK] Make sure that this data column isn't already inside this composite column's list.
-				for ( unsigned int i = 0; i < SubColumns.Size( ); i++ )
-				{
-					if ( SubColumns[i] == pDataColumn )
-					{
-						bAddToList = false;
-						return;
-					}
-				}
-
-				if ( bAddToList )
-				{
+				if ( scoreboard_TryPushingColumnToList( sc, SubColumns, pDataColumn, sc.String ))
 					pDataColumn->pCompositeColumn = this;
-					SubColumns.Push( pDataColumn );
-				}
 			} while ( sc.CheckToken( ',' ));
 
 			break;
@@ -3257,4 +3234,70 @@ static void scoreboard_DrawRankings( ULONG ulPlayer )
 	}
 
 	V_SetBorderNeedRefresh();
+}
+
+//*****************************************************************************
+//
+// [AK] scoreboard_ScanForColumn
+//
+// Scans for a column by name, throwing a fatal error if the column couldn't
+// be found. This also has the option of throwing a fatal error if a data
+// column must be returned, but the column that was found isn't one.
+//
+//*****************************************************************************
+
+static ScoreColumn *scoreboard_ScanForColumn( FScanner &sc, const bool bMustBeDataColumn )
+{
+	sc.MustGetToken( TK_StringConst );
+
+	// [AK] Throw a fatal error if an empty string was passed.
+	if ( sc.StringLen == 0 )
+		sc.ScriptError( "Got an empty string for a column name." );
+
+	// [AK] Find a column from the main scoreboard object.
+	ScoreColumn *pColumn = SCOREBOARD_GetColumn( sc.String );
+
+	if ( pColumn == NULL )
+		sc.ScriptError( "Column '%s' wasn't found.", sc.String );
+
+	// [AK] Make sure that the pointer is of a DataScoreColumn object
+	// (i.e. the template isn't unknown or a composite).
+	if (( bMustBeDataColumn ) && ( pColumn->IsDataColumn( ) == false ))
+		sc.ScriptError( "Column '%s' is not a data column.", sc.String );
+
+	return pColumn;
+}
+
+//*****************************************************************************
+//
+// [AK] Scoreboard_TryPushingColumnToList
+//
+// Tries pushing a pointer to a column object into a list, but only if that
+// pointer isn't in the list already. Returns true if successful, or false if
+// it wasn't added to the list.
+//
+//*****************************************************************************
+
+template<typename ColumnType>
+static bool scoreboard_TryPushingColumnToList( FScanner &sc, TArray<ColumnType *> &ColumnList, ColumnType *pColumn, const char *pszColumnName )
+{
+	// [AK] Make sure the pointer to the column isn't NULL.
+	if ( pColumn == NULL )
+		return false;
+
+	// [AK] Make sure that this column isn't already inside this list.
+	for ( unsigned int i = 0; i < ColumnList.Size( ); i++ )
+	{
+		if ( ColumnList[i] == pColumn )
+		{
+			// [AK] Print an error message to let the user know the issue.
+			if ( pszColumnName != NULL )
+				sc.ScriptMessage( "Tried to put column '%s' into a list more than once.", pszColumnName );
+
+			return false;
+		}
+	}
+
+	ColumnList.Push( pColumn );
+	return true;
 }
