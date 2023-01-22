@@ -169,6 +169,8 @@ private:
 //
 //*****************************************************************************
 
+struct Scoreboard;
+
 class ScoreColumn
 {
 public:
@@ -217,6 +219,9 @@ protected:
 	bool bDisabled;
 	bool bHidden;
 	bool bUseShortName;
+
+	// [AK] A pointer to a scoreboard, if this column is inside its column order list.
+	Scoreboard *pScoreboard;
 
 	// [AK] Let the Scoreboard struct have access to this class's protected members.
 	friend struct Scoreboard;
@@ -373,6 +378,7 @@ struct Scoreboard
 
 	Scoreboard( void );
 
+	void Parse( FScanner &sc );
 	void Refresh( const ULONG ulDisplayPlayer );
 	void Render( const ULONG ulDisplayPlayer );
 	void DrawBorder( const EColorRange Color, LONG &lYPos, const bool bReverse ) const;
@@ -392,6 +398,7 @@ private:
 	TArray<ScoreColumn *> ColumnOrder;
 	TArray<DataScoreColumn *> RankOrder;
 
+	void AddColumnToList( FScanner &sc, const bool bAddToRankOrder );
 	void UpdateWidth( void );
 	void UpdateHeight( void );
 	void DrawRow( const ULONG ulPlayer, const ULONG ulDisplayPlayer, LONG &lYPos, bool &bUseLightBackground ) const;

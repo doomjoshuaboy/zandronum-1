@@ -183,7 +183,8 @@ ScoreColumn::ScoreColumn( const char *pszName ) :
 	lRelX( 0 ),
 	bDisabled( false ),
 	bHidden( false ),
-	bUseShortName( false )
+	bUseShortName( false ),
+	pScoreboard( NULL )
 {
 	// [AK] By default, this column is active in all game types and earn types.
 	ulGameAndEarnTypeFlags = ( GAMETYPE_MASK | EARNTYPE_MASK );
@@ -1313,6 +1314,10 @@ void CompositeScoreColumn::ParseCommand( const FName Name, FScanner &sc, const C
 				// [AK] Make sure that the next column we scan is a data column.
 				DataScoreColumn *pDataColumn = static_cast<DataScoreColumn *>( scoreboard_ScanForColumn( sc, true ));
 
+				// [AK] Don't add a data column that's already inside a scoreboard's column order.
+				if ( pDataColumn->pScoreboard != NULL )
+					sc.ScriptError( "Tried to put data column '%s' into composite column '%s', but it's already inside a scoreboard's column order.", sc.String, Name.GetChars( ) );
+
 				// [AK] Don't add a data column that's already inside another composite column.
 				if (( pDataColumn->pCompositeColumn != NULL ) && ( pDataColumn->pCompositeColumn != this ))
 					sc.ScriptError( "Tried to put data column '%s' into composite column '%s', but it's already inside another composite column.", sc.String, Name.GetChars( ));
@@ -1535,6 +1540,293 @@ Scoreboard::Scoreboard( void ) :
 	lRowHeight( 0 ),
 	bDisabled( false ),
 	bHidden( false ) { }
+
+//*****************************************************************************
+//
+// [AK] Scoreboard::Parse
+//
+// Parses a "scoreboard" block in a SCORINFO lump.
+//
+//*****************************************************************************
+
+void Scoreboard::Parse( FScanner &sc )
+{
+	sc.MustGetToken( '{' );
+
+	while ( sc.CheckToken( '}' ) == false )
+	{
+		sc.MustGetString( );
+
+		if ( stricmp( sc.String, "addflag" ) == 0 )
+		{
+			ulFlags |= sc.MustGetEnumName( "scoreboard flag", "SCOREBOARDFLAG_", GetValueSCOREBOARDFLAG_e );
+		}
+		else if ( stricmp( sc.String, "removeflag" ) == 0 )
+		{
+			ulFlags &= ~sc.MustGetEnumName( "scoreboard flag", "SCOREBOARDFLAG_", GetValueSCOREBOARDFLAG_e );
+		}
+		else
+		{
+			SCOREBOARDCMD_e Command = static_cast<SCOREBOARDCMD_e>( sc.MustGetEnumName( "scoreboard command", "SCOREBOARDCMD_", GetValueSCOREBOARDCMD_e, true ));
+			FString CommandName = sc.String;
+
+			sc.MustGetToken( '=' );
+
+			switch ( Command )
+			{
+				case SCOREBOARDCMD_BORDERTEXTURE:
+				{
+					sc.MustGetString( );
+					pBorderTexture = TexMan.FindTexture( sc.String );
+
+					// [AK] If the texture wasn't found, throw a fatal error.
+					if ( pBorderTexture == NULL )
+						sc.ScriptError( "Couldn't find border texture '%s'.", sc.String );
+
+					break;
+				}
+
+				case SCOREBOARDCMD_HEADERFONT:
+				case SCOREBOARDCMD_ROWFONT:
+				{
+					sc.MustGetToken( TK_StringConst );
+
+					// [AK] Throw a fatal error if an empty string was passed.
+					if ( sc.StringLen == 0 )
+						sc.ScriptError( "Got an empty string for a font name." );
+
+					FFont *pFont = V_GetFont( sc.String );
+
+					// [AK] If the font was invalid, throw a fatal error.
+					if ( pFont == NULL )
+						sc.ScriptError( "Couldn't find font '%s'.", sc.String );
+
+					if ( Command == SCOREBOARDCMD_HEADERFONT )
+						pHeaderFont = pFont;
+					else
+						pRowFont = pFont;
+
+					break;
+				}
+
+				case SCOREBOARDCMD_HEADERCOLOR:
+				case SCOREBOARDCMD_ROWCOLOR:
+				case SCOREBOARDCMD_LOCALROWCOLOR:
+				case SCOREBOARDCMD_LOCALROWDEMOCOLOR:
+				{
+					sc.MustGetToken( TK_StringConst );
+					EColorRange color;
+
+					// [AK] If an empty string was passed, inform the user of the error and switch to untranslated.
+					if ( sc.StringLen == 0 )
+					{
+						sc.ScriptMessage( "Got an empty string for a text color, using untranslated instead." );
+						color = CR_UNTRANSLATED;
+					}
+					else
+					{
+						color = V_FindFontColor( sc.String );
+
+						// [AK] If the text color name was invalid, let the user know about it.
+						if (( color == CR_UNTRANSLATED ) && ( stricmp( sc.String, "untranslated" ) != 0 ))
+							sc.ScriptMessage( "'%s' is an unknown text color, using untranslated instead.", sc.String );
+					}
+
+					if ( Command == SCOREBOARDCMD_HEADERCOLOR )
+						HeaderColor = color;
+					else if ( Command == SCOREBOARDCMD_ROWCOLOR )
+						RowColor = color;
+					else if ( Command == SCOREBOARDCMD_LOCALROWCOLOR )
+						LocalRowColors[LOCALROW_COLOR_INGAME] = color;
+					else
+						LocalRowColors[LOCALROW_COLOR_INDEMO] = color;
+
+					break;
+				}
+
+				case SCOREBOARDCMD_DEADPLAYERTEXTALPHA:
+				case SCOREBOARDCMD_BACKGROUNDAMOUNT:
+				case SCOREBOARDCMD_ROWBACKGROUNDAMOUNT:
+				case SCOREBOARDCMD_DEADPLAYERROWBACKGROUNDAMOUNT:
+				{
+					sc.MustGetFloat( );
+					const float fClampedValue = clamp( static_cast<float>( sc.Float ), 0.0f, 1.0f );
+
+					if ( Command == SCOREBOARDCMD_DEADPLAYERTEXTALPHA )
+						fDeadTextAlpha = fClampedValue;
+					else if ( Command == SCOREBOARDCMD_BACKGROUNDAMOUNT )
+						fBackgroundAmount = fClampedValue;
+					else if ( Command == SCOREBOARDCMD_ROWBACKGROUNDAMOUNT )
+						fRowBackgroundAmount = fClampedValue;
+					else
+						fDeadRowBackgroundAmount = fClampedValue;
+
+					break;
+				}
+
+				case SCOREBOARDCMD_LIGHTBORDERCOLOR:
+				case SCOREBOARDCMD_DARKBORDERCOLOR:
+				case SCOREBOARDCMD_BACKGROUNDCOLOR:
+				case SCOREBOARDCMD_LIGHTROWBACKGROUNDCOLOR:
+				case SCOREBOARDCMD_DARKROWBACKGROUNDCOLOR:
+				case SCOREBOARDCMD_LOCALROWBACKGROUNDCOLOR:
+				{
+					sc.MustGetToken( TK_StringConst );
+
+					// [AK] If an empty string was passed, inform the user about the error.
+					// This doesn't have to be a fatal error since the color will just be black anyways.
+					if ( sc.StringLen == 0 )
+						sc.ScriptMessage( "Got an empty string for a color." );
+
+					FString ColorString = V_GetColorStringByName( sc.String );
+					PalEntry color = V_GetColorFromString( NULL, ColorString.IsNotEmpty( ) ? ColorString.GetChars( ) : sc.String );
+
+					if ( Command == SCOREBOARDCMD_LIGHTBORDERCOLOR )
+						BorderColors[BORDER_COLOR_LIGHT] = color;
+					else if ( Command == SCOREBOARDCMD_DARKBORDERCOLOR )
+						BorderColors[BORDER_COLOR_DARK] = color;
+					else if ( Command == SCOREBOARDCMD_BACKGROUNDCOLOR )
+						BackgroundColor = color;
+					else if ( Command == SCOREBOARDCMD_LIGHTROWBACKGROUNDCOLOR )
+						RowBackgroundColors[ROWBACKGROUND_COLOR_LIGHT] = color;
+					else if ( Command == SCOREBOARDCMD_DARKROWBACKGROUNDCOLOR )
+						RowBackgroundColors[ROWBACKGROUND_COLOR_DARK] = color;
+					else
+						RowBackgroundColors[ROWBACKGROUND_COLOR_LOCAL] = color;
+
+					break;
+				}
+
+				case SCOREBOARDCMD_BACKGROUNDBORDERSIZE:
+				case SCOREBOARDCMD_GAPBETWEENHEADERANDROWS:
+				case SCOREBOARDCMD_GAPBETWEENCOLUMNS:
+				case SCOREBOARDCMD_GAPBETWEENROWS:
+				{
+					sc.MustGetNumber( );
+					const ULONG ulCappedValue = MAX( sc.Number, 0 );
+
+					if ( Command == SCOREBOARDCMD_BACKGROUNDBORDERSIZE )
+						ulBackgroundBorderSize = ulCappedValue;
+					else if ( Command == SCOREBOARDCMD_GAPBETWEENHEADERANDROWS )
+						ulGapBetweenHeaderAndRows = ulCappedValue;
+					else if ( Command == SCOREBOARDCMD_GAPBETWEENCOLUMNS )
+						ulGapBetweenColumns = ulCappedValue;
+					else
+						ulGapBetweenRows = ulCappedValue;
+
+					break;
+				}
+
+				case SCOREBOARDCMD_HEADERHEIGHT:
+				case SCOREBOARDCMD_ROWHEIGHT:
+				{
+					sc.MustGetNumber( );
+
+					if ( Command == SCOREBOARDCMD_HEADERHEIGHT )
+						lHeaderHeight = sc.Number;
+					else
+						lRowHeight = sc.Number;
+
+					break;
+				}
+
+				case SCOREBOARDCMD_COLUMNORDER:
+				case SCOREBOARDCMD_RANKORDER:
+				{
+					// [AK] Clear the list before adding the new columns to it.
+					if ( Command == SCOREBOARDCMD_COLUMNORDER )
+						ColumnOrder.Clear( );
+					else
+						RankOrder.Clear( );
+
+					do
+					{
+						AddColumnToList( sc, Command == SCOREBOARDCMD_RANKORDER );
+					} while ( sc.CheckToken( ',' ));
+
+					break;
+				}
+
+				case SCOREBOARDCMD_ADDTOCOLUMNORDER:
+				case SCOREBOARDCMD_ADDTORANKORDER:
+				{
+					AddColumnToList( sc, Command == SCOREBOARDCMD_ADDTORANKORDER );
+					break;
+				}
+
+				default:
+					sc.ScriptError( "Couldn't process scoreboard command '%s'.", CommandName.GetChars( ));
+			}
+		}
+	}
+
+	if ( pHeaderFont == NULL )
+		sc.ScriptError( "There's no header font for the scoreboard." );
+
+	if ( pRowFont == NULL )
+		sc.ScriptError( "There's no row font for the scoreboard." );
+
+	// [AK] A negative header or row height means setting the height with respect to the
+	// height of the header or row font's respectively, if valid.
+	if ( lHeaderHeight <= 0 )
+		lHeaderHeight = pHeaderFont->GetHeight( ) - lHeaderHeight;
+
+	if ( lRowHeight <= 0 )
+		lRowHeight = pRowFont->GetHeight( ) - lRowHeight;
+}
+
+//*****************************************************************************
+//
+// [AK] Scoreboard::AddColumnToList
+//
+// This is intended to be called only when parsing scoreboard commands like
+// "ColumnOrder", "RankOrder", "AddToColumnOrder", and "AddToRankOrder". It
+// scans for a string, finds a column using that string, and adds it to the
+// rank or column order lists (depending on the value of bAddToRankOrder).
+//
+//*****************************************************************************
+
+void Scoreboard::AddColumnToList( FScanner &sc, const bool bAddToRankOrder )
+{
+	// [AK] Note that if we're adding a column to the rank order, then it must be a data column.
+	ScoreColumn *pColumn = scoreboard_ScanForColumn( sc, bAddToRankOrder );
+
+	// [AK] The column's name should still be saved in sc.String, even after calling
+	// the helper function above.
+	const char *pszColumnName = sc.String;
+
+	if ( bAddToRankOrder )
+	{
+		// [AK] Double-check that this is a data column. Otherwise, throw a fatal error.
+		if ( pColumn->IsDataColumn( ) == false )
+			sc.ScriptError( "Column '%s' is not a data column.", pszColumnName );
+
+		// [AK] Columns must be inside the scoreboard's column order first before they're
+		// added to the rank order list. If this column is inside a composite column, then
+		// the composite column needs to be in the column order instead.
+		if ( pColumn->pScoreboard != this )
+		{
+			DataScoreColumn *pDataColumn = static_cast<DataScoreColumn *>( pColumn );
+
+			if ( pDataColumn->pCompositeColumn == NULL )
+				sc.ScriptError( "Column '%s' must be added to the column order before added to the rank order.", pszColumnName );
+			else if ( pDataColumn->pCompositeColumn->pScoreboard != this )
+				sc.ScriptError( "Column '%s' is part of a composite column that must be added to the column order before it can be added to the rank order.", pszColumnName );
+		}
+
+		scoreboard_TryPushingColumnToList( sc, RankOrder, static_cast<DataScoreColumn *>( pColumn ), pszColumnName );
+	}
+	else
+	{
+		// [AK] If this is a data column, make sure that it isn't inside a composite column.
+		// The composite column must be added to the list instead.
+		if (( pColumn->IsDataColumn( )) && ( static_cast<DataScoreColumn *>( pColumn )->pCompositeColumn != NULL ))
+			sc.ScriptError( "Column '%s' is part of a composite column and can't be added to the order list.", pszColumnName );
+
+		if ( scoreboard_TryPushingColumnToList( sc, ColumnOrder, pColumn, pszColumnName ))
+			pColumn->pScoreboard = this;
+	}
+}
 
 //*****************************************************************************
 //
