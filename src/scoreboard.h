@@ -175,6 +175,7 @@ public:
 	ScoreColumn( const char *pszName );
 
 	virtual COLUMNTEMPLATE_e GetTemplate( void ) const { return COLUMNTEMPLATE_UNKNOWN; }
+	virtual bool IsDataColumn( void ) const { return false; }
 	const char *GetDisplayName( void ) const { return DisplayName.GetChars( ); }
 	const char *GetShortName( void ) const { return ShortName.GetChars( ); }
 	FBaseCVar *GetCVar( void ) const { return pCVar; }
@@ -249,6 +250,7 @@ public:
 	inline COLUMNTYPE_e GetNativeType( void ) const { return NativeType; }
 	virtual COLUMNTEMPLATE_e GetTemplate( void ) const;
 	virtual COLUMNDATA_e GetDataType( void ) const;
+	virtual bool IsDataColumn( void ) const { return true; }
 	FString GetValueString( const ColumnValue &Value ) const;
 	ULONG GetValueWidth( const ColumnValue &Value, FFont *pFont ) const;
 

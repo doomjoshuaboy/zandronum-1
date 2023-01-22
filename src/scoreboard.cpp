@@ -1316,7 +1316,7 @@ void CompositeScoreColumn::ParseCommand( const FName Name, FScanner &sc, const C
 
 				// [AK] Make sure that the pointer is of a DataScoreColumn object
 				// (i.e. the template isn't unknown or a composite).
-				if (( pColumn->GetTemplate( ) == COLUMNTEMPLATE_UNKNOWN ) || ( pColumn->GetTemplate( ) == COLUMNTEMPLATE_COMPOSITE ))
+				if ( pColumn->IsDataColumn( ) == false )
 					sc.ScriptError( "Column '%s' is not a data column.", sc.String );
 
 				DataScoreColumn *pDataColumn = static_cast<DataScoreColumn *>( pColumn );
