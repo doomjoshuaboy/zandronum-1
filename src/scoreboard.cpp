@@ -1546,7 +1546,6 @@ Scoreboard::Scoreboard( void ) :
 	BorderColors{ CR_UNTRANSLATED },
 	BackgroundColor( 0 ),
 	RowBackgroundColors{ 0 },
-	fRowBackgroundColorDiff( 0.0f ),
 	fBackgroundAmount( 0.0f ),
 	fRowBackgroundAmount( 0.0f ),
 	fDeadRowBackgroundAmount( 0.0f ),
@@ -1928,6 +1927,20 @@ void Scoreboard::Render( const ULONG ulDisplayPlayer )
 //
 //*****************************************************************************
 
+int scoreboard_GetLuminance( const int r, const int g, const int b )
+{
+	return static_cast<int>( 0.3f * r + 0.59f * g + 0.11f * b );
+}
+
+//*****************************************************************************
+//
+int scoreboard_GetLuminance( const PalEntry color )
+{
+	return scoreboard_GetLuminance( color.r, color.g, color.b );
+}
+
+//*****************************************************************************
+//
 void Scoreboard::DrawRow( const ULONG ulPlayer, const ULONG ulDisplayPlayer, LONG &lYPos, bool &bUseLightBackground ) const
 {
 	const bool bIsDisplayPlayer = ( ulPlayer == ulDisplayPlayer );
@@ -1963,26 +1976,41 @@ void Scoreboard::DrawRow( const ULONG ulPlayer, const ULONG ulDisplayPlayer, LON
 	// the color of the background is to be the team's own color.
 	if ( fBackgroundAlpha > 0.0f )
 	{
+		ROWBACKGROUND_COLOR_e RowBackground = bUseLightBackground ? ROWBACKGROUND_COLOR_LIGHT : ROWBACKGROUND_COLOR_DARK;
+
+		// [AK] If the player is on a team, blend the team's colour into the row background.
+		// This uses the color blend mode explained in section 7.2.4, "Blend Mode", in
+		// "PDF Reference" fifth edition, version 1.6.
 		if (( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSONTEAMS ) && ( players[ulPlayer].bOnTeam ))
 		{
-			float r, g, b, h, s, v;
-			ULONG ulColor = TEAM_GetColor( players[ulPlayer].Team );
-			RGBtoHSV( RPART( ulColor ) / 255.0f, GPART( ulColor ) / 255.0f, BPART( ulColor ) / 255.0f, &h, &s, &v );
+			const PalEntry TeamColor = TEAM_GetColor( players[ulPlayer].Team );
+			const int delta = scoreboard_GetLuminance( RowBackgroundColors[RowBackground] ) - scoreboard_GetLuminance( TeamColor );
 
-			// [AK] Have the background colors switch between a lighter or a darker shade of their team's color.
-			v = clamp( v + fRowBackgroundColorDiff * ( bUseLightBackground ? 1 : -1 ), 0.0f, 1.0f );
+			int rgb[3] = { TeamColor.r + delta, TeamColor.g + delta, TeamColor.b + delta };
 
-			HSVtoRGB( &r, &g, &b, h, s, v );
-			PalEntry color = MAKERGB( static_cast<int>( r * 255.0f ), static_cast<int>( g * 255.0f ), static_cast<int>( b * 255.0f ));
-			DrawRowBackground( color, lYPos, fBackgroundAlpha );
+			const int luminosity = scoreboard_GetLuminance( rgb[0], rgb[1], rgb[2] );
+			const int minColor = MIN( MIN( rgb[0], rgb[1] ), rgb[2] );
+			const int maxColor = MAX( MAX( rgb[0], rgb[1] ), rgb[2] );
+
+			if ( minColor < 0 )
+			{
+				for ( unsigned int i = 0; i < 3; i++ )
+					rgb[i] = luminosity + ((( rgb[i] - luminosity ) * luminosity ) / ( luminosity - minColor ));
+			}
+
+			if ( maxColor > UCHAR_MAX )
+			{
+				for ( unsigned int i = 0; i < 3; i++ )
+					rgb[i] = luminosity + ((( rgb[i] - luminosity ) * ( UCHAR_MAX - luminosity )) / ( maxColor - luminosity ));
+			}
+
+			PalEntry NewColor = MAKERGB( rgb[0], rgb[1], rgb[2] );
+			DrawRowBackground( NewColor, lYPos, fBackgroundAlpha );
 		}
+		// [AK] If the player isn't on a team, use the two background colors that are defined.
 		else
 		{
-			// [AK] If the player isn't on a team, use the two background colors that are defined.
-			if ( bUseLightBackground )
-				DrawRowBackground( RowBackgroundColors[ROWBACKGROUND_COLOR_LIGHT], lYPos, fBackgroundAlpha );
-			else
-				DrawRowBackground( RowBackgroundColors[ROWBACKGROUND_COLOR_DARK], lYPos, fBackgroundAlpha );
+			DrawRowBackground( RowBackgroundColors[RowBackground], lYPos, fBackgroundAlpha );
 		}
 	}
 

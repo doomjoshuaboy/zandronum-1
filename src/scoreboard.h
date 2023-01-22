@@ -355,7 +355,6 @@ struct Scoreboard
 	PalEntry BorderColors[NUM_BORDER_COLORS];
 	PalEntry BackgroundColor;
 	PalEntry RowBackgroundColors[NUM_ROWBACKGROUND_COLORS];
-	float fRowBackgroundColorDiff;
 	float fBackgroundAmount;
 	float fRowBackgroundAmount;
 	float fDeadRowBackgroundAmount;
