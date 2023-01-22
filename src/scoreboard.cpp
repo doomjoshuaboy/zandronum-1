@@ -1976,7 +1976,12 @@ void Scoreboard::DrawRow( const ULONG ulPlayer, const ULONG ulDisplayPlayer, LON
 	// the color of the background is to be the team's own color.
 	if ( fBackgroundAlpha > 0.0f )
 	{
-		ROWBACKGROUND_COLOR_e RowBackground = bUseLightBackground ? ROWBACKGROUND_COLOR_LIGHT : ROWBACKGROUND_COLOR_DARK;
+		ROWBACKGROUND_COLOR_e RowBackground;
+
+		if ( ulPlayer == ulDisplayPlayer )
+			RowBackground = ROWBACKGROUND_COLOR_LOCAL;
+		else
+			RowBackground = bUseLightBackground ? ROWBACKGROUND_COLOR_LIGHT : ROWBACKGROUND_COLOR_DARK;
 
 		// [AK] If the player is on a team, blend the team's colour into the row background.
 		// This uses the color blend mode explained in section 7.2.4, "Blend Mode", in
