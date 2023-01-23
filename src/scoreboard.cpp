@@ -1801,20 +1801,20 @@ void Scoreboard::AddColumnToList( FScanner &sc, const bool bAddToRankOrder )
 		if ( pColumn->IsDataColumn( ) == false )
 			sc.ScriptError( "Column '%s' is not a data column.", pszColumnName );
 
+		DataScoreColumn *pDataColumn = static_cast<DataScoreColumn *>( pColumn );
+
 		// [AK] Columns must be inside the scoreboard's column order first before they're
 		// added to the rank order list. If this column is inside a composite column, then
 		// the composite column needs to be in the column order instead.
 		if ( pColumn->pScoreboard != this )
 		{
-			DataScoreColumn *pDataColumn = static_cast<DataScoreColumn *>( pColumn );
-
 			if ( pDataColumn->pCompositeColumn == NULL )
 				sc.ScriptError( "Column '%s' must be added to the column order before added to the rank order.", pszColumnName );
 			else if ( pDataColumn->pCompositeColumn->pScoreboard != this )
 				sc.ScriptError( "Column '%s' is part of a composite column that must be added to the column order before it can be added to the rank order.", pszColumnName );
 		}
 
-		scoreboard_TryPushingColumnToList( sc, RankOrder, static_cast<DataScoreColumn *>( pColumn ), pszColumnName );
+		scoreboard_TryPushingColumnToList( sc, RankOrder, pDataColumn, pszColumnName );
 	}
 	else
 	{
