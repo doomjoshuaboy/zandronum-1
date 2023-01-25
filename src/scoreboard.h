@@ -52,6 +52,7 @@
 
 #include <set>
 #include "gamemode.h"
+#include "teaminfo.h"
 #include "tarray.h"
 #include "v_text.h"
 
@@ -363,6 +364,7 @@ struct Scoreboard
 	PalEntry BorderColors[NUM_BORDER_COLORS];
 	PalEntry BackgroundColor;
 	PalEntry RowBackgroundColors[NUM_ROWBACKGROUND_COLORS];
+	PalEntry TeamRowBackgroundColors[MAX_TEAMS][NUM_ROWBACKGROUND_COLORS];
 	float fBackgroundAmount;
 	float fRowBackgroundAmount;
 	float fDeadRowBackgroundAmount;

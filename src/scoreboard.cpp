@@ -1511,6 +1511,7 @@ Scoreboard::Scoreboard( void ) :
 	BorderColors{ CR_UNTRANSLATED },
 	BackgroundColor( 0 ),
 	RowBackgroundColors{ 0 },
+	TeamRowBackgroundColors{ 0 },
 	fBackgroundAmount( 0.0f ),
 	fRowBackgroundAmount( 0.0f ),
 	fDeadRowBackgroundAmount( 0.0f ),
@@ -1532,6 +1533,20 @@ Scoreboard::Scoreboard( void ) :
 //
 //*****************************************************************************
 
+int scoreboard_GetLuminance( const int r, const int g, const int b )
+{
+	return static_cast<int>( 0.3f * r + 0.59f * g + 0.11f * b );
+}
+
+//*****************************************************************************
+//
+int scoreboard_GetLuminance( const PalEntry color )
+{
+	return scoreboard_GetLuminance( color.r, color.g, color.b );
+}
+
+//*****************************************************************************
+//
 void Scoreboard::Parse( FScanner &sc )
 {
 	sc.MustGetToken( '{' );
@@ -1756,6 +1771,39 @@ void Scoreboard::Parse( FScanner &sc )
 
 	if ( lRowHeight <= 0 )
 		lRowHeight = pRowFont->GetHeight( ) - lRowHeight;
+
+	// [AK] Generate row background colors for each team through color blending.
+	// This uses the color blend mode explained in section 7.2.4, "Blend Mode", in
+	// "PDF Reference" fifth edition, version 1.6.
+	for ( ULONG ulTeam = 0; ulTeam < teams.Size( ); ulTeam++ )
+	{
+		const PalEntry TeamColor = teams[ulTeam].lPlayerColor;
+
+		for ( unsigned int i = 0; i < NUM_ROWBACKGROUND_COLORS; i++ )
+		{
+			const int delta = scoreboard_GetLuminance( RowBackgroundColors[i] ) - scoreboard_GetLuminance( TeamColor );
+
+			int rgb[3] = { TeamColor.r + delta, TeamColor.g + delta, TeamColor.b + delta };
+
+			const int luminosity = scoreboard_GetLuminance( rgb[0], rgb[1], rgb[2] );
+			const int minColor = MIN( MIN( rgb[0], rgb[1] ), rgb[2] );
+			const int maxColor = MAX( MAX( rgb[0], rgb[1] ), rgb[2] );
+
+			if ( minColor < 0 )
+			{
+				for ( unsigned int i = 0; i < 3; i++ )
+					rgb[i] = luminosity + ((( rgb[i] - luminosity ) * luminosity ) / ( luminosity - minColor ));
+			}
+
+			if ( maxColor > UCHAR_MAX )
+			{
+				for ( unsigned int i = 0; i < 3; i++ )
+					rgb[i] = luminosity + ((( rgb[i] - luminosity ) * ( UCHAR_MAX - luminosity )) / ( maxColor - luminosity ));
+			}
+
+			TeamRowBackgroundColors[ulTeam][i] = MAKERGB( rgb[0], rgb[1], rgb[2] );
+		}
+	}
 }
 
 //*****************************************************************************
@@ -2160,20 +2208,6 @@ void Scoreboard::Render( const ULONG ulDisplayPlayer )
 //
 //*****************************************************************************
 
-int scoreboard_GetLuminance( const int r, const int g, const int b )
-{
-	return static_cast<int>( 0.3f * r + 0.59f * g + 0.11f * b );
-}
-
-//*****************************************************************************
-//
-int scoreboard_GetLuminance( const PalEntry color )
-{
-	return scoreboard_GetLuminance( color.r, color.g, color.b );
-}
-
-//*****************************************************************************
-//
 void Scoreboard::DrawRow( const ULONG ulPlayer, const ULONG ulDisplayPlayer, LONG &lYPos, bool &bUseLightBackground ) const
 {
 	const bool bIsDisplayPlayer = ( ulPlayer == ulDisplayPlayer );
@@ -2217,39 +2251,11 @@ void Scoreboard::DrawRow( const ULONG ulPlayer, const ULONG ulDisplayPlayer, LON
 			RowBackground = bUseLightBackground ? ROWBACKGROUND_COLOR_LIGHT : ROWBACKGROUND_COLOR_DARK;
 
 		// [AK] If the player is on a team, blend the team's colour into the row background.
-		// This uses the color blend mode explained in section 7.2.4, "Blend Mode", in
-		// "PDF Reference" fifth edition, version 1.6.
 		if (( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSONTEAMS ) && ( players[ulPlayer].bOnTeam ))
-		{
-			const PalEntry TeamColor = TEAM_GetColor( players[ulPlayer].Team );
-			const int delta = scoreboard_GetLuminance( RowBackgroundColors[RowBackground] ) - scoreboard_GetLuminance( TeamColor );
-
-			int rgb[3] = { TeamColor.r + delta, TeamColor.g + delta, TeamColor.b + delta };
-
-			const int luminosity = scoreboard_GetLuminance( rgb[0], rgb[1], rgb[2] );
-			const int minColor = MIN( MIN( rgb[0], rgb[1] ), rgb[2] );
-			const int maxColor = MAX( MAX( rgb[0], rgb[1] ), rgb[2] );
-
-			if ( minColor < 0 )
-			{
-				for ( unsigned int i = 0; i < 3; i++ )
-					rgb[i] = luminosity + ((( rgb[i] - luminosity ) * luminosity ) / ( luminosity - minColor ));
-			}
-
-			if ( maxColor > UCHAR_MAX )
-			{
-				for ( unsigned int i = 0; i < 3; i++ )
-					rgb[i] = luminosity + ((( rgb[i] - luminosity ) * ( UCHAR_MAX - luminosity )) / ( maxColor - luminosity ));
-			}
-
-			PalEntry NewColor = MAKERGB( rgb[0], rgb[1], rgb[2] );
-			DrawRowBackground( NewColor, lYPos, fBackgroundAlpha );
-		}
+			DrawRowBackground( TeamRowBackgroundColors[players[ulPlayer].Team][RowBackground], lYPos, fBackgroundAlpha );
 		// [AK] If the player isn't on a team, use the two background colors that are defined.
 		else
-		{
 			DrawRowBackground( RowBackgroundColors[RowBackground], lYPos, fBackgroundAlpha );
-		}
 	}
 
 	const float fTextAlpha = bPlayerIsDead ? fDeadTextAlpha : 1.0f;
