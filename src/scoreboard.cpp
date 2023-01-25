@@ -1827,14 +1827,29 @@ bool Scoreboard::PlayerComparator::operator( )( const int &arg1, const int &arg2
 	if ( pRankOrder == NULL )
 		return false;
 
-	// [AK] Always return false if the first player index is invalid.
-	// This is also the case when both player indices are invalid.
+	// [AK] Always return false if the first player index is invalid,
+	// or true if the second player index is invalid.
 	if ( PLAYER_IsValidPlayer( arg1 ) == false )
 		return false;
-
-	// [AK] Always return true if the second player index is invalid.
-	if ( PLAYER_IsValidPlayer( arg2 ) == false )
+	else if ( PLAYER_IsValidPlayer( arg2 ) == false )
 		return true;
+
+	// [AK] Always return false if the first player is a true spectator,
+	// or true if the second player is a true spectator.
+	if ( PLAYER_IsTrueSpectator( &players[arg1] ))
+		return false;
+	else if ( PLAYER_IsTrueSpectator( &players[arg2] ))
+		return true;
+
+	// [AK] In team-based game modes, order players by team. Players with lower
+	// team indices should come before those with higher indices.
+	if ( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSONTEAMS )
+	{
+		result = players[arg1].Team - players[arg2].Team;
+
+		if ( result != 0 )
+			return ( result < 0 );
+	}
 
 	for ( unsigned int i = 0; i < pRankOrder->Size( ); i++ )
 	{
@@ -2078,9 +2093,10 @@ void Scoreboard::Render( const ULONG ulDisplayPlayer )
 
 	screen->Dim( BackgroundColor, fBackgroundAmount, clipLeft, clipTop, clipWidth, clipHeight );
 
+	const ULONG ulNumActivePlayers = HUD_GetNumPlayers( );
+	const ULONG ulNumTrueSpectators = HUD_GetNumSpectators( );
 	LONG lYPos = lRelY + ulBackgroundBorderSize;
 	bool bUseLightBackground = true;
-	bool bAlreadyDrewRow = false;
 
 	// [AK] Draw a border above the column headers.
 	DrawBorder( HeaderColor, lYPos, false );
@@ -2096,73 +2112,38 @@ void Scoreboard::Render( const ULONG ulDisplayPlayer )
 	lYPos += ulGapBetweenHeaderAndRows;
 
 	// [AK] Draw rows for all active players.
-	if ( HUD_GetNumPlayers( ) > 0 )
+	for ( ULONG ulIdx = 0; ulIdx < ulNumActivePlayers; ulIdx++ )
 	{
-		if (( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSONTEAMS ) && (( ulFlags & SCOREBOARDFLAG_DONTSEPARATETEAMS ) == false ))
+		const ULONG ulPlayer = ulPlayerList[ulIdx];
+
+		// [AK] In team-based game modes, if the previous player is on a different team than
+		// the current player, leave a gap between both teams and make the row background light.
+		if (( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSONTEAMS ) && ( ulIdx > 0 ) && ( players[ulPlayer].Team != players[ulPlayerList[ulIdx - 1]].Team ))
 		{
-			for ( ULONG ulTeam = 0; ulTeam < teams.Size( ); ulTeam++ )
-			{
-				if ( TEAM_CountPlayers( ulTeam ) == 0 )
-					continue;
-
-				// [AK] If we already drew some rows for a previous team, leave a gap between both teams.
-				if ( bAlreadyDrewRow )
-					lYPos += lRowHeight;
-
-				for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-				{
-					const ULONG ulPlayer = ulPlayerList[ulIdx];
-
-					if (( PLAYER_IsValidPlayer( ulPlayer ) == false ) || ( PLAYER_IsTrueSpectator( &players[ulPlayer] )))
-						continue;
-
-					if (( players[ulPlayer].bOnTeam == false ) || ( players[ulPlayer].Team != ulTeam ))
-						continue;
-
-					// [AK] Draw a row for this player.
-					DrawRow( ulPlayer, ulDisplayPlayer, lYPos, bUseLightBackground );
-				}
-
-				// [AK] Make sure the background of the first player of the next team is light.
-				bUseLightBackground = true;
-				bAlreadyDrewRow = true;
-			}
-		}
-		else
-		{
-			for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-			{
-				const ULONG ulPlayer = ulPlayerList[ulIdx];
-
-				if (( PLAYER_IsValidPlayer( ulPlayer ) == false ) || ( PLAYER_IsTrueSpectator( &players[ulPlayer] )))
-					continue;
-
-				// [AK] Draw a row for this player.
-				DrawRow( ulPlayer, ulDisplayPlayer, lYPos, bUseLightBackground );
-				bAlreadyDrewRow = true;
-			}
-
-			// [AK] In case there's spectators, make sure the background of the first player is light.
+			lYPos += lRowHeight;
 			bUseLightBackground = true;
 		}
+
+		DrawRow( ulPlayer, ulDisplayPlayer, lYPos, bUseLightBackground );
 	}
 
 	// [AK] Draw rows for any true spectators.
-	if ( HUD_GetNumSpectators( ) > 0 )
+	if ( ulNumTrueSpectators )
 	{
-		// [AK] If we already drew some rows, leave a gap between them and the spectator's team header.
-		if ( bAlreadyDrewRow )
-			lYPos += lRowHeight;
+		const ULONG ulTotalPlayers = ulNumActivePlayers + ulNumTrueSpectators;
 
-		for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+		// [AK] If there are any active players, leave a gap between them and the true
+		// spectators, and make the row background light.
+		if ( ulNumActivePlayers > 0 )
 		{
-			const ULONG ulPlayer = ulPlayerList[ulIdx];
-			if (( PLAYER_IsValidPlayer( ulPlayer ) == false ) || ( PLAYER_IsTrueSpectator( &players[ulPlayer] ) == false ))
-				continue;
-
-			// [AK] Draw a row for this player.
-			DrawRow( ulPlayer, ulDisplayPlayer, lYPos, bUseLightBackground );
+			lYPos += lRowHeight;
+			bUseLightBackground = true;
 		}
+
+		// [AK] The index of the first true spectator should be the same as the number of active
+		// players. The list is organized such that all active players come before any true spectators.
+		for ( ULONG ulIdx = ulNumActivePlayers; ulIdx < ulTotalPlayers; ulIdx++ )
+			DrawRow( ulPlayerList[ulIdx], ulDisplayPlayer, lYPos, bUseLightBackground );
 	}
 
 	// [AK] Finally, draw a border at the bottom of the scoreboard. We must subtract ulGapBetweenRows here (a bit hacky)
