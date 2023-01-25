@@ -656,7 +656,7 @@ void ScoreColumn::DrawTexture( FTexture *pTexture, const LONG lYPos, const ULONG
 	FixClipRectSize( clipWidth, clipHeight, ulHeight, clipWidthToUse, clipHeightToUse );
 
 	int clipLeft = GetAlignmentPosition( clipWidthToUse );
-	int clipTop = lYPos;
+	int clipTop = lYPos + ( ulHeight - clipHeightToUse ) / 2;
 
 	LONG lNewYPos = lYPos + ( ulHeight - pTexture->GetScaledHeight( )) / 2;
 
@@ -1263,33 +1263,16 @@ void DataScoreColumn::DrawValue( const ULONG ulPlayer, FFont *pFont, const ULONG
 		case COLUMNDATA_BOOL:
 		case COLUMNDATA_FLOAT:
 		case COLUMNDATA_STRING:
-		{
 			DrawString( GetValueString( Value ).GetChars( ), pFont, ulColorToUse, lYPos, ulHeight, fAlpha );
 			break;
-		}
 
 		case COLUMNDATA_COLOR:
-		{
-			int clipWidth = ulClipRectWidth;
-			int clipHeight = ulClipRectHeight;
-
-			// [AK] If the clipping rectangle's width is zero, use the column's width.
-			if ( clipWidth <= 0 )
-				clipWidth = ulWidth;
-
-			// [AK] If the clipping rectangle's height is zero, use the passed height.
-			if ( clipHeight <= 0 )
-				clipHeight = ulHeight;
-
-			DrawColor( Value.GetValue<PalEntry>( ), lYPos, ulHeight, fAlpha, clipWidth, clipHeight );
+			DrawColor( Value.GetValue<PalEntry>( ), lYPos, ulHeight, fAlpha, ulClipRectWidth, ulClipRectHeight );
 			break;
-		}
 
 		case COLUMNDATA_TEXTURE:
-		{
-			DrawTexture( Value.GetValue<FTexture *>( ), lYPos, ulHeight, fAlpha, ulWidth, ulHeight );
+			DrawTexture( Value.GetValue<FTexture *>( ), lYPos, ulHeight, fAlpha, ulClipRectWidth, ulClipRectHeight );
 			break;
-		}
 	}
 }
 
