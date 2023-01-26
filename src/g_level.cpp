@@ -107,6 +107,7 @@
 #include "survival.h"
 #include "network/nettraffic.h"
 #include "chat.h"
+#include "scoreboard.h"
 #include <set> // [CK] For CCMD listmusic
 
 #include "g_hub.h"
@@ -430,11 +431,14 @@ void G_InitNew (const char *mapname, bool bTitleLevel)
 	// [BC] Clear out the called vote if one is taking place.
 	CALLVOTE_ClearVote( );
 
-	// [AK] Clear out the saved chat messages from all players and the server.
 	if ( NETWORK_InClientMode( ) == false )
 	{
+		// [AK] Clear out the saved chat messages from all players and the server.
 		for ( ULONG ulPlayer = 0; ulPlayer <= MAXPLAYERS; ulPlayer++ )
 			CHAT_ClearChatMessages( ulPlayer );
+
+		// [AK] Reset the scoreboard at the start of a new game.
+		SCOREBOARD_Reset( );
 	}
 
 	if (StatusBar != NULL)
@@ -1020,6 +1024,9 @@ void G_DoCompleted (void)
 	// [BB] If we're server, update the scoreboard on the server console.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCONSOLE_UpdateScoreboard( );
+
+	// [AK] Reset the scoreboard at the start of the intermission.
+	SCOREBOARD_Reset( );
 }
 
 //==========================================================================
@@ -1079,6 +1086,9 @@ void G_DoLoadLevel (int position, bool autosave)
 
 	// [AK] Reset all locked CVars to what they're supposed to be, in case they somehow changed.
 	GAMEMODE_ResetGameplaySettings( true, false );
+
+	// [AK] Reset the scoreboard at the start of a new level.
+	SCOREBOARD_Reset( );
 
 	// Loop through the teams, and reset the scores.
 	for ( i = 0; i < teams.Size( ); i++ )

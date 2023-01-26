@@ -181,6 +181,7 @@ ScoreColumn::ScoreColumn( const char *pszName ) :
 	ulShortestWidth( 0 ),
 	ulWidth( 0 ),
 	lRelX( 0 ),
+	bUsableInCurrentGame( false ),
 	bDisabled( false ),
 	bHidden( false ),
 	bUseShortName( false ),
@@ -393,39 +394,18 @@ void ScoreColumn::ParseCommand( const FName Name, FScanner &sc, const COLUMNCMD_
 
 //*****************************************************************************
 //
-// [AK] ScoreColumn::Refresh
+// [AK] ScoreColumn::CheckIfUsable
 //
-// Performs checks to see if a column should be active or disabled. Such checks
-// include whether or not the current game mode can support the column, if the
-// column is allowed in offline or online games, if the column should (not)
-// appear in-game or on the intermission screen, etc.
+// Checks if this column works at all in the current game, including whether
+// or not the current game mode is compatible, if the column is allowed in
+// offline or online games, or if the column should (not) appear in-game or on
+// the intermission screen.
 //
 //*****************************************************************************
 
-void ScoreColumn::Refresh( void )
+void ScoreColumn::CheckIfUsable( void )
 {
-	bDisabled = true;
-
-	// [AK] If the column's supposed to be hidden, stop here.
-	if ( bHidden )
-		return;
-
-	// [AK] If this column has a CVar associated with it, check to see if the column should be
-	// active based on the CVar's value. If the conditions fail, stop here.
-	if ( pCVar != NULL )
-	{
-		const bool bValue = pCVar->GetGenericRep( CVAR_Bool ).Bool;
-
-		if ( ulFlags & COLUMNFLAG_CVARMUSTBEZERO )
-		{
-			if ( bValue != false )
-				return;
-		}
-		else if ( bValue == false )
-		{
-			return;
-		}
-	}
+	bUsableInCurrentGame = false;
 
 	// [AK] If the current game mode isn't allowed for this column, then it can't be active.
 	if ( GameModeList.find( GAMEMODE_GetCurrentMode( )) == GameModeList.end( ))
@@ -493,6 +473,42 @@ void ScoreColumn::Refresh( void )
 		(( gamestate == GS_LEVEL ) && ( ulFlags & COLUMNFLAG_INTERMISSIONONLY )))
 	{
 		return;
+	}
+
+	bUsableInCurrentGame = true;
+}
+
+//*****************************************************************************
+//
+// [AK] ScoreColumn::Refresh
+//
+// Performs checks to see if a column should be active or disabled.
+//
+//*****************************************************************************
+
+void ScoreColumn::Refresh( void )
+{
+	bDisabled = true;
+
+	// [AK] If the column's currently unusable or hidden, stop here.
+	if (( bUsableInCurrentGame == false ) || ( bHidden ))
+		return;
+
+	// [AK] If this column has a CVar associated with it, check to see if the column should be
+	// active based on the CVar's value. If the conditions fail, stop here.
+	if ( pCVar != NULL )
+	{
+		const bool bValue = pCVar->GetGenericRep( CVAR_Bool ).Bool;
+
+		if ( ulFlags & COLUMNFLAG_CVARMUSTBEZERO )
+		{
+			if ( bValue != false )
+				return;
+		}
+		else if ( bValue == false )
+		{
+			return;
+		}
 	}
 
 	bDisabled = false;
@@ -1193,6 +1209,25 @@ void DataScoreColumn::ParseCommand( const FName Name, FScanner &sc, const COLUMN
 
 //*****************************************************************************
 //
+// [AK] DataScoreColumn::CheckIfUsable
+//
+// Checks if the data column is usable in the current game. Refer to
+// ScoreColumn::CheckIfUsable for more information.
+//
+//*****************************************************************************
+
+void DataScoreColumn::CheckIfUsable( )
+{
+	// [AK] If this column isn't part of a scoreboard, and it's not inside a composite
+	// column that's part of the scoreboard either, then stop here.
+	if (( IsInsideScoreboard( ) == false ) && (( pCompositeColumn == NULL ) || ( pCompositeColumn->IsInsideScoreboard( ) == false )))
+		return;
+
+	ScoreColumn::CheckIfUsable( );
+}
+
+//*****************************************************************************
+//
 // [AK] DataScoreColumn::UpdateWidth
 //
 // Gets the smallest width that will fit the contents in all player rows.
@@ -1298,7 +1333,7 @@ void CompositeScoreColumn::ParseCommand( const FName Name, FScanner &sc, const C
 				DataScoreColumn *pDataColumn = static_cast<DataScoreColumn *>( scoreboard_ScanForColumn( sc, true ));
 
 				// [AK] Don't add a data column that's already inside a scoreboard's column order.
-				if ( pDataColumn->pScoreboard != NULL )
+				if ( pDataColumn->IsInsideScoreboard( ))
 					sc.ScriptError( "Tried to put data column '%s' into composite column '%s', but it's already inside a scoreboard's column order.", sc.String, Name.GetChars( ) );
 
 				// [AK] Don't add a data column that's already inside another composite column.
@@ -1316,6 +1351,32 @@ void CompositeScoreColumn::ParseCommand( const FName Name, FScanner &sc, const C
 		default:
 			ScoreColumn::ParseCommand( Name, sc, Command, CommandName );
 			break;
+	}
+}
+
+//*****************************************************************************
+//
+// [AK] CompositeScoreColumn::CheckIfUsable
+//
+// Checks if the composite column and its sub-columns are usable in the current
+// game. Refer to ScoreColumn::CheckIfUsable for more information.
+//
+//*****************************************************************************
+
+void CompositeScoreColumn::CheckIfUsable( void )
+{
+	// [AK] If the composite column isn't part of a scoreboard, then stop here.
+	if ( IsInsideScoreboard( ) == false )
+		return;
+
+	// [AK] Call the superclass's function first.
+	ScoreColumn::CheckIfUsable( );
+
+	// [AK] If the composite column is usable, then check the sub-columns too.
+	if ( bUsableInCurrentGame )
+	{
+		for ( unsigned int i = 0; i < SubColumns.Size( ); i++ )
+			SubColumns[i]->CheckIfUsable( );
 	}
 }
 
@@ -2471,6 +2532,31 @@ bool SCOREBOARD_ShouldDrawBoard( void )
 		return false;
 
 	return true;
+}
+
+//*****************************************************************************
+//
+// [AK] SCOREBOARD_Reset
+//
+// This should only be executed at the start of a new game or level, or at the
+// start of the intermission screen. It checks if any columns that are part of
+// the scoreboard are usable in the current game.
+//
+//*****************************************************************************
+
+void SCOREBOARD_Reset( void )
+{
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		return;
+
+	TMapIterator<FName, ScoreColumn *> it( g_Columns );
+	TMap<FName, ScoreColumn *>::Pair *pair;
+
+	while ( it.NextPair( pair ))
+		pair->Value->CheckIfUsable( );
+
+	// [AK] It would be a good idea to refresh the scoreboard after resetting.
+	SCOREBOARD_ShouldRefreshBeforeRendering( );
 }
 
 //*****************************************************************************

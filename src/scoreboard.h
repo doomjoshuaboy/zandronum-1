@@ -188,8 +188,10 @@ public:
 	ULONG GetWidth( void ) const { return ulWidth; }
 	LONG GetRelX( void ) const { return lRelX; }
 	LONG GetAlignmentPosition( ULONG ulContentWidth ) const;
+	bool IsUsableInCurrentGame( void ) const { return bUsableInCurrentGame; }
 	bool IsDisabled( void ) const { return bDisabled; }
 	bool IsHidden( void ) const { return bHidden; }
+	bool IsInsideScoreboard( void ) const { return ( pScoreboard != NULL ); }
 	bool ShouldUseShortName( void ) const { return bUseShortName; }
 	void SetHidden( bool bEnable );
 	void Parse( const FName Name, FScanner &sc );
@@ -199,6 +201,7 @@ public:
 	void DrawTexture( FTexture *pTexture, const LONG lYPos, const ULONG ulHeight, const float fAlpha, const int clipWidth, const int clipHeight ) const;
 
 	virtual void ParseCommand( const FName Name, FScanner &sc, const COLUMNCMD_e Command, const FString CommandName );
+	virtual void CheckIfUsable( void );
 	virtual void Refresh( void );
 	virtual void UpdateWidth( FFont *pHeaderFont, FFont *pRowFont );
 	virtual void DrawValue( const ULONG ulPlayer, FFont *pFont, const ULONG ulColor, const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const = 0;
@@ -217,6 +220,7 @@ protected:
 	ULONG ulShortestWidth;
 	ULONG ulWidth;
 	LONG lRelX;
+	bool bUsableInCurrentGame;
 	bool bDisabled;
 	bool bHidden;
 	bool bUseShortName;
@@ -262,6 +266,7 @@ public:
 
 	virtual ColumnValue GetValue( const ULONG ulPlayer ) const;
 	virtual void ParseCommand( const FName Name, FScanner &sc, const COLUMNCMD_e Command, const FString CommandName );
+	virtual void CheckIfUsable( void );
 	virtual void UpdateWidth( FFont *pHeaderFont, FFont *pRowFont );
 	virtual void DrawValue( const ULONG ulPlayer, FFont *pFont, const ULONG ulColor, const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const;
 
@@ -300,6 +305,7 @@ public:
 
 	virtual COLUMNTEMPLATE_e GetTemplate( void ) const { return COLUMNTEMPLATE_COMPOSITE; }
 	virtual void ParseCommand( const FName Name, FScanner &sc, const COLUMNCMD_e Command, const FString CommandName );
+	virtual void CheckIfUsable( void );
 	virtual void Refresh( void );
 	virtual void UpdateWidth( FFont *pHeaderFont, FFont *pRowFont );
 	virtual void DrawValue( const ULONG ulPlayer, FFont *pFont, const ULONG ulColor, const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const;
@@ -414,6 +420,7 @@ bool			SCOREBOARD_IsDisabled( void );
 bool			SCOREBOARD_IsHidden( void );
 void			SCOREBOARD_SetHidden( bool bEnable );
 bool			SCOREBOARD_ShouldDrawBoard( void );
+void			SCOREBOARD_Reset( void );
 void			SCOREBOARD_Render( ULONG ulDisplayPlayer );
 void			SCOREBOARD_Refresh( void );
 void			SCOREBOARD_ShouldRefreshBeforeRendering( void );
