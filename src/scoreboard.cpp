@@ -1240,11 +1240,7 @@ void DataScoreColumn::UpdateWidth( FFont *pHeaderFont, FFont *pRowFont )
 
 	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
-		if ( PLAYER_IsValidPlayer( ulIdx ) == false )
-			continue;
-
-		// [AK] Ignore true spectators if they're supposed to be excluded.
-		if (( ulFlags & COLUMNFLAG_NOSPECTATORS ) && ( PLAYER_IsTrueSpectator( &players[ulIdx] )))
+		if ( CanDrawForPlayer( ulIdx ) == false )
 			continue;
 
 		ColumnValue Value = GetValue( ulIdx );
@@ -1428,11 +1424,7 @@ void CompositeScoreColumn::UpdateWidth( FFont *pHeaderFont, FFont *pRowFont )
 
 	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
-		if ( PLAYER_IsValidPlayer( ulIdx ) == false )
-			continue;
-
-		// [AK] Ignore true spectators if they're supposed to be excluded.
-		if (( ulFlags & COLUMNFLAG_NOSPECTATORS ) && ( PLAYER_IsTrueSpectator( &players[ulIdx] )))
+		if ( CanDrawForPlayer( ulIdx ) == false )
 			continue;
 
 		ulShortestWidth = MAX( ulShortestWidth, GetRowWidth( ulIdx, pRowFont ));
