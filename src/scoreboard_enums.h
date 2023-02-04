@@ -205,6 +205,8 @@ BEGIN_ENUM( SCOREBOARDFLAG_e )
 	ENUM_ELEMENT2( SCOREBOARDFLAG_DONTDRAWBORDERS, 0x10 ),
 	// Players aren't divided into their respective teams and appear on a single list.
 	ENUM_ELEMENT2( SCOREBOARDFLAG_DONTSEPARATETEAMS, 0x20 ),
+	// The local row background color is never used.
+	ENUM_ELEMENT2( SCOREBOARDFLAG_DONTUSELOCALROWBACKGROUNDCOLOR, 0x40 ),
 }
 END_ENUM( SCOREBOARDFLAG_e )
 

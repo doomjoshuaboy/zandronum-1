@@ -2285,7 +2285,7 @@ void Scoreboard::DrawRow( const ULONG ulPlayer, const ULONG ulDisplayPlayer, LON
 	{
 		ROWBACKGROUND_COLOR_e RowBackground;
 
-		if ( ulPlayer == ulDisplayPlayer )
+		if (( ulPlayer == ulDisplayPlayer ) && (( ulFlags & SCOREBOARDFLAG_DONTUSELOCALROWBACKGROUNDCOLOR ) == false ))
 			RowBackground = ROWBACKGROUND_COLOR_LOCAL;
 		else
 			RowBackground = bUseLightBackground ? ROWBACKGROUND_COLOR_LIGHT : ROWBACKGROUND_COLOR_DARK;
