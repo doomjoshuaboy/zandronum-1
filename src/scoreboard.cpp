@@ -1924,8 +1924,8 @@ bool Scoreboard::PlayerComparator::operator( )( const int &arg1, const int &arg2
 {
 	int result = 0;
 
-	// [AK] Sanity check: make sure that we're pointing to a rank order.
-	if ( pRankOrder == NULL )
+	// [AK] Sanity check: make sure that we're pointing to a scoreboard.
+	if ( pScoreboard == NULL )
 		return false;
 
 	// [AK] Always return false if the first player index is invalid,
@@ -1944,7 +1944,7 @@ bool Scoreboard::PlayerComparator::operator( )( const int &arg1, const int &arg2
 
 	// [AK] In team-based game modes, order players by team. Players with lower
 	// team indices should come before those with higher indices.
-	if ( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSONTEAMS )
+	if ( pScoreboard->ShouldSeparateTeams( ))
 	{
 		result = players[arg1].Team - players[arg2].Team;
 
@@ -1952,13 +1952,13 @@ bool Scoreboard::PlayerComparator::operator( )( const int &arg1, const int &arg2
 			return ( result < 0 );
 	}
 
-	for ( unsigned int i = 0; i < pRankOrder->Size( ); i++ )
+	for ( unsigned int i = 0; i < pScoreboard->RankOrder.Size( ); i++ )
 	{
-		if (( *pRankOrder )[i]->IsDisabled( ))
+		if ( pScoreboard->RankOrder[i]->IsDisabled( ))
 			continue;
 
-		const ColumnValue Value1 = ( *pRankOrder )[i]->GetValue( arg1 );
-		const ColumnValue Value2 = ( *pRankOrder )[i]->GetValue( arg2 );
+		const ColumnValue Value1 = pScoreboard->RankOrder[i]->GetValue( arg1 );
+		const ColumnValue Value2 = pScoreboard->RankOrder[i]->GetValue( arg2 );
 
 		// [AK] Always return false if the data type of the first value is unknown.
 		// This is also the case when both values have unknown data types.
@@ -2001,7 +2001,7 @@ bool Scoreboard::PlayerComparator::operator( )( const int &arg1, const int &arg2
 
 		// [AK] If the values for this column aren't the same for both players, return the result.
 		if ( result != 0 )
-			return (( *pRankOrder )[i]->GetFlags( ) & COLUMNFLAG_REVERSEORDER ) ? ( result < 0 ) : ( result > 0 );
+			return ( pScoreboard->RankOrder[i]->GetFlags( ) & COLUMNFLAG_REVERSEORDER ) ? ( result < 0 ) : ( result > 0 );
 	}
 
 	return false;
@@ -2053,7 +2053,7 @@ void Scoreboard::Refresh( const ULONG ulDisplayPlayer )
 	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 		ulPlayerList[ulIdx] = ulIdx;
 
-	std::stable_sort( ulPlayerList, ulPlayerList + MAXPLAYERS, PlayerComparator( &RankOrder ));
+	std::stable_sort( ulPlayerList, ulPlayerList + MAXPLAYERS, PlayerComparator( this ));
 }
 
 //*****************************************************************************
@@ -2138,7 +2138,7 @@ void Scoreboard::UpdateHeight( void )
 	// [AK] Add the total height of all rows for active players.
 	if ( ulNumActivePlayers > 0 )
 	{
-		if (( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSONTEAMS ) && (( ulFlags & SCOREBOARDFLAG_DONTSEPARATETEAMS ) == false ))
+		if ( ShouldSeparateTeams( ))
 		{
 			for ( ULONG ulTeam = 0; ulTeam < teams.Size( ); ulTeam++ )
 			{
@@ -2219,7 +2219,7 @@ void Scoreboard::Render( const ULONG ulDisplayPlayer )
 
 		// [AK] In team-based game modes, if the previous player is on a different team than
 		// the current player, leave a gap between both teams and make the row background light.
-		if (( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSONTEAMS ) && ( ulIdx > 0 ) && ( players[ulPlayer].Team != players[ulPlayerList[ulIdx - 1]].Team ))
+		if (( ShouldSeparateTeams( )) && ( ulIdx > 0 ) && ( players[ulPlayer].Team != players[ulPlayerList[ulIdx - 1]].Team ))
 		{
 			lYPos += lRowHeight;
 			bUseLightBackground = true;
@@ -2445,6 +2445,19 @@ void Scoreboard::DrawRowBackground( const PalEntry color, const int y, const flo
 	{
 		DrawRowBackground( color, lRelX + ulBackgroundBorderSize, y, ulWidth - 2 * ulBackgroundBorderSize, height, fAlpha );
 	}
+}
+
+//*****************************************************************************
+//
+// [AK] Scoreboard::ShouldSeparateTeams
+//
+// Checks if the scoreboard should separate players into their respective teams.
+//
+//*****************************************************************************
+
+bool Scoreboard::ShouldSeparateTeams( void ) const
+{
+	return (( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSONTEAMS ) && (( ulFlags & SCOREBOARDFLAG_DONTSEPARATETEAMS ) == false ));
 }
 
 //*****************************************************************************

@@ -392,14 +392,15 @@ struct Scoreboard
 	void DrawBorder( const EColorRange Color, LONG &lYPos, const bool bReverse ) const;
 	void DrawRowBackground( const PalEntry color, int x, int y, int width, int height, const float fAlpha ) const;
 	void DrawRowBackground( const PalEntry color, const int y, const float fAlpha ) const;
+	bool ShouldSeparateTeams( void ) const;
 
 private:
 	struct PlayerComparator
 	{
-		PlayerComparator( TArray<DataScoreColumn *> *pList ) : pRankOrder( pList ) { }
+		PlayerComparator( Scoreboard *pOtherScoreboard ) : pScoreboard( pOtherScoreboard ) { }
 		bool operator( )( const int &arg1, const int &arg2 ) const;
 
-		const TArray<DataScoreColumn *> *pRankOrder;
+		const Scoreboard *pScoreboard;
 	};
 
 	ULONG ulPlayerList[MAXPLAYERS];
