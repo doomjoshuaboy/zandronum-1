@@ -2119,7 +2119,6 @@ void Scoreboard::UpdateHeight( void )
 	const ULONG ulRowYOffset = lRowHeight + ulGapBetweenRows;
 	const ULONG ulNumActivePlayers = HUD_GetNumPlayers( );
 	const ULONG ulNumSpectators = HUD_GetNumSpectators( );
-	bool bAlreadyDrewRow = false;
 
 	ulHeight = 2 * ulBackgroundBorderSize + lHeaderHeight + ulGapBetweenHeaderAndRows;
 
@@ -2138,33 +2137,21 @@ void Scoreboard::UpdateHeight( void )
 	// [AK] Add the total height of all rows for active players.
 	if ( ulNumActivePlayers > 0 )
 	{
+		ulHeight += ulNumActivePlayers * ulRowYOffset;
+
 		if ( ShouldSeparateTeams( ))
 		{
-			for ( ULONG ulTeam = 0; ulTeam < teams.Size( ); ulTeam++ )
-			{
-				ULONG ulTeamPlayerCount = TEAM_CountPlayers( ulTeam );
+			const ULONG ulNumTeamsWithPlayers = TEAM_TeamsWithPlayersOn( );
 
-				if ( ulTeamPlayerCount > 0 )
-				{
-					if ( bAlreadyDrewRow )
-						ulHeight += lRowHeight;
-
-					ulHeight += ulTeamPlayerCount * ulRowYOffset;
-					bAlreadyDrewRow = true;
-				}
-			}
-		}
-		else
-		{
-			ulHeight += ulNumActivePlayers * ulRowYOffset;
-			bAlreadyDrewRow = true;
+			if ( ulNumTeamsWithPlayers > 0 )
+				ulHeight += lRowHeight * ( ulNumTeamsWithPlayers - 1 );
 		}
 	}
 
 	// [AK] Do the same for any true spectators.
 	if ( ulNumSpectators > 0 )
 	{
-		if ( bAlreadyDrewRow )
+		if ( ulNumActivePlayers > 0 )
 			ulHeight += lRowHeight;
 
 		ulHeight += ulNumSpectators * ulRowYOffset;
