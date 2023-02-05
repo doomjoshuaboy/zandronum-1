@@ -164,6 +164,9 @@ static	bool			scoreboard_TryPushingColumnToList( FScanner &sc, TArray<ColumnType
 // [JS] Display the amount of time left on the intermission screen.
 CVAR( Bool, cl_intermissiontimer, false, CVAR_ARCHIVE );
 
+// [AK] Prints everyone's pings in different colours, indicating how severe their connection is.
+CVAR( Bool, cl_colorizepings, false, CVAR_ARCHIVE );
+
 //*****************************************************************************
 //
 // [AK] ScoreColumn::ScoreColumn
@@ -1267,9 +1270,21 @@ void DataScoreColumn::DrawValue( const ULONG ulPlayer, FFont *pFont, const ULONG
 	ColumnValue Value = GetValue( ulPlayer );
 	ULONG ulColorToUse;
 
-	// [AK] The text used in the join queue and vote columns changes depending on
-	// whether the player is first in line or the vote caller respectively.
-	if ( NativeType == COLUMNTYPE_JOINQUEUE )
+	// [AK] The text color used in the join queue and vote columns changes depending
+	// on whether the player is first in line or the vote caller respectively. Also,
+	// the text color in the ping column changes depending on cl_colorizepings.
+	if (( NativeType == COLUMNTYPE_PING ) && ( cl_colorizepings ) && ( players[ulPlayer].bIsBot == false ))
+	{
+		if ( players[ulPlayer].ulPing >= 200 )
+			ulColorToUse = CR_RED;
+		else if ( players[ulPlayer].ulPing >= 150 )
+			ulColorToUse = CR_ORANGE;
+		else if ( players[ulPlayer].ulPing >= 100 )
+			ulColorToUse = CR_GOLD;
+		else
+			ulColorToUse = CR_GREEN;
+	}
+	else if ( NativeType == COLUMNTYPE_JOINQUEUE )
 	{
 		if ( JOINQUEUE_GetPositionInLine( ulPlayer ) == 0 )
 			ulColorToUse = CR_RED;
