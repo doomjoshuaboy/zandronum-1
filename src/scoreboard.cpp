@@ -167,6 +167,12 @@ CVAR( Bool, cl_intermissiontimer, false, CVAR_ARCHIVE );
 // [AK] Prints everyone's pings in different colours, indicating how severe their connection is.
 CVAR( Bool, cl_colorizepings, false, CVAR_ARCHIVE );
 
+// [AK] If true, then columns will use their short names in the headers.
+CUSTOM_CVAR( Bool, cl_useshortcolumnnames, false, CVAR_ARCHIVE )
+{
+	SCOREBOARD_ShouldRefreshBeforeRendering( );
+}
+
 //*****************************************************************************
 //
 // [AK] ScoreColumn::ScoreColumn
@@ -515,6 +521,12 @@ void ScoreColumn::Refresh( void )
 	}
 
 	bDisabled = false;
+
+	// [AK] Should this column use its short or normal display name?
+	if (( cl_useshortcolumnnames ) && ( ShortName.Len( ) > 0 ))
+		bUseShortName = true;
+	else
+		bUseShortName = false;
 }
 
 //*****************************************************************************
