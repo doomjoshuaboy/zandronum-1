@@ -269,8 +269,11 @@ public:
 	virtual void CheckIfUsable( void );
 	virtual void UpdateWidth( FFont *pHeaderFont, FFont *pRowFont );
 	virtual void DrawValue( const ULONG ulPlayer, FFont *pFont, const ULONG ulColor, const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const;
+	virtual void ResetToDefault( const ULONG ulPlayer, const bool bChangingLevel ) { }
 
 protected:
+	virtual void SetDefaultValue( const ColumnValue &Value ) { }
+
 	const COLUMNTYPE_e NativeType;
 	FString PrefixText;
 	FString SuffixText;
@@ -287,6 +290,35 @@ protected:
 	// Also let the Scoreboard struct have access.
 	friend class CompositeScoreColumn;
 	friend struct Scoreboard;
+};
+
+//*****************************************************************************
+//
+// [AK] CustomScoreColumn
+//
+// A template class for all custom columns and their respective data types.
+//
+//*****************************************************************************
+
+template <typename VariableType>
+class CustomScoreColumn : public DataScoreColumn
+{
+public:
+	CustomScoreColumn( const char *pszName );
+
+	virtual COLUMNDATA_e GetDataType( void ) const { return DefaultVal.GetDataType( ); }
+	virtual ColumnValue GetValue( const ULONG ulPlayer ) const;
+
+	ColumnValue GetDefaultValue( void ) const;
+	void SetValue( const ULONG ulPlayer, const ColumnValue &Value );
+
+	virtual void ResetToDefault( const ULONG ulPlayer, const bool bChangingLevel );
+
+protected:
+	virtual void SetDefaultValue( const ColumnValue &Value );
+
+	VariableType Val[MAXPLAYERS];
+	ColumnValue DefaultVal;
 };
 
 //*****************************************************************************
@@ -421,7 +453,8 @@ bool			SCOREBOARD_IsDisabled( void );
 bool			SCOREBOARD_IsHidden( void );
 void			SCOREBOARD_SetHidden( bool bEnable );
 bool			SCOREBOARD_ShouldDrawBoard( void );
-void			SCOREBOARD_Reset( void );
+void			SCOREBOARD_Reset( const bool bChangingLevel, const bool bResetCustomColumns );
+void			SCOREBOARD_ResetCustomColumnsForPlayer( const ULONG ulPlayer, const bool bChangingLevel );
 void			SCOREBOARD_Render( ULONG ulDisplayPlayer );
 void			SCOREBOARD_Refresh( void );
 void			SCOREBOARD_ShouldRefreshBeforeRendering( void );

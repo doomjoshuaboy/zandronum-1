@@ -438,7 +438,7 @@ void G_InitNew (const char *mapname, bool bTitleLevel)
 			CHAT_ClearChatMessages( ulPlayer );
 
 		// [AK] Reset the scoreboard at the start of a new game.
-		SCOREBOARD_Reset( );
+		SCOREBOARD_Reset( false, true );
 	}
 
 	if (StatusBar != NULL)
@@ -1026,7 +1026,7 @@ void G_DoCompleted (void)
 		SERVERCONSOLE_UpdateScoreboard( );
 
 	// [AK] Reset the scoreboard at the start of the intermission.
-	SCOREBOARD_Reset( );
+	SCOREBOARD_Reset( false, false );
 }
 
 //==========================================================================
@@ -1088,7 +1088,7 @@ void G_DoLoadLevel (int position, bool autosave)
 	GAMEMODE_ResetGameplaySettings( true, false );
 
 	// [AK] Reset the scoreboard at the start of a new level.
-	SCOREBOARD_Reset( );
+	SCOREBOARD_Reset( true, true );
 
 	// Loop through the teams, and reset the scores.
 	for ( i = 0; i < teams.Size( ); i++ )
