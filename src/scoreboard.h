@@ -195,7 +195,7 @@ public:
 	bool ShouldUseShortName( void ) const { return bUseShortName; }
 	void SetHidden( bool bEnable );
 	void Parse( const FName Name, FScanner &sc );
-	void DrawHeader( FFont *pFont, const ULONG ulColor, const LONG lYPos, const ULONG ulHeight ) const;
+	void DrawHeader( FFont *pFont, const ULONG ulColor, const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const;
 	void DrawString( const char *pszString, FFont *pFont, const ULONG ulColor, const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const;
 	void DrawColor( const PalEntry color, const LONG lYPos, const ULONG ulHeight, const float fAlpha, const int clipWidth, const int clipHeight ) const;
 	void DrawTexture( FTexture *pTexture, const LONG lYPos, const ULONG ulHeight, const float fAlpha, const int clipWidth, const int clipHeight ) const;
@@ -388,8 +388,8 @@ struct Scoreboard
 
 	void Parse( FScanner &sc );
 	void Refresh( const ULONG ulDisplayPlayer );
-	void Render( const ULONG ulDisplayPlayer );
-	void DrawBorder( const EColorRange Color, LONG &lYPos, const bool bReverse ) const;
+	void Render( const ULONG ulDisplayPlayer, const float fAlpha );
+	void DrawBorder( const EColorRange Color, LONG &lYPos, const float fAlpha, const bool bReverse ) const;
 	void DrawRowBackground( const PalEntry color, int x, int y, int width, int height, const float fAlpha ) const;
 	void DrawRowBackground( const PalEntry color, const int y, const float fAlpha ) const;
 	bool ShouldSeparateTeams( void ) const;
@@ -410,7 +410,7 @@ private:
 	void AddColumnToList( FScanner &sc, const bool bAddToRankOrder );
 	void UpdateWidth( void );
 	void UpdateHeight( void );
-	void DrawRow( const ULONG ulPlayer, const ULONG ulDisplayPlayer, LONG &lYPos, bool &bUseLightBackground ) const;
+	void DrawRow( const ULONG ulPlayer, const ULONG ulDisplayPlayer, LONG &lYPos, const float fAlpha, bool &bUseLightBackground ) const;
 };
 
 //*****************************************************************************

@@ -173,6 +173,15 @@ CUSTOM_CVAR( Bool, cl_useshortcolumnnames, false, CVAR_ARCHIVE )
 	SCOREBOARD_ShouldRefreshBeforeRendering( );
 }
 
+// [AK] Controls the opacity of the entire scoreboard.
+CUSTOM_CVAR( Float, cl_scoreboardalpha, 1.0f, CVAR_ARCHIVE )
+{
+	float fClampedValue = clamp<float>( self, 0.0f, 1.0f );
+
+	if ( self != fClampedValue )
+		self = fClampedValue;
+}
+
 //*****************************************************************************
 //
 // [AK] ScoreColumn::ScoreColumn
@@ -575,12 +584,12 @@ void ScoreColumn::UpdateWidth( FFont *pHeaderFont, FFont *pRowFont )
 //
 //*****************************************************************************
 
-void ScoreColumn::DrawHeader( FFont *pFont, const ULONG ulColor, const LONG lYPos, const ULONG ulHeight ) const
+void ScoreColumn::DrawHeader( FFont *pFont, const ULONG ulColor, const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const
 {
 	if (( bDisabled ) || ( ulFlags & COLUMNFLAG_DONTSHOWHEADER ))
 		return;
 
-	DrawString( bUseShortName ? ShortName.GetChars( ) : DisplayName.GetChars( ), pFont, ulColor, lYPos, ulHeight, 1.0f );
+	DrawString( bUseShortName ? ShortName.GetChars( ) : DisplayName.GetChars( ), pFont, ulColor, lYPos, ulHeight, fAlpha );
 }
 
 //*****************************************************************************
@@ -2195,18 +2204,22 @@ void Scoreboard::UpdateHeight( void )
 //
 //*****************************************************************************
 
-void Scoreboard::Render( const ULONG ulDisplayPlayer )
+void Scoreboard::Render( const ULONG ulDisplayPlayer, const float fAlpha )
 {
 	int clipLeft = lRelX;
 	int clipTop = lRelY;
 	int clipWidth = ulWidth;
 	int clipHeight = ulHeight;
 
+	// [AK] We can't draw anything if the opacity is zero or less.
+	if ( fAlpha <= 0.0f )
+		return;
+
 	// [AK] We must take into account the virtual screen's size.
 	if ( g_bScale )
 		screen->VirtualToRealCoordsInt( clipLeft, clipTop, clipWidth, clipHeight, con_virtualwidth, con_virtualheight, false, !con_scaletext_usescreenratio );
 
-	screen->Dim( BackgroundColor, fBackgroundAmount, clipLeft, clipTop, clipWidth, clipHeight );
+	screen->Dim( BackgroundColor, fBackgroundAmount * fAlpha, clipLeft, clipTop, clipWidth, clipHeight );
 
 	const ULONG ulNumActivePlayers = HUD_GetNumPlayers( );
 	const ULONG ulNumTrueSpectators = HUD_GetNumSpectators( );
@@ -2214,16 +2227,16 @@ void Scoreboard::Render( const ULONG ulDisplayPlayer )
 	bool bUseLightBackground = true;
 
 	// [AK] Draw a border above the column headers.
-	DrawBorder( HeaderColor, lYPos, false );
+	DrawBorder( HeaderColor, lYPos, fAlpha, false );
 
 	// [AK] Draw all of the column headers.
 	for ( unsigned int i = 0; i < ColumnOrder.Size( ); i++ )
-		ColumnOrder[i]->DrawHeader( pHeaderFont, HeaderColor, lYPos, lHeaderHeight );
+		ColumnOrder[i]->DrawHeader( pHeaderFont, HeaderColor, lYPos, lHeaderHeight, fAlpha );
 
 	lYPos += lHeaderHeight;
 
 	// [AK] Draw another border below the headers.
-	DrawBorder( HeaderColor, lYPos, true );
+	DrawBorder( HeaderColor, lYPos, fAlpha, true );
 	lYPos += ulGapBetweenHeaderAndRows;
 
 	// [AK] Draw rows for all active players.
@@ -2239,7 +2252,7 @@ void Scoreboard::Render( const ULONG ulDisplayPlayer )
 			bUseLightBackground = true;
 		}
 
-		DrawRow( ulPlayer, ulDisplayPlayer, lYPos, bUseLightBackground );
+		DrawRow( ulPlayer, ulDisplayPlayer, lYPos, fAlpha, bUseLightBackground );
 	}
 
 	// [AK] Draw rows for any true spectators.
@@ -2258,13 +2271,13 @@ void Scoreboard::Render( const ULONG ulDisplayPlayer )
 		// [AK] The index of the first true spectator should be the same as the number of active
 		// players. The list is organized such that all active players come before any true spectators.
 		for ( ULONG ulIdx = ulNumActivePlayers; ulIdx < ulTotalPlayers; ulIdx++ )
-			DrawRow( ulPlayerList[ulIdx], ulDisplayPlayer, lYPos, bUseLightBackground );
+			DrawRow( ulPlayerList[ulIdx], ulDisplayPlayer, lYPos, fAlpha, bUseLightBackground );
 	}
 
 	// [AK] Finally, draw a border at the bottom of the scoreboard. We must subtract ulGapBetweenRows here (a bit hacky)
 	// because SCOREBOARD_s::DrawPlayerRow adds it every time a row is drawn. This isn't necessary for the last row.
 	lYPos += ulGapBetweenHeaderAndRows - ulGapBetweenRows;
-	DrawBorder( HeaderColor, lYPos, false );
+	DrawBorder( HeaderColor, lYPos, fAlpha, false );
 }
 
 //*****************************************************************************
@@ -2275,7 +2288,7 @@ void Scoreboard::Render( const ULONG ulDisplayPlayer )
 //
 //*****************************************************************************
 
-void Scoreboard::DrawRow( const ULONG ulPlayer, const ULONG ulDisplayPlayer, LONG &lYPos, bool &bUseLightBackground ) const
+void Scoreboard::DrawRow( const ULONG ulPlayer, const ULONG ulDisplayPlayer, LONG &lYPos, const float fAlpha, bool &bUseLightBackground ) const
 {
 	const bool bIsDisplayPlayer = ( ulPlayer == ulDisplayPlayer );
 	const bool bIsTrueSpectator = PLAYER_IsTrueSpectator( &players[ulPlayer] );
@@ -2304,7 +2317,7 @@ void Scoreboard::DrawRow( const ULONG ulPlayer, const ULONG ulDisplayPlayer, LON
 			ulColor = LocalRowColors[LOCALROW_COLOR_INGAME];
 	}
 
-	const float fBackgroundAlpha = bPlayerIsDead ? fDeadRowBackgroundAmount : fRowBackgroundAmount;
+	const float fBackgroundAlpha = ( bPlayerIsDead ? fDeadRowBackgroundAmount : fRowBackgroundAmount ) * fAlpha;
 
 	// [AK] Draw the background of the row, but only if the alpha is non-zero. In team-based game modes,
 	// the color of the background is to be the team's own color.
@@ -2325,7 +2338,7 @@ void Scoreboard::DrawRow( const ULONG ulPlayer, const ULONG ulDisplayPlayer, LON
 			DrawRowBackground( RowBackgroundColors[RowBackground], lYPos, fBackgroundAlpha );
 	}
 
-	const float fTextAlpha = bPlayerIsDead ? fDeadTextAlpha : 1.0f;
+	const float fTextAlpha = ( bPlayerIsDead ? fDeadTextAlpha : 1.0f ) * fAlpha;
 
 	// Draw the data for each column, but only if the text alpha is non-zero.
 	if ( fTextAlpha > 0.0f )
@@ -2346,7 +2359,7 @@ void Scoreboard::DrawRow( const ULONG ulPlayer, const ULONG ulDisplayPlayer, LON
 //
 //*****************************************************************************
 
-void Scoreboard::DrawBorder( const EColorRange Color, LONG &lYPos, const bool bReverse ) const
+void Scoreboard::DrawBorder( const EColorRange Color, LONG &lYPos, const float fAlpha, const bool bReverse ) const
 {
 	if ( ulFlags & SCOREBOARDFLAG_DONTDRAWBORDERS )
 		return;
@@ -2374,6 +2387,7 @@ void Scoreboard::DrawBorder( const EColorRange Color, LONG &lYPos, const bool bR
 				DTA_ClipRight, x + width,
 				DTA_ClipTop, y,
 				DTA_ClipBottom, y + height,
+				DTA_Alpha, FLOAT2FIXED( fAlpha ),
 				TAG_DONE );
 
 			lXPos += pBorderTexture->GetScaledWidth( );
@@ -2409,8 +2423,8 @@ void Scoreboard::DrawBorder( const EColorRange Color, LONG &lYPos, const bool bR
 		}
 
 		// [AK] The dark color goes above the light one, unless it's reversed.
-		screen->Clear( x, y, x + width, y + height, -1, bReverse ? lightColor : darkColor );
-		screen->Clear( x, y + height, x + width, y + height * 2, -1, bReverse ? darkColor : lightColor );
+		screen->Dim( bReverse ? lightColor : darkColor, fAlpha, x, y, width, height );
+		screen->Dim( bReverse ? darkColor : lightColor, fAlpha, x, y + height, width, height );
 		lYPos += 2;
 	}
 }
