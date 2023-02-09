@@ -1143,6 +1143,21 @@ ColumnValue DataScoreColumn::GetValue( const ULONG ulPlayer ) const
 
 //*****************************************************************************
 //
+// [AK] DataScoreColumn::GetDefaultValue
+//
+// This isn't supposed to return anything useful except a ColumnValue object
+// with an unknown data type.
+//
+//*****************************************************************************
+
+ColumnValue DataScoreColumn::GetDefaultValue( void ) const
+{
+	ColumnValue Result;
+	return Result;
+}
+
+//*****************************************************************************
+//
 // [AK] DataScoreColumn::ParseCommand
 //
 // Parses commands that are only used for data columns.

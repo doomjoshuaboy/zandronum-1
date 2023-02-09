@@ -55,6 +55,7 @@
 #include "teaminfo.h"
 #include "tarray.h"
 #include "v_text.h"
+#include "i_system.h"
 
 #include "scoreboard_enums.h"
 
@@ -265,6 +266,8 @@ public:
 	ULONG GetValueWidth( const ColumnValue &Value, FFont *pFont ) const;
 
 	virtual ColumnValue GetValue( const ULONG ulPlayer ) const;
+	virtual ColumnValue GetDefaultValue( void ) const;
+	virtual void SetValue( const ULONG ulPlayer, const ColumnValue &Value ) { I_Error( "DataScoreColumn::SetValue: tried to call a function that should never be called." ); }
 	virtual void ParseCommand( const FName Name, FScanner &sc, const COLUMNCMD_e Command, const FString CommandName );
 	virtual void CheckIfUsable( void );
 	virtual void UpdateWidth( FFont *pHeaderFont, FFont *pRowFont );
@@ -308,10 +311,8 @@ public:
 
 	virtual COLUMNDATA_e GetDataType( void ) const { return DefaultVal.GetDataType( ); }
 	virtual ColumnValue GetValue( const ULONG ulPlayer ) const;
-
-	ColumnValue GetDefaultValue( void ) const;
-	void SetValue( const ULONG ulPlayer, const ColumnValue &Value );
-
+	virtual ColumnValue GetDefaultValue( void ) const;
+	virtual void SetValue( const ULONG ulPlayer, const ColumnValue &Value );
 	virtual void ResetToDefault( const ULONG ulPlayer, const bool bChangingLevel );
 
 protected:
