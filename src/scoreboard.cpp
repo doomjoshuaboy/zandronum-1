@@ -168,10 +168,7 @@ CVAR( Bool, cl_intermissiontimer, false, CVAR_ARCHIVE );
 CVAR( Bool, cl_colorizepings, false, CVAR_ARCHIVE );
 
 // [AK] If true, then columns will use their short names in the headers.
-CUSTOM_CVAR( Bool, cl_useshortcolumnnames, false, CVAR_ARCHIVE )
-{
-	SCOREBOARD_ShouldRefreshBeforeRendering( );
-}
+CVAR( Bool, cl_useshortcolumnnames, false, CVAR_ARCHIVE | CVAR_REFRESHSCOREBOARD );
 
 // [AK] Controls the opacity of the entire scoreboard.
 CUSTOM_CVAR( Float, cl_scoreboardalpha, 1.0f, CVAR_ARCHIVE )
