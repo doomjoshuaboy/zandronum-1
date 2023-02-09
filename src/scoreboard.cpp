@@ -2773,6 +2773,10 @@ bool SCOREBOARD_ShouldDrawBoard( void )
 
 void SCOREBOARD_Reset( const bool bChangingLevel )
 {
+	// [AK] Don't do anything if there are no defined columns.
+	if ( g_Columns.CountUsed( ) == 0 )
+		return;
+
 	TMapIterator<FName, ScoreColumn *> it( g_Columns );
 	TMap<FName, ScoreColumn *>::Pair *pair;
 
@@ -2800,6 +2804,10 @@ void SCOREBOARD_Reset( const bool bChangingLevel )
 
 void SCOREBOARD_ResetCustomColumnsForPlayer( const ULONG ulPlayer, const bool bChangingLevel )
 {
+	// [AK] Don't do anything if there are no defined columns.
+	if ( g_Columns.CountUsed( ) == 0 )
+		return;
+
 	TMapIterator<FName, ScoreColumn *> it( g_Columns );
 	TMap<FName, ScoreColumn *>::Pair *pair;
 
