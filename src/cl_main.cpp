@@ -3343,7 +3343,7 @@ void ServerCommands::EndSnapshot::Execute()
 	}
 
 	// [AK] Reset the scoreboard.
-	SCOREBOARD_Reset( false, true );
+	SCOREBOARD_Reset( false );
 
 	// Display the message of the day.
 	C_MOTDPrint( g_MOTD );

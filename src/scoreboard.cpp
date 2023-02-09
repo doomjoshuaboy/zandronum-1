@@ -482,14 +482,6 @@ void ScoreColumn::CheckIfUsable( void )
 		return;
 	}
 
-	// [AK] Disable this column if it's supposed to be invisible on the intermission screen, or if it's
-	// supposed to be invisible in-game.
-	if ((( gamestate == GS_INTERMISSION ) && ( ulFlags & COLUMNFLAG_NOINTERMISSION )) ||
-		(( gamestate == GS_LEVEL ) && ( ulFlags & COLUMNFLAG_INTERMISSIONONLY )))
-	{
-		return;
-	}
-
 	bUsableInCurrentGame = true;
 }
 
@@ -524,6 +516,14 @@ void ScoreColumn::Refresh( void )
 		{
 			return;
 		}
+	}
+
+	// [AK] Disable this column if it's supposed to be invisible on the intermission screen, or if it's
+	// supposed to be invisible in-game.
+	if ((( gamestate == GS_INTERMISSION ) && ( ulFlags & COLUMNFLAG_NOINTERMISSION )) ||
+		(( gamestate == GS_LEVEL ) && ( ulFlags & COLUMNFLAG_INTERMISSIONONLY )))
+	{
+		return;
 	}
 
 	bDisabled = false;
@@ -1596,6 +1596,12 @@ void CompositeScoreColumn::CheckIfUsable( void )
 	{
 		for ( unsigned int i = 0; i < SubColumns.Size( ); i++ )
 			SubColumns[i]->CheckIfUsable( );
+	}
+	// [AK] Otherwise, mark the sub-columns as unusable too.
+	else
+	{
+		for ( unsigned int i = 0; i < SubColumns.Size( ); i++ )
+			SubColumns[i]->bUsableInCurrentGame = false;
 	}
 }
 
@@ -2765,20 +2771,19 @@ bool SCOREBOARD_ShouldDrawBoard( void )
 //
 //*****************************************************************************
 
-void SCOREBOARD_Reset( const bool bChangingLevel, const bool bResetCustomColumns )
+void SCOREBOARD_Reset( const bool bChangingLevel )
 {
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		return;
-
 	TMapIterator<FName, ScoreColumn *> it( g_Columns );
 	TMap<FName, ScoreColumn *>::Pair *pair;
 
-	while ( it.NextPair( pair ))
-		pair->Value->CheckIfUsable( );
+	if ( bChangingLevel == false )
+	{
+		while ( it.NextPair( pair ))
+			pair->Value->CheckIfUsable( );
+	}
 
 	// [AK] Reset custom columns to their default values for all players.
-	if ( bResetCustomColumns )
-		SCOREBOARD_ResetCustomColumnsForPlayer( MAXPLAYERS, bChangingLevel );
+	SCOREBOARD_ResetCustomColumnsForPlayer( MAXPLAYERS, bChangingLevel );
 
 	// [AK] It would be a good idea to refresh the scoreboard after resetting.
 	SCOREBOARD_ShouldRefreshBeforeRendering( );

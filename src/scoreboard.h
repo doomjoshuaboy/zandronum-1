@@ -453,7 +453,7 @@ bool			SCOREBOARD_IsDisabled( void );
 bool			SCOREBOARD_IsHidden( void );
 void			SCOREBOARD_SetHidden( bool bEnable );
 bool			SCOREBOARD_ShouldDrawBoard( void );
-void			SCOREBOARD_Reset( const bool bChangingLevel, const bool bResetCustomColumns );
+void			SCOREBOARD_Reset( const bool bChangingLevel );
 void			SCOREBOARD_ResetCustomColumnsForPlayer( const ULONG ulPlayer, const bool bChangingLevel );
 void			SCOREBOARD_Render( ULONG ulDisplayPlayer );
 void			SCOREBOARD_Refresh( void );
