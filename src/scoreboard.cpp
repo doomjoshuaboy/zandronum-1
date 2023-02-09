@@ -2783,7 +2783,13 @@ void SCOREBOARD_Reset( const bool bChangingLevel )
 	if ( bChangingLevel == false )
 	{
 		while ( it.NextPair( pair ))
+		{
 			pair->Value->CheckIfUsable( );
+
+			// [AK] Check if the column should be hidden at the start of a new game.
+			if ( pair->Value->IsUsableInCurrentGame( ))
+				pair->Value->SetHidden( !!( pair->Value->GetFlags( ) & COLUMNFLAG_HIDDENBYDEFAULT ));
+		}
 	}
 
 	// [AK] Reset custom columns to their default values for all players.
