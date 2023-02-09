@@ -1701,6 +1701,9 @@ CSkullBot::CSkullBot( char *pszName, char *pszTeamName, ULONG ulPlayerNum )
 	m_pPlayer->bSpectating = false;
 	m_pPlayer->bDeadSpectator = false;
 
+	// [AK] Bots have a local connection to the host, so set their country index to LAN.
+	m_pPlayer->ulCountryIndex = COUNTRYINDEX_LAN;
+
 	// Update the playeringame slot.
 	playeringame[ulPlayerNum] = true;
 

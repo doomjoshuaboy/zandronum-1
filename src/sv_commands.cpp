@@ -606,6 +606,16 @@ void SERVERCOMMANDS_SetPlayerUserInfo( ULONG ulPlayer, const std::set<FName> &na
 
 //*****************************************************************************
 //
+void SERVERCOMMANDS_SetPlayerCountry( ULONG ulPlayer, ULONG ulPlayerExtra, ServerCommandFlags flags )
+{
+	ServerCommands::SetPlayerCountry command;
+	command.SetPlayer( &players[ulPlayer] );
+	command.SetCountry( players[ulPlayer].ulCountryIndex );
+	command.sendCommandToClients( ulPlayerExtra, flags );
+}
+
+//*****************************************************************************
+//
 void SERVERCOMMANDS_SetPlayerAccountName( ULONG ulPlayer, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	ServerCommands::SetPlayerAccountName command;

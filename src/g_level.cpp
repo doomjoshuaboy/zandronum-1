@@ -547,6 +547,10 @@ void G_InitNew (const char *mapname, bool bTitleLevel)
 		for (i = 0; i < MAXPLAYERS; i++)
 			players[i].playerstate = PST_ENTER;	// [BC]
 
+		// [AK] In offline games, always set the local player's country index to LAN.
+		if (( NETWORK_GetState( ) == NETSTATE_SINGLE ) || ( NETWORK_GetState( ) == NETSTATE_SINGLE_MULTIPLAYER ))
+			players[consoleplayer].ulCountryIndex = COUNTRYINDEX_LAN;
+
 		STAT_StartNewGame(mapname);
 	}
 

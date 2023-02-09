@@ -1110,20 +1110,45 @@ bool NETWORK_IsGeoIPAvailable ( void )
 }
 
 //*****************************************************************************
-// [BB] 
-FString NETWORK_GetCountryCodeFromAddress( NETADDRESS_s Address )
+// [BB/AK]
+ULONG NETWORK_GetCountryIndexFromAddress( NETADDRESS_s Address )
 {
-	const char * addressString = Address.ToStringNoPort();
+	const char *addressString = Address.ToStringNoPort();
 	if ( ( strnicmp( "10.", addressString, 3 ) == 0 ) ||
 		 ( strnicmp( "192.168.", addressString, 8 ) == 0 ) ||
 		 ( strnicmp( "127.", addressString, 4 ) == 0 ) )
+		return COUNTRYINDEX_LAN;
+
+	if ( NETWORK_IsGeoIPAvailable() == false )
+		return 0;
+
+	return GeoIP_id_by_addr ( g_GeoIPDB, addressString );
+}
+
+//*****************************************************************************
+// [AK] Helper function to reduce code duplication.
+const char *network_GetCountryStringFromIndex( ULONG ulIndex, const char *( *funcName )( int ))
+{
+	if ( ulIndex == COUNTRYINDEX_LAN )
 		return "LAN";
 
-	if ( g_GeoIPDB == NULL )
-		return "";
+	// [AK] Invalid indices (e.g. those greater than COUNTRYINDEX_LAN) should always return NULL.
+	const char *pszString = funcName( ulIndex );
+	return (( pszString == NULL ) || ( strlen( pszString ) == 0 )) ? "N/A" : pszString;
+}
 
-	FString country = GeoIP_country_code_by_addr ( g_GeoIPDB, Address.ToStringNoPort() );
-	return country.IsEmpty() ? "N/A" : country;
+//*****************************************************************************
+// [AK]
+const char *NETWORK_GetCountryCodeFromIndex( ULONG ulIndex, bool bGetAlpha3 )
+{
+	return network_GetCountryStringFromIndex( ulIndex, bGetAlpha3 ? GeoIP_code3_by_id : GeoIP_code_by_id );
+}
+
+//*****************************************************************************
+// [AK]
+const char *NETWORK_GetCountryNameFromIndex( ULONG ulIndex )
+{
+	return network_GetCountryStringFromIndex( ulIndex, GeoIP_name_by_id );
 }
 
 //*****************************************************************************

@@ -265,6 +265,9 @@ enum TeamScoreType
 #define NUMBER_OF_ACTOR_NAME_KEY_LETTERS	3
 #define NUMBER_OF_WEAPON_NAME_KEY_LETTERS	10
 
+// [AK] The country index that indicates a LAN connection.
+#define COUNTRYINDEX_LAN	UCHAR_MAX
+
 // [BB] 5 = 1 + 4 (SVC_HEADER + packet number)
 const int PACKET_HEADER_SIZE = 5;
 
@@ -307,7 +310,9 @@ NETADDRESS_s	NETWORK_GetCachedLocalAddress( void );
 NETBUFFER_s		*NETWORK_GetNetworkMessageBuffer( void );
 USHORT			NETWORK_ntohs( ULONG ul );
 bool			NETWORK_IsGeoIPAvailable( void );
-FString			NETWORK_GetCountryCodeFromAddress( NETADDRESS_s Address );
+ULONG			NETWORK_GetCountryIndexFromAddress( NETADDRESS_s Address );
+const char		*NETWORK_GetCountryCodeFromIndex( ULONG ulIndex, bool bGetAlpha3 );
+const char		*NETWORK_GetCountryNameFromIndex( ULONG ulIndex );
 USHORT			NETWORK_GetLocalPort( void );
 
 // [TP] Now a struct

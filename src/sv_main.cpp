@@ -1644,9 +1644,19 @@ void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 	{
 		// [K6/BB] Show the player's country on connect, if the GeoIP db is available.
 		FString countryInfo;
+
+		// [AK] Always save the player's country index, even if they want to hide it.
+		players[g_lCurrentClient].ulCountryIndex = NETWORK_GetCountryIndexFromAddress( SERVER_GetClient( g_lCurrentClient )->Address );
+
 		// [BB] All players see the connect message, so only show the country code if the player doesn't want it to be hidden.
-		if ( NETWORK_IsGeoIPAvailable() && ( SERVER_GetClient( g_lCurrentClient )->bWantHideCountry == false ) )
-			countryInfo.AppendFormat ( " (from: %s)", NETWORK_GetCountryCodeFromAddress ( SERVER_GetClient( g_lCurrentClient )->Address ).GetChars() );
+		// [AK] Also don't show it if their country index is "N/A".
+		if (( SERVER_GetClient( g_lCurrentClient )->bWantHideCountry == false ) && ( players[g_lCurrentClient].ulCountryIndex > 0 ))
+		{
+			countryInfo.AppendFormat( " (from: %s)", NETWORK_GetCountryCodeFromIndex( players[g_lCurrentClient].ulCountryIndex, false ));
+
+			// [AK] Send this player's country index to everyone.
+			SERVERCOMMANDS_SetPlayerCountry( g_lCurrentClient );
+		}
 
 		FString message;
 		message.Format( "%s{ip} %s.%s\n", players[g_lCurrentClient].userinfo.GetName(),
@@ -2517,6 +2527,10 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 		// [TP] Update the player's TID, if there is one.
 		if ( players[ulIdx].mo->tid )
 			SERVERCOMMANDS_SetThingTID( players[ulIdx].mo, ulClient, SVCF_ONLYTHISCLIENT );
+
+		// [AK] Update the player's country index if they're not a bot, they aren't hiding it, and it isn't "N/A".
+		if (( players[ulIdx].bIsBot == false ) && ( g_aClients[ulIdx].bWantHideCountry == false ) && ( players[ulIdx].ulCountryIndex > 0 ))
+			SERVERCOMMANDS_SetPlayerCountry( ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
 
 		// [TP] Account name.
 		if ( g_aClients[ulIdx].WantHideAccount == false )

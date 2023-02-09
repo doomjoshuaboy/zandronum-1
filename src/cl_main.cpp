@@ -3060,6 +3060,7 @@ void PLAYER_ResetPlayerData( player_t *pPlayer )
 	pPlayer->bIsBot = 0;
 	pPlayer->ulPing = 0;
 	pPlayer->ulPingAverages = 0;
+	pPlayer->ulCountryIndex = 0;
 	pPlayer->bReadyToGoOn = 0;
 	pPlayer->pCorpse = NULL;
 	pPlayer->OldPendingWeapon = 0;
@@ -3559,6 +3560,10 @@ void ServerCommands::SpawnPlayer::Execute()
 
 	// Set the player's bot status.
 	pPlayer->bIsBot = isBot;
+
+	// [AK] If this player is a bot, set their country index to LAN.
+	if ( pPlayer->bIsBot )
+		pPlayer->ulCountryIndex = COUNTRYINDEX_LAN;
 
 	// [BB] If this if not "our" player, clear the weapon selected from the inventory and wait for
 	// the server to tell us the selected weapon.
@@ -4145,6 +4150,13 @@ void ServerCommands::SetPlayerUserInfo::Execute()
 
 	// Build translation tables, always gotta do this!
 	R_BuildPlayerTranslation( player - players );
+}
+
+//*****************************************************************************
+//
+void ServerCommands::SetPlayerCountry::Execute()
+{
+	players[player - players].ulCountryIndex = country;
 }
 
 //*****************************************************************************

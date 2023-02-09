@@ -707,6 +707,9 @@ public:
 	// [BB] Over how many measurements has ulPing been averaged?
 	ULONG		ulPingAverages;
 
+	// [AK] The index of which country the player is connecting from (refer to GeoIP.c).
+	ULONG		ulCountryIndex;
+
 	// Last tick this player received a packet.
 //	ULONG		ulLastTick;
 

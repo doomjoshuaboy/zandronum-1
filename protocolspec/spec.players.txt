@@ -105,6 +105,12 @@ Command SetPlayerUserInfo
 	Struct<CVar>[] cvars
 EndCommand
 
+Command SetPlayerCountry
+	ExtendedCommand
+	Player player with IndexTestOnly
+	Byte country
+EndCommand
+
 Command SetPlayerAccountName
 	ExtendedCommand
 	Player player with IndexTestOnly

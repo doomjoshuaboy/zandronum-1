@@ -1579,7 +1579,7 @@ CCMD (playerinfo)
 
 					// [K6/BB] Show the player's country, if the GeoIP db is available.
 					if ( NETWORK_IsGeoIPAvailable() )
-						infoString.AppendFormat ( TEXTCOLOR_BROWN " - FROM %s", NETWORK_GetCountryCodeFromAddress ( SERVER_GetClient( i )->Address ).GetChars() );
+						infoString.AppendFormat ( TEXTCOLOR_BROWN " - FROM %s", NETWORK_GetCountryCodeFromIndex ( players[i].ulCountryIndex, false ));
 				}
 
 				if ( PLAYER_IsTrueSpectator( &players[i] ))
