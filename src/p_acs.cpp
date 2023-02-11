@@ -91,6 +91,7 @@
 #include "cl_main.h"
 #include "chat.h"
 #include "maprotation.h"
+#include "scoreboard.h"
 
 #include "g_shared/a_pickups.h"
 
@@ -1858,6 +1859,51 @@ static int SendNetworkString ( FBehavior* module, AActor* activator, int script,
 	}
 
 	return 0;
+}
+
+// ================================================================================================
+//
+// [AK] GetScoreColumn
+//
+// Returns a pointer to a usable ScoreColumn object, using its name as an argument.
+//
+// ================================================================================================
+
+static ScoreColumn *GetScoreColumn ( const char *pszColumnName )
+{
+	ScoreColumn *pColumn = SCOREBOARD_GetColumn( pszColumnName );
+
+	// [AK] Return NULL if the column doesn't exist or isn't usable right now.
+	if (( pColumn == NULL ) || ( pColumn->IsUsableInCurrentGame( ) == false ))
+		return NULL;
+
+	return pColumn;
+}
+
+// ================================================================================================
+//
+// [AK] GetDataScoreColumn
+//
+// Returns a pointer to a usable DataScoreColumn object, using its name as an argument, and with
+// the option of checking if the column is a custom column.
+//
+// ================================================================================================
+
+static DataScoreColumn *GetDataScoreColumn ( const char *pszColumnName, const bool bMustBeCustom )
+{
+	ScoreColumn *pColumn = GetScoreColumn( pszColumnName );
+
+	// [AK] Return NULL if the column doesn't exist, isn't usable right now, or isn't a data column.
+	if (( pColumn == NULL ) || ( pColumn->IsDataColumn( ) == false ))
+		return NULL;
+
+	DataScoreColumn *pDataColumn = static_cast<DataScoreColumn *>( pColumn );
+
+	// [AK] Return NULL if the column must be custom, but isn't.
+	if (( bMustBeCustom ) && ( pDataColumn->GetNativeType( ) != COLUMNTYPE_CUSTOM ))
+		return NULL;
+
+	return pDataColumn;
 }
 
 //---- Plane watchers ----//
@@ -5371,6 +5417,14 @@ enum EACSFunctions
 	ACSF_GetActorSectorLocation,
 	ACSF_ChangeTeamScore,
 	ACSF_SetGameplaySetting,
+	ACSF_SetCustomColumnValue,
+	ACSF_GetCustomColumnValue,
+	ACSF_ResetCustomColumnToDefault,
+	ACSF_GetColumnDataType,
+	ACSF_HideColumn,
+	ACSF_IsColumnHidden,
+	ACSF_HideScoreboard,
+	ACSF_IsScoreboardHidden,
 
 	// ZDaemon
 	ACSF_GetTeamScore = 19620,	// (int team)
@@ -7869,6 +7923,131 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 				}
 
 				return 0;
+			}
+
+		case ACSF_SetCustomColumnValue:
+			{
+				DataScoreColumn *pDataColumn = GetDataScoreColumn( FBehavior::StaticLookupString( args[0] ), true );
+
+				// [AK] Make sure that the column and player are both valid.
+				if (( pDataColumn != NULL ) && ( PLAYER_IsValidPlayer( args[1] )))
+				{
+					ColumnValue Val;
+
+					switch ( pDataColumn->GetDataType( ))
+					{
+						case COLUMNDATA_INT:
+						case COLUMNDATA_COLOR:
+							Val = args[2];
+							break;
+
+						case COLUMNDATA_BOOL:
+							Val = !!args[2];
+							break;
+
+						case COLUMNDATA_FLOAT:
+							Val = FIXED2FLOAT( args[2] );
+							break;
+
+						case COLUMNDATA_STRING:
+						case COLUMNDATA_TEXTURE:
+						{
+							const char *pszValue = FBehavior::StaticLookupString( args[2] );
+
+							if ( pDataColumn->GetDataType( ) == COLUMNDATA_STRING )
+								Val = pszValue;
+							else
+								Val = TexMan.FindTexture( pszValue );
+						}
+					}
+
+					pDataColumn->SetValue( args[1], Val );
+					return 1;
+				}
+
+				return 0;
+			}
+
+		case ACSF_GetCustomColumnValue:
+			{
+				DataScoreColumn *pDataColumn = GetDataScoreColumn( FBehavior::StaticLookupString( args[0] ), true );
+
+				// [AK] Make sure that the column and player are both valid.
+				if (( pDataColumn != NULL ) && ( PLAYER_IsValidPlayer( args[1] )))
+				{
+					const ColumnValue Val = pDataColumn->GetValue( args[1] );
+
+					switch ( Val.GetDataType( ))
+					{
+						case COLUMNDATA_INT:
+							return Val.GetValue<int>( );
+
+						case COLUMNDATA_BOOL:
+							return Val.GetValue<bool>( );
+
+						case COLUMNDATA_FLOAT:
+							return FLOAT2FIXED( Val.GetValue<float>( ));
+
+						case COLUMNDATA_STRING:
+							return GlobalACSStrings.AddString( Val.GetValue<const char *>( ));
+
+						case COLUMNDATA_COLOR:
+							return Val.GetValue<PalEntry>( );
+
+						case COLUMNDATA_TEXTURE:
+						{
+							FTexture *pTexture = Val.GetValue<FTexture *>( );
+							return GlobalACSStrings.AddString( pTexture != NULL ? pTexture->Name : "" );
+						}
+					}
+				}
+
+				return 0;
+			}
+
+		case ACSF_ResetCustomColumnToDefault:
+			{
+				DataScoreColumn *pDataColumn = GetDataScoreColumn( FBehavior::StaticLookupString( args[0] ), true );
+				const ULONG ulPlayer = args[1] < 0 ? MAXPLAYERS : args[1];
+
+				// [AK] Make sure that the column and player are both valid (unless we're resetting for all players).
+				if (( pDataColumn != NULL ) && (( ulPlayer == MAXPLAYERS ) || ( PLAYER_IsValidPlayer( ulPlayer ))))
+				{
+					pDataColumn->ResetToDefault( ulPlayer, false );
+					return 1;
+				}
+
+				return 0;
+			}
+
+		case ACSF_GetColumnDataType:
+			{
+				DataScoreColumn *pDataColumn = GetDataScoreColumn( FBehavior::StaticLookupString( args[0] ), false );
+				return pDataColumn != NULL ? pDataColumn->GetDataType( ) : COLUMNDATA_UNKNOWN;
+			}
+
+		case ACSF_HideColumn:
+			{
+				ScoreColumn *pColumn = GetScoreColumn( FBehavior::StaticLookupString( args[0] ));
+
+				if ( pColumn != NULL )
+					pColumn->SetHidden( !!args[1] );
+			}
+
+		case ACSF_IsColumnHidden:
+			{
+				ScoreColumn *pColumn = GetScoreColumn( FBehavior::StaticLookupString( args[0] ));
+				return pColumn != NULL ? pColumn->IsHidden( ) : false;
+			}
+
+		case ACSF_HideScoreboard:
+			{
+				SCOREBOARD_SetHidden( !!args[0] );
+			}
+
+		case ACSF_IsScoreboardHidden:
+			{
+				return SCOREBOARD_IsHidden( );
 			}
 
 		case ACSF_GetActorFloorTexture:
