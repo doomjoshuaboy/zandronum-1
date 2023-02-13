@@ -117,11 +117,9 @@ typedef struct
 	// Maximum number of players that can join the server.
 	LONG			lMaxClients;
 
-	// Number of PWADs the server is using.
-	LONG			lNumPWADs;
-
 	// Names of each PWAD the server is using.
-	FString			PWADNames[32];
+	// [SB] Converted to a TArray.
+	TArray<FString>	PWADNames;
 
 	// Name of the IWAD being used.
 	FString			IWADName;

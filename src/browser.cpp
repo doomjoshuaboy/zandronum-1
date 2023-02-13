@@ -226,7 +226,7 @@ LONG BROWSER_GetNumPWADs( ULONG ulServer )
 	if (( ulServer >= MAX_BROWSER_SERVERS ) || ( g_BrowserServerList[ulServer].ulActiveState != AS_ACTIVE ))
 		return ( false );
 
-	return ( g_BrowserServerList[ulServer].lNumPWADs );
+	return ( g_BrowserServerList[ulServer].PWADNames.Size( ));
 }
 
 //*****************************************************************************
@@ -234,6 +234,10 @@ LONG BROWSER_GetNumPWADs( ULONG ulServer )
 const char *BROWSER_GetPWADName( ULONG ulServer, ULONG ulWadIdx )
 {
 	if (( ulServer >= MAX_BROWSER_SERVERS ) || ( g_BrowserServerList[ulServer].ulActiveState != AS_ACTIVE ))
+		return ( " " );
+
+	// [SB] Also check the index is valid.
+	if ( ulWadIdx >= g_BrowserServerList[ulServer].PWADNames.Size())
 		return ( " " );
 
 	return ( g_BrowserServerList[ulServer].PWADNames[ulWadIdx].GetChars( ));
@@ -543,10 +547,11 @@ void BROWSER_ParseServerQuery( BYTESTREAM_s *pByteStream, bool bLAN )
 	// Read in the PWAD information.
 	if ( ulFlags & SQF_PWADS )
 	{
-		g_BrowserServerList[lServer].lNumPWADs = pByteStream->ReadByte();
-		if ( g_BrowserServerList[lServer].lNumPWADs > 0 )
+		ULONG ulNumPWADs = static_cast<ULONG>( pByteStream->ReadByte() );
+		if ( ulNumPWADs > 0 )
 		{
-			for ( ulIdx = 0; ulIdx < (ULONG)g_BrowserServerList[lServer].lNumPWADs; ulIdx++ )
+			g_BrowserServerList[lServer].PWADNames.Resize( ulNumPWADs );
+			for ( ulIdx = 0; ulIdx < ulNumPWADs; ulIdx++ )
 				g_BrowserServerList[lServer].PWADNames[ulIdx] = pByteStream->ReadString();
 		}
 	}
@@ -887,7 +892,7 @@ CCMD( dumpserverlist )
 		Printf( "Name: %s\n", g_BrowserServerList[ulIdx].HostName.GetChars() );
 		Printf( "Address: %s\n", g_BrowserServerList[ulIdx].Address.ToString() );
 		Printf( "Gametype: %d\n", g_BrowserServerList[ulIdx].GameMode );
-		Printf( "Num PWADs: %d\n", static_cast<int> (g_BrowserServerList[ulIdx].lNumPWADs) );
+		Printf( "Num PWADs: %d\n", static_cast<int> (g_BrowserServerList[ulIdx].PWADNames.Size()) );
 		Printf( "Players: %d/%d\n", static_cast<int> (g_BrowserServerList[ulIdx].lNumPlayers), static_cast<int> (g_BrowserServerList[ulIdx].lMaxClients) );
 		Printf( "Ping: %d\n", static_cast<int> (g_BrowserServerList[ulIdx].lPing) );
 	}
