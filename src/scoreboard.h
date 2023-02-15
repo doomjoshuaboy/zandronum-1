@@ -180,8 +180,8 @@ public:
 
 	virtual COLUMNTEMPLATE_e GetTemplate( void ) const { return COLUMNTEMPLATE_UNKNOWN; }
 	virtual bool IsDataColumn( void ) const { return false; }
-	const char *GetDisplayName( void ) const { return DisplayName.GetChars( ); }
-	const char *GetShortName( void ) const { return ShortName.GetChars( ); }
+	const char *GetDisplayName( void ) const { return DisplayName.Len( ) > 0 ? DisplayName.GetChars( ) : NULL; }
+	const char *GetShortName( void ) const { return ShortName.Len( ) > 0 ? ShortName.GetChars( ) : NULL; }
 	FBaseCVar *GetCVar( void ) const { return pCVar; }
 	ULONG GetFlags( void ) const { return ulFlags; }
 	ULONG GetSizing( void ) const { return ulSizing; }
