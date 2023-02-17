@@ -276,17 +276,12 @@ public:
 	virtual COLUMNTEMPLATE_e GetTemplate( void ) const { return COLUMNTEMPLATE_DATA; }
 	virtual COLUMNDATA_e GetDataType( void ) const;
 	virtual ColumnValue GetValue( const ULONG ulPlayer ) const;
-	virtual ColumnValue GetDefaultValue( void ) const;
-	virtual void SetValue( const ULONG ulPlayer, const ColumnValue &Value ) { I_Error( "DataScoreColumn::SetValue: tried to call a function that should never be called." ); }
 	virtual void ParseCommand( const FName Name, FScanner &sc, const COLUMNCMD_e Command, const FString CommandName );
 	virtual void CheckIfUsable( void );
 	virtual void UpdateWidth( FFont *pHeaderFont, FFont *pRowFont );
 	virtual void DrawValue( const ULONG ulPlayer, FFont *pFont, const ULONG ulColor, const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const;
-	virtual void ResetToDefault( const ULONG ulPlayer, const bool bChangingLevel ) { }
 
 protected:
-	virtual void SetDefaultValue( const ColumnValue &Value ) { }
-
 	const COLUMNTYPE_e NativeType;
 	FString PrefixText;
 	FString SuffixText;
@@ -313,8 +308,23 @@ protected:
 //
 //*****************************************************************************
 
+class CustomScoreColumnBase : public DataScoreColumn
+{
+public:
+	CustomScoreColumnBase( const char *pszName ) : DataScoreColumn( COLUMNTYPE_CUSTOM, pszName ) { }
+
+	virtual ColumnValue GetDefaultValue( void ) const = 0;
+	virtual void SetValue( const ULONG ulPlayer, const ColumnValue &Value ) = 0;
+	virtual void ResetToDefault( const ULONG ulPlayer, const bool bChangingLevel ) = 0;
+
+protected:
+	virtual void SetDefaultValue( const ColumnValue &Value ) = 0;
+};
+
+//*****************************************************************************
+//
 template <typename VariableType>
-class CustomScoreColumn : public DataScoreColumn
+class CustomScoreColumn : public CustomScoreColumnBase
 {
 public:
 	CustomScoreColumn( const char *pszName );
@@ -324,6 +334,7 @@ public:
 	virtual ColumnValue GetValue( const ULONG ulPlayer ) const;
 	virtual ColumnValue GetDefaultValue( void ) const;
 	virtual void SetValue( const ULONG ulPlayer, const ColumnValue &Value );
+	virtual void ParseCommand( const FName Name, FScanner &sc, const COLUMNCMD_e Command, const FString CommandName );
 	virtual void ResetToDefault( const ULONG ulPlayer, const bool bChangingLevel );
 
 protected:
@@ -460,7 +471,7 @@ private:
 //*****************************************************************************
 //	PROTOTYPES
 
-ScoreColumn		*SCOREBOARD_GetColumn( FName Name );
+ScoreColumn		*SCOREBOARD_GetColumn( FName Name, const bool bMustBeUsable );
 bool			SCOREBOARD_IsDisabled( void );
 bool			SCOREBOARD_IsHidden( void );
 void			SCOREBOARD_SetHidden( bool bEnable );

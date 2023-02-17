@@ -1143,21 +1143,6 @@ ColumnValue DataScoreColumn::GetValue( const ULONG ulPlayer ) const
 
 //*****************************************************************************
 //
-// [AK] DataScoreColumn::GetDefaultValue
-//
-// This isn't supposed to return anything useful except a ColumnValue object
-// with an unknown data type.
-//
-//*****************************************************************************
-
-ColumnValue DataScoreColumn::GetDefaultValue( void ) const
-{
-	ColumnValue Result;
-	return Result;
-}
-
-//*****************************************************************************
-//
 // [AK] DataScoreColumn::ParseCommand
 //
 // Parses commands that are only used for data columns.
@@ -1233,74 +1218,6 @@ void DataScoreColumn::ParseCommand( const FName Name, FScanner &sc, const COLUMN
 			else
 				FalseText = pszString;
 
-			break;
-		}
-
-		case COLUMNCMD_DEFAULTVALUE:
-		{
-			// [AK] Default values are only available for custom columns.
-			if ( NativeType != COLUMNTYPE_CUSTOM )
-				sc.ScriptError( "Option '%s' is only available for custom columns.", CommandName.GetChars( ));
-
-			const COLUMNDATA_e DataType = GetDataType( );
-			ColumnValue Value;
-
-			switch ( DataType )
-			{
-				case COLUMNDATA_INT:
-				{
-					sc.MustGetNumber( );
-					Value = sc.Number;
-					break;
-				}
-
-				case COLUMNDATA_FLOAT:
-				{
-					sc.MustGetFloat( );
-					Value = static_cast<float>( sc.Float );
-					break;
-				}
-
-				case COLUMNDATA_BOOL:
-				case COLUMNDATA_STRING:
-				case COLUMNDATA_COLOR:
-				case COLUMNDATA_TEXTURE:
-				{
-					sc.MustGetString( );
-
-					if ( DataType == COLUMNDATA_BOOL )
-					{
-						if ( stricmp( sc.String, "true" ) == 0 )
-							Value = true;
-						else if ( stricmp( sc.String, "false" ) == 0 )
-							Value = false;
-						else
-							Value = !!atoi( sc.String );
-					}
-					else if ( DataType == COLUMNDATA_STRING )
-					{
-						Value = sc.String;
-					}
-					else if ( DataType == COLUMNDATA_COLOR )
-					{
-						FString ColorString = V_GetColorStringByName( sc.String );
-						Value = V_GetColorFromString( NULL, ColorString.IsNotEmpty( ) ? ColorString.GetChars( ) : sc.String );
-					}
-					else
-					{
-						FTexture *pTexture = TexMan.FindTexture( sc.String );
-
-						if ( pTexture == NULL )
-							sc.ScriptError( "Couldn't find texture '%s'.", sc.String );
-
-						Value = pTexture;
-					}
-
-					break;
-				}
-			}
-
-			SetDefaultValue( Value );
 			break;
 		}
 
@@ -1433,7 +1350,7 @@ void DataScoreColumn::DrawValue( const ULONG ulPlayer, FFont *pFont, const ULONG
 //*****************************************************************************
 
 template <typename VariableType>
-CustomScoreColumn<VariableType>::CustomScoreColumn( const char *pszName ) : DataScoreColumn( COLUMNTYPE_CUSTOM, pszName )
+CustomScoreColumn<VariableType>::CustomScoreColumn( const char *pszName ) : CustomScoreColumnBase( pszName )
 {
 	ColumnValue Val;
 
@@ -1512,6 +1429,90 @@ template <typename VariableType>
 void CustomScoreColumn<VariableType>::SetDefaultValue( const ColumnValue &Value )
 {
 	DefaultVal = Value;
+}
+
+//*****************************************************************************
+//
+// [AK] CustomScoreColumn::ParseCommand
+//
+// Parses commands that are only used for custom columns.
+//
+//*****************************************************************************
+
+template <typename VariableType>
+void CustomScoreColumn<VariableType>::ParseCommand( const FName Name, FScanner &sc, const COLUMNCMD_e Command, const FString CommandName )
+{
+	switch ( Command )
+	{
+		case COLUMNCMD_DEFAULTVALUE:
+		{
+			const COLUMNDATA_e DataType = GetDataType( );
+			ColumnValue Value;
+
+			switch ( DataType )
+			{
+				case COLUMNDATA_INT:
+				{
+					sc.MustGetNumber( );
+					Value = sc.Number;
+					break;
+				}
+
+				case COLUMNDATA_FLOAT:
+				{
+					sc.MustGetFloat( );
+					Value = static_cast<float>( sc.Float );
+					break;
+				}
+
+				case COLUMNDATA_BOOL:
+				case COLUMNDATA_STRING:
+				case COLUMNDATA_COLOR:
+				case COLUMNDATA_TEXTURE:
+				{
+					sc.MustGetString( );
+
+					if ( DataType == COLUMNDATA_BOOL )
+					{
+						if ( stricmp( sc.String, "true" ) == 0 )
+							Value = true;
+						else if ( stricmp( sc.String, "false" ) == 0 )
+							Value = false;
+						else
+							Value = !!atoi( sc.String );
+					}
+					else if ( DataType == COLUMNDATA_STRING )
+					{
+						Value = sc.String;
+					}
+					else if ( DataType == COLUMNDATA_COLOR )
+					{
+						FString ColorString = V_GetColorStringByName( sc.String );
+						Value = V_GetColorFromString( NULL, ColorString.IsNotEmpty( ) ? ColorString.GetChars( ) : sc.String );
+					}
+					else
+					{
+						FTexture *pTexture = TexMan.FindTexture( sc.String );
+
+						if ( pTexture == NULL )
+							sc.ScriptError( "Couldn't find texture '%s'.", sc.String );
+
+						Value = pTexture;
+					}
+
+					break;
+				}
+			}
+
+			SetDefaultValue( Value );
+			break;
+		}
+
+		// [AK] Parse any data column commands if we reach here.
+		default:
+			DataScoreColumn::ParseCommand( Name, sc, Command, CommandName );
+			break;
+	}
 }
 
 //*****************************************************************************
@@ -2704,10 +2705,14 @@ bool Scoreboard::ShouldSeparateTeams( void ) const
 //
 //*****************************************************************************
 
-ScoreColumn *SCOREBOARD_GetColumn( FName Name )
+ScoreColumn *SCOREBOARD_GetColumn( FName Name, const bool bMustBeUsable )
 {
 	ScoreColumn **pColumn = g_Columns.CheckKey( Name );
-	return ( pColumn != NULL ) ? *pColumn : NULL;
+
+	if (( pColumn != NULL ) && ( *pColumn != NULL ))
+		return (( bMustBeUsable == false ) || (( *pColumn )->IsUsableInCurrentGame( ))) ? *pColumn : NULL;
+
+	return NULL;
 }
 
 //*****************************************************************************
@@ -2835,7 +2840,7 @@ void SCOREBOARD_ResetCustomColumnsForPlayer( const ULONG ulPlayer, const bool bC
 	while ( it.NextPair( pair ))
 	{
 		if (( pair->Value->IsUsableInCurrentGame( )) && ( pair->Value->IsCustomColumn( )))
-			static_cast<DataScoreColumn *>( pair->Value )->ResetToDefault( ulPlayer, bChangingLevel );
+			static_cast<CustomScoreColumnBase *>( pair->Value )->ResetToDefault( ulPlayer, bChangingLevel );
 	}
 }
 
@@ -3883,7 +3888,7 @@ static ScoreColumn *scoreboard_ScanForColumn( FScanner &sc, const bool bMustBeDa
 		sc.ScriptError( "Got an empty string for a column name." );
 
 	// [AK] Find a column from the main scoreboard object.
-	ScoreColumn *pColumn = SCOREBOARD_GetColumn( sc.String );
+	ScoreColumn *pColumn = SCOREBOARD_GetColumn( sc.String, false );
 
 	if ( pColumn == NULL )
 		sc.ScriptError( "Column '%s' wasn't found.", sc.String );
