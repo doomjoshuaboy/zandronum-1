@@ -1564,10 +1564,10 @@ CustomScoreColumn<VariableType>::CustomScoreColumn( const char *pszName ) : Cust
 {
 	ColumnValue Val;
 
-	// [AK] The "Val" ColumnValue object has no data type (i.e. COLUMNDATA_UNKNOWN).
+	// [AK] Right now, DefaultVal has no data type (i.e. COLUMNDATA_UNKNOWN).
 	// ColumnValue::GetValue always returns the "zero" value of each data type when
-	// this is the case, so we'll use this to initialize the default value.
-	VariableType temp = Val.GetValue<VariableType>( );
+	// this is the case, so we'll use this to help initialize the default value.
+	VariableType temp = DefaultVal.GetValue<VariableType>( );
 
 	// [AK] Note: the "temp" variable will also set the correct data type of the
 	// "DefaultVal" ColumnValue object.
@@ -1638,7 +1638,11 @@ void CustomScoreColumn<VariableType>::SetValue( const ULONG ulPlayer, const Colu
 template <typename VariableType>
 void CustomScoreColumn<VariableType>::SetDefaultValue( const ColumnValue &Value )
 {
-	DefaultVal = Value;
+	// [AK] Only set the value if the data types match. Otherwise, throw a fatal error.
+	if ( GetDataType( ) == Value.GetDataType( ))
+		DefaultVal = Value;
+	else
+		I_Error( "CustomScoreColumn::SetDefaultValue: tried assigning a different data type to the default value." );
 }
 
 //*****************************************************************************
