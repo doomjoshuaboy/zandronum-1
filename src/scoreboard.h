@@ -67,14 +67,24 @@
 
 //*****************************************************************************
 //
-// [AK] Column templates, either text-based, graphic-based, or composite.
+// [AK] Column templates, either data or composite.
 //
 enum COLUMNTEMPLATE_e
 {
 	COLUMNTEMPLATE_UNKNOWN,
-	COLUMNTEMPLATE_TEXT,
-	COLUMNTEMPLATE_GRAPHIC,
+	COLUMNTEMPLATE_DATA,
 	COLUMNTEMPLATE_COMPOSITE,
+};
+
+//*****************************************************************************
+//
+// [AK] What kind of content a data column uses, either text or graphic.
+//
+enum DATACONTENT_e
+{
+	DATACONTENT_UNKNOWN,
+	DATACONTENT_TEXT,
+	DATACONTENT_GRAPHIC,
 };
 
 //*****************************************************************************
@@ -178,8 +188,6 @@ class ScoreColumn
 public:
 	ScoreColumn( const char *pszName );
 
-	virtual COLUMNTEMPLATE_e GetTemplate( void ) const { return COLUMNTEMPLATE_UNKNOWN; }
-	virtual bool IsDataColumn( void ) const { return false; }
 	const char *GetDisplayName( void ) const { return DisplayName.Len( ) > 0 ? DisplayName.GetChars( ) : NULL; }
 	const char *GetShortName( void ) const { return ShortName.Len( ) > 0 ? ShortName.GetChars( ) : NULL; }
 	FBaseCVar *GetCVar( void ) const { return pCVar; }
@@ -201,6 +209,8 @@ public:
 	void DrawColor( const PalEntry color, const LONG lYPos, const ULONG ulHeight, const float fAlpha, const int clipWidth, const int clipHeight ) const;
 	void DrawTexture( FTexture *pTexture, const LONG lYPos, const ULONG ulHeight, const float fAlpha, const int clipWidth, const int clipHeight ) const;
 
+	virtual COLUMNTEMPLATE_e GetTemplate( void ) const { return COLUMNTEMPLATE_UNKNOWN; }
+	virtual bool IsCustomColumn( void ) const { return false; }
 	virtual void ParseCommand( const FName Name, FScanner &sc, const COLUMNCMD_e Command, const FString CommandName );
 	virtual void CheckIfUsable( void );
 	virtual void Refresh( void );
@@ -258,13 +268,13 @@ public:
 		ulClipRectHeight( 0 ),
 		pCompositeColumn( NULL ) { }
 
-	inline COLUMNTYPE_e GetNativeType( void ) const { return NativeType; }
-	virtual COLUMNTEMPLATE_e GetTemplate( void ) const;
-	virtual COLUMNDATA_e GetDataType( void ) const;
-	virtual bool IsDataColumn( void ) const { return true; }
+	COLUMNTYPE_e GetNativeType( void ) const { return NativeType; }
+	DATACONTENT_e GetContentType( void ) const;
 	FString GetValueString( const ColumnValue &Value ) const;
 	ULONG GetValueWidth( const ColumnValue &Value, FFont *pFont ) const;
 
+	virtual COLUMNTEMPLATE_e GetTemplate( void ) const { return COLUMNTEMPLATE_DATA; }
+	virtual COLUMNDATA_e GetDataType( void ) const;
 	virtual ColumnValue GetValue( const ULONG ulPlayer ) const;
 	virtual ColumnValue GetDefaultValue( void ) const;
 	virtual void SetValue( const ULONG ulPlayer, const ColumnValue &Value ) { I_Error( "DataScoreColumn::SetValue: tried to call a function that should never be called." ); }
@@ -309,6 +319,7 @@ class CustomScoreColumn : public DataScoreColumn
 public:
 	CustomScoreColumn( const char *pszName );
 
+	virtual bool IsCustomColumn( void ) const { return true; }
 	virtual COLUMNDATA_e GetDataType( void ) const { return DefaultVal.GetDataType( ); }
 	virtual ColumnValue GetValue( const ULONG ulPlayer ) const;
 	virtual ColumnValue GetDefaultValue( void ) const;

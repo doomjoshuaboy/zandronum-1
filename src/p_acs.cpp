@@ -1894,13 +1894,13 @@ static DataScoreColumn *GetDataScoreColumn ( const char *pszColumnName, const bo
 	ScoreColumn *pColumn = GetScoreColumn( pszColumnName );
 
 	// [AK] Return NULL if the column doesn't exist, isn't usable right now, or isn't a data column.
-	if (( pColumn == NULL ) || ( pColumn->IsDataColumn( ) == false ))
+	if (( pColumn == NULL ) || ( pColumn->GetTemplate( ) != COLUMNTEMPLATE_DATA ))
 		return NULL;
 
 	DataScoreColumn *pDataColumn = static_cast<DataScoreColumn *>( pColumn );
 
 	// [AK] Return NULL if the column must be custom, but isn't.
-	if (( bMustBeCustom ) && ( pDataColumn->GetNativeType( ) != COLUMNTYPE_CUSTOM ))
+	if (( bMustBeCustom ) && ( pDataColumn->IsCustomColumn( ) == false ))
 		return NULL;
 
 	return pDataColumn;

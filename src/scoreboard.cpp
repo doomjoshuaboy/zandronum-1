@@ -757,15 +757,15 @@ void ScoreColumn::FixClipRectSize( const int clipWidth, const int clipHeight, co
 
 //*****************************************************************************
 //
-// [AK] DataScoreColumn::GetTemplate
+// [AK] DataScoreColumn::GetContentType
 //
-// Returns the template (i.e. either text-based or graphic-based) based on the
-// data type of the column. If the data type's unknown for any reason, then
-// the template is also unknown.
+// Returns the type of content (i.e. either text-based or graphic-based) based
+// on the column's data type. If the data type's unknown for any reason, then
+// the content type is also unknown.
 //
 //*****************************************************************************
 
-COLUMNTEMPLATE_e DataScoreColumn::GetTemplate( void ) const
+DATACONTENT_e DataScoreColumn::GetContentType( void ) const
 {
 	switch ( GetDataType( ))
 	{
@@ -773,14 +773,14 @@ COLUMNTEMPLATE_e DataScoreColumn::GetTemplate( void ) const
 		case COLUMNDATA_BOOL:
 		case COLUMNDATA_FLOAT:
 		case COLUMNDATA_STRING:
-			return COLUMNTEMPLATE_TEXT;
+			return DATACONTENT_TEXT;
 
 		case COLUMNDATA_COLOR:
 		case COLUMNDATA_TEXTURE:
-			return COLUMNTEMPLATE_GRAPHIC;
+			return DATACONTENT_GRAPHIC;
 
 		default:
-			return COLUMNTEMPLATE_UNKNOWN;
+			return DATACONTENT_UNKNOWN;
 	}
 }
 
@@ -1173,7 +1173,7 @@ void DataScoreColumn::ParseCommand( const FName Name, FScanner &sc, const COLUMN
 		case COLUMNCMD_SUFFIX:
 		{
 			// [AK] These commands are only available for text-based columns.
-			if ( GetTemplate( ) != COLUMNTEMPLATE_TEXT )
+			if ( GetContentType( ) != DATACONTENT_TEXT )
 				sc.ScriptError( "Option '%s' is only available for text-based columns.", CommandName.GetChars( ));
 
 			if ( Command == COLUMNCMD_MAXLENGTH )
@@ -1203,7 +1203,7 @@ void DataScoreColumn::ParseCommand( const FName Name, FScanner &sc, const COLUMN
 		case COLUMNCMD_CLIPRECTHEIGHT:
 		{
 			// [AK] These commands are only available for graphic-based columns.
-			if ( GetTemplate( ) != COLUMNTEMPLATE_GRAPHIC )
+			if ( GetContentType( ) != DATACONTENT_GRAPHIC )
 				sc.ScriptError( "Option '%s' is only available for graphic-based columns.", CommandName.GetChars( ));
 
 			sc.MustGetNumber( );
@@ -2126,7 +2126,7 @@ void Scoreboard::AddColumnToList( FScanner &sc, const bool bAddToRankOrder )
 	if ( bAddToRankOrder )
 	{
 		// [AK] Double-check that this is a data column. Otherwise, throw a fatal error.
-		if ( pColumn->IsDataColumn( ) == false )
+		if ( pColumn->GetTemplate( ) != COLUMNTEMPLATE_DATA )
 			sc.ScriptError( "Column '%s' is not a data column.", pszColumnName );
 
 		DataScoreColumn *pDataColumn = static_cast<DataScoreColumn *>( pColumn );
@@ -2148,7 +2148,7 @@ void Scoreboard::AddColumnToList( FScanner &sc, const bool bAddToRankOrder )
 	{
 		// [AK] If this is a data column, make sure that it isn't inside a composite column.
 		// The composite column must be added to the list instead.
-		if (( pColumn->IsDataColumn( )) && ( static_cast<DataScoreColumn *>( pColumn )->pCompositeColumn != NULL ))
+		if (( pColumn->GetTemplate( ) == COLUMNTEMPLATE_DATA ) && ( static_cast<DataScoreColumn *>( pColumn )->pCompositeColumn != NULL ))
 			sc.ScriptError( "Column '%s' is part of a composite column and can't be added to the order list.", pszColumnName );
 
 		if ( scoreboard_TryPushingColumnToList( sc, ColumnOrder, pColumn, pszColumnName ))
@@ -2834,7 +2834,7 @@ void SCOREBOARD_ResetCustomColumnsForPlayer( const ULONG ulPlayer, const bool bC
 
 	while ( it.NextPair( pair ))
 	{
-		if (( pair->Value->IsUsableInCurrentGame( )) && ( pair->Value->IsDataColumn( )))
+		if (( pair->Value->IsUsableInCurrentGame( )) && ( pair->Value->IsCustomColumn( )))
 			static_cast<DataScoreColumn *>( pair->Value )->ResetToDefault( ulPlayer, bChangingLevel );
 	}
 }
@@ -3890,7 +3890,7 @@ static ScoreColumn *scoreboard_ScanForColumn( FScanner &sc, const bool bMustBeDa
 
 	// [AK] Make sure that the pointer is of a DataScoreColumn object
 	// (i.e. the template isn't unknown or a composite).
-	if (( bMustBeDataColumn ) && ( pColumn->IsDataColumn( ) == false ))
+	if (( bMustBeDataColumn ) && ( pColumn->GetTemplate( ) != COLUMNTEMPLATE_DATA ))
 		sc.ScriptError( "Column '%s' is not a data column.", sc.String );
 
 	return pColumn;
