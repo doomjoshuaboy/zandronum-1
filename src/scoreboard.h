@@ -217,7 +217,7 @@ public:
 	bool ShouldUseShortName( void ) const { return bUseShortName; }
 	void SetHidden( bool bEnable );
 	void Parse( const FName Name, FScanner &sc );
-	void DrawHeader( FFont *pFont, const ULONG ulColor, const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const;
+	void DrawHeader( const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const;
 	void DrawString( const char *pszString, FFont *pFont, const ULONG ulColor, const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const;
 	void DrawColor( const PalEntry color, const LONG lYPos, const ULONG ulHeight, const float fAlpha, const int clipWidth, const int clipHeight ) const;
 	void DrawTexture( FTexture *pTexture, const LONG lYPos, const ULONG ulHeight, const float fAlpha, const int clipWidth, const int clipHeight ) const;
@@ -227,8 +227,8 @@ public:
 	virtual void ParseCommand( const FName Name, FScanner &sc, const COLUMNCMD_e Command, const FString CommandName );
 	virtual void CheckIfUsable( void );
 	virtual void Refresh( void );
-	virtual void UpdateWidth( FFont *pHeaderFont, FFont *pRowFont );
-	virtual void DrawValue( const ULONG ulPlayer, FFont *pFont, const ULONG ulColor, const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const = 0;
+	virtual void UpdateWidth( void );
+	virtual void DrawValue( const ULONG ulPlayer, const ULONG ulColor, const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const = 0;
 
 protected:
 	bool CanDrawForPlayer( const ULONG ulPlayer ) const;
@@ -284,15 +284,14 @@ public:
 	COLUMNTYPE_e GetNativeType( void ) const { return NativeType; }
 	DATACONTENT_e GetContentType( void ) const;
 	FString GetValueString( const ColumnValue &Value ) const;
-	ULONG GetValueWidth( const ColumnValue &Value, FFont *pFont ) const;
+	ULONG GetValueWidth( const ColumnValue &Value ) const;
 
 	virtual COLUMNTEMPLATE_e GetTemplate( void ) const { return COLUMNTEMPLATE_DATA; }
 	virtual COLUMNDATA_e GetDataType( void ) const;
 	virtual ColumnValue GetValue( const ULONG ulPlayer ) const;
 	virtual void ParseCommand( const FName Name, FScanner &sc, const COLUMNCMD_e Command, const FString CommandName );
-	virtual void CheckIfUsable( void );
-	virtual void UpdateWidth( FFont *pHeaderFont, FFont *pRowFont );
-	virtual void DrawValue( const ULONG ulPlayer, FFont *pFont, const ULONG ulColor, const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const;
+	virtual void UpdateWidth( void );
+	virtual void DrawValue( const ULONG ulPlayer, const ULONG ulColor, const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const;
 
 protected:
 	const COLUMNTYPE_e NativeType;
@@ -375,14 +374,17 @@ public:
 	virtual void ParseCommand( const FName Name, FScanner &sc, const COLUMNCMD_e Command, const FString CommandName );
 	virtual void CheckIfUsable( void );
 	virtual void Refresh( void );
-	virtual void UpdateWidth( FFont *pHeaderFont, FFont *pRowFont );
-	virtual void DrawValue( const ULONG ulPlayer, FFont *pFont, const ULONG ulColor, const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const;
+	virtual void UpdateWidth( void );
+	virtual void DrawValue( const ULONG ulPlayer, const ULONG ulColor, const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const;
 
 protected:
 	TArray<DataScoreColumn *> SubColumns;
 
+	// [AK] Let the Scoreboard struct have access to the sub-columns array list.
+	friend struct Scoreboard;
+
 private:
-	ULONG GetRowWidth( const ULONG ulPlayer, FFont *pFont ) const;
+	ULONG GetRowWidth( const ULONG ulPlayer ) const;
 	ULONG GetSubColumnWidth( const ULONG ulSubColumn, const ULONG ulValueWidth ) const;
 };
 

@@ -632,6 +632,10 @@ void ScoreColumn::CheckIfUsable( void )
 {
 	bUsableInCurrentGame = false;
 
+	// [AK] If the column isn't part of a scoreboard, then stop here.
+	if ( pScoreboard == NULL )
+		return;
+
 	// [AK] If the current game mode isn't allowed for this column, then it can't be active.
 	if ( GameModeList.find( GAMEMODE_GetCurrentMode( )) == GameModeList.end( ))
 		return;
@@ -753,8 +757,12 @@ void ScoreColumn::Refresh( void )
 //
 //*****************************************************************************
 
-void ScoreColumn::UpdateWidth( FFont *pHeaderFont, FFont *pRowFont )
+void ScoreColumn::UpdateWidth( void )
 {
+	// [AK] Don't do anything if this column isn't part of a scoreboard.
+	if ( pScoreboard == NULL )
+		return;
+
 	// [AK] Check if the column must be disabled if its contents are empty.
 	if (( ulShortestWidth == 0 ) && ( ulFlags & COLUMNFLAG_DISABLEIFEMPTY ))
 	{
@@ -765,8 +773,8 @@ void ScoreColumn::UpdateWidth( FFont *pHeaderFont, FFont *pRowFont )
 	ULONG ulHeaderWidth = 0;
 
 	// [AK] If the header is visible on this column, then grab its width.
-	if ((( ulFlags & COLUMNFLAG_DONTSHOWHEADER ) == false ) && ( pHeaderFont != NULL ))
-		ulHeaderWidth = pHeaderFont->StringWidth( bUseShortName ? ShortName.GetChars( ) : DisplayName.GetChars( ));
+	if ((( ulFlags & COLUMNFLAG_DONTSHOWHEADER ) == false ) && ( pScoreboard->pHeaderFont != NULL ))
+		ulHeaderWidth = pScoreboard->pHeaderFont->StringWidth( bUseShortName ? ShortName.GetChars( ) : DisplayName.GetChars( ));
 
 	// [AK] Always use the shortest (or header) width if required. In this case,
 	// the sizing is added onto the shortest width as padding instead.
@@ -791,12 +799,12 @@ void ScoreColumn::UpdateWidth( FFont *pHeaderFont, FFont *pRowFont )
 //
 //*****************************************************************************
 
-void ScoreColumn::DrawHeader( FFont *pFont, const ULONG ulColor, const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const
+void ScoreColumn::DrawHeader( const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const
 {
-	if (( bDisabled ) || ( ulFlags & COLUMNFLAG_DONTSHOWHEADER ))
+	if (( pScoreboard == NULL ) || ( bDisabled ) || ( ulFlags & COLUMNFLAG_DONTSHOWHEADER ))
 		return;
 
-	DrawString( bUseShortName ? ShortName.GetChars( ) : DisplayName.GetChars( ), pFont, ulColor, lYPos, ulHeight, fAlpha );
+	DrawString( bUseShortName ? ShortName.GetChars( ) : DisplayName.GetChars( ), pScoreboard->pHeaderFont, pScoreboard->HeaderColor, lYPos, ulHeight, fAlpha );
 }
 
 //*****************************************************************************
@@ -1118,42 +1126,46 @@ FString DataScoreColumn::GetValueString( const ColumnValue &Value ) const
 //
 //*****************************************************************************
 
-ULONG DataScoreColumn::GetValueWidth( const ColumnValue &Value, FFont *pFont ) const
+ULONG DataScoreColumn::GetValueWidth( const ColumnValue &Value ) const
 {
-	switch ( Value.GetDataType( ))
+	// [AK] Make sure that the column is part of a scoreboard.
+	if ( pScoreboard != NULL )
 	{
-		case COLUMNDATA_INT:
-		case COLUMNDATA_BOOL:
-		case COLUMNDATA_FLOAT:
-		case COLUMNDATA_STRING:
+		switch ( Value.GetDataType( ))
 		{
-			if ( pFont == NULL )
-				return 0;
+			case COLUMNDATA_INT:
+			case COLUMNDATA_BOOL:
+			case COLUMNDATA_FLOAT:
+			case COLUMNDATA_STRING:
+			{
+				if ( pScoreboard->pRowFont == NULL )
+					return 0;
 
-			return pFont->StringWidth( GetValueString( Value ).GetChars( ));
-		}
+				return pScoreboard->pRowFont->StringWidth( GetValueString( Value ).GetChars( ));
+			}
 
-		case COLUMNDATA_COLOR:
-		{
-			// [AK] If this column must always use the shortest possible width, then return the
-			// clipping rectangle's width, whether it's zero or not.
-			if ( ulFlags & COLUMNFLAG_ALWAYSUSESHORTESTWIDTH )
-				return ulClipRectWidth;
+			case COLUMNDATA_COLOR:
+			{
+				// [AK] If this column must always use the shortest possible width, then return the
+				// clipping rectangle's width, whether it's zero or not.
+				if ( ulFlags & COLUMNFLAG_ALWAYSUSESHORTESTWIDTH )
+					return ulClipRectWidth;
 
-			// [AK] If the clipping rectangle's width is non-zero, return whichever is smaller:
-			// the column's size (the default width here) or the clipping rectangle's width.
-			return ulClipRectWidth > 0 ? MIN( ulSizing, ulClipRectWidth ) : ulSizing;
-		}
+				// [AK] If the clipping rectangle's width is non-zero, return whichever is smaller:
+				// the column's size (the default width here) or the clipping rectangle's width.
+				return ulClipRectWidth > 0 ? MIN( ulSizing, ulClipRectWidth ) : ulSizing;
+			}
 
-		case COLUMNDATA_TEXTURE:
-		{
-			FTexture *pTexture = Value.GetValue<FTexture *>( );
+			case COLUMNDATA_TEXTURE:
+			{
+				FTexture *pTexture = Value.GetValue<FTexture *>( );
 
-			if ( pTexture == NULL )
-				return 0;
+				if ( pTexture == NULL )
+					return 0;
 
-			const ULONG ulTextureWidth = pTexture->GetScaledWidth( );
-			return ulClipRectWidth > 0 ? MIN( ulTextureWidth, ulClipRectWidth ) : ulTextureWidth;
+				const ULONG ulTextureWidth = pTexture->GetScaledWidth( );
+				return ulClipRectWidth > 0 ? MIN( ulTextureWidth, ulClipRectWidth ) : ulTextureWidth;
+			}
 		}
 	}
 
@@ -1440,33 +1452,18 @@ void DataScoreColumn::ParseCommand( const FName Name, FScanner &sc, const COLUMN
 
 //*****************************************************************************
 //
-// [AK] DataScoreColumn::CheckIfUsable
-//
-// Checks if the data column is usable in the current game. Refer to
-// ScoreColumn::CheckIfUsable for more information.
-//
-//*****************************************************************************
-
-void DataScoreColumn::CheckIfUsable( )
-{
-	// [AK] If this column isn't part of a scoreboard, and it's not inside a composite
-	// column that's part of the scoreboard either, then stop here.
-	if (( IsInsideScoreboard( ) == false ) && (( pCompositeColumn == NULL ) || ( pCompositeColumn->IsInsideScoreboard( ) == false )))
-		return;
-
-	ScoreColumn::CheckIfUsable( );
-}
-
-//*****************************************************************************
-//
 // [AK] DataScoreColumn::UpdateWidth
 //
 // Gets the smallest width that will fit the contents in all player rows.
 //
 //*****************************************************************************
 
-void DataScoreColumn::UpdateWidth( FFont *pHeaderFont, FFont *pRowFont )
+void DataScoreColumn::UpdateWidth( void )
 {
+	// [AK] Don't update the width of a column that isn't part of a scoreboard.
+	if ( pScoreboard == NULL )
+		return;
+
 	ulShortestWidth = 0;
 
 	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -1475,11 +1472,11 @@ void DataScoreColumn::UpdateWidth( FFont *pHeaderFont, FFont *pRowFont )
 			continue;
 
 		ColumnValue Value = GetValue( ulIdx );
-		ulShortestWidth = MAX( ulShortestWidth, GetValueWidth( Value, pRowFont ));
+		ulShortestWidth = MAX( ulShortestWidth, GetValueWidth( Value ));
 	}
 
 	// [AK] Call the superclass's function to finish updating the width.
-	ScoreColumn::UpdateWidth( pHeaderFont, pRowFont );
+	ScoreColumn::UpdateWidth( );
 }
 
 //*****************************************************************************
@@ -1490,9 +1487,9 @@ void DataScoreColumn::UpdateWidth( FFont *pHeaderFont, FFont *pRowFont )
 //
 //*****************************************************************************
 
-void DataScoreColumn::DrawValue( const ULONG ulPlayer, FFont *pFont, const ULONG ulColor, const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const
+void DataScoreColumn::DrawValue( const ULONG ulPlayer, const ULONG ulColor, const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const
 {
-	if ( CanDrawForPlayer( ulPlayer ) == false )
+	if (( pScoreboard == NULL ) || ( CanDrawForPlayer( ulPlayer ) == false ))
 		return;
 
 	ColumnValue Value = GetValue( ulPlayer );
@@ -1537,7 +1534,7 @@ void DataScoreColumn::DrawValue( const ULONG ulPlayer, FFont *pFont, const ULONG
 		case COLUMNDATA_BOOL:
 		case COLUMNDATA_FLOAT:
 		case COLUMNDATA_STRING:
-			DrawString( GetValueString( Value ).GetChars( ), pFont, ulColorToUse, lYPos, ulHeight, fAlpha );
+			DrawString( GetValueString( Value ).GetChars( ), pScoreboard->pRowFont, ulColorToUse, lYPos, ulHeight, fAlpha );
 			break;
 
 		case COLUMNDATA_COLOR:
@@ -1781,13 +1778,13 @@ void CompositeScoreColumn::ParseCommand( const FName Name, FScanner &sc, const C
 				// [AK] Make sure that the next column we scan is a data column.
 				DataScoreColumn *pDataColumn = static_cast<DataScoreColumn *>( scoreboard_ScanForColumn( sc, true ));
 
-				// [AK] Don't add a data column that's already inside a scoreboard's column order.
-				if ( pDataColumn->IsInsideScoreboard( ))
-					sc.ScriptError( "Tried to put data column '%s' into composite column '%s', but it's already inside a scoreboard's column order.", sc.String, Name.GetChars( ) );
-
 				// [AK] Don't add a data column that's already inside another composite column.
 				if (( pDataColumn->pCompositeColumn != NULL ) && ( pDataColumn->pCompositeColumn != this ))
 					sc.ScriptError( "Tried to put data column '%s' into composite column '%s', but it's already inside another composite column.", sc.String, Name.GetChars( ));
+
+				// [AK] Don't add a data column that's already inside a scoreboard's column order.
+				if ( pDataColumn->IsInsideScoreboard( ))
+					sc.ScriptError( "Tried to put data column '%s' into composite column '%s', but it's already inside a scoreboard's column order.", sc.String, Name.GetChars( ));
 
 				if ( scoreboard_TryPushingColumnToList( sc, SubColumns, pDataColumn, sc.String ))
 					pDataColumn->pCompositeColumn = this;
@@ -1815,7 +1812,7 @@ void CompositeScoreColumn::ParseCommand( const FName Name, FScanner &sc, const C
 void CompositeScoreColumn::CheckIfUsable( void )
 {
 	// [AK] If the composite column isn't part of a scoreboard, then stop here.
-	if ( IsInsideScoreboard( ) == false )
+	if ( pScoreboard == NULL )
 		return;
 
 	// [AK] Call the superclass's function first.
@@ -1877,8 +1874,12 @@ void CompositeScoreColumn::Refresh( void )
 //
 //*****************************************************************************
 
-void CompositeScoreColumn::UpdateWidth( FFont *pHeaderFont, FFont *pRowFont )
+void CompositeScoreColumn::UpdateWidth( void )
 {
+	// [AK] Don't update the width of a column that isn't part of a scoreboard.
+	if ( pScoreboard == NULL )
+		return;
+
 	ulShortestWidth = 0;
 
 	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -1886,11 +1887,11 @@ void CompositeScoreColumn::UpdateWidth( FFont *pHeaderFont, FFont *pRowFont )
 		if ( CanDrawForPlayer( ulIdx ) == false )
 			continue;
 
-		ulShortestWidth = MAX( ulShortestWidth, GetRowWidth( ulIdx, pRowFont ));
+		ulShortestWidth = MAX( ulShortestWidth, GetRowWidth( ulIdx ));
 	}
 
 	// [AK] Call the superclass's function to finish updating the width.
-	ScoreColumn::UpdateWidth( pHeaderFont, pRowFont );
+	ScoreColumn::UpdateWidth( );
 }
 
 //*****************************************************************************
@@ -1901,15 +1902,15 @@ void CompositeScoreColumn::UpdateWidth( FFont *pHeaderFont, FFont *pRowFont )
 //
 //*****************************************************************************
 
-void CompositeScoreColumn::DrawValue( const ULONG ulPlayer, FFont *pFont, const ULONG ulColor, const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const
+void CompositeScoreColumn::DrawValue( const ULONG ulPlayer, const ULONG ulColor, const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const
 {
 	ColumnValue Value;
 
-	if ( CanDrawForPlayer( ulPlayer ) == false )
+	if (( pScoreboard == NULL ) || ( CanDrawForPlayer( ulPlayer ) == false ))
 		return;
 
 	const bool bIsTrueSpectator = PLAYER_IsTrueSpectator( &players[ulPlayer] );
-	const ULONG ulRowWidth = GetRowWidth( ulPlayer, pFont );
+	const ULONG ulRowWidth = GetRowWidth( ulPlayer );
 
 	// [AK] If this row's width is zero, then there's nothing to draw, so stop here.
 	if ( ulRowWidth == 0 )
@@ -1928,7 +1929,7 @@ void CompositeScoreColumn::DrawValue( const ULONG ulPlayer, FFont *pFont, const 
 
 		if ( Value.GetDataType( ) != COLUMNDATA_UNKNOWN )
 		{
-			const ULONG ulValueWidth = SubColumns[i]->GetValueWidth( Value, pFont );
+			const ULONG ulValueWidth = SubColumns[i]->GetValueWidth( Value );
 
 			// [AK] We didn't update the sub-column's x-position or width since they're part of
 			// a composite column, but we need to make sure that the contents appear properly.
@@ -1937,7 +1938,7 @@ void CompositeScoreColumn::DrawValue( const ULONG ulPlayer, FFont *pFont, const 
 			// members to what they need to be now, draw the value, then set them back to zero.
 			SubColumns[i]->lRelX = lXPos;
 			SubColumns[i]->ulWidth = ulValueWidth;
-			SubColumns[i]->DrawValue( ulPlayer, pFont, ulColor, lYPos, ulHeight, fAlpha );
+			SubColumns[i]->DrawValue( ulPlayer, ulColor, lYPos, ulHeight, fAlpha );
 
 			lXPos += GetSubColumnWidth( i, ulValueWidth );
 			SubColumns[i]->lRelX = SubColumns[i]->ulWidth = 0;
@@ -1953,9 +1954,9 @@ void CompositeScoreColumn::DrawValue( const ULONG ulPlayer, FFont *pFont, const 
 //
 //*****************************************************************************
 
-ULONG CompositeScoreColumn::GetRowWidth( const ULONG ulPlayer, FFont *pFont ) const
+ULONG CompositeScoreColumn::GetRowWidth( const ULONG ulPlayer ) const
 {
-	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
+	if (( pScoreboard == NULL ) || ( PLAYER_IsValidPlayer( ulPlayer ) == false ))
 		return 0;
 
 	const bool bIsTrueSpectator = PLAYER_IsTrueSpectator( &players[ulPlayer] );
@@ -1970,7 +1971,7 @@ ULONG CompositeScoreColumn::GetRowWidth( const ULONG ulPlayer, FFont *pFont ) co
 		ColumnValue Value = SubColumns[i]->GetValue( ulPlayer );
 
 		if ( Value.GetDataType( ) != COLUMNDATA_UNKNOWN )
-			ulRowWidth += GetSubColumnWidth( i, SubColumns[i]->GetValueWidth( Value, pFont ));
+			ulRowWidth += GetSubColumnWidth( i, SubColumns[i]->GetValueWidth( Value ));
 	}
 
 	return ulRowWidth;
@@ -1988,7 +1989,7 @@ ULONG CompositeScoreColumn::GetRowWidth( const ULONG ulPlayer, FFont *pFont ) co
 
 ULONG CompositeScoreColumn::GetSubColumnWidth( const ULONG ulSubColumn, const ULONG ulValueWidth ) const
 {
-	if ( ulSubColumn >= SubColumns.Size( ))
+	if (( pScoreboard == NULL ) || ( ulSubColumn >= SubColumns.Size( )))
 		return 0;
 
 	// [AK] If the sub-column always uses its shortest width, then sizing is treated as padding.
@@ -2353,7 +2354,7 @@ void Scoreboard::AddColumnToList( FScanner &sc, const bool bAddToRankOrder )
 		{
 			if ( pDataColumn->pCompositeColumn == NULL )
 				sc.ScriptError( "Column '%s' must be added to the column order before added to the rank order.", pszColumnName );
-			else if ( pDataColumn->pCompositeColumn->pScoreboard != this )
+			else
 				sc.ScriptError( "Column '%s' is part of a composite column that must be added to the column order before it can be added to the rank order.", pszColumnName );
 		}
 
@@ -2367,7 +2368,17 @@ void Scoreboard::AddColumnToList( FScanner &sc, const bool bAddToRankOrder )
 			sc.ScriptError( "Column '%s' is part of a composite column and can't be added to the order list.", pszColumnName );
 
 		if ( scoreboard_TryPushingColumnToList( sc, ColumnOrder, pColumn, pszColumnName ))
+		{
 			pColumn->pScoreboard = this;
+
+			if ( pColumn->GetTemplate( ) == COLUMNTEMPLATE_COMPOSITE )
+			{
+				CompositeScoreColumn *pCompositeColumn = static_cast<CompositeScoreColumn *>( pColumn );
+
+				for ( unsigned int i = 0; i < pCompositeColumn->SubColumns.Size( ); i++ )
+					pCompositeColumn->SubColumns[i]->pScoreboard = this;
+			}
+		}
 	}
 }
 
@@ -2494,7 +2505,7 @@ void Scoreboard::Refresh( const ULONG ulDisplayPlayer )
 		if ( ColumnOrder[i]->IsDisabled( ))
 			continue;
 
-		ColumnOrder[i]->UpdateWidth( pHeaderFont, pRowFont );
+		ColumnOrder[i]->UpdateWidth( );
 	}
 
 	UpdateWidth( );
@@ -2654,7 +2665,7 @@ void Scoreboard::Render( const ULONG ulDisplayPlayer, const float fAlpha )
 
 	// [AK] Draw all of the column headers.
 	for ( unsigned int i = 0; i < ColumnOrder.Size( ); i++ )
-		ColumnOrder[i]->DrawHeader( pHeaderFont, HeaderColor, lYPos, lHeaderHeight, fAlpha );
+		ColumnOrder[i]->DrawHeader( lYPos, lHeaderHeight, fAlpha );
 
 	lYPos += lHeaderHeight;
 
@@ -2767,7 +2778,7 @@ void Scoreboard::DrawRow( const ULONG ulPlayer, const ULONG ulDisplayPlayer, LON
 	if ( fTextAlpha > 0.0f )
 	{
 		for ( unsigned int i = 0; i < ColumnOrder.Size( ); i++ )
-			ColumnOrder[i]->DrawValue( ulPlayer, pRowFont, ulColor, lYPos, lRowHeight, fTextAlpha );
+			ColumnOrder[i]->DrawValue( ulPlayer, ulColor, lYPos, lRowHeight, fTextAlpha );
 	}
 
 	lYPos += lRowHeight + ulGapBetweenRows;
