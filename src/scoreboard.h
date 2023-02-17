@@ -128,38 +128,51 @@ class ColumnValue
 {
 public:
 	ColumnValue( void ) : DataType( COLUMNDATA_UNKNOWN ) { }
+	ColumnValue( const ColumnValue &Other ) { TransferValue( Other ); }
+
+	~ColumnValue( void ) { DeleteString( ); }
 
 	inline COLUMNDATA_e GetDataType( void ) const { return DataType; }
-	template <typename T> T GetValue( void ) const;
+	template <typename VariableType> VariableType GetValue( void ) const;
+	FString ToString( void ) const;
+	void FromString( const char *pszString, const COLUMNDATA_e NewDataType );
 
 	// Int data type.
 	template <> int GetValue( void ) const { return DataType == COLUMNDATA_INT ? Int : 0; }
-	void operator= ( int value ) { Int = value; DataType = COLUMNDATA_INT; }
-	void operator= ( ULONG ulValue ) { Int = ulValue; DataType = COLUMNDATA_INT; }
+	void operator= ( int value ) { ChangeDataType( COLUMNDATA_INT ); Int = value; }
+	void operator= ( ULONG ulValue ) { ChangeDataType( COLUMNDATA_INT ); Int = ulValue; }
 
 	// Bool data type.
 	template <> bool GetValue( void ) const { return DataType == COLUMNDATA_BOOL ? Bool : false; }
-	void operator= ( bool value ) { Bool = value; DataType = COLUMNDATA_BOOL; }
+	void operator= ( bool value ) { ChangeDataType( COLUMNDATA_BOOL ); Bool = value; }
 
 	// Float data type.
 	template <> float GetValue( void ) const { return DataType == COLUMNDATA_FLOAT ? Float : 0.0f; }
-	void operator= ( float value ) { Float = value; DataType = COLUMNDATA_FLOAT; }
+	void operator= ( float value ) { ChangeDataType( COLUMNDATA_FLOAT ); Float = value; }
 
 	// String data type.
 	template <> const char *GetValue( void ) const { return DataType == COLUMNDATA_STRING ? String : NULL; }
 	template <> FString GetValue( void ) const { return DataType == COLUMNDATA_STRING ? String : NULL; }
-	void operator= ( const char *value ) { String = value; DataType = COLUMNDATA_STRING; }
-	void operator= ( FString value ) { String = value.GetChars( ); DataType = COLUMNDATA_STRING; }
+	void operator= ( const char *value ) { ChangeDataType( COLUMNDATA_STRING ); String = ncopystring( value ); }
+	void operator= ( FString value ) { ChangeDataType( COLUMNDATA_STRING ); String = ncopystring( value.GetChars( )); }
 
 	// Color data type.
 	template <> PalEntry GetValue( void ) const { return DataType == COLUMNDATA_COLOR ? Int : 0; }
-	void operator= ( PalEntry value ) { Int = value; DataType = COLUMNDATA_COLOR; }
+	void operator= ( PalEntry value ) { ChangeDataType( COLUMNDATA_COLOR ); Int = value; }
 
 	// Texture data type.
 	template <> FTexture *GetValue( void ) const { return DataType == COLUMNDATA_TEXTURE ? Texture : NULL; }
-	void operator= ( FTexture *value ) { Texture = value; DataType = COLUMNDATA_TEXTURE; }
+	void operator= ( FTexture *value ) { ChangeDataType( COLUMNDATA_TEXTURE ); Texture = value; }
+
+	void operator= ( const ColumnValue &Other ) { TransferValue( Other ); }
+
+	bool operator== ( const ColumnValue &Other ) const;
 
 private:
+	void TransferValue( const ColumnValue &Other );
+	void ChangeDataType( COLUMNDATA_e NewDataType );
+	void DeleteString( void );
+
 	COLUMNDATA_e DataType;
 	union
 	{

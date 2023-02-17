@@ -181,6 +181,216 @@ CUSTOM_CVAR( Float, cl_scoreboardalpha, 1.0f, CVAR_ARCHIVE )
 
 //*****************************************************************************
 //
+// [AK] ColumnValue::ToString
+//
+// Returns a string containing the value of a ColumnValue object.
+//
+//*****************************************************************************
+
+FString ColumnValue::ToString( void ) const
+{
+	FString Result;
+
+	switch ( GetDataType( ))
+	{
+		case COLUMNDATA_INT:
+			Result.Format( "%d", GetValue<int>( ));
+			break;
+
+		case COLUMNDATA_BOOL:
+			Result.Format( "%d", GetValue<bool>( ));
+			break;
+
+		case COLUMNDATA_FLOAT:
+			Result.Format( "%f", GetValue<float>( ));
+			break;
+
+		case COLUMNDATA_STRING:
+			Result = GetValue<const char *>( );
+			break;
+
+		case COLUMNDATA_COLOR:
+			Result.Format( "%d", GetValue<PalEntry>( ));
+			break;
+
+		case COLUMNDATA_TEXTURE:
+		{
+			FTexture *pTexture = GetValue<FTexture *>( );
+
+			if ( pTexture != NULL )
+				Result.Format( "%s", pTexture->Name );
+
+			break;
+		}
+	}
+
+	return Result;
+}
+
+//*****************************************************************************
+//
+// [AK] ColumnValue::FromString
+//
+// Assigns a value and data type to a ColumnValue object using an input string.
+//
+//*****************************************************************************
+
+void ColumnValue::FromString( const char *pszString, const COLUMNDATA_e NewDataType )
+{
+	if (( pszString == NULL ) || ( NewDataType <= COLUMNDATA_UNKNOWN ) || ( NewDataType >= NUM_COLUMNDATA_TYPES ))
+		return;
+
+	ChangeDataType( NewDataType );
+
+	switch ( NewDataType )
+	{
+		case COLUMNDATA_INT:
+		case COLUMNDATA_COLOR:
+			Int = atoi( pszString );
+			break;
+
+		case COLUMNDATA_BOOL:
+		{
+			if ( stricmp( pszString, "true" ) == 0 )
+				Bool = true;
+			else if ( stricmp( pszString, "false" ) == 0 )
+				Bool = false;
+			else
+				Bool = !!atoi( pszString );
+
+			break;
+		}
+
+		case COLUMNDATA_FLOAT:
+			Float = static_cast<float>( atof( pszString ));
+			break;
+
+		case COLUMNDATA_STRING:
+			String = ncopystring( pszString );
+			break;
+
+		case COLUMNDATA_TEXTURE:
+			Texture = TexMan.FindTexture( pszString );
+			break;
+	}
+}
+
+//*****************************************************************************
+//
+// [AK] ColumnValue::TransferValue
+//
+// Transfers the value of one ColumnValue object to another.
+//
+//*****************************************************************************
+
+void ColumnValue::TransferValue ( const ColumnValue &Other )
+{
+	ChangeDataType( Other.GetDataType( ));
+
+	switch ( DataType )
+	{
+		case COLUMNDATA_INT:
+			Int = Other.GetValue<int>( );
+			break;
+
+		case COLUMNDATA_BOOL:
+			Bool = Other.GetValue<bool>( );
+			break;
+
+		case COLUMNDATA_FLOAT:
+			Float = Other.GetValue<float>( );
+			break;
+
+		case COLUMNDATA_STRING:
+			String = ncopystring( Other.GetValue<const char *>( ));
+			break;
+
+		case COLUMNDATA_COLOR:
+			Int = Other.GetValue<PalEntry>( );
+			break;
+
+		case COLUMNDATA_TEXTURE:
+			Texture = Other.GetValue<FTexture *>( );
+			break;
+	}
+}
+
+//*****************************************************************************
+//
+// [AK] ColumnValue::ChangeDataType
+//
+// Changes the data type of a ColumnValue object, but also deletes its string
+// from memory if it's holding one. This should only be called when a new value
+// is being assigned.
+//
+//*****************************************************************************
+
+void ColumnValue::ChangeDataType( COLUMNDATA_e NewDataType )
+{
+	if (( NewDataType <= COLUMNDATA_UNKNOWN ) || ( NewDataType >= NUM_COLUMNDATA_TYPES ))
+		return;
+
+	DeleteString( );
+	DataType = NewDataType;
+}
+
+//*****************************************************************************
+//
+// [AK] ColumnValue::DeleteString
+//
+// If a ColumnValue object has a pointer to a string that isn't NULL, then it
+// removes the string from memory.
+//
+//*****************************************************************************
+
+void ColumnValue::DeleteString( void )
+{
+	if (( GetDataType( ) == COLUMNDATA_STRING ) && ( String != NULL ))
+	{
+		delete[] String;
+		String = NULL;
+	}
+}
+
+//*****************************************************************************
+//
+// [AK] ColumnValue::operator==
+//
+// Checks if two ColumnValue objects have the same data type and value.
+//
+//*****************************************************************************
+
+bool ColumnValue::operator== ( const ColumnValue &Other ) const
+{
+	if ( DataType == Other.GetDataType( ))
+	{
+		switch ( DataType )
+		{
+			case COLUMNDATA_INT:
+				return ( GetValue<int>( ) == Other.GetValue<int>( ));
+
+			case COLUMNDATA_BOOL:
+				return ( GetValue<bool>( ) == Other.GetValue<bool>( ));
+
+			case COLUMNDATA_FLOAT:
+				return ( GetValue<float>( ) == Other.GetValue<float>( ));
+
+			case COLUMNDATA_STRING:
+				return ( strcmp( GetValue<const char *>( ), Other.GetValue<const char *>( )) == 0 );
+
+			case COLUMNDATA_COLOR:
+				return ( GetValue<PalEntry>( ) == Other.GetValue<PalEntry>( ));
+
+			case COLUMNDATA_TEXTURE:
+				return ( GetValue<FTexture *>( ) == Other.GetValue<FTexture *>( ));
+		}
+	}
+
+	return false;
+}
+
+//*****************************************************************************
+//
 // [AK] ScoreColumn::ScoreColumn
 //
 // Initializes the members of a ScoreColumn object to their default values.
