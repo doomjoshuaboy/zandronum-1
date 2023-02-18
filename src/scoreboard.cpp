@@ -622,9 +622,8 @@ void ScoreColumn::ParseCommand( const FName Name, FScanner &sc, const COLUMNCMD_
 // [AK] ScoreColumn::CheckIfUsable
 //
 // Checks if this column works at all in the current game, including whether
-// or not the current game mode is compatible, if the column is allowed in
-// offline or online games, or if the column should (not) appear in-game or on
-// the intermission screen.
+// or not the current game mode is compatible, or if the column is allowed in
+// offline or online games.
 //
 //*****************************************************************************
 
@@ -697,6 +696,9 @@ void ScoreColumn::CheckIfUsable( void )
 	}
 
 	bUsableInCurrentGame = true;
+
+	// [AK] If the column's usable, then also determine if it should be hidden.
+	bHidden = !!( ulFlags & COLUMNFLAG_HIDDENBYDEFAULT );
 }
 
 //*****************************************************************************
@@ -3029,11 +3031,10 @@ void SCOREBOARD_Reset( const bool bChangingLevel )
 	{
 		while ( it.NextPair( pair ))
 		{
-			pair->Value->CheckIfUsable( );
-
-			// [AK] Check if the column should be hidden at the start of a new game.
-			if ( pair->Value->IsUsableInCurrentGame( ))
-				pair->Value->SetHidden( !!( pair->Value->GetFlags( ) & COLUMNFLAG_HIDDENBYDEFAULT ));
+			// [AK] Ignore data columns that are part of a composite column, the latter
+			// also checks if their sub-columns are usable.
+			if (( pair->Value->GetTemplate( ) != COLUMNTEMPLATE_DATA ) || ( static_cast<DataScoreColumn *>( pair->Value )->GetCompositeColumn( ) == NULL ))
+				pair->Value->CheckIfUsable( );
 		}
 	}
 
