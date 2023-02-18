@@ -285,10 +285,10 @@ public:
 	COLUMNTYPE_e GetNativeType( void ) const { return NativeType; }
 	DATACONTENT_e GetContentType( void ) const;
 	FString GetValueString( const ColumnValue &Value ) const;
-	ULONG GetValueWidth( const ColumnValue &Value ) const;
 
 	virtual COLUMNTEMPLATE_e GetTemplate( void ) const { return COLUMNTEMPLATE_DATA; }
 	virtual COLUMNDATA_e GetDataType( void ) const;
+	virtual ULONG GetValueWidth( const ColumnValue &Value ) const;
 	virtual ColumnValue GetValue( const ULONG ulPlayer ) const;
 	virtual void ParseCommand( const FName Name, FScanner &sc, const COLUMNCMD_e Command, const FString CommandName );
 	virtual void UpdateWidth( void );
@@ -309,6 +309,28 @@ protected:
 
 	// [AK] Let the CompositeScoreColumn class have access to this class's protected members.
 	friend class CompositeScoreColumn;
+};
+
+//*****************************************************************************
+//
+// [AK] A separate class to handle the country flag column type.
+//
+class CountryFlagScoreColumn : public DataScoreColumn
+{
+public:
+	CountryFlagScoreColumn( FScanner &sc, const char *pszName );
+
+	virtual ULONG GetValueWidth( const ColumnValue &Value ) const;
+	virtual ColumnValue GetValue( const ULONG ulPlayer ) const;
+	virtual void DrawValue( const ULONG ulPlayer, const ULONG ulColor, const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const;
+
+	// [AK] The "CTRYFLAG" texture is supposed to be a 16x16 grid of country flag icons.
+	const static int NUM_FLAGS_PER_SIDE = 16;
+
+private:
+	FTexture *pFlagIconSet;
+	ULONG ulFlagWidth;
+	ULONG ulFlagHeight;
 };
 
 //*****************************************************************************

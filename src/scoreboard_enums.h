@@ -143,6 +143,12 @@ BEGIN_ENUM( COLUMNTYPE_e )
 	ENUM_ELEMENT( COLUMNTYPE_ARTIFACTICON ),
 	// The skill level of a bot.
 	ENUM_ELEMENT( COLUMNTYPE_BOTSKILLICON ),
+	// The full name of the country that the player is connecting from.
+	ENUM_ELEMENT( COLUMNTYPE_COUNTRYNAME ),
+	// The country code (alpha-2 or alpha-3) that the player is connecting from.
+	ENUM_ELEMENT( COLUMNTYPE_COUNTRYCODE ),
+	// A mini icon of the flag of the country that the player is connecting from.
+	ENUM_ELEMENT( COLUMNTYPE_COUNTRYFLAG ),
 	// A custom column that's defined by the modder.
 	ENUM_ELEMENT( COLUMNTYPE_CUSTOM ),
 }

@@ -167,6 +167,9 @@ CVAR( Bool, cl_intermissiontimer, false, CVAR_ARCHIVE );
 // [AK] Prints everyone's pings in different colours, indicating how severe their connection is.
 CVAR( Bool, cl_colorizepings, false, CVAR_ARCHIVE );
 
+// [AK] If true, the country code column will use alpha-3 instead of alpha-2.
+CVAR( Bool, cl_usealpha3countrycode, false, CVAR_ARCHIVE | CVAR_REFRESHSCOREBOARD );
+
 // [AK] If true, then columns will use their short names in the headers.
 CVAR( Bool, cl_useshortcolumnnames, false, CVAR_ARCHIVE | CVAR_REFRESHSCOREBOARD );
 
@@ -1034,6 +1037,8 @@ COLUMNDATA_e DataScoreColumn::GetDataType( void ) const
 
 		case COLUMNTYPE_NAME:
 		case COLUMNTYPE_VOTE:
+		case COLUMNTYPE_COUNTRYNAME:
+		case COLUMNTYPE_COUNTRYCODE:
 			return COLUMNDATA_STRING;
 
 		case COLUMNTYPE_PLAYERCOLOR:
@@ -1044,6 +1049,7 @@ COLUMNDATA_e DataScoreColumn::GetDataType( void ) const
 		case COLUMNTYPE_SCOREICON:
 		case COLUMNTYPE_ARTIFACTICON:
 		case COLUMNTYPE_BOTSKILLICON:
+		case COLUMNTYPE_COUNTRYFLAG:
 			return COLUMNDATA_TEXTURE;
 
 		default:
@@ -1359,6 +1365,14 @@ ColumnValue DataScoreColumn::GetValue( const ULONG ulPlayer ) const
 
 				break;
 			}
+
+			case COLUMNTYPE_COUNTRYNAME:
+				Result = NETWORK_GetCountryNameFromIndex( players[ulPlayer].ulCountryIndex );
+				break;
+
+			case COLUMNTYPE_COUNTRYCODE:
+				Result = NETWORK_GetCountryCodeFromIndex( players[ulPlayer].ulCountryIndex, cl_usealpha3countrycode );
+				break;
 		}
 	}
 
@@ -1557,6 +1571,115 @@ void DataScoreColumn::DrawValue( const ULONG ulPlayer, const ULONG ulColor, cons
 		case COLUMNDATA_TEXTURE:
 			DrawTexture( Value.GetValue<FTexture *>( ), lYPos, ulHeight, fAlpha, ulClipRectWidth, ulClipRectHeight );
 			break;
+	}
+}
+
+//*****************************************************************************
+//
+// [AK] CountryFlagScoreColumn::CountryFlagScoreColumn
+//
+// Searches for the "CTRYFLAG" texture and determines the width and height of
+// each of the mini flag icons.
+//
+//*****************************************************************************
+
+CountryFlagScoreColumn::CountryFlagScoreColumn( FScanner &sc, const char *pszName ) : DataScoreColumn( COLUMNTYPE_COUNTRYFLAG, pszName )
+{
+	pFlagIconSet = TexMan.FindTexture( "CTRYFLAG" );
+
+	// [AK] If "CTRYFLAG" can't be found, then throw a fatal error. We can't use this column without it.
+	if ( pFlagIconSet == NULL )
+		sc.ScriptError( "Couldn't find texture 'CTRYFLAG'. This lump is required to display country flags." );
+
+	ulFlagWidth = pFlagIconSet->GetScaledWidth( ) / NUM_FLAGS_PER_SIDE;
+	ulFlagHeight = pFlagIconSet->GetScaledHeight( ) / NUM_FLAGS_PER_SIDE;
+
+	// [AK] Make sure that all country flags have the same width and height. Otherwise, throw a fatal error.
+	if (( ulFlagWidth * NUM_FLAGS_PER_SIDE != pFlagIconSet->GetScaledWidth( )) || ( ulFlagHeight * NUM_FLAGS_PER_SIDE != pFlagIconSet->GetScaledHeight( )))
+		sc.ScriptError( "The texture 'CTRYFLAG' cannot be accepted. All country flag icons don't have the same width and height." );
+}
+
+//*****************************************************************************
+//
+// [AK] CountryFlagScoreColumn::GetValueWidth
+//
+// If the passed ColumnValue object is "CTRYFLAG", then the width of a mini
+// flag icon is returned. Otherwise, the superclass's function is called.
+//
+//*****************************************************************************
+
+ULONG CountryFlagScoreColumn::GetValueWidth( const ColumnValue &Value ) const
+{
+	// [AK] Always return zero if this column isn't part of a scoreboard.
+	if ( pScoreboard != NULL )
+	{
+		if (( Value.GetDataType( ) == COLUMNDATA_TEXTURE ) && ( Value.GetValue<FTexture *>( ) == pFlagIconSet ))
+			return ulFlagWidth;
+
+		// [AK] If we somehow end up here, throw a fatal error.
+		I_Error( "CountryFlagScoreColumn::GetValueWidth: tried to get the width of a value that isn't 'CTRYFLAG'!" );
+	}
+
+	return 0;
+}
+
+//*****************************************************************************
+//
+// [AK] CountryFlagScoreColumn::GetValue
+//
+// Always returns "CTRYFLAG", so as long as the player is valid.
+//
+//*****************************************************************************
+
+ColumnValue CountryFlagScoreColumn::GetValue( const ULONG ulPlayer ) const
+{
+	ColumnValue result;
+
+	if ( PLAYER_IsValidPlayer( ulPlayer ))
+		result = pFlagIconSet;
+
+	return result;
+}
+
+//*****************************************************************************
+//
+// [AK] CountryFlagScoreColumn::DrawValue
+//
+// Draws a mini flag icon of the player's country. To do this, the "CTRYFLAG"
+// texture is shifted horizontally and vertically such that, when combined with
+// the clipping rectangle, the correct country flag is drawn.
+//
+//*****************************************************************************
+
+void CountryFlagScoreColumn::DrawValue( const ULONG ulPlayer, const ULONG ulColor, const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const
+{
+	if (( pFlagIconSet != NULL ) && ( players[ulPlayer].ulCountryIndex <= COUNTRYINDEX_LAN ))
+	{
+		const int leftOffset = ( players[ulPlayer].ulCountryIndex % NUM_FLAGS_PER_SIDE ) * ulFlagWidth;
+		const int topOffset = ( players[ulPlayer].ulCountryIndex / NUM_FLAGS_PER_SIDE ) * ulFlagHeight;
+
+		LONG lXPos = GetAlignmentPosition( ulFlagWidth );
+		LONG lNewYPos = lYPos + ( ulHeight - ulFlagHeight ) / 2;
+
+		int clipLeft = lXPos;
+		int clipWidth = ulFlagWidth;
+		int clipTop = lNewYPos;
+		int clipHeight = ulFlagHeight;
+
+		// [AK] We must take into account the virtual screen's size.
+		if ( g_bScale )
+			screen->VirtualToRealCoordsInt( clipLeft, clipTop, clipWidth, clipHeight, con_virtualwidth, con_virtualheight, false, !con_scaletext_usescreenratio );
+
+		screen->DrawTexture( pFlagIconSet, lXPos, lNewYPos,
+			DTA_UseVirtualScreen, g_bScale,
+			DTA_ClipLeft, clipLeft,
+			DTA_ClipRight, clipLeft + clipWidth,
+			DTA_ClipTop, clipTop,
+			DTA_ClipBottom, clipTop + clipHeight,
+			DTA_LeftOffset, leftOffset,
+			DTA_TopOffset, topOffset,
+			DTA_Alpha, FLOAT2FIXED( fAlpha ),
+			TAG_DONE );
 	}
 }
 
