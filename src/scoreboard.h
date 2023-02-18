@@ -201,6 +201,7 @@ class ScoreColumn
 public:
 	ScoreColumn( const char *pszName );
 
+	Scoreboard *GetScoreboard( void ) const { return pScoreboard; }
 	const char *GetDisplayName( void ) const { return DisplayName.Len( ) > 0 ? DisplayName.GetChars( ) : NULL; }
 	const char *GetShortName( void ) const { return ShortName.Len( ) > 0 ? ShortName.GetChars( ) : NULL; }
 	FBaseCVar *GetCVar( void ) const { return pCVar; }
@@ -213,7 +214,6 @@ public:
 	bool IsUsableInCurrentGame( void ) const { return bUsableInCurrentGame; }
 	bool IsDisabled( void ) const { return bDisabled; }
 	bool IsHidden( void ) const { return bHidden; }
-	bool IsInsideScoreboard( void ) const { return ( pScoreboard != NULL ); }
 	bool ShouldUseShortName( void ) const { return bUseShortName; }
 	void SetHidden( bool bEnable );
 	void Parse( const FName Name, FScanner &sc );
@@ -281,6 +281,7 @@ public:
 		ulClipRectHeight( 0 ),
 		pCompositeColumn( NULL ) { }
 
+	CompositeScoreColumn *GetCompositeColumn( void ) const { return pCompositeColumn; }
 	COLUMNTYPE_e GetNativeType( void ) const { return NativeType; }
 	DATACONTENT_e GetContentType( void ) const;
 	FString GetValueString( const ColumnValue &Value ) const;
@@ -307,9 +308,7 @@ protected:
 	CompositeScoreColumn *pCompositeColumn;
 
 	// [AK] Let the CompositeScoreColumn class have access to this class's protected members.
-	// Also let the Scoreboard struct have access.
 	friend class CompositeScoreColumn;
-	friend struct Scoreboard;
 };
 
 //*****************************************************************************

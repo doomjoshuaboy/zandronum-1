@@ -1779,11 +1779,11 @@ void CompositeScoreColumn::ParseCommand( const FName Name, FScanner &sc, const C
 				DataScoreColumn *pDataColumn = static_cast<DataScoreColumn *>( scoreboard_ScanForColumn( sc, true ));
 
 				// [AK] Don't add a data column that's already inside another composite column.
-				if (( pDataColumn->pCompositeColumn != NULL ) && ( pDataColumn->pCompositeColumn != this ))
+				if (( pDataColumn->GetCompositeColumn( ) != NULL ) && ( pDataColumn->GetCompositeColumn( ) != this ))
 					sc.ScriptError( "Tried to put data column '%s' into composite column '%s', but it's already inside another composite column.", sc.String, Name.GetChars( ));
 
 				// [AK] Don't add a data column that's already inside a scoreboard's column order.
-				if ( pDataColumn->IsInsideScoreboard( ))
+				if ( pDataColumn->GetScoreboard( ) != NULL )
 					sc.ScriptError( "Tried to put data column '%s' into composite column '%s', but it's already inside a scoreboard's column order.", sc.String, Name.GetChars( ));
 
 				if ( scoreboard_TryPushingColumnToList( sc, SubColumns, pDataColumn, sc.String ))
@@ -2350,9 +2350,9 @@ void Scoreboard::AddColumnToList( FScanner &sc, const bool bAddToRankOrder )
 		// [AK] Columns must be inside the scoreboard's column order first before they're
 		// added to the rank order list. If this column is inside a composite column, then
 		// the composite column needs to be in the column order instead.
-		if ( pColumn->pScoreboard != this )
+		if ( pColumn->GetScoreboard( ) != this )
 		{
-			if ( pDataColumn->pCompositeColumn == NULL )
+			if ( pDataColumn->GetCompositeColumn( ) == NULL )
 				sc.ScriptError( "Column '%s' must be added to the column order before added to the rank order.", pszColumnName );
 			else
 				sc.ScriptError( "Column '%s' is part of a composite column that must be added to the column order before it can be added to the rank order.", pszColumnName );
@@ -2364,7 +2364,7 @@ void Scoreboard::AddColumnToList( FScanner &sc, const bool bAddToRankOrder )
 	{
 		// [AK] If this is a data column, make sure that it isn't inside a composite column.
 		// The composite column must be added to the list instead.
-		if (( pColumn->GetTemplate( ) == COLUMNTEMPLATE_DATA ) && ( static_cast<DataScoreColumn *>( pColumn )->pCompositeColumn != NULL ))
+		if (( pColumn->GetTemplate( ) == COLUMNTEMPLATE_DATA ) && ( static_cast<DataScoreColumn *>( pColumn )->GetCompositeColumn( ) != NULL ))
 			sc.ScriptError( "Column '%s' is part of a composite column and can't be added to the order list.", pszColumnName );
 
 		if ( scoreboard_TryPushingColumnToList( sc, ColumnOrder, pColumn, pszColumnName ))
