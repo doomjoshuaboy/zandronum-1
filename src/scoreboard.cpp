@@ -1450,6 +1450,17 @@ void DataScoreColumn::ParseCommand( const FName Name, FScanner &sc, const COLUMN
 			ScoreColumn::ParseCommand( Name, sc, Command, CommandName );
 			break;
 	}
+
+	// [AK] If this data column is inside a composite column, make sure it still has the DONTSHOWHEADER flag
+	// and is alignment to the left. Both are requirements for being inside composite columns.
+	if ( pCompositeColumn != NULL )
+	{
+		if (( ulFlags & COLUMNFLAG_DONTSHOWHEADER ) == false )
+			sc.ScriptError( "Tried to remove the 'DONTSHOWHEADER' flag from column '%s' which is inside a composite column.", Name.GetChars( ));
+
+		if ( Alignment != COLUMNALIGN_LEFT )
+			sc.ScriptError( "Tried to change the alignment of column '%s' which is inside a composite column.", Name.GetChars( ));
+	}
 }
 
 //*****************************************************************************
@@ -1788,6 +1799,14 @@ void CompositeScoreColumn::ParseCommand( const FName Name, FScanner &sc, const C
 				if ( pDataColumn->GetScoreboard( ) != NULL )
 					sc.ScriptError( "Tried to put data column '%s' into composite column '%s', but it's already inside a scoreboard's column order.", sc.String, Name.GetChars( ));
 
+				// [AK] All data columns require the DONTSHOWHEADER flag to be enabled to be inside a composite column.
+				if (( pDataColumn->GetFlags( ) & COLUMNFLAG_DONTSHOWHEADER ) == false )
+					sc.ScriptError( "Data column '%s' must have 'DONTSHOWHEADER' enabled before it can be put inside a composite column.", sc.String );
+
+				// [AK] All data columns must be alignment to the left to be inside a composite column.
+				if ( pDataColumn->Alignment != COLUMNALIGN_LEFT )
+					sc.ScriptError( "Data column '%s' must be aligned to the left before it can be put inside a composite column.", sc.String );
+
 				if ( scoreboard_TryPushingColumnToList( sc, SubColumns, pDataColumn, sc.String ))
 					pDataColumn->pCompositeColumn = this;
 			} while ( sc.CheckToken( ',' ));
@@ -1851,19 +1870,7 @@ void CompositeScoreColumn::Refresh( void )
 	if ( bDisabled == false )
 	{
 		for ( unsigned int i = 0; i < SubColumns.Size( ); i++ )
-		{
 			SubColumns[i]->Refresh( );
-
-			// [AK] Sub-columns cannot show their headers and need to be aligned to the left.
-			if ( SubColumns[i]->IsDisabled( ) == false )
-			{
-				if (( SubColumns[i]->GetFlags( ) & COLUMNFLAG_DONTSHOWHEADER ) == false )
-					SubColumns[i]->ulFlags |= COLUMNFLAG_DONTSHOWHEADER;
-
-				if ( SubColumns[i]->Alignment != COLUMNALIGN_LEFT )
-					SubColumns[i]->Alignment = COLUMNALIGN_LEFT;
-			}
-		}
 	}
 }
 
