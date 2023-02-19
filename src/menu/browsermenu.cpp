@@ -170,7 +170,7 @@ int FOptionMenuServerBrowserLine::Draw(FOptionMenuDescriptor *desc, int y, int i
 	screen->DrawText( SmallFont, CR_GRAY, 160 * CleanXfac_1 + localIndent, y, "WAD", DTA_CleanNoMove_1, true, TAG_DONE );
 	*/
 	// Draw gametype.
-	strncpy( szString, GAMEMODE_GetShortName( BROWSER_GetGameMode( serverNum )), 8 );
+	strncpy( szString, BROWSER_GetGameModeShortName( serverNum ), 8 );
 	screen->DrawText( SmallFont, color, columnXPositions[3], y, szString, DTA_CleanNoMove_1, true, TAG_DONE );
 
 	// Draw players.
@@ -266,7 +266,7 @@ public:
 
 		ulCurYPos += ulTextHeight;
 
-		sprintf( szString, "Gametype: \\cc%s", GAMEMODE_GetName ( BROWSER_GetGameMode( g_lSelectedServer ) ) );
+		sprintf( szString, "Gametype: \\cc%s", BROWSER_GetGameModeName( g_lSelectedServer ) );
 		V_ColorizeString( szString );
 		screen->DrawText( SmallFont, CR_UNTRANSLATED, 16, ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
 

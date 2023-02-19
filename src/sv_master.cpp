@@ -663,6 +663,17 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 
 			g_MasterServerBuffer.ByteStream.WriteBuffer( code, codeSize );
 		}
+
+		// [SB] Send the current game mode's name and short name.
+		if ( ulBits2 & SQF2_GAMEMODE_NAME )
+		{
+			g_MasterServerBuffer.ByteStream.WriteString( GAMEMODE_GetName( GAMEMODE_GetCurrentMode() ));
+		}
+
+		if ( ulBits2 & SQF2_GAMEMODE_SHORTNAME )
+		{
+			g_MasterServerBuffer.ByteStream.WriteString( GAMEMODE_GetShortName( GAMEMODE_GetCurrentMode() ));
+		}
 	}
 
 //	NETWORK_LaunchPacket( &g_MasterServerBuffer, Address, true );

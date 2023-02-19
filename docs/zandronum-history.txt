@@ -36,6 +36,7 @@
 +	- Added ACS function: "SetGameplaySetting", allowing modders to change gameplay-related CVars on the fly. [Kaminsky]
 +	- Added "offlineonly" and "onlineonly" options to the game settings feature of the GAMEMODE lump. This allows some CVars to only be configured for offline or online games, or both. [Kaminsky]
 +	- Added the CVar "sv_distinguishteamchatlines", which distinguishes team chat messages from normal chat messages in the server console/logfile when sv_markchatlines is enabled. [Kaminsky]
++	- The server can now broadcast the name of the current game mode (as defined in the GAMEMODE lump) to launchers. [DrinkyBird]
 -	- Fixed: clients didn't initialize a sector's friction properly in some cases due to a superfluous check that wasn't removed earlier. [Kaminsky]
 -	- Fixed: the server wouldn't initialize compatflags and compatflags2 properly if entered as command line parameters. [Kaminsky]
 -	- Fixed: serverinfo CVars entered on the command line were restored in reverse order. [Kaminsky]

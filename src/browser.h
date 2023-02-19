@@ -145,6 +145,10 @@ typedef struct
 	// Ping to this server.
 	LONG			lPing;
 
+	// [SB] Names of the server's current gamemode.
+	FString			GameModeName;
+	FString			GameModeShortName;
+
 } SERVER_t;
 
 //*****************************************************************************
@@ -172,6 +176,8 @@ LONG			BROWSER_GetPlayerPing( ULONG ulServer, ULONG ulPlayer );
 LONG			BROWSER_GetPlayerSpectating( ULONG ulServer, ULONG ulPlayer );
 LONG			BROWSER_GetPing( ULONG ulServer );
 const char		*BROWSER_GetVersion( ULONG ulServer );
+const char		*BROWSER_GetGameModeName( ULONG ulServer ); // [SB]
+const char		*BROWSER_GetGameModeShortName( ULONG ulServer ); // [SB]
 
 void			BROWSER_ClearServerList( void );
 void			BROWSER_DeactivateAllServers( void );
