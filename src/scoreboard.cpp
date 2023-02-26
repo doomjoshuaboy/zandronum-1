@@ -1907,7 +1907,7 @@ void CompositeScoreColumn::ParseCommand( const FName Name, FScanner &sc, const C
 	{
 		case COLUMNCMD_COLUMNS:
 		{
-			SubColumns.Clear( );
+			ClearSubColumns( );
 
 			do
 			{
@@ -2076,6 +2076,28 @@ void CompositeScoreColumn::DrawValue( const ULONG ulPlayer, const ULONG ulColor,
 			SubColumns[i]->lRelX = SubColumns[i]->ulWidth = 0;
 		}
 	}
+}
+
+//*****************************************************************************
+//
+// [AK] CompositeScoreColumn::ClearSubColumns
+//
+// Empties the composite column's sub-column list. This also removes any
+// references the sub-columns have to the composite column and scoreboard.
+//
+//*****************************************************************************
+
+void CompositeScoreColumn::ClearSubColumns( void )
+{
+	for ( unsigned int i = 0; i < SubColumns.Size( ); i++ )
+	{
+		SubColumns[i]->pCompositeColumn = NULL;
+
+		if ( pScoreboard != NULL )
+			SubColumns[i]->pScoreboard = NULL;
+	}
+
+	SubColumns.Clear( );
 }
 
 //*****************************************************************************
@@ -2378,9 +2400,22 @@ void Scoreboard::Parse( FScanner &sc )
 				{
 					// [AK] Clear the list before adding the new columns to it.
 					if ( Command == SCOREBOARDCMD_COLUMNORDER )
+					{
+						TMapIterator<FName, ScoreColumn *> it( g_Columns );
+						TMap<FName, ScoreColumn *>::Pair *pair;
+
+						while ( it.NextPair( pair ))
+						{
+							if ( pair->Value->GetScoreboard( ) == this )
+								pair->Value->pScoreboard = NULL;
+						}
+
 						ColumnOrder.Clear( );
+					}
 					else
+					{
 						RankOrder.Clear( );
+					}
 
 					do
 					{

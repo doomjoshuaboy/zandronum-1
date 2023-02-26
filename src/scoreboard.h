@@ -399,6 +399,8 @@ public:
 	virtual void DrawValue( const ULONG ulPlayer, const ULONG ulColor, const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const;
 
 protected:
+	void ClearSubColumns( void );
+
 	TArray<DataScoreColumn *> SubColumns;
 
 	// [AK] Let the Scoreboard struct have access to the sub-columns array list.
