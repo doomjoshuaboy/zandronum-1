@@ -2396,8 +2396,12 @@ void Scoreboard::Parse( FScanner &sc )
 				}
 
 				case SCOREBOARDCMD_COLUMNORDER:
+				case SCOREBOARDCMD_ADDTOCOLUMNORDER:
 				case SCOREBOARDCMD_RANKORDER:
+				case SCOREBOARDCMD_ADDTORANKORDER:
 				{
+					const bool bAddToRankOrder = (( Command == SCOREBOARDCMD_RANKORDER ) || ( Command == SCOREBOARDCMD_ADDTORANKORDER ));
+
 					// [AK] Clear the list before adding the new columns to it.
 					if ( Command == SCOREBOARDCMD_COLUMNORDER )
 					{
@@ -2412,23 +2416,16 @@ void Scoreboard::Parse( FScanner &sc )
 
 						ColumnOrder.Clear( );
 					}
-					else
+					else if ( Command == SCOREBOARDCMD_RANKORDER )
 					{
 						RankOrder.Clear( );
 					}
 
 					do
 					{
-						AddColumnToList( sc, Command == SCOREBOARDCMD_RANKORDER );
+						AddColumnToList( sc, bAddToRankOrder );
 					} while ( sc.CheckToken( ',' ));
 
-					break;
-				}
-
-				case SCOREBOARDCMD_ADDTOCOLUMNORDER:
-				case SCOREBOARDCMD_ADDTORANKORDER:
-				{
-					AddColumnToList( sc, Command == SCOREBOARDCMD_ADDTORANKORDER );
 					break;
 				}
 
