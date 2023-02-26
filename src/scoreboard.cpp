@@ -1934,6 +1934,9 @@ void CompositeScoreColumn::ParseCommand( const FName Name, FScanner &sc, const C
 					pDataColumn->pCompositeColumn = this;
 			} while ( sc.CheckToken( ',' ));
 
+			if ( pScoreboard != NULL )
+				pScoreboard->RemoveInvalidColumnsInRankOrder( );
+
 			break;
 		}
 
@@ -2415,6 +2418,7 @@ void Scoreboard::Parse( FScanner &sc )
 						}
 
 						ColumnOrder.Clear( );
+						RemoveInvalidColumnsInRankOrder( );
 					}
 					else if ( Command == SCOREBOARDCMD_RANKORDER )
 					{
@@ -3070,6 +3074,24 @@ void Scoreboard::DrawRowBackground( const PalEntry color, const int y, const flo
 	else
 	{
 		DrawRowBackground( color, lRelX + ulBackgroundBorderSize, y, ulWidth - 2 * ulBackgroundBorderSize, height, fAlpha );
+	}
+}
+
+//*****************************************************************************
+//
+// [AK] Scoreboard::RemoveInvalidColumnsInRankOrder
+//
+// Checks if there are any columns in the scoreboard's rank order that aren't
+// actually on the scoreboard. Any invalid entries are removed from the list.
+//
+//*****************************************************************************
+
+void Scoreboard::RemoveInvalidColumnsInRankOrder( void )
+{
+	for ( int i = 0; i < static_cast<int>( RankOrder.Size( )); i++ )
+	{
+		if ( RankOrder[i]->GetScoreboard( ) != this )
+			RankOrder.Delete( i-- );
 	}
 }
 
