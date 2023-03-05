@@ -136,7 +136,7 @@ static FRandom pr_multiclasschoice ("MultiClassChoice");
 static FRandom pr_rockettrail("RocketTrail");
 static FRandom pr_uniquetid("UniqueTID");
 
-/*static*/	IDList<AActor> g_NetIDList;
+/*static*/	IDList<AActor> g_ActorNetIDList;
 static	ULONG		g_ulFirstFreeNetID = 1;
 
 static	LONG	g_lSpawnCount = 0;
@@ -389,8 +389,8 @@ void AActor::Serialize (FArchive &arc)
 		// [BB] If the the actor needs one, generate a new netID.
 		if ( !( NetworkFlags & NETFL_NONETID ) && !( NetworkFlags & NETFL_SERVERSIDEONLY ) )
 		{
-			NetID = g_NetIDList.getNewID( );
-			g_NetIDList.useID ( NetID, this );
+			NetID = g_ActorNetIDList.getNewID( );
+			g_ActorNetIDList.useID ( NetID, this );
 		}
 
 		touching_sectorlist = NULL;
@@ -4836,7 +4836,7 @@ template class IDList<AActor>;
 
 void AActor::FreeNetID ()
 {
-	g_NetIDList.freeID ( NetID );
+	g_ActorNetIDList.freeID ( NetID );
 	NetID = -1;
 }
 
@@ -5050,8 +5050,8 @@ AActor *AActor::StaticSpawn (const PClass *type, fixed_t ix, fixed_t iy, fixed_t
 	if ((( actor->NetworkFlags & NETFL_NONETID ) == false ) && ( ( actor->NetworkFlags & NETFL_SERVERSIDEONLY ) == false ) &&
 		( NETWORK_InClientMode() == false ))
 	{
-		actor->NetID = g_NetIDList.getNewID( );
-		g_NetIDList.useID ( actor->NetID, actor );
+		actor->NetID = g_ActorNetIDList.getNewID( );
+		g_ActorNetIDList.useID ( actor->NetID, actor );
 		if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && sv_showspawnnames )
 			Printf ( "%s %d\n", actor->GetClass()->TypeName.GetChars(), actor->NetID );
 	}
@@ -5292,7 +5292,7 @@ bool AActor::IsActive( void ) const
 void AActor::Destroy ()
 {
 	// [BC/BB] Free it's network ID.
-	g_NetIDList.freeID ( NetID );
+	g_ActorNetIDList.freeID ( NetID );
 
 	NetID = -1;
 
@@ -6470,8 +6470,8 @@ AActor *P_SpawnPuff (AActor *source, const PClass *pufftype, fixed_t x, fixed_t 
 		{
 			if ( puff->NetID == -1 )
 			{
-				puff->NetID = g_NetIDList.getNewID( );
-				g_NetIDList.useID ( puff->NetID , puff );
+				puff->NetID = g_ActorNetIDList.getNewID( );
+				g_ActorNetIDList.useID ( puff->NetID, puff );
 			}
 
 			SERVERCOMMANDS_SpawnPuff( puff );

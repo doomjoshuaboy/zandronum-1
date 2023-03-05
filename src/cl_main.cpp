@@ -2637,7 +2637,7 @@ AActor *CLIENT_SpawnThing( const PClass *pType, fixed_t X, fixed_t Y, fixed_t Z,
 		}
 
 		pActor->NetID = lNetID;
-		g_NetIDList.useID ( lNetID, pActor );
+		g_ActorNetIDList.useID ( lNetID, pActor );
 
 		pActor->SpawnPoint[0] = X;
 		pActor->SpawnPoint[1] = Y;
@@ -2712,7 +2712,7 @@ void CLIENT_SpawnMissile( const PClass *pType, fixed_t X, fixed_t Y, fixed_t Z, 
 	pActor->angle = R_PointToAngle2( 0, 0, VelX, VelY );
 
 	pActor->NetID = lNetID;
-	g_NetIDList.useID ( lNetID, pActor );
+	g_ActorNetIDList.useID ( lNetID, pActor );
 
 	// Play the seesound if this missile has one.
 	if ( pActor->SeeSound )
@@ -2803,7 +2803,7 @@ bool CLIENT_GainingRCONAccess()
 //
 AActor *CLIENT_FindThingByNetID( LONG lNetID )
 {
-    return ( g_NetIDList.findPointerByID ( lNetID ) );
+    return ( g_ActorNetIDList.findPointerByID ( lNetID ) );
 }
 
 //*****************************************************************************
@@ -3381,13 +3381,13 @@ void ServerCommands::SpawnPlayer::Execute()
 		return;
 	}
 
-	AActor *pOldNetActor = g_NetIDList.findPointerByID ( netid );
+	AActor *pOldNetActor = g_ActorNetIDList.findPointerByID ( netid );
 
 	// If there's already an actor with this net ID, kill it!
 	if ( pOldNetActor != NULL )
 	{
 		pOldNetActor->Destroy( );
-		g_NetIDList.freeID ( netid );
+		g_ActorNetIDList.freeID ( netid );
 	}
 
 	// [BB] Potentially print the player number, position, and network ID of the player spawning.
@@ -3516,7 +3516,7 @@ void ServerCommands::SpawnPlayer::Execute()
 
 	// Set the network ID.
 	pPlayer->mo->NetID = netid;
-	g_NetIDList.useID ( netid, pPlayer->mo );
+	g_ActorNetIDList.useID ( netid, pPlayer->mo );
 
 	// Set the spectator variables [after G_PlayerReborn so our data doesn't get lost] [BB] Why?.
 	// [BB] To properly handle that true spectators don't get default inventory, we need to set this

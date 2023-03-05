@@ -1441,7 +1441,7 @@ void G_DoLoadLevel (int position, bool autosave)
 				bSnapshotFound = true;
 		}
 		if ( bSnapshotFound == false )
-			g_NetIDList.clear( );
+			g_ActorNetIDList.clear( );
 	}
 
 	P_SetupLevel (level.mapname, position);
@@ -1889,7 +1889,7 @@ void G_FinishTravel ()
 
 			// [BC]
 			pawn->NetID = lSavedNetID;
-			g_NetIDList.useID ( pawn->NetID, pawn );
+			g_ActorNetIDList.useID ( pawn->NetID, pawn );
 
 			for (inv = pawn->Inventory; inv != NULL; inv = inv->Inventory)
 			{
@@ -2310,7 +2310,7 @@ void G_UnSnapshotLevel (bool hubLoad)
 	if (level.info->isValid())
 	{
 		// [BB] Make sure that the NetID list is valid. Loading a snapshot generates new NetIDs for the loaded actors.
-		g_NetIDList.rebuild();
+		g_ActorNetIDList.rebuild();
 
 		SaveVersion = level.info->snapshotVer;
 		level.info->snapshot->Reopen ();

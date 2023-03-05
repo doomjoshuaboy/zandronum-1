@@ -790,7 +790,7 @@ void BOTCMD_DoChatStringSubstitutions( CSkullBot *pBot, FString &Input )
 //
 bool BOTCMD_IgnoreItem( CSkullBot *pBot, LONG lIdx, bool bVisibilityCheck )
 {
-	AActor *pActor = g_NetIDList.findPointerByID ( lIdx );
+	AActor *pActor = g_ActorNetIDList.findPointerByID ( lIdx );
 	if (( pActor == NULL ) ||
 		(( pActor->flags & MF_SPECIAL ) == false ) ||
 		( bVisibilityCheck && ( BOTS_IsVisible( pBot->GetPlayer( )->mo, pActor ) == false )))
@@ -930,7 +930,7 @@ int botcmd_LookForItemType( CSkullBot *pBot, const char *FunctionName )
 	botcmd_ValidateItemNetID( lIdx, FunctionName );
 
 	while (( BOTCMD_IgnoreItem( pBot, lIdx, bVisibilityCheck )) ||
-		( g_NetIDList.findPointerByID ( lIdx )->GetClass( )->IsDescendantOf( RUNTIME_CLASS( T )) == false ))
+		( g_ActorNetIDList.findPointerByID ( lIdx )->GetClass( )->IsDescendantOf( RUNTIME_CLASS( T )) == false ))
 	{
 		if ( ++lIdx == IDList<AActor>::MAX_NETID )
 			break;
@@ -979,7 +979,7 @@ int botcmd_LookForItemWithFlag( CSkullBot *pBot, const int Flag, const char *Fun
 	botcmd_ValidateItemNetID( lIdx, FunctionName );
 
 	while (( BOTCMD_IgnoreItem( pBot, lIdx, bVisibilityCheck )) ||
-		(( g_NetIDList.findPointerByID ( lIdx )->STFlags & Flag ) == false ))
+		(( g_ActorNetIDList.findPointerByID ( lIdx )->STFlags & Flag ) == false ))
 	{
 		if ( ++lIdx == IDList<AActor>::MAX_NETID )
 			break;
@@ -1641,7 +1641,7 @@ static void botcmd_GetPathingCostToItem( CSkullBot *pBot )
 
 	botcmd_ValidateItemNetID( lItem, "botcmd_GetPathingCostToItem" );
 
-	AActor *pActor = g_NetIDList.findPointerByID ( lItem );
+	AActor *pActor = g_ActorNetIDList.findPointerByID ( lItem );
 	if ( pActor == NULL )
 	{
 		g_iReturnInt = -1;
@@ -1677,7 +1677,7 @@ static void botcmd_GetDistanceToItem( CSkullBot *pBot )
 
 	botcmd_ValidateItemNetID( lItem, "botcmd_GetDistanceToItem" );
 
-	AActor *pActor = g_NetIDList.findPointerByID ( lItem );
+	AActor *pActor = g_ActorNetIDList.findPointerByID ( lItem );
 	if ( pActor )
 	{
 		g_iReturnInt = abs( P_AproxDistance( pActor->x - pBot->GetPlayer( )->mo->x, 
@@ -1698,7 +1698,7 @@ static void botcmd_GetItemName( CSkullBot *pBot )
 
 	botcmd_ValidateItemNetID( lItem, "botcmd_GetItemName" );
 
-	AActor *pActor = g_NetIDList.findPointerByID ( lItem );
+	AActor *pActor = g_ActorNetIDList.findPointerByID ( lItem );
 	if ( pActor )
 	{
 		if ( strlen( pActor->GetClass( )->TypeName.GetChars( )) < BOTCMD_RETURNSTRING_SIZE )
@@ -1721,7 +1721,7 @@ static void botcmd_IsItemVisible( CSkullBot *pBot )
 
 	botcmd_ValidateItemNetID( lIdx, "botcmd_IsItemVisible" );
 
-	AActor *pActor = g_NetIDList.findPointerByID ( lIdx );
+	AActor *pActor = g_ActorNetIDList.findPointerByID ( lIdx );
 	if ( pActor )
 	{
 
@@ -1766,7 +1766,7 @@ static void botcmd_SetGoal( CSkullBot *pBot )
 
 	botcmd_ValidateItemNetID( lIdx, "botcmd_SetGoal" );
 
-	AActor *pActor = g_NetIDList.findPointerByID ( lIdx );
+	AActor *pActor = g_ActorNetIDList.findPointerByID ( lIdx );
 	if ( pActor )
 	{
 		pBot->m_pGoalActor = pActor;
@@ -1995,7 +1995,7 @@ static void botcmd_GetWeaponFromItem( CSkullBot *pBot )
 
 	botcmd_ValidateItemNetID( lItem, "botcmd_GetWeaponFromItem" );
 
-	AActor *pActor = g_NetIDList.findPointerByID ( lItem );
+	AActor *pActor = g_ActorNetIDList.findPointerByID ( lItem );
 	if ( pActor )
 	{
 		if ( pActor->GetClass( )->IsDescendantOf( RUNTIME_CLASS( AWeapon )) == false )
@@ -2023,7 +2023,7 @@ static void botcmd_IsWeaponOwned( CSkullBot *pBot )
 
 	botcmd_ValidateItemNetID( lItem, "botcmd_IsWeaponOwned" );
 
-	AActor *pActor = g_NetIDList.findPointerByID ( lItem );
+	AActor *pActor = g_ActorNetIDList.findPointerByID ( lItem );
 	if ( pActor )
 	{
 		if ( pActor->GetClass( )->IsDescendantOf( RUNTIME_CLASS( AWeapon )) == false )

@@ -196,7 +196,7 @@ void COOP_SpawnVoodooDollsForPlayerIfNecessary ( const ULONG ulPlayer, const boo
 
 			// [BB] The clients will not spawn the doll, so mark it accordingly and free it's network ID.
 			pDoll->NetworkFlags |= NETFL_SERVERSIDEONLY;
-			g_NetIDList.freeID ( pDoll->NetID );
+			g_ActorNetIDList.freeID ( pDoll->NetID );
 			pDoll->NetID = -1;
 
 			// [BB] If we would just set the player pointer to NULL, a lot of things wouldn't work

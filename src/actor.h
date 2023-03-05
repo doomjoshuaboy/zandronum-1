@@ -1415,5 +1415,5 @@ public:
 	}
 };
 
-extern	IDList<AActor> g_NetIDList;
+extern	IDList<AActor> g_ActorNetIDList;
 #endif // __P_MOBJ_H__
