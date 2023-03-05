@@ -402,7 +402,18 @@ bool ColumnValue::operator== ( const ColumnValue &Other ) const
 				return ( GetValue<float>( ) == Other.GetValue<float>( ));
 
 			case COLUMNDATA_STRING:
-				return ( strcmp( GetValue<const char *>( ), Other.GetValue<const char *>( )) == 0 );
+			{
+				const char *pszString1 = GetValue<const char *>( );
+				const char *pszString2 = Other.GetValue<const char *>( );
+
+				// [AK] If one of the strings is NULL, then return either true if
+				// both of them are NULL (i.e. pszString1 and pszString2 are equal),
+				// or false otherwise.
+				if (( pszString1 == NULL ) || ( pszString2 == NULL ))
+					return ( pszString1 == pszString2 );
+
+				return ( strcmp( pszString1, pszString2 ) == 0 );
+			}
 
 			case COLUMNDATA_COLOR:
 				return ( GetValue<PalEntry>( ) == Other.GetValue<PalEntry>( ));
