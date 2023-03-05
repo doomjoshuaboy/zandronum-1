@@ -137,7 +137,6 @@ static FRandom pr_rockettrail("RocketTrail");
 static FRandom pr_uniquetid("UniqueTID");
 
 /*static*/	IDList<AActor> g_ActorNetIDList;
-static	ULONG		g_ulFirstFreeNetID = 1;
 
 static	LONG	g_lSpawnCount = 0;
 static	cycle_t	g_SpawnCycles;
