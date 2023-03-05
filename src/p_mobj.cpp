@@ -136,7 +136,8 @@ static FRandom pr_multiclasschoice ("MultiClassChoice");
 static FRandom pr_rockettrail("RocketTrail");
 static FRandom pr_uniquetid("UniqueTID");
 
-/*static*/	IDList<AActor> g_ActorNetIDList;
+template <> const char *NetIDTrait<AActor>::pszName = "actor"; // [AK]
+/*static*/	ActorNetIDList g_ActorNetIDList;
 
 static	LONG	g_lSpawnCount = 0;
 static	cycle_t	g_SpawnCycles;
@@ -4745,15 +4746,12 @@ bool AActor::UpdateWaterLevel (fixed_t oldz, bool dosplash)
 	return false;	// we did the splash ourselves
 }
 
-
-//==========================================================================
-//
 //*****************************************************************************
 //
-template <typename T>
-void IDList<T>::clear( void )
+template <typename Type, int NumSlots>
+void NetIDList<Type, NumSlots>::clear( void )
 {
-	for ( ULONG ulIdx = 0; ulIdx < MAX_NETID; ulIdx++ )
+	for ( ULONG ulIdx = 0; ulIdx < NumSlots; ulIdx++ )
 		freeID ( ulIdx );
 
 	_firstFreeID = 1;
@@ -4761,51 +4759,31 @@ void IDList<T>::clear( void )
 
 //*****************************************************************************
 //
-template <typename T>
-void IDList<T>::rebuild( void )
-{
-	clear();
-
-	T *pActor;
-
-	TThinkerIterator<T> it;
-
-	while ( (pActor = it.Next()) )
-	{
-		if (( pActor->NetID > 0 ) && ( pActor->NetID < MAX_NETID ))
-			useID ( pActor->NetID, pActor );
-	}
-}
-
-//*****************************************************************************
-//
-template <typename T>
-void IDList<T>::useID ( const LONG lNetID, T *pActor )
+template <typename Type, int NumSlots>
+void NetIDList<Type, NumSlots>::useID ( const LONG lNetID, Type *pObject )
 {
 	if ( isIndexValid ( lNetID ) )
 	{
-		if ( ( _entries[lNetID].bFree == false ) && ( _entries[lNetID].pActor != pActor ) )
-			SERVER_PrintWarning ( "IDList<T>::useID is using an already used ID.\n" );
+		if ( ( _entries[lNetID].bFree == false ) && ( _entries[lNetID].pObject != pObject ) )
+			SERVER_PrintWarning ( "NetIDList<Type, NumSlots, ErrorIsFatal>::useID is using an already used ID.\n" );
 
 		_entries[lNetID].bFree = false;
-		_entries[lNetID].pActor = pActor;
+		_entries[lNetID].pObject = pObject;
 	}
 }
 
 //*****************************************************************************
 //
-void CountActors ( ); // [BB]
-
-template <typename T>
-ULONG IDList<T>::getNewID( void )
+template <typename Type, int NumSlots>
+ULONG NetIDList<Type, NumSlots>::getNewID( void )
 {
-	// Actor's network ID is the first availible net ID.
+	// Object's network ID is the first availible net ID.
 	ULONG ulID = _firstFreeID;
 
 	do
 	{
 		_firstFreeID++;
-		if ( _firstFreeID >= MAX_NETID )
+		if ( _firstFreeID >= NumSlots )
 			_firstFreeID = 1;
 
 		if ( _firstFreeID == ulID )
@@ -4813,11 +4791,14 @@ ULONG IDList<T>::getNewID( void )
 			// [BB] In case there is no free netID, the server has to abort the current game.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			{
-				// [BB] We can only spawn (MAX_NETID-2) actors with netID, because ID zero is reserved and
-				// we already check that a new ID for the next actor is available when assign a net ID.
-				Printf( "ACTOR_GetNewNetID: Network ID limit reached (>=%d actors)\n", MAX_NETID - 1 );
-				CountActors ( );
-				I_Error ("Network ID limit reached (>=%d actors)!\n", MAX_NETID - 1 );
+				FString errorMessage;
+				errorMessage.Format ( "Network ID limit reached (>=%d %ss)", NumSlots - 1, NetIDTrait<Type>::pszName );
+
+				// [BB] We can only have (NumSlots-2) objects with netID, because ID zero is reserved and
+				// we already check that a new ID for the next object is available when assign a net ID.
+				Printf ( "NetIDList<Type, NumSlots, ErrorIsFatal>: %s\n", errorMessage.GetChars( ) );
+				NetIDTrait<Type>::count ( );
+				I_Error ( "%s!\n", errorMessage.GetChars( ) );
 			}
 
 			return ( 0 );
@@ -4827,8 +4808,70 @@ ULONG IDList<T>::getNewID( void )
 	return ( ulID );
 }
 
-template class IDList<AActor>;
+//==========================================================================
+//
+// [BB/AK] NetIDTrait<AActor>::count
+//
+// Counts how many actors there are, and how many have network IDs.
+//
+//==========================================================================
 
+template <> void NetIDTrait<AActor>::count( void )
+{
+	TMap<FName, int> actorCountMap;
+	AActor *mo;
+	int numActors = 0;
+	int numActorsWithNetID = 0;
+
+	TThinkerIterator<AActor> it;
+
+	while ( mo = it.Next( ) )
+	{
+		numActors++;
+		if ( mo->NetID > 0 )
+			numActorsWithNetID++;
+		const FName curName = mo->GetClass( )->TypeName.GetChars( );
+		if ( actorCountMap.CheckKey( curName ) == NULL )
+			actorCountMap.Insert( curName, 1 );
+		else
+			actorCountMap [ curName ] ++;
+	}
+
+	const TMap<FName, int>::Pair *pair;
+
+	Printf ( "%d actors in total found, %d have a NetID. Detailed listing:\n", numActors, numActorsWithNetID );
+
+	TMap<FName, int>::ConstIterator mapit( actorCountMap );
+	while ( mapit.NextPair ( pair ) )
+	{
+		Printf ( "%s %d\n", pair->Key.GetChars( ), pair->Value );
+	}
+}
+
+//==========================================================================
+//
+// [BB/AK] ActorNetIDList::rebuild
+//
+// Rebuilds the global list of used / free NetIDs from scratch.
+//
+//==========================================================================
+
+void ActorNetIDList::rebuild( void )
+{
+	clear ( );
+
+	AActor *pActor;
+	TThinkerIterator<AActor> it;
+
+	while ( pActor = it.Next( ) )
+	{
+		if ( ( pActor->NetID > 0 ) && ( static_cast<ULONG>( pActor->NetID ) < getMaxID( ) ) )
+			useID ( pActor->NetID, pActor );
+	}
+}
+
+//==========================================================================
+//
 // [BB] AActor::FreeNetID
 //
 //==========================================================================

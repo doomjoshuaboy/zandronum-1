@@ -1626,41 +1626,9 @@ CCMD(version_info)
 // [BB]
 //
 //-----------------------------------------------------------------------------
-void CountActors ( )
-{
-	TMap<FName, int> actorCountMap;
-	AActor * mo;
-	int numActors = 0;
-	int numActorsWithNetID = 0;
-
-	TThinkerIterator<AActor> it;
-
-	while ( (mo = it.Next()) )
-	{
-		numActors++;
-		if ( mo->NetID > 0 )
-			numActorsWithNetID++;
-		const FName curName = mo->GetClass()->TypeName.GetChars();
-		if ( actorCountMap.CheckKey( curName ) == NULL )
-			actorCountMap.Insert( curName, 1 );
-		else
-			actorCountMap [ curName ] ++;
-	}
-
-	const TMap<FName, int>::Pair *pair;
-
-	Printf ( "%d actors in total found, %d have a NetID. Detailed listing:\n", numActors, numActorsWithNetID );
-
-	TMap<FName, int>::ConstIterator mapit(actorCountMap);
-	while (mapit.NextPair (pair))
-	{
-		Printf ( "%s %d\n", pair->Key.GetChars(), pair->Value );
-	}
-}
-
 CCMD(countactors)
 {
-	CountActors ();
+	NetIDTrait<AActor>::count( );
 }
 
 // [Cata] Executes cmd only if you are a spectator.

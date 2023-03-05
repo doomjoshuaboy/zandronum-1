@@ -1344,7 +1344,7 @@ void PrintMiscActorInfo(AActor * query);
 
 //==========================================================================
 //
-// IDList
+// NetIDList
 //
 // Manages IDs to reference a certain type of objects over the network.
 // Since it still mimics the old Actor ID mechanism, 0 is never assigned as
@@ -1354,66 +1354,82 @@ void PrintMiscActorInfo(AActor * query);
 //
 //==========================================================================
 
-template <typename T>
-class IDList
+// [AK] Added a trait template struct to identify and count objects used by NetIDList.
+template <typename Type>
+struct NetIDTrait
 {
-public:
-	const static int MAX_NETID = 32768;
+	// The name of the object.
+	static const char *pszName;
 
+	// Supposed to count all defined "objects" (with network IDs) when an error is thrown
+	// because there's no more free network IDs.
+	static void count( );
+};
+
+template <typename Type, int NumSlots>
+class NetIDList
+{
 private:
-	// List of all possible network ID's for an actor. Slot is true if it available for use.
+	// List of all possible network ID's for an object. Slot is true if it available for use.
 	typedef struct
 	{
-		// Is this node occupied, or free to be used by a new actor?
+		// Is this node occupied, or free to be used by a new object?
 		bool	bFree;
 
-		// If this node is occupied, this is the actor occupying it.
-		T	*pActor;
+		// If this node is occupied, this is the object occupying it.
+		Type	*pObject;
 
 	} IDNODE_t;
 
-	IDNODE_t _entries[MAX_NETID];
+	IDNODE_t _entries[NumSlots];
 	ULONG _firstFreeID;
 
 	inline bool isIndexValid ( const LONG lNetID ) const
 	{
-		return ( lNetID >= 0 ) && ( lNetID < MAX_NETID );
+		return ( lNetID >= 0 ) && ( lNetID < NumSlots );
 	}
 public:
 	void clear ( );
 
-	// [BB] Rebuild the global list of used / free NetIDs from scratch.
-	void rebuild ( );
-
-	IDList ( )
+	NetIDList ( )
 	{
 		clear ( );
 	}
 
-	void useID ( const LONG lNetID, T *pActor );
+	void useID ( const LONG lNetID, Type *pObject );
 
 	void freeID ( const LONG lNetID )
 	{
 		if ( isIndexValid ( lNetID ) )
 		{
 			_entries[lNetID].bFree = true;
-			_entries[lNetID].pActor = NULL;
+			_entries[lNetID].pObject = NULL;
 		}
 	}
 
 	ULONG getNewID ( );
 
-	T* findPointerByID ( const LONG lNetID ) const
+	// [AK] Returns the number of possible network IDs.
+	ULONG getMaxID ( ) const { return NumSlots; }
+
+	Type* findPointerByID ( const LONG lNetID ) const
 	{
 		if ( isIndexValid ( lNetID ) == false )
 			return ( NULL );
 
-		if (( _entries[lNetID].bFree == false ) && ( _entries[lNetID].pActor ))
-			return ( _entries[lNetID].pActor );
+		if (( _entries[lNetID].bFree == false ) && ( _entries[lNetID].pObject ))
+			return ( _entries[lNetID].pObject );
 
 		return ( NULL );
 	}
 };
 
-extern	IDList<AActor> g_ActorNetIDList;
+// [AK] Template specialization of NetIDList, specifically for AActor.
+class ActorNetIDList : public NetIDList<AActor, SHRT_MAX + 1>
+{
+public:
+	void rebuild( );
+};
+
+extern	ActorNetIDList g_ActorNetIDList;
 #endif // __P_MOBJ_H__
