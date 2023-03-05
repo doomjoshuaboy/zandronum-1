@@ -1888,7 +1888,7 @@ static DataScoreColumn *GetDataScoreColumn ( const char *pszColumnName )
 //
 // ================================================================================================
 
-static CustomScoreColumnBase *GetCustomScoreColumn ( const char *pszColumnName )
+static CustomScoreColumn *GetCustomScoreColumn ( const char *pszColumnName )
 {
 	ScoreColumn *pColumn = SCOREBOARD_GetColumn( pszColumnName, true );
 
@@ -1896,7 +1896,7 @@ static CustomScoreColumnBase *GetCustomScoreColumn ( const char *pszColumnName )
 	if (( pColumn == NULL ) || ( pColumn->IsCustomColumn( ) == false ))
 		return NULL;
 
-	return static_cast<CustomScoreColumnBase *>( pColumn );
+	return static_cast<CustomScoreColumn *>( pColumn );
 }
 
 //---- Plane watchers ----//
@@ -7920,7 +7920,7 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 
 		case ACSF_SetCustomColumnValue:
 			{
-				CustomScoreColumnBase *pCustomColumn = GetCustomScoreColumn( FBehavior::StaticLookupString( args[0] ));
+				CustomScoreColumn *pCustomColumn = GetCustomScoreColumn( FBehavior::StaticLookupString( args[0] ));
 
 				// [AK] Make sure that the column and player are both valid.
 				if (( pCustomColumn != NULL ) && ( PLAYER_IsValidPlayer( args[1] )))
@@ -7963,7 +7963,7 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 
 		case ACSF_GetCustomColumnValue:
 			{
-				CustomScoreColumnBase *pCustomColumn = GetCustomScoreColumn( FBehavior::StaticLookupString( args[0] ));
+				CustomScoreColumn *pCustomColumn = GetCustomScoreColumn( FBehavior::StaticLookupString( args[0] ));
 
 				// [AK] Make sure that the column and player are both valid.
 				if (( pCustomColumn != NULL ) && ( PLAYER_IsValidPlayer( args[1] )))
@@ -8000,7 +8000,7 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 
 		case ACSF_ResetCustomColumnToDefault:
 			{
-				CustomScoreColumnBase *pCustomColumn = GetCustomScoreColumn( FBehavior::StaticLookupString( args[0] ));
+				CustomScoreColumn *pCustomColumn = GetCustomScoreColumn( FBehavior::StaticLookupString( args[0] ));
 				const ULONG ulPlayer = args[1] < 0 ? MAXPLAYERS : args[1];
 
 				// [AK] Make sure that the column and player are both valid (unless we're resetting for all players).

@@ -322,9 +322,8 @@ void ColumnValue::TransferValue ( const ColumnValue &Other )
 //
 // [AK] ColumnValue::ChangeDataType
 //
-// Changes the data type of a ColumnValue object, but also deletes its string
-// from memory if it's holding one. This should only be called when a new value
-// is being assigned.
+// Changes the data type of a ColumnValue object, then deletes its string from
+// memory if it's holding one.
 //
 //*****************************************************************************
 
@@ -335,6 +334,30 @@ void ColumnValue::ChangeDataType( COLUMNDATA_e NewDataType )
 
 	DeleteString( );
 	DataType = NewDataType;
+
+	switch ( DataType )
+	{
+		case COLUMNDATA_INT:
+		case COLUMNDATA_COLOR:
+			Int = 0;
+			break;
+
+		case COLUMNDATA_BOOL:
+			Bool = false;
+			break;
+
+		case COLUMNDATA_FLOAT:
+			Float = 0.0f;
+			break;
+
+		case COLUMNDATA_STRING:
+			String = NULL;
+			break;
+
+		case COLUMNDATA_TEXTURE:
+			Texture = NULL;
+			break;
+	}
 }
 
 //*****************************************************************************
@@ -1687,24 +1710,16 @@ void CountryFlagScoreColumn::DrawValue( const ULONG ulPlayer, const ULONG ulColo
 //
 // [AK] CustomScoreColumn::CustomScoreColumn
 //
-// Initializes the custom column's default value to zero (e.g. 0 for integers,
-// booleans, floats, or colors, and NULL for strings or textures).
+// Initializes the custom column's data type and sets its default value to zero
+// (e.g. 0 for integers, booleans, floats, or colors, and NULL for strings
+// or textures).
 //
 //*****************************************************************************
 
-template <typename VariableType>
-CustomScoreColumn<VariableType>::CustomScoreColumn( const char *pszName ) : CustomScoreColumnBase( pszName )
+CustomScoreColumn::CustomScoreColumn( COLUMNDATA_e DataType, const char *pszName ) : DataScoreColumn( COLUMNTYPE_CUSTOM, pszName ), CurrentDataType( COLUMNDATA_UNKNOWN )
 {
-	ColumnValue Val;
-
-	// [AK] Right now, DefaultVal has no data type (i.e. COLUMNDATA_UNKNOWN).
-	// ColumnValue::GetValue always returns the "zero" value of each data type when
-	// this is the case, so we'll use this to help initialize the default value.
-	VariableType temp = DefaultVal.GetValue<VariableType>( );
-
-	// [AK] Note: the "temp" variable will also set the correct data type of the
-	// "DefaultVal" ColumnValue object.
-	DefaultVal = temp;
+	ValidateDataType( DataType, "CustomScoreColumn::CustomScoreColumn" );
+	SetDataType( DataType );
 }
 
 //*****************************************************************************
@@ -1716,17 +1731,9 @@ CustomScoreColumn<VariableType>::CustomScoreColumn( const char *pszName ) : Cust
 //
 //*****************************************************************************
 
-template <typename VariableType>
-ColumnValue CustomScoreColumn<VariableType>::GetValue( ULONG ulPlayer ) const
+ColumnValue CustomScoreColumn::GetValue( ULONG ulPlayer ) const
 {
-	ColumnValue Result;
-
-	if ( PLAYER_IsValidPlayer( ulPlayer ))
-		Result = Val[ulPlayer];
-	else
-		Result = DefaultVal;
-
-	return Result;
+	return PLAYER_IsValidPlayer( ulPlayer ) ? Val[ulPlayer] : DefaultVal;
 }
 
 //*****************************************************************************
@@ -1737,10 +1744,33 @@ ColumnValue CustomScoreColumn<VariableType>::GetValue( ULONG ulPlayer ) const
 //
 //*****************************************************************************
 
-template <typename VariableType>
-ColumnValue CustomScoreColumn<VariableType>::GetDefaultValue( void ) const
+ColumnValue CustomScoreColumn::GetDefaultValue( void ) const
 {
 	return DefaultVal;
+}
+
+//*****************************************************************************
+//
+// [AK] CustomScoreColumn::SetDataType
+//
+// Changes the columm's data type and zeroes every player's value.
+//
+//*****************************************************************************
+
+void CustomScoreColumn::SetDataType( COLUMNDATA_e NewDataType )
+{
+	if ( CurrentDataType == NewDataType )
+		return;
+
+	ValidateDataType( NewDataType, "CustomScoreColumn::SetDataType" );
+	CurrentDataType = NewDataType;
+
+	// [AK] We changed the custom column's data type. Now we need to do the same with
+	// the (default) values and zero everything.
+	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+		Val[ulIdx].ChangeDataType( CurrentDataType );
+
+	DefaultVal.ChangeDataType( CurrentDataType );
 }
 
 //*****************************************************************************
@@ -1751,13 +1781,10 @@ ColumnValue CustomScoreColumn<VariableType>::GetDefaultValue( void ) const
 //
 //*****************************************************************************
 
-template <typename VariableType>
-void CustomScoreColumn<VariableType>::SetValue( const ULONG ulPlayer, const ColumnValue &Value )
+void CustomScoreColumn::SetValue( const ULONG ulPlayer, const ColumnValue &Value )
 {
-	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
-		return;
-
-	Val[ulPlayer] = Value.GetValue<VariableType>( );
+	if ( PLAYER_IsValidPlayer( ulPlayer ))
+		TryChangingValue( Val[ulPlayer], Value, "CustomScoreColumn::SetValue" );
 }
 
 //*****************************************************************************
@@ -1768,14 +1795,9 @@ void CustomScoreColumn<VariableType>::SetValue( const ULONG ulPlayer, const Colu
 //
 //*****************************************************************************
 
-template <typename VariableType>
-void CustomScoreColumn<VariableType>::SetDefaultValue( const ColumnValue &Value )
+void CustomScoreColumn::SetDefaultValue( const ColumnValue &Value )
 {
-	// [AK] Only set the value if the data types match. Otherwise, throw a fatal error.
-	if ( GetDataType( ) == Value.GetDataType( ))
-		DefaultVal = Value;
-	else
-		I_Error( "CustomScoreColumn::SetDefaultValue: tried assigning a different data type to the default value." );
+	TryChangingValue( DefaultVal, Value, "CustomScoreColumn::SetDefaultValue" );
 }
 
 //*****************************************************************************
@@ -1786,8 +1808,7 @@ void CustomScoreColumn<VariableType>::SetDefaultValue( const ColumnValue &Value 
 //
 //*****************************************************************************
 
-template <typename VariableType>
-void CustomScoreColumn<VariableType>::ParseCommand( const FName Name, FScanner &sc, const COLUMNCMD_e Command, const FString CommandName )
+void CustomScoreColumn::ParseCommand( const FName Name, FScanner &sc, const COLUMNCMD_e Command, const FString CommandName )
 {
 	switch ( Command )
 	{
@@ -1871,26 +1892,56 @@ void CustomScoreColumn<VariableType>::ParseCommand( const FName Name, FScanner &
 //
 //*****************************************************************************
 
-template <typename VariableType>
-void CustomScoreColumn<VariableType>::ResetToDefault( const ULONG ulPlayer, const bool bChangingLevel )
+void CustomScoreColumn::ResetToDefault( const ULONG ulPlayer, const bool bChangingLevel )
 {
 	// [AK] Don't reset to default if this column forbids it during a level change.
 	if (( bChangingLevel ) && ( ulFlags & COLUMNFLAG_DONTRESETONLEVELCHANGE ))
 		return;
 
-	const ColumnValue DefaultValue = GetDefaultValue( );
-
 	// [AK] Check if we want to restore the default value for all players.
 	if ( ulPlayer == MAXPLAYERS )
 	{
 		for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-			Val[ulIdx] = DefaultValue.GetValue<VariableType>( );
+			Val[ulIdx] = DefaultVal;
 	}
 	// [AK] Otherwise, restore it only for the one player.
 	else if ( ulPlayer < MAXPLAYERS )
 	{
-		Val[ulPlayer] = DefaultValue.GetValue<VariableType>( );
+		Val[ulPlayer] = DefaultVal;
 	}
+}
+
+//*****************************************************************************
+//
+// [AK] CustomScoreColumn::ValidateDataType
+//
+// Checks if a data type is valid, and throws a fatal error if it isn't.
+//
+//*****************************************************************************
+
+void CustomScoreColumn::ValidateDataType( COLUMNDATA_e DataType, const char *pszFunctionName ) const
+{
+	// [AK] Throw a fatal error if an invalid data type was used.
+	if (( DataType <= COLUMNDATA_UNKNOWN ) || ( DataType >= NUM_COLUMNDATA_TYPES ))
+		I_Error( "%s: an invalid data type was used, %d.", pszFunctionName ? pszFunctionName : "CustomScoreColumn", static_cast<int>( DataType ));
+}
+
+//*****************************************************************************
+//
+// [AK] CustomScoreColumn::TryChangingValue
+//
+// Checks if it's safe to change a value to that of another  ColumnValue object
+// (i.e. their data types match), and throws a fatal error if they aren't.
+//
+//*****************************************************************************
+
+void CustomScoreColumn::TryChangingValue( ColumnValue &To, const ColumnValue &From, const char *pszFunctionName )
+{
+	// [AK] Only set the value if the data types match. Otherwise, throw a fatal error.
+	if ( GetDataType( ) == From.GetDataType( ))
+		To = From;
+	else
+		I_Error( "%s: the value's data type doesn't match the column's data type.", pszFunctionName ? pszFunctionName : "CustomScoreColumn" );
 }
 
 //*****************************************************************************
@@ -3250,7 +3301,7 @@ void SCOREBOARD_ResetCustomColumnsForPlayer( const ULONG ulPlayer, const bool bC
 	while ( it.NextPair( pair ))
 	{
 		if (( pair->Value->IsUsableInCurrentGame( )) && ( pair->Value->IsCustomColumn( )))
-			static_cast<CustomScoreColumnBase *>( pair->Value )->ResetToDefault( ulPlayer, bChangingLevel );
+			static_cast<CustomScoreColumn *>( pair->Value )->ResetToDefault( ulPlayer, bChangingLevel );
 	}
 }
 

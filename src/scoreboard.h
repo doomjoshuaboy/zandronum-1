@@ -132,6 +132,8 @@ public:
 
 	~ColumnValue( void ) { DeleteString( ); }
 
+	void ChangeDataType( COLUMNDATA_e NewDataType );
+
 	inline COLUMNDATA_e GetDataType( void ) const { return DataType; }
 	template <typename VariableType> VariableType GetValue( void ) const;
 	FString ToString( void ) const;
@@ -170,7 +172,6 @@ public:
 
 private:
 	void TransferValue( const ColumnValue &Other );
-	void ChangeDataType( COLUMNDATA_e NewDataType );
 	void DeleteString( void );
 
 	COLUMNDATA_e DataType;
@@ -337,44 +338,33 @@ private:
 //
 // [AK] CustomScoreColumn
 //
-// A template class for all custom columns and their respective data types.
+// A separate class for all custom columns and their respective data types.
 //
 //*****************************************************************************
 
-class CustomScoreColumnBase : public DataScoreColumn
+class CustomScoreColumn : public DataScoreColumn
 {
 public:
-	CustomScoreColumnBase( const char *pszName ) : DataScoreColumn( COLUMNTYPE_CUSTOM, pszName ) { }
-
-	virtual ColumnValue GetDefaultValue( void ) const = 0;
-	virtual void SetValue( const ULONG ulPlayer, const ColumnValue &Value ) = 0;
-	virtual void ResetToDefault( const ULONG ulPlayer, const bool bChangingLevel ) = 0;
-
-protected:
-	virtual void SetDefaultValue( const ColumnValue &Value ) = 0;
-};
-
-//*****************************************************************************
-//
-template <typename VariableType>
-class CustomScoreColumn : public CustomScoreColumnBase
-{
-public:
-	CustomScoreColumn( const char *pszName );
+	CustomScoreColumn( COLUMNDATA_e DataType, const char *pszName );
 
 	virtual bool IsCustomColumn( void ) const { return true; }
-	virtual COLUMNDATA_e GetDataType( void ) const { return DefaultVal.GetDataType( ); }
+	virtual COLUMNDATA_e GetDataType( void ) const { return CurrentDataType; }
 	virtual ColumnValue GetValue( const ULONG ulPlayer ) const;
 	virtual ColumnValue GetDefaultValue( void ) const;
+	virtual void SetDataType( COLUMNDATA_e NewDataType );
 	virtual void SetValue( const ULONG ulPlayer, const ColumnValue &Value );
+	virtual void SetDefaultValue( const ColumnValue &Value );
 	virtual void ParseCommand( const FName Name, FScanner &sc, const COLUMNCMD_e Command, const FString CommandName );
 	virtual void ResetToDefault( const ULONG ulPlayer, const bool bChangingLevel );
 
 protected:
-	virtual void SetDefaultValue( const ColumnValue &Value );
-
-	VariableType Val[MAXPLAYERS];
+	COLUMNDATA_e CurrentDataType;
+	ColumnValue Val[MAXPLAYERS];
 	ColumnValue DefaultVal;
+
+private:
+	void ValidateDataType( COLUMNDATA_e DataType, const char *pszFunctionName ) const;
+	void TryChangingValue( ColumnValue &To, const ColumnValue &From, const char *pszFunctionName );
 };
 
 //*****************************************************************************
