@@ -804,6 +804,33 @@ bool BOTCMD_IgnoreItem( CSkullBot *pBot, LONG lIdx, bool bVisibilityCheck )
 //*****************************************************************************
 //*****************************************************************************
 //
+// [AK] Helper functions to reduce code duplication, throws an error if a value is invalid.
+void botcmd_CheckIfInputIsValid( const LONG lValue, const LONG lMaxValue, const char *pszFunctionName, const char *pszErrorMessage )
+{
+	// [AK] Make sure that a valid function name and error message was provided.
+	if (( pszFunctionName == NULL ) || ( pszErrorMessage == NULL ))
+		I_Error( "botcmd_CheckIfInputIsValid: a function name or error message is missing!" );
+
+	if (( lValue < 0 ) || ( lValue >= lMaxValue ))
+		I_Error( "%s: %s, %d!", pszFunctionName, pszErrorMessage, static_cast<int>( lValue ));
+}
+
+//*****************************************************************************
+//
+void botcmd_ValidatePlayerID( const LONG lPlayerID, const char *pszFunctionName )
+{
+	botcmd_CheckIfInputIsValid( lPlayerID, MAXPLAYERS, pszFunctionName, "Illegal player index" );
+}
+
+//*****************************************************************************
+//
+void botcmd_ValidateItemNetID( const LONG lNetID, const char *pszFunctionName )
+{
+	botcmd_CheckIfInputIsValid( lNetID, IDList<AActor>::MAX_NETID, pszFunctionName, "Illegal item index" );
+}
+
+//*****************************************************************************
+//
 static void botcmd_ChangeState( CSkullBot *pBot )
 {
 	LONG	lBuffer;
@@ -811,8 +838,7 @@ static void botcmd_ChangeState( CSkullBot *pBot )
 	lBuffer = pBot->m_ScriptData.alStack[pBot->m_ScriptData.lStackPosition - 1];
 	pBot->PopStack( );
 
-	if (( lBuffer < 0 ) || ( lBuffer >= MAX_NUM_STATES ))
-		I_Error( "botcmd_ChangeState: Illegal state index, %d!", static_cast<int> (lBuffer) );
+	botcmd_CheckIfInputIsValid( lBuffer, MAX_NUM_STATES, "botcmd_ChangeState", "Illegal state index" );
 
 	// Don't change to another state while we're in the middle of changing to a state.
 	if ( pBot->m_ScriptData.bExitingState )
@@ -901,8 +927,7 @@ int botcmd_LookForItemType( CSkullBot *pBot, const char *FunctionName )
 	lIdx = pBot->m_ScriptData.alStack[pBot->m_ScriptData.lStackPosition - 1];
 	pBot->PopStack( );
 
-	if (( lIdx < 0 ) || ( lIdx >= IDList<AActor>::MAX_NETID ))
-		I_Error( "%s: Illegal item index, %d!", FunctionName, static_cast<int> (lIdx) );
+	botcmd_ValidateItemNetID( lIdx, FunctionName );
 
 	while (( BOTCMD_IgnoreItem( pBot, lIdx, bVisibilityCheck )) ||
 		( g_NetIDList.findPointerByID ( lIdx )->GetClass( )->IsDescendantOf( RUNTIME_CLASS( T )) == false ))
@@ -951,8 +976,7 @@ int botcmd_LookForItemWithFlag( CSkullBot *pBot, const int Flag, const char *Fun
 	lIdx = pBot->m_ScriptData.alStack[pBot->m_ScriptData.lStackPosition - 1];
 	pBot->PopStack( );
 
-	if (( lIdx < 0 ) || ( lIdx >= IDList<AActor>::MAX_NETID ))
-		I_Error( "%s: Illegal item index, %d!", FunctionName, static_cast<int> (lIdx) );
+	botcmd_ValidateItemNetID( lIdx, FunctionName );
 
 	while (( BOTCMD_IgnoreItem( pBot, lIdx, bVisibilityCheck )) ||
 		(( g_NetIDList.findPointerByID ( lIdx )->STFlags & Flag ) == false ))
@@ -1005,8 +1029,7 @@ static void botcmd_LookForPlayerEnemies( CSkullBot *pBot )
 	lStartPlayer = pBot->m_ScriptData.alStack[pBot->m_ScriptData.lStackPosition - 1];
 	pBot->PopStack( );
 
-	if (( lStartPlayer < 0 ) || ( lStartPlayer >= MAXPLAYERS ))
-		I_Error( "botcmd_LookForPlayerEnemies: Illegal player start index, %d!", static_cast<int> (lStartPlayer) );
+	botcmd_ValidatePlayerID( lStartPlayer, "botcmd_LookForPlayerEnemies" );
 
 	if ( pBot->GetPlayer( )->health <= 0 )
 		g_iReturnInt = -1;
@@ -1616,8 +1639,7 @@ static void botcmd_GetPathingCostToItem( CSkullBot *pBot )
 	lItem = pBot->m_ScriptData.alStack[pBot->m_ScriptData.lStackPosition - 1];
 	pBot->PopStack( );
 
-	if (( lItem < 0 ) || ( lItem >= IDList<AActor>::MAX_NETID ))
-		I_Error( "botcmd_GetPathingCostToItem: Illegal item index, %d", static_cast<int> (lItem) );
+	botcmd_ValidateItemNetID( lItem, "botcmd_GetPathingCostToItem" );
 
 	AActor *pActor = g_NetIDList.findPointerByID ( lItem );
 	if ( pActor == NULL )
@@ -1653,8 +1675,7 @@ static void botcmd_GetDistanceToItem( CSkullBot *pBot )
 	lItem = pBot->m_ScriptData.alStack[pBot->m_ScriptData.lStackPosition - 1];
 	pBot->PopStack( );
 
-	if (( lItem < 0 ) || ( lItem >= IDList<AActor>::MAX_NETID ))
-		I_Error( "botcmd_GetDistanceToItem: Illegal item index, %d", static_cast<int> (lItem) );
+	botcmd_ValidateItemNetID( lItem, "botcmd_GetDistanceToItem" );
 
 	AActor *pActor = g_NetIDList.findPointerByID ( lItem );
 	if ( pActor )
@@ -1675,8 +1696,7 @@ static void botcmd_GetItemName( CSkullBot *pBot )
 	lItem = pBot->m_ScriptData.alStack[pBot->m_ScriptData.lStackPosition - 1];
 	pBot->PopStack( );
 
-	if (( lItem < 0 ) || ( lItem >= IDList<AActor>::MAX_NETID ))
-		I_Error( "botcmd_GetItemName: Illegal item index, %d", static_cast<int> (lItem) );
+	botcmd_ValidateItemNetID( lItem, "botcmd_GetItemName" );
 
 	AActor *pActor = g_NetIDList.findPointerByID ( lItem );
 	if ( pActor )
@@ -1699,8 +1719,7 @@ static void botcmd_IsItemVisible( CSkullBot *pBot )
 	lIdx = pBot->m_ScriptData.alStack[pBot->m_ScriptData.lStackPosition - 1];
 	pBot->PopStack( );
 
-	if (( lIdx < 0 ) || ( lIdx >= IDList<AActor>::MAX_NETID ))
-		I_Error( "botcmd_IsItemVisible: Illegal item index, %d", static_cast<int> (lIdx) );
+	botcmd_ValidateItemNetID( lIdx, "botcmd_IsItemVisible" );
 
 	AActor *pActor = g_NetIDList.findPointerByID ( lIdx );
 	if ( pActor )
@@ -1745,8 +1764,7 @@ static void botcmd_SetGoal( CSkullBot *pBot )
 	lIdx = pBot->m_ScriptData.alStack[pBot->m_ScriptData.lStackPosition - 1];
 	pBot->PopStack( );
 
-	if (( lIdx < 0 ) || ( lIdx >= IDList<AActor>::MAX_NETID ))
-		I_Error( "botcmd_SetGoal: Illegal item index, %d", static_cast<int> (lIdx) );
+	botcmd_ValidateItemNetID( lIdx, "botcmd_SetGoal" );
 
 	AActor *pActor = g_NetIDList.findPointerByID ( lIdx );
 	if ( pActor )
@@ -1807,8 +1825,7 @@ static void botcmd_SetEnemy( CSkullBot *pBot )
 	lPlayer = pBot->m_ScriptData.alStack[pBot->m_ScriptData.lStackPosition - 1];
 	pBot->PopStack( );
 
-	if (( lPlayer < 0 ) || ( lPlayer >= MAXPLAYERS ))
-		I_Error( "botcmd_SetEnemy: Illegal player index, %d", static_cast<int> (lPlayer) );
+	botcmd_ValidatePlayerID( lPlayer, "botcmd_SetEnemy" );
 
 	pBot->m_ulPlayerEnemy = lPlayer;
 }
@@ -1976,8 +1993,7 @@ static void botcmd_GetWeaponFromItem( CSkullBot *pBot )
 	lItem = pBot->m_ScriptData.alStack[pBot->m_ScriptData.lStackPosition - 1];
 	pBot->PopStack( );
 
-	if (( lItem < 0 ) || ( lItem >= IDList<AActor>::MAX_NETID ))
-		I_Error( "botcmd_GetWeaponFromItem: Illegal item index, %d", static_cast<int> (lItem) );
+	botcmd_ValidateItemNetID( lItem, "botcmd_GetWeaponFromItem" );
 
 	AActor *pActor = g_NetIDList.findPointerByID ( lItem );
 	if ( pActor )
@@ -2005,8 +2021,7 @@ static void botcmd_IsWeaponOwned( CSkullBot *pBot )
 	lItem = pBot->m_ScriptData.alStack[pBot->m_ScriptData.lStackPosition - 1];
 	pBot->PopStack( );
 
-	if (( lItem < 0 ) || ( lItem >= IDList<AActor>::MAX_NETID ))
-		I_Error( "botcmd_IsWeaponOwned: Illegal item index, %d", static_cast<int> (lItem) );
+	botcmd_ValidateItemNetID( lItem, "botcmd_IsWeaponOwned" );
 
 	AActor *pActor = g_NetIDList.findPointerByID ( lItem );
 	if ( pActor )
@@ -2532,8 +2547,7 @@ static void botcmd_GetPlayerName( CSkullBot *pBot )
 	lPlayer = pBot->m_ScriptData.alStack[pBot->m_ScriptData.lStackPosition - 1];
 	pBot->PopStack( );
 
-	if (( lPlayer < 0 ) || ( lPlayer >= MAXPLAYERS ))
-		I_Error( "botcmd_GetPlayerName: Invalid player index, %d", static_cast<int> (lPlayer) );
+	botcmd_ValidatePlayerID( lPlayer, "botcmd_GetPlayerName" );
 
 	if ( strlen( players[lPlayer].userinfo.GetName() ) < BOTCMD_RETURNSTRING_SIZE )
 		sprintf( g_szReturnString, "%s", players[lPlayer].userinfo.GetName() );
