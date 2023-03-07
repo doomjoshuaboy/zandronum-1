@@ -122,6 +122,7 @@
 #include "network/packetarchive.h"
 #include "p_lnspec.h"
 #include "unlagged.h"
+#include "scoreboard.h"
 
 //*****************************************************************************
 //	MISC CRAP THAT SHOULDN'T BE HERE BUT HAS TO BE BECAUSE OF SLOPPY CODING
@@ -3008,6 +3009,9 @@ void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo )
 
 	// [AK] Clear all the saved chat messages this player said.
 	CHAT_ClearChatMessages( ulClient );
+
+	// [AK] Reset this player's custom columns to their default values.
+	SCOREBOARD_ResetCustomColumnsForPlayer( ulClient, false );
 
 	// [BB] Morphed players need to be unmorphed before disconnecting.
 	if (players[ulClient].morphTics)
