@@ -203,6 +203,7 @@ public:
 	ScoreColumn( const char *pszName );
 
 	Scoreboard *GetScoreboard( void ) const { return pScoreboard; }
+	const char *GetInternalName( void ) const { return InternalName.GetChars( ); }
 	const char *GetDisplayName( void ) const { return DisplayName.Len( ) > 0 ? DisplayName.GetChars( ) : NULL; }
 	const char *GetShortName( void ) const { return ShortName.Len( ) > 0 ? ShortName.GetChars( ) : NULL; }
 	FBaseCVar *GetCVar( void ) const { return pCVar; }
@@ -217,7 +218,7 @@ public:
 	bool IsHidden( void ) const { return bHidden; }
 	bool ShouldUseShortName( void ) const { return bUseShortName; }
 	void SetHidden( bool bEnable );
-	void Parse( const FName Name, FScanner &sc );
+	void Parse( FScanner &sc );
 	void DrawHeader( const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const;
 	void DrawString( const char *pszString, FFont *pFont, const ULONG ulColor, const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const;
 	void DrawColor( const PalEntry color, const LONG lYPos, const ULONG ulHeight, const float fAlpha, const int clipWidth, const int clipHeight ) const;
@@ -225,7 +226,7 @@ public:
 
 	virtual COLUMNTEMPLATE_e GetTemplate( void ) const { return COLUMNTEMPLATE_UNKNOWN; }
 	virtual bool IsCustomColumn( void ) const { return false; }
-	virtual void ParseCommand( const FName Name, FScanner &sc, const COLUMNCMD_e Command, const FString CommandName );
+	virtual void ParseCommand( FScanner &sc, const COLUMNCMD_e Command, const FString CommandName );
 	virtual void CheckIfUsable( void );
 	virtual void Refresh( void );
 	virtual void UpdateWidth( void );
@@ -234,6 +235,7 @@ public:
 protected:
 	bool CanDrawForPlayer( const ULONG ulPlayer ) const;
 
+	const FName InternalName;
 	FString DisplayName;
 	FString ShortName;
 	COLUMNALIGN_e Alignment;
@@ -291,7 +293,7 @@ public:
 	virtual COLUMNDATA_e GetDataType( void ) const;
 	virtual ULONG GetValueWidth( const ColumnValue &Value ) const;
 	virtual ColumnValue GetValue( const ULONG ulPlayer ) const;
-	virtual void ParseCommand( const FName Name, FScanner &sc, const COLUMNCMD_e Command, const FString CommandName );
+	virtual void ParseCommand( FScanner &sc, const COLUMNCMD_e Command, const FString CommandName );
 	virtual void UpdateWidth( void );
 	virtual void DrawValue( const ULONG ulPlayer, const ULONG ulColor, const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const;
 
@@ -354,7 +356,7 @@ public:
 	virtual void SetDataType( COLUMNDATA_e NewDataType );
 	virtual void SetValue( const ULONG ulPlayer, const ColumnValue &Value );
 	virtual void SetDefaultValue( const ColumnValue &Value );
-	virtual void ParseCommand( const FName Name, FScanner &sc, const COLUMNCMD_e Command, const FString CommandName );
+	virtual void ParseCommand( FScanner &sc, const COLUMNCMD_e Command, const FString CommandName );
 	virtual void ResetToDefault( const ULONG ulPlayer, const bool bChangingLevel );
 
 protected:
@@ -382,7 +384,7 @@ public:
 	CompositeScoreColumn( const char *pszName ) : ScoreColumn( pszName ) { }
 
 	virtual COLUMNTEMPLATE_e GetTemplate( void ) const { return COLUMNTEMPLATE_COMPOSITE; }
-	virtual void ParseCommand( const FName Name, FScanner &sc, const COLUMNCMD_e Command, const FString CommandName );
+	virtual void ParseCommand( FScanner &sc, const COLUMNCMD_e Command, const FString CommandName );
 	virtual void CheckIfUsable( void );
 	virtual void Refresh( void );
 	virtual void UpdateWidth( void );

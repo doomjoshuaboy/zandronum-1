@@ -156,7 +156,7 @@ static	void			scoreboard_DrawIcon( const char *pszPatchName, ULONG &ulXPos, ULON
 static	ScoreColumn		*scoreboard_ScanForColumn( FScanner &sc, const bool bMustBeDataColumn );
 
 template<typename ColumnType>
-static	bool			scoreboard_TryPushingColumnToList( FScanner &sc, TArray<ColumnType *> &ColumnList, ColumnType *pColumn, const char *pszColumnName );
+static	bool			scoreboard_TryPushingColumnToList( FScanner &sc, TArray<ColumnType *> &ColumnList, ColumnType *pColumn );
 
 //*****************************************************************************
 //	CONSOLE VARIABLES
@@ -435,6 +435,7 @@ bool ColumnValue::operator== ( const ColumnValue &Other ) const
 //*****************************************************************************
 
 ScoreColumn::ScoreColumn( const char *pszName ) :
+	InternalName( pszName ),
 	DisplayName( pszName ),
 	Alignment( COLUMNALIGN_LEFT ),
 	pCVar( NULL ),
@@ -502,7 +503,7 @@ void ScoreColumn::SetHidden( bool bEnable )
 //
 //*****************************************************************************
 
-void ScoreColumn::Parse( const FName Name, FScanner &sc )
+void ScoreColumn::Parse( FScanner &sc )
 {
 	sc.MustGetToken( '{' );
 
@@ -524,17 +525,17 @@ void ScoreColumn::Parse( const FName Name, FScanner &sc )
 			FString CommandName = sc.String;
 
 			sc.MustGetToken( '=' );
-			ParseCommand( Name, sc, Command, CommandName );
+			ParseCommand( sc, Command, CommandName );
 		}
 	}
 
 	// [AK] Unless the ALWAYSUSESHORTESTWIDTH flag is enabled, columns must have a non-zero width.
 	if ((( ulFlags & COLUMNFLAG_ALWAYSUSESHORTESTWIDTH ) == false ) && ( ulSizing == 0 ))
-		sc.ScriptError( "Column '%s' needs a size that's greater than zero.", Name.GetChars( ));
+		sc.ScriptError( "Column '%s' needs a size that's greater than zero.", GetInternalName( ));
 
 	// [AK] If the short name is longer than the display name, throw a fatal error.
 	if ( DisplayName.Len( ) < ShortName.Len( ))
-		sc.ScriptError( "Column '%s' has a short name that's greater than its display name.", Name.GetChars( ));
+		sc.ScriptError( "Column '%s' has a short name that's greater than its display name.", GetInternalName( ));
 }
 
 //*****************************************************************************
@@ -545,7 +546,7 @@ void ScoreColumn::Parse( const FName Name, FScanner &sc )
 //
 //*****************************************************************************
 
-void ScoreColumn::ParseCommand( const FName Name, FScanner &sc, const COLUMNCMD_e Command, const FString CommandName )
+void ScoreColumn::ParseCommand( FScanner &sc, const COLUMNCMD_e Command, const FString CommandName )
 {
 	switch ( Command )
 	{
@@ -650,7 +651,7 @@ void ScoreColumn::ParseCommand( const FName Name, FScanner &sc, const COLUMNCMD_
 		}
 
 		default:
-			sc.ScriptError( "Couldn't process column command '%s' for column '%s'.", CommandName.GetChars( ), Name.GetChars( ));
+			sc.ScriptError( "Couldn't process column command '%s' for column '%s'.", CommandName.GetChars( ), GetInternalName( ));
 	}
 }
 
@@ -1421,7 +1422,7 @@ ColumnValue DataScoreColumn::GetValue( const ULONG ulPlayer ) const
 //
 //*****************************************************************************
 
-void DataScoreColumn::ParseCommand( const FName Name, FScanner &sc, const COLUMNCMD_e Command, const FString CommandName )
+void DataScoreColumn::ParseCommand( FScanner &sc, const COLUMNCMD_e Command, const FString CommandName )
 {
 	switch ( Command )
 	{
@@ -1495,7 +1496,7 @@ void DataScoreColumn::ParseCommand( const FName Name, FScanner &sc, const COLUMN
 
 		// [AK] Parse any generic column commands if we reach here.
 		default:
-			ScoreColumn::ParseCommand( Name, sc, Command, CommandName );
+			ScoreColumn::ParseCommand( sc, Command, CommandName );
 			break;
 	}
 
@@ -1504,10 +1505,10 @@ void DataScoreColumn::ParseCommand( const FName Name, FScanner &sc, const COLUMN
 	if ( pCompositeColumn != NULL )
 	{
 		if (( ulFlags & COLUMNFLAG_DONTSHOWHEADER ) == false )
-			sc.ScriptError( "Tried to remove the 'DONTSHOWHEADER' flag from column '%s' which is inside a composite column.", Name.GetChars( ));
+			sc.ScriptError( "Tried to remove the 'DONTSHOWHEADER' flag from column '%s' which is inside a composite column.", GetInternalName( ));
 
 		if ( Alignment != COLUMNALIGN_LEFT )
-			sc.ScriptError( "Tried to change the alignment of column '%s' which is inside a composite column.", Name.GetChars( ));
+			sc.ScriptError( "Tried to change the alignment of column '%s' which is inside a composite column.", GetInternalName( ));
 	}
 }
 
@@ -1819,7 +1820,7 @@ void CustomScoreColumn::SetDefaultValue( const ColumnValue &Value )
 //
 //*****************************************************************************
 
-void CustomScoreColumn::ParseCommand( const FName Name, FScanner &sc, const COLUMNCMD_e Command, const FString CommandName )
+void CustomScoreColumn::ParseCommand( FScanner &sc, const COLUMNCMD_e Command, const FString CommandName )
 {
 	switch ( Command )
 	{
@@ -1889,7 +1890,7 @@ void CustomScoreColumn::ParseCommand( const FName Name, FScanner &sc, const COLU
 
 		// [AK] Parse any data column commands if we reach here.
 		default:
-			DataScoreColumn::ParseCommand( Name, sc, Command, CommandName );
+			DataScoreColumn::ParseCommand( sc, Command, CommandName );
 			break;
 	}
 }
@@ -1963,7 +1964,7 @@ void CustomScoreColumn::TryChangingValue( ColumnValue &To, const ColumnValue &Fr
 //
 //*****************************************************************************
 
-void CompositeScoreColumn::ParseCommand( const FName Name, FScanner &sc, const COLUMNCMD_e Command, const FString CommandName )
+void CompositeScoreColumn::ParseCommand( FScanner &sc, const COLUMNCMD_e Command, const FString CommandName )
 {
 	switch ( Command )
 	{
@@ -1978,11 +1979,11 @@ void CompositeScoreColumn::ParseCommand( const FName Name, FScanner &sc, const C
 
 				// [AK] Don't add a data column that's already inside another composite column.
 				if (( pDataColumn->GetCompositeColumn( ) != NULL ) && ( pDataColumn->GetCompositeColumn( ) != this ))
-					sc.ScriptError( "Tried to put data column '%s' into composite column '%s', but it's already inside another composite column.", sc.String, Name.GetChars( ));
+					sc.ScriptError( "Tried to put data column '%s' into composite column '%s', but it's already inside another composite column.", sc.String, GetInternalName( ));
 
 				// [AK] Don't add a data column that's already inside a scoreboard's column order.
 				if ( pDataColumn->GetScoreboard( ) != NULL )
-					sc.ScriptError( "Tried to put data column '%s' into composite column '%s', but it's already inside a scoreboard's column order.", sc.String, Name.GetChars( ));
+					sc.ScriptError( "Tried to put data column '%s' into composite column '%s', but it's already inside a scoreboard's column order.", sc.String, GetInternalName( ));
 
 				// [AK] All data columns require the DONTSHOWHEADER flag to be enabled to be inside a composite column.
 				if (( pDataColumn->GetFlags( ) & COLUMNFLAG_DONTSHOWHEADER ) == false )
@@ -1992,7 +1993,7 @@ void CompositeScoreColumn::ParseCommand( const FName Name, FScanner &sc, const C
 				if ( pDataColumn->Alignment != COLUMNALIGN_LEFT )
 					sc.ScriptError( "Data column '%s' must be aligned to the left before it can be put inside a composite column.", sc.String );
 
-				if ( scoreboard_TryPushingColumnToList( sc, SubColumns, pDataColumn, sc.String ))
+				if ( scoreboard_TryPushingColumnToList( sc, SubColumns, pDataColumn ))
 					pDataColumn->pCompositeColumn = this;
 			} while ( sc.CheckToken( ',' ));
 
@@ -2004,7 +2005,7 @@ void CompositeScoreColumn::ParseCommand( const FName Name, FScanner &sc, const C
 
 		// [AK] Parse any generic column commands if we reach here.
 		default:
-			ScoreColumn::ParseCommand( Name, sc, Command, CommandName );
+			ScoreColumn::ParseCommand( sc, Command, CommandName );
 			break;
 	}
 }
@@ -2564,10 +2565,7 @@ void Scoreboard::AddColumnToList( FScanner &sc, const bool bAddToRankOrder )
 {
 	// [AK] Note that if we're adding a column to the rank order, then it must be a data column.
 	ScoreColumn *pColumn = scoreboard_ScanForColumn( sc, bAddToRankOrder );
-
-	// [AK] The column's name should still be saved in sc.String, even after calling
-	// the helper function above.
-	const char *pszColumnName = sc.String;
+	const char *pszColumnName = pColumn->GetInternalName( );
 
 	if ( bAddToRankOrder )
 	{
@@ -2588,7 +2586,7 @@ void Scoreboard::AddColumnToList( FScanner &sc, const bool bAddToRankOrder )
 				sc.ScriptError( "Column '%s' is part of a composite column that must be added to the column order before it can be added to the rank order.", pszColumnName );
 		}
 
-		scoreboard_TryPushingColumnToList( sc, RankOrder, pDataColumn, pszColumnName );
+		scoreboard_TryPushingColumnToList( sc, RankOrder, pDataColumn );
 	}
 	else
 	{
@@ -2597,7 +2595,7 @@ void Scoreboard::AddColumnToList( FScanner &sc, const bool bAddToRankOrder )
 		if (( pColumn->GetTemplate( ) == COLUMNTEMPLATE_DATA ) && ( static_cast<DataScoreColumn *>( pColumn )->GetCompositeColumn( ) != NULL ))
 			sc.ScriptError( "Column '%s' is part of a composite column and can't be added to the order list.", pszColumnName );
 
-		if ( scoreboard_TryPushingColumnToList( sc, ColumnOrder, pColumn, pszColumnName ))
+		if ( scoreboard_TryPushingColumnToList( sc, ColumnOrder, pColumn ))
 		{
 			pColumn->pScoreboard = this;
 
@@ -4384,7 +4382,7 @@ static ScoreColumn *scoreboard_ScanForColumn( FScanner &sc, const bool bMustBeDa
 //*****************************************************************************
 
 template<typename ColumnType>
-static bool scoreboard_TryPushingColumnToList( FScanner &sc, TArray<ColumnType *> &ColumnList, ColumnType *pColumn, const char *pszColumnName )
+static bool scoreboard_TryPushingColumnToList( FScanner &sc, TArray<ColumnType *> &ColumnList, ColumnType *pColumn )
 {
 	// [AK] Make sure the pointer to the column isn't NULL.
 	if ( pColumn == NULL )
@@ -4393,12 +4391,10 @@ static bool scoreboard_TryPushingColumnToList( FScanner &sc, TArray<ColumnType *
 	// [AK] Make sure that this column isn't already inside this list.
 	for ( unsigned int i = 0; i < ColumnList.Size( ); i++ )
 	{
+		// [AK] Print an error message to let the user know the issue.
 		if ( ColumnList[i] == pColumn )
 		{
-			// [AK] Print an error message to let the user know the issue.
-			if ( pszColumnName != NULL )
-				sc.ScriptMessage( "Tried to put column '%s' into a list more than once.", pszColumnName );
-
+			sc.ScriptMessage( "Tried to put column '%s' into a list more than once.", pColumn->GetInternalName( ));
 			return false;
 		}
 	}
