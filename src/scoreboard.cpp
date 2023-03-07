@@ -1796,7 +1796,14 @@ void CustomScoreColumn::SetDataType( COLUMNDATA_e NewDataType )
 void CustomScoreColumn::SetValue( const ULONG ulPlayer, const ColumnValue &Value )
 {
 	if ( PLAYER_IsValidPlayer( ulPlayer ))
+	{
+		// [AK] Stop here if the new value is equal to the old one.
+		if ( GetValue( ulPlayer ) == Value )
+			return;
+
 		TryChangingValue( Val[ulPlayer], Value, "CustomScoreColumn::SetValue" );
+		SCOREBOARD_ShouldRefreshBeforeRendering( );
+	}
 }
 
 //*****************************************************************************
@@ -1921,6 +1928,8 @@ void CustomScoreColumn::ResetToDefault( const ULONG ulPlayer, const bool bChangi
 	{
 		Val[ulPlayer] = DefaultVal;
 	}
+
+	SCOREBOARD_ShouldRefreshBeforeRendering( );
 }
 
 //*****************************************************************************
