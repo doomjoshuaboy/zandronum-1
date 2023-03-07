@@ -1505,10 +1505,10 @@ void DataScoreColumn::ParseCommand( FScanner &sc, const COLUMNCMD_e Command, con
 	if ( pCompositeColumn != NULL )
 	{
 		if (( ulFlags & COLUMNFLAG_DONTSHOWHEADER ) == false )
-			sc.ScriptError( "Tried to remove the 'DONTSHOWHEADER' flag from column '%s' which is inside a composite column.", GetInternalName( ));
+			sc.ScriptError( "You can't remove the 'DONTSHOWHEADER' flag from column '%s' while it's inside a composite column.", GetInternalName( ));
 
 		if ( Alignment != COLUMNALIGN_LEFT )
-			sc.ScriptError( "Tried to change the alignment of column '%s' which is inside a composite column.", GetInternalName( ));
+			sc.ScriptError( "You can't change the alignment of column '%s' while it's inside a composite column.", GetInternalName( ));
 	}
 }
 
@@ -1976,22 +1976,23 @@ void CompositeScoreColumn::ParseCommand( FScanner &sc, const COLUMNCMD_e Command
 			{
 				// [AK] Make sure that the next column we scan is a data column.
 				DataScoreColumn *pDataColumn = static_cast<DataScoreColumn *>( scoreboard_ScanForColumn( sc, true ));
+				CompositeScoreColumn *pCompositeColumn = pDataColumn->GetCompositeColumn( );
 
 				// [AK] Don't add a data column that's already inside another composite column.
-				if (( pDataColumn->GetCompositeColumn( ) != NULL ) && ( pDataColumn->GetCompositeColumn( ) != this ))
-					sc.ScriptError( "Tried to put data column '%s' into composite column '%s', but it's already inside another composite column.", sc.String, GetInternalName( ));
+				if (( pCompositeColumn != NULL ) && ( pCompositeColumn != this ))
+					sc.ScriptError( "You can't put column '%s' into composite column '%s' when it's already inside '%s'.", sc.String, GetInternalName( ), pCompositeColumn->GetInternalName( ));
 
 				// [AK] Don't add a data column that's already inside a scoreboard's column order.
 				if ( pDataColumn->GetScoreboard( ) != NULL )
-					sc.ScriptError( "Tried to put data column '%s' into composite column '%s', but it's already inside a scoreboard's column order.", sc.String, GetInternalName( ));
+					sc.ScriptError( "You can't put column '%s' into composite column '%s' when it's already inside a scoreboard's column order.", sc.String, GetInternalName( ));
 
 				// [AK] All data columns require the DONTSHOWHEADER flag to be enabled to be inside a composite column.
 				if (( pDataColumn->GetFlags( ) & COLUMNFLAG_DONTSHOWHEADER ) == false )
-					sc.ScriptError( "Data column '%s' must have 'DONTSHOWHEADER' enabled before it can be put inside a composite column.", sc.String );
+					sc.ScriptError( "Column '%s' must have 'DONTSHOWHEADER' enabled before it can be put inside a composite column.", sc.String );
 
 				// [AK] All data columns must be alignment to the left to be inside a composite column.
 				if ( pDataColumn->Alignment != COLUMNALIGN_LEFT )
-					sc.ScriptError( "Data column '%s' must be aligned to the left before it can be put inside a composite column.", sc.String );
+					sc.ScriptError( "Column '%s' must be aligned to the left before it can be put inside a composite column.", sc.String );
 
 				if ( scoreboard_TryPushingColumnToList( sc, SubColumns, pDataColumn ))
 					pDataColumn->pCompositeColumn = this;
@@ -2567,6 +2568,8 @@ void Scoreboard::AddColumnToList( FScanner &sc, const bool bAddToRankOrder )
 	ScoreColumn *pColumn = scoreboard_ScanForColumn( sc, bAddToRankOrder );
 	const char *pszColumnName = pColumn->GetInternalName( );
 
+	CompositeScoreColumn *pCompositeColumn = NULL;
+
 	if ( bAddToRankOrder )
 	{
 		// [AK] Double-check that this is a data column. Otherwise, throw a fatal error.
@@ -2580,10 +2583,12 @@ void Scoreboard::AddColumnToList( FScanner &sc, const bool bAddToRankOrder )
 		// the composite column needs to be in the column order instead.
 		if ( pColumn->GetScoreboard( ) != this )
 		{
-			if ( pDataColumn->GetCompositeColumn( ) == NULL )
+			pCompositeColumn = pDataColumn->GetCompositeColumn( );
+
+			if ( pCompositeColumn == NULL )
 				sc.ScriptError( "Column '%s' must be added to the column order before added to the rank order.", pszColumnName );
 			else
-				sc.ScriptError( "Column '%s' is part of a composite column that must be added to the column order before it can be added to the rank order.", pszColumnName );
+				sc.ScriptError( "Column '%s' is inside composite column '%s', which must be added to the column order first.", pszColumnName, pCompositeColumn->GetInternalName( ));
 		}
 
 		scoreboard_TryPushingColumnToList( sc, RankOrder, pDataColumn );
@@ -2592,8 +2597,13 @@ void Scoreboard::AddColumnToList( FScanner &sc, const bool bAddToRankOrder )
 	{
 		// [AK] If this is a data column, make sure that it isn't inside a composite column.
 		// The composite column must be added to the list instead.
-		if (( pColumn->GetTemplate( ) == COLUMNTEMPLATE_DATA ) && ( static_cast<DataScoreColumn *>( pColumn )->GetCompositeColumn( ) != NULL ))
-			sc.ScriptError( "Column '%s' is part of a composite column and can't be added to the order list.", pszColumnName );
+		if ( pColumn->GetTemplate( ) == COLUMNTEMPLATE_DATA )
+		{
+			pCompositeColumn = static_cast<DataScoreColumn *>( pColumn )->GetCompositeColumn( );
+
+			if ( pCompositeColumn != NULL )
+				sc.ScriptError( "Column '%s' is already inside composite column '%s' and can't be added to the column order.", pszColumnName, pCompositeColumn->GetInternalName( ));
+		}
 
 		if ( scoreboard_TryPushingColumnToList( sc, ColumnOrder, pColumn ))
 		{
@@ -2601,7 +2611,7 @@ void Scoreboard::AddColumnToList( FScanner &sc, const bool bAddToRankOrder )
 
 			if ( pColumn->GetTemplate( ) == COLUMNTEMPLATE_COMPOSITE )
 			{
-				CompositeScoreColumn *pCompositeColumn = static_cast<CompositeScoreColumn *>( pColumn );
+				pCompositeColumn = static_cast<CompositeScoreColumn *>( pColumn );
 
 				for ( unsigned int i = 0; i < pCompositeColumn->SubColumns.Size( ); i++ )
 					pCompositeColumn->SubColumns[i]->pScoreboard = this;
