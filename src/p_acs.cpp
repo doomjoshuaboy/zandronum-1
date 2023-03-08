@@ -5416,6 +5416,7 @@ enum EACSFunctions
 	ACSF_GetColumnDataType,
 	ACSF_HideColumn,
 	ACSF_IsColumnHidden,
+	ACSF_IsColumnUsable,
 	ACSF_HideScoreboard,
 	ACSF_IsScoreboardHidden,
 
@@ -8031,6 +8032,12 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 			{
 				ScoreColumn *pColumn = SCOREBOARD_GetColumn( FBehavior::StaticLookupString( args[0] ), true );
 				return pColumn != NULL ? pColumn->IsHidden( ) : false;
+			}
+
+		case ACSF_IsColumnUsable:
+			{
+				ScoreColumn *pColumn = SCOREBOARD_GetColumn( FBehavior::StaticLookupString( args[0] ), true );
+				return pColumn != NULL ? pColumn->IsUsableInCurrentGame( ) : false;
 			}
 
 		case ACSF_HideScoreboard:
