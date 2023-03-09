@@ -155,8 +155,11 @@ static	void			scoreboard_DrawText( const char *pszString, EColorRange Color, ULO
 static	void			scoreboard_DrawIcon( const char *pszPatchName, ULONG &ulXPos, ULONG ulYPos, ULONG ulOffset, bool bOffsetRight = false );
 static	ScoreColumn		*scoreboard_ScanForColumn( FScanner &sc, const bool bMustBeDataColumn );
 
-template<typename ColumnType>
+template <typename ColumnType>
 static	bool			scoreboard_TryPushingColumnToList( FScanner &sc, TArray<ColumnType *> &ColumnList, ColumnType *pColumn );
+
+template <typename ColumnType>
+static	bool			scoreboard_TryRemovingColumnFromList( FScanner &sc, TArray<ColumnType *> &ColumnList, ColumnType *pColumn );
 
 //*****************************************************************************
 //	CONSOLE VARIABLES
@@ -2156,6 +2159,23 @@ void CompositeScoreColumn::DrawValue( const ULONG ulPlayer, const ULONG ulColor,
 
 //*****************************************************************************
 //
+// [AK] CompositeScoreColumn::SetScoreboard
+//
+// Assigns every data column in the composite column's sub-column list the same
+// pointer to the scoreboard that the composite column is setting to.
+//
+//*****************************************************************************
+
+void CompositeScoreColumn::SetScoreboard( Scoreboard *pScoreboard )
+{
+	ScoreColumn::SetScoreboard( pScoreboard );
+
+	for ( unsigned int i = 0; i < SubColumns.Size( ); i++ )
+		SubColumns[i]->SetScoreboard( pScoreboard );
+}
+
+//*****************************************************************************
+//
 // [AK] CompositeScoreColumn::ClearSubColumns
 //
 // Empties the composite column's sub-column list. This also removes any
@@ -2506,6 +2526,23 @@ void Scoreboard::Parse( FScanner &sc )
 					break;
 				}
 
+				case SCOREBOARDCMD_REMOVEFROMCOLUMNORDER:
+				case SCOREBOARDCMD_REMOVEFROMRANKORDER:
+				{
+					const bool bRemoveFromRankOrder = ( Command == SCOREBOARDCMD_REMOVEFROMRANKORDER );
+
+					do
+					{
+						RemoveColumnFromList( sc, bRemoveFromRankOrder );
+					} while ( sc.CheckToken( ',' ));
+
+					// [AK] Any columns removed from the column order must also be removed from the rank order.
+					if ( Command == SCOREBOARDCMD_REMOVEFROMCOLUMNORDER )
+						RemoveInvalidColumnsInRankOrder( );
+
+					break;
+				}
+
 				default:
 					sc.ScriptError( "Couldn't process scoreboard command '%s'.", CommandName.GetChars( ));
 			}
@@ -2615,17 +2652,36 @@ void Scoreboard::AddColumnToList( FScanner &sc, const bool bAddToRankOrder )
 		}
 
 		if ( scoreboard_TryPushingColumnToList( sc, ColumnOrder, pColumn ))
-		{
-			pColumn->pScoreboard = this;
+			pColumn->SetScoreboard( this );
+	}
+}
 
-			if ( pColumn->GetTemplate( ) == COLUMNTEMPLATE_COMPOSITE )
-			{
-				pCompositeColumn = static_cast<CompositeScoreColumn *>( pColumn );
+//*****************************************************************************
+//
+// [AK] Scoreboard::RemoveColumnFromList
+//
+// When scoreboard commands like "RemoveFromColumnOrder" or "RemoveFromRankOrder"
+// are parsed, this will scan for a string, find a column, and then remove it
+// from the rank or column order lists.
+//
+//*****************************************************************************
 
-				for ( unsigned int i = 0; i < pCompositeColumn->SubColumns.Size( ); i++ )
-					pCompositeColumn->SubColumns[i]->pScoreboard = this;
-			}
-		}
+void Scoreboard::RemoveColumnFromList( FScanner &sc, const bool bRemoveFromRankOrder )
+{
+	// [AK] A column must be a data column to be removed from the rank order.
+	ScoreColumn *pColumn = scoreboard_ScanForColumn( sc, bRemoveFromRankOrder );
+
+	if ( bRemoveFromRankOrder )
+	{
+		// [AK] Double-check that this is a data column. Otherwise, throw a fatal error.
+		if ( pColumn->GetTemplate( ) != COLUMNTEMPLATE_DATA )
+			sc.ScriptError( "Column '%s' is not a data column.", pColumn->GetInternalName( ));
+
+		scoreboard_TryRemovingColumnFromList( sc, RankOrder, static_cast<DataScoreColumn *>( pColumn ));
+	}
+	else if ( scoreboard_TryRemovingColumnFromList( sc, ColumnOrder, pColumn ))
+	{
+		pColumn->SetScoreboard( NULL );
 	}
 }
 
@@ -4392,7 +4448,7 @@ static ScoreColumn *scoreboard_ScanForColumn( FScanner &sc, const bool bMustBeDa
 
 //*****************************************************************************
 //
-// [AK] Scoreboard_TryPushingColumnToList
+// [AK] scoreboard_TryPushingColumnToList
 //
 // Tries pushing a pointer to a column object into a list, but only if that
 // pointer isn't in the list already. Returns true if successful, or false if
@@ -4400,7 +4456,7 @@ static ScoreColumn *scoreboard_ScanForColumn( FScanner &sc, const bool bMustBeDa
 //
 //*****************************************************************************
 
-template<typename ColumnType>
+template <typename ColumnType>
 static bool scoreboard_TryPushingColumnToList( FScanner &sc, TArray<ColumnType *> &ColumnList, ColumnType *pColumn )
 {
 	// [AK] Make sure the pointer to the column isn't NULL.
@@ -4420,4 +4476,34 @@ static bool scoreboard_TryPushingColumnToList( FScanner &sc, TArray<ColumnType *
 
 	ColumnList.Push( pColumn );
 	return true;
+}
+
+//*****************************************************************************
+//
+// [AK] scoreboard_TryRemovingColumnFromList
+//
+// Removes a pointer to a column object from a list. Returns true if the column
+// was removed successfully, or false if it wasn't in the list to begin with.
+//
+//*****************************************************************************
+
+template <typename ColumnType>
+static bool scoreboard_TryRemovingColumnFromList( FScanner &sc, TArray<ColumnType *> &ColumnList, ColumnType *pColumn )
+{
+	// [AK] Make sure the pointer to the column isn't NULL.
+	if ( pColumn == NULL )
+		return false;
+
+	for ( unsigned int i = 0; i < ColumnList.Size( ); i++ )
+	{
+		if ( ColumnList[i] == pColumn )
+		{
+			ColumnList.Delete( i );
+			return true;
+		}
+	}
+
+	// [AK] If we get this far, then the column wasn't in the list. Inform the user.
+	sc.ScriptMessage( "Couldn't find column '%s' in the list.", pColumn->GetInternalName( ));
+	return false;
 }

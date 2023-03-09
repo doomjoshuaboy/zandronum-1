@@ -321,12 +321,16 @@ BEGIN_ENUM( SCOREBOARDCMD_e )
 	ENUM_ELEMENT( SCOREBOARDCMD_ROWHEIGHT ),
 	// (Re)arranges columns on the scoreboard from left to right.
 	ENUM_ELEMENT( SCOREBOARDCMD_COLUMNORDER ),
-	// Adds a column to the end of the column order.
+	// Adds column(s) to the end of the column order.
 	ENUM_ELEMENT( SCOREBOARDCMD_ADDTOCOLUMNORDER ),
+	// Removes column(s) from the column order.
+	ENUM_ELEMENT( SCOREBOARDCMD_REMOVEFROMCOLUMNORDER ),
 	// Determines how players are sorted on the scoreboard, from top to bottom.
 	ENUM_ELEMENT( SCOREBOARDCMD_RANKORDER ),
-	// Adds a column to the end of the rank order.
+	// Adds column(s) to the end of the rank order.
 	ENUM_ELEMENT( SCOREBOARDCMD_ADDTORANKORDER ),
+	// Removes column(s) from the rank order.
+	ENUM_ELEMENT( SCOREBOARDCMD_REMOVEFROMRANKORDER ),
 
 	ENUM_ELEMENT( NUM_SCOREBOARDCMDS )
 }

@@ -233,6 +233,7 @@ public:
 	virtual void DrawValue( const ULONG ulPlayer, const ULONG ulColor, const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const = 0;
 
 protected:
+	virtual void SetScoreboard( Scoreboard *pNewScoreboard ) { pScoreboard = pNewScoreboard; }
 	bool CanDrawForPlayer( const ULONG ulPlayer ) const;
 
 	const FName InternalName;
@@ -391,12 +392,10 @@ public:
 	virtual void DrawValue( const ULONG ulPlayer, const ULONG ulColor, const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const;
 
 protected:
+	virtual void SetScoreboard( Scoreboard *pNewScoreboard );
 	void ClearSubColumns( void );
 
 	TArray<DataScoreColumn *> SubColumns;
-
-	// [AK] Let the Scoreboard struct have access to the sub-columns array list.
-	friend struct Scoreboard;
 
 private:
 	ULONG GetRowWidth( const ULONG ulPlayer ) const;
@@ -494,6 +493,7 @@ private:
 	TArray<DataScoreColumn *> RankOrder;
 
 	void AddColumnToList( FScanner &sc, const bool bAddToRankOrder );
+	void RemoveColumnFromList( FScanner &sc, const bool bRemoveFromRankOrder );
 	void UpdateWidth( void );
 	void UpdateHeight( void );
 	void DrawRow( const ULONG ulPlayer, const ULONG ulDisplayPlayer, LONG &lYPos, const float fAlpha, bool &bUseLightBackground ) const;
