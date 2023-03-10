@@ -262,6 +262,10 @@ BEGIN_ENUM( COLUMNCMD_e )
 	ENUM_ELEMENT( COLUMNCMD_DEFAULTVALUE ),
 	// What sub-columns are inside the composite column and their order (composite columns only).
 	ENUM_ELEMENT( COLUMNCMD_COLUMNS ),
+	// Adds column(s) to the end of the composite column's sub-column list (composite columns only).
+	ENUM_ELEMENT( COLUMNCMD_ADDTOCOLUMNS ),
+	// Removes column(s) from a composite column's sub-column list (composite columns only).
+	ENUM_ELEMENT( COLUMNCMD_REMOVEFROMCOLUMNS ),
 
 	ENUM_ELEMENT( NUM_COLUMNCMDS )
 }

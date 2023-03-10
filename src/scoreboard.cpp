@@ -1981,8 +1981,10 @@ void CompositeScoreColumn::ParseCommand( FScanner &sc, const COLUMNCMD_e Command
 	switch ( Command )
 	{
 		case COLUMNCMD_COLUMNS:
+		case COLUMNCMD_ADDTOCOLUMNS:
 		{
-			ClearSubColumns( );
+			if ( Command == COLUMNCMD_COLUMNS )
+				ClearSubColumns( );
 
 			do
 			{
@@ -2007,9 +2009,39 @@ void CompositeScoreColumn::ParseCommand( FScanner &sc, const COLUMNCMD_e Command
 					sc.ScriptError( "Column '%s' must be aligned to the left before it can be put inside a composite column.", sc.String );
 
 				if ( scoreboard_TryPushingColumnToList( sc, SubColumns, pDataColumn ))
+				{
 					pDataColumn->pCompositeColumn = this;
+
+					if ( pScoreboard != NULL )
+						pDataColumn->SetScoreboard( pScoreboard );
+				}
+
 			} while ( sc.CheckToken( ',' ));
 
+			// [AK] Any data columns no longer in the sub-column list must be removed from the scoreboard's rank order.
+			if (( Command == COLUMNCMD_COLUMNS ) && ( pScoreboard != NULL ))
+				pScoreboard->RemoveInvalidColumnsInRankOrder( );
+
+			break;
+		}
+
+		case COLUMNCMD_REMOVEFROMCOLUMNS:
+		{
+			do
+			{
+				DataScoreColumn *pDataColumn = static_cast<DataScoreColumn *>( scoreboard_ScanForColumn( sc, true ));
+
+				if ( scoreboard_TryRemovingColumnFromList( sc, SubColumns, pDataColumn ))
+				{
+					pDataColumn->pCompositeColumn = NULL;
+
+					if ( pScoreboard != NULL )
+						pDataColumn->SetScoreboard( NULL );
+				}
+
+			} while ( sc.CheckToken( ',' ));
+
+			// [AK] Any data columns removed from the sub-column list must be removed from the scoreboard's rank order.
 			if ( pScoreboard != NULL )
 				pScoreboard->RemoveInvalidColumnsInRankOrder( );
 
