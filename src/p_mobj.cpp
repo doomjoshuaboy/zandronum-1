@@ -4746,68 +4746,6 @@ bool AActor::UpdateWaterLevel (fixed_t oldz, bool dosplash)
 	return false;	// we did the splash ourselves
 }
 
-//*****************************************************************************
-//
-template <typename Type, int NumSlots>
-void NetIDList<Type, NumSlots>::clear( void )
-{
-	for ( ULONG ulIdx = 0; ulIdx < NumSlots; ulIdx++ )
-		freeID ( ulIdx );
-
-	_firstFreeID = 1;
-}
-
-//*****************************************************************************
-//
-template <typename Type, int NumSlots>
-void NetIDList<Type, NumSlots>::useID ( const LONG lNetID, Type *pObject )
-{
-	if ( isIndexValid ( lNetID ) )
-	{
-		if ( ( _entries[lNetID].bFree == false ) && ( _entries[lNetID].pObject != pObject ) )
-			SERVER_PrintWarning ( "NetIDList<Type, NumSlots, ErrorIsFatal>::useID is using an already used ID.\n" );
-
-		_entries[lNetID].bFree = false;
-		_entries[lNetID].pObject = pObject;
-	}
-}
-
-//*****************************************************************************
-//
-template <typename Type, int NumSlots>
-ULONG NetIDList<Type, NumSlots>::getNewID( void )
-{
-	// Object's network ID is the first availible net ID.
-	ULONG ulID = _firstFreeID;
-
-	do
-	{
-		_firstFreeID++;
-		if ( _firstFreeID >= NumSlots )
-			_firstFreeID = 1;
-
-		if ( _firstFreeID == ulID )
-		{
-			// [BB] In case there is no free netID, the server has to abort the current game.
-			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			{
-				FString errorMessage;
-				errorMessage.Format ( "Network ID limit reached (>=%d %ss)", NumSlots - 1, NetIDTrait<Type>::pszName );
-
-				// [BB] We can only have (NumSlots-2) objects with netID, because ID zero is reserved and
-				// we already check that a new ID for the next object is available when assign a net ID.
-				Printf ( "NetIDList<Type, NumSlots, ErrorIsFatal>: %s\n", errorMessage.GetChars( ) );
-				NetIDTrait<Type>::count ( );
-				I_Error ( "%s!\n", errorMessage.GetChars( ) );
-			}
-
-			return ( 0 );
-		}
-	} while ( _entries[_firstFreeID].bFree == false );
-
-	return ( ulID );
-}
-
 //==========================================================================
 //
 // [BB/AK] NetIDTrait<AActor>::count

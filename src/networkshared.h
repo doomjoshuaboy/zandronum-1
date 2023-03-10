@@ -590,4 +590,136 @@ public:
 	}
 };
 
+//==========================================================================
+//
+// NetIDList
+//
+// Manages IDs to reference a certain type of objects over the network.
+// Since it still mimics the old Actor ID mechanism, 0 is never assigned as
+// ID.
+//
+// @author Benjamin Berkels, Adam Kaminski
+//
+//==========================================================================
+
+// [AK] Added a trait template struct to identify and count objects used by NetIDList.
+template <typename Type>
+struct NetIDTrait
+{
+	// The name of the object.
+	static const char *pszName;
+
+	// Supposed to count all defined "objects" (with network IDs) when an error is thrown
+	// because there's no more free network IDs.
+	static void count( );
+};
+
+template <typename Type, int NumSlots>
+class NetIDList
+{
+private:
+	// List of all possible network ID's for an object. Slot is true if it available for use.
+	typedef struct
+	{
+		// Is this node occupied, or free to be used by a new object?
+		bool	bFree;
+
+		// If this node is occupied, this is the object occupying it.
+		Type	*pObject;
+
+	} IDNODE_t;
+
+	IDNODE_t _entries[NumSlots];
+	ULONG _firstFreeID;
+
+	inline bool isIndexValid ( const LONG lNetID ) const
+	{
+		return ( lNetID >= 0 ) && ( lNetID < NumSlots );
+	}
+
+public:
+	NetIDList ( )
+	{
+		clear ( );
+	}
+
+	void clear( )
+	{
+		for ( ULONG ulIdx = 0; ulIdx < NumSlots; ulIdx++ )
+			freeID( ulIdx );
+
+		_firstFreeID = 1;
+	}
+
+	void useID ( const LONG lNetID, Type *pObject )
+	{
+		if ( isIndexValid ( lNetID ) )
+		{
+			if ( ( _entries[lNetID].bFree == false ) && ( _entries[lNetID].pObject != pObject ) )
+				SERVER_PrintWarning ( "NetIDList<Type, NumSlots, ErrorIsFatal>::useID is using an already used ID.\n" );
+
+			_entries[lNetID].bFree = false;
+			_entries[lNetID].pObject = pObject;
+		}
+	}
+
+	void freeID ( const LONG lNetID )
+	{
+		if ( isIndexValid ( lNetID ) )
+		{
+			_entries[lNetID].bFree = true;
+			_entries[lNetID].pObject = NULL;
+		}
+	}
+
+	ULONG getNewID ( )
+	{
+		// Object's network ID is the first availible net ID.
+		ULONG ulID = _firstFreeID;
+
+		do
+		{
+			_firstFreeID++;
+			if ( _firstFreeID >= NumSlots )
+				_firstFreeID = 1;
+
+			if ( _firstFreeID == ulID )
+			{
+				// [BB] In case there is no free netID, the server has to abort the current game.
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				{
+					FString errorMessage;
+					errorMessage.Format ( "Network ID limit reached (>=%d %ss)", NumSlots - 1, NetIDTrait<Type>::pszName );
+
+					// [BB] We can only have (NumSlots-2) objects with netID, because ID zero is reserved and
+					// we already check that a new ID for the next object is available when assign a net ID.
+					Printf ( "NetIDList<Type, NumSlots, ErrorIsFatal>: %s\n", errorMessage.GetChars( ) );
+					NetIDTrait<Type>::count ( );
+					I_Error ( "%s!\n", errorMessage.GetChars( ) );
+				}
+
+				return ( 0 );
+			}
+		} while ( _entries[_firstFreeID].bFree == false );
+
+		return ( ulID );
+	}
+
+	ULONG getMaxID ( ) const
+	{
+		return NumSlots;
+	}
+
+	Type* findPointerByID ( const LONG lNetID ) const
+	{
+		if ( isIndexValid ( lNetID ) == false )
+			return ( NULL );
+
+		if (( _entries[lNetID].bFree == false ) && ( _entries[lNetID].pObject ))
+			return ( _entries[lNetID].pObject );
+
+		return ( NULL );
+	}
+};
+
 #endif	// __NETWORKSHARED_H__
