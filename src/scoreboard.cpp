@@ -2543,7 +2543,6 @@ void Scoreboard::Parse( FScanner &sc )
 						}
 
 						ColumnOrder.Clear( );
-						RemoveInvalidColumnsInRankOrder( );
 					}
 					else if ( Command == SCOREBOARDCMD_RANKORDER )
 					{
@@ -2554,6 +2553,10 @@ void Scoreboard::Parse( FScanner &sc )
 					{
 						AddColumnToList( sc, bAddToRankOrder );
 					} while ( sc.CheckToken( ',' ));
+
+					// [AK] Any columns that aren't in the column order anymore must be removed from the rank order.
+					if ( Command == SCOREBOARDCMD_COLUMNORDER )
+						RemoveInvalidColumnsInRankOrder( );
 
 					break;
 				}
