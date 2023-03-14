@@ -502,7 +502,7 @@ void ScoreColumn::SetHidden( bool bEnable )
 //
 // [AK] ScoreColumn::Parse
 //
-// Parses a "column" or "compositecolumn" block in SCORINFO.
+// Parses a "column", "compositecolumn", or "customcolumn" block in SCORINFO.
 //
 //*****************************************************************************
 
@@ -1419,6 +1419,30 @@ ColumnValue DataScoreColumn::GetValue( const ULONG ulPlayer ) const
 
 //*****************************************************************************
 //
+// [AK] DataScoreColumn::Parse
+//
+// After parsing a "column" or "customcolumn" block in SCORINFO, this checks if
+// the data column is inside a composite column, and if it is, ensures that the
+// DONTSHOWHEADER flag hasn't been disabled and it's still aligned to the left.
+//
+//*****************************************************************************
+
+void DataScoreColumn::Parse( FScanner &sc )
+{
+	ScoreColumn::Parse( sc );
+
+	if ( pCompositeColumn != NULL )
+	{
+		if (( ulFlags & COLUMNFLAG_DONTSHOWHEADER ) == false )
+			sc.ScriptError( "You can't remove the 'DONTSHOWHEADER' flag from column '%s' while it's inside a composite column.", GetInternalName( ));
+
+		if ( Alignment != COLUMNALIGN_LEFT )
+			sc.ScriptError( "You can't change the alignment of column '%s' while it's inside a composite column.", GetInternalName( ));
+	}
+}
+
+//*****************************************************************************
+//
 // [AK] DataScoreColumn::ParseCommand
 //
 // Parses commands that are only used for data columns.
@@ -1501,17 +1525,6 @@ void DataScoreColumn::ParseCommand( FScanner &sc, const COLUMNCMD_e Command, con
 		default:
 			ScoreColumn::ParseCommand( sc, Command, CommandName );
 			break;
-	}
-
-	// [AK] If this data column is inside a composite column, make sure it still has the DONTSHOWHEADER flag
-	// and is alignment to the left. Both are requirements for being inside composite columns.
-	if ( pCompositeColumn != NULL )
-	{
-		if (( ulFlags & COLUMNFLAG_DONTSHOWHEADER ) == false )
-			sc.ScriptError( "You can't remove the 'DONTSHOWHEADER' flag from column '%s' while it's inside a composite column.", GetInternalName( ));
-
-		if ( Alignment != COLUMNALIGN_LEFT )
-			sc.ScriptError( "You can't change the alignment of column '%s' while it's inside a composite column.", GetInternalName( ));
 	}
 }
 
