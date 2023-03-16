@@ -536,6 +536,10 @@ void ScoreColumn::Parse( FScanner &sc )
 	if ((( ulFlags & COLUMNFLAG_ALWAYSUSESHORTESTWIDTH ) == false ) && ( ulSizing == 0 ))
 		sc.ScriptError( "Column '%s' needs a size that's greater than zero.", GetInternalName( ));
 
+	// [AK] Columns can't be offline-only and online-only at the same, that doesn't make sense.
+	if (( ulFlags & COLUMNFLAG_OFFLINEONLY ) && ( ulFlags & COLUMNFLAG_ONLINEONLY ))
+		sc.ScriptError( "Column '%s' can't have both the OFFLINEONLY and ONLINEONLY flags enabled at the same time.", GetInternalName( ));
+
 	// [AK] If the short name is longer than the display name, throw a fatal error.
 	if ( DisplayName.Len( ) < ShortName.Len( ))
 		sc.ScriptError( "Column '%s' has a short name that's greater than its display name.", GetInternalName( ));
