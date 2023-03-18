@@ -449,7 +449,6 @@ ScoreColumn::ScoreColumn( const char *pszName ) :
 	lRelX( 0 ),
 	bUsableInCurrentGame( false ),
 	bDisabled( false ),
-	bHidden( false ),
 	bUseShortName( false ),
 	pScoreboard( NULL )
 {
@@ -479,23 +478,6 @@ LONG ScoreColumn::GetAlignmentPosition( ULONG ulContentWidth ) const
 		return lRelX + ( ulWidth - ulContentWidth ) / 2;
 	else
 		return lRelX + ulWidth - ulContentWidth;
-}
-
-//*****************************************************************************
-//
-// [AK] ScoreColumn::SetHidden
-//
-// Hides (or unhides) the column, requiring the scoreboard to be refreshed.
-//
-//*****************************************************************************
-
-void ScoreColumn::SetHidden( bool bEnable )
-{
-	if ( bHidden == bEnable )
-		return;
-
-	bHidden = bEnable;
-	SCOREBOARD_ShouldRefreshBeforeRendering( );
 }
 
 //*****************************************************************************
@@ -741,9 +723,6 @@ void ScoreColumn::CheckIfUsable( void )
 	}
 
 	bUsableInCurrentGame = true;
-
-	// [AK] If the column's usable, then also determine if it should be hidden.
-	bHidden = !!( ulFlags & COLUMNFLAG_HIDDENBYDEFAULT );
 }
 
 //*****************************************************************************
@@ -758,8 +737,8 @@ void ScoreColumn::Refresh( void )
 {
 	bDisabled = true;
 
-	// [AK] If the column's currently unusable or hidden, stop here.
-	if (( bUsableInCurrentGame == false ) || ( bHidden ))
+	// [AK] If the column's currently unusable, stop here.
+	if ( bUsableInCurrentGame == false )
 		return;
 
 	// [AK] If this column has a CVar associated with it, check to see if the column should be
@@ -2333,9 +2312,7 @@ Scoreboard::Scoreboard( void ) :
 	ulGapBetweenColumns( 0 ),
 	ulGapBetweenRows( 0 ),
 	lHeaderHeight( 0 ),
-	lRowHeight( 0 ),
-	bDisabled( false ),
-	bHidden( false ) { }
+	lRowHeight( 0 ) { }
 
 //*****************************************************************************
 //
@@ -2843,15 +2820,6 @@ bool Scoreboard::PlayerComparator::operator( )( const int &arg1, const int &arg2
 
 void Scoreboard::Refresh( const ULONG ulDisplayPlayer )
 {
-	bDisabled = false;
-
-	// [AK] If the scoreboard's supposed to be hidden, then disable it and stop here.
-	if ( bHidden )
-	{
-		bDisabled = true;
-		return;
-	}
-
 	// [AK] Refresh all of the scoreboard's columns, then update the widths of any active columns.
 	for ( unsigned int i = 0; i < ColumnOrder.Size( ); i++ )
 	{
@@ -2865,12 +2833,9 @@ void Scoreboard::Refresh( const ULONG ulDisplayPlayer )
 
 	UpdateWidth( );
 
-	// [AK] If the scoreboard's width is zero, then disable it and stop here.
+	// [AK] If the scoreboard's width is zero, then stop here.
 	if ( ulWidth == 0 )
-	{
-		bDisabled = true;
 		return;
-	}
 
 	UpdateHeight( );
 
@@ -3000,8 +2965,8 @@ void Scoreboard::Render( const ULONG ulDisplayPlayer, const float fAlpha )
 	int clipWidth = ulWidth;
 	int clipHeight = ulHeight;
 
-	// [AK] We can't draw anything if the opacity is zero or less.
-	if ( fAlpha <= 0.0f )
+	// [AK] We can't draw anything if the width, height, or opacity are zero or less.
+	if (( ulWidth == 0 ) || ( ulHeight == 0 ) || ( fAlpha <= 0.0f ))
 		return;
 
 	// [AK] We must take into account the virtual screen's size.
@@ -3311,49 +3276,6 @@ ScoreColumn *SCOREBOARD_GetColumn( FName Name, const bool bMustBeUsable )
 		return (( bMustBeUsable == false ) || (( *pColumn )->IsUsableInCurrentGame( ))) ? *pColumn : NULL;
 
 	return NULL;
-}
-
-//*****************************************************************************
-//
-// [AK] SCOREBOARD_IsDisabled
-//
-// Checks if the scoreboard is disabled.
-//
-//*****************************************************************************
-
-bool SCOREBOARD_IsDisabled( void )
-{
-	return g_Scoreboard.bDisabled;
-}
-
-//*****************************************************************************
-//
-// [AK] SCOREBOARD_IsHidden
-//
-// Checks if the scoreboard is hidden.
-//
-//*****************************************************************************
-
-bool SCOREBOARD_IsHidden( void )
-{
-	return g_Scoreboard.bHidden;
-}
-
-//*****************************************************************************
-//
-// [AK] SCOREBOARD_SetHidden
-//
-// Hides (or unhides) the scoreboard, which also requires it to be refreshed.
-//
-//*****************************************************************************
-
-void SCOREBOARD_SetHidden( bool bEnable )
-{
-	if ( g_Scoreboard.bHidden == bEnable )
-		return;
-
-	g_Scoreboard.bHidden = bEnable;
-	SCOREBOARD_ShouldRefreshBeforeRendering( );
 }
 
 //*****************************************************************************

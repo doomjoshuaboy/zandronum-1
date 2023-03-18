@@ -5414,11 +5414,7 @@ enum EACSFunctions
 	ACSF_GetCustomColumnValue,
 	ACSF_ResetCustomColumnToDefault,
 	ACSF_GetColumnDataType,
-	ACSF_HideColumn,
-	ACSF_IsColumnHidden,
 	ACSF_IsColumnUsable,
-	ACSF_HideScoreboard,
-	ACSF_IsScoreboardHidden,
 
 	// ZDaemon
 	ACSF_GetTeamScore = 19620,	// (int team)
@@ -8020,34 +8016,10 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 				return pDataColumn != NULL ? pDataColumn->GetDataType( ) : COLUMNDATA_UNKNOWN;
 			}
 
-		case ACSF_HideColumn:
-			{
-				ScoreColumn *pColumn = SCOREBOARD_GetColumn( FBehavior::StaticLookupString( args[0] ), true );
-
-				if ( pColumn != NULL )
-					pColumn->SetHidden( !!args[1] );
-			}
-
-		case ACSF_IsColumnHidden:
-			{
-				ScoreColumn *pColumn = SCOREBOARD_GetColumn( FBehavior::StaticLookupString( args[0] ), true );
-				return pColumn != NULL ? pColumn->IsHidden( ) : false;
-			}
-
 		case ACSF_IsColumnUsable:
 			{
 				ScoreColumn *pColumn = SCOREBOARD_GetColumn( FBehavior::StaticLookupString( args[0] ), true );
 				return pColumn != NULL ? pColumn->IsUsableInCurrentGame( ) : false;
-			}
-
-		case ACSF_HideScoreboard:
-			{
-				SCOREBOARD_SetHidden( !!args[0] );
-			}
-
-		case ACSF_IsScoreboardHidden:
-			{
-				return SCOREBOARD_IsHidden( );
 			}
 
 		case ACSF_GetActorFloorTexture:

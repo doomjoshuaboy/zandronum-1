@@ -215,9 +215,7 @@ public:
 	LONG GetAlignmentPosition( ULONG ulContentWidth ) const;
 	bool IsUsableInCurrentGame( void ) const { return bUsableInCurrentGame; }
 	bool IsDisabled( void ) const { return bDisabled; }
-	bool IsHidden( void ) const { return bHidden; }
 	bool ShouldUseShortName( void ) const { return bUseShortName; }
-	void SetHidden( bool bEnable );
 	void DrawHeader( const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const;
 	void DrawString( const char *pszString, FFont *pFont, const ULONG ulColor, const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const;
 	void DrawColor( const PalEntry color, const LONG lYPos, const ULONG ulHeight, const float fAlpha, const int clipWidth, const int clipHeight ) const;
@@ -250,7 +248,6 @@ protected:
 	LONG lRelX;
 	bool bUsableInCurrentGame;
 	bool bDisabled;
-	bool bHidden;
 	bool bUseShortName;
 
 	// [AK] A pointer to a scoreboard, if this column is inside its column order list.
@@ -466,8 +463,6 @@ struct Scoreboard
 	ULONG ulGapBetweenRows;
 	LONG lHeaderHeight;
 	LONG lRowHeight;
-	bool bDisabled;
-	bool bHidden;
 
 	Scoreboard( void );
 
@@ -504,9 +499,6 @@ private:
 //	PROTOTYPES
 
 ScoreColumn		*SCOREBOARD_GetColumn( FName Name, const bool bMustBeUsable );
-bool			SCOREBOARD_IsDisabled( void );
-bool			SCOREBOARD_IsHidden( void );
-void			SCOREBOARD_SetHidden( bool bEnable );
 bool			SCOREBOARD_ShouldDrawBoard( void );
 void			SCOREBOARD_Reset( const bool bChangingLevel );
 void			SCOREBOARD_ResetCustomColumnsForPlayer( const ULONG ulPlayer, const bool bChangingLevel );
