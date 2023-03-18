@@ -1863,25 +1863,6 @@ static int SendNetworkString ( FBehavior* module, AActor* activator, int script,
 
 // ================================================================================================
 //
-// [AK] GetDataScoreColumn
-//
-// Returns a pointer to a usable DataScoreColumn object, using its name as an argument.
-//
-// ================================================================================================
-
-static DataScoreColumn *GetDataScoreColumn ( const char *pszColumnName )
-{
-	ScoreColumn *pColumn = SCOREBOARD_GetColumn( pszColumnName, true );
-
-	// [AK] Return NULL if the column doesn't exist, isn't usable right now, or isn't a data column.
-	if (( pColumn == NULL ) || ( pColumn->GetTemplate( ) != COLUMNTEMPLATE_DATA ))
-		return NULL;
-
-	return static_cast<DataScoreColumn *>( pColumn );
-}
-
-// ================================================================================================
-//
 // [AK] GetCustomScoreColumn
 //
 // Returns a pointer to a usable CustomScoreColumn object, using its name as an argument.
@@ -5413,7 +5394,7 @@ enum EACSFunctions
 	ACSF_SetCustomColumnValue,
 	ACSF_GetCustomColumnValue,
 	ACSF_ResetCustomColumnToDefault,
-	ACSF_GetColumnDataType,
+	ACSF_GetCustomColumnDataType,
 	ACSF_IsColumnUsable,
 
 	// ZDaemon
@@ -8010,10 +7991,10 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 				return 0;
 			}
 
-		case ACSF_GetColumnDataType:
+		case ACSF_GetCustomColumnDataType:
 			{
-				DataScoreColumn *pDataColumn = GetDataScoreColumn( FBehavior::StaticLookupString( args[0] ));
-				return pDataColumn != NULL ? pDataColumn->GetDataType( ) : COLUMNDATA_UNKNOWN;
+				CustomScoreColumn *pCustomColumn = GetCustomScoreColumn( FBehavior::StaticLookupString( args[0] ));
+				return pCustomColumn != NULL ? pCustomColumn->GetDataType( ) : COLUMNDATA_UNKNOWN;
 			}
 
 		case ACSF_IsColumnUsable:
