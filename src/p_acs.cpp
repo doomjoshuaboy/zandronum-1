@@ -5394,7 +5394,6 @@ enum EACSFunctions
 	ACSF_SetCustomColumnValue,
 	ACSF_GetCustomColumnValue,
 	ACSF_ResetCustomColumnToDefault,
-	ACSF_GetCustomColumnDataType,
 	ACSF_IsColumnUsable,
 
 	// ZDaemon
@@ -7989,12 +7988,6 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 				}
 
 				return 0;
-			}
-
-		case ACSF_GetCustomColumnDataType:
-			{
-				CustomScoreColumn *pCustomColumn = GetCustomScoreColumn( FBehavior::StaticLookupString( args[0] ));
-				return pCustomColumn != NULL ? pCustomColumn->GetDataType( ) : COLUMNDATA_UNKNOWN;
 			}
 
 		case ACSF_IsColumnUsable:
