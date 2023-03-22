@@ -3187,6 +3187,125 @@ bool Scoreboard::ShouldSeparateTeams( void ) const
 
 //*****************************************************************************
 //
+// [AK] SCOREBOARD_Construct
+//
+// Initializes the scoreboard and parses all loaded SCORINFO lumps.
+//
+//*****************************************************************************
+
+void SCOREBOARD_Construct( void )
+{
+	if ( Wads.CheckNumForName( "SCORINFO" ) != -1 )
+	{
+		int currentLump, lastLump = 0;
+
+		Printf( "ParseScorInfo: Loading scoreboard definition.\n" );
+
+		while (( currentLump = Wads.FindLump( "SCORINFO", &lastLump )) != -1 )
+		{
+			FScanner sc( currentLump );
+
+			while ( sc.GetString( ))
+			{
+				if ( stricmp( sc.String, "scoreboard" ) == 0 )
+				{
+					g_Scoreboard.Parse( sc );
+				}
+				else if (( stricmp( sc.String, "column" ) == 0 ) || ( stricmp( sc.String, "compositecolumn" ) == 0 ))
+				{
+					const bool bIsCompositeBlock = ( stricmp( sc.String, "compositecolumn" ) == 0 );
+					FString ColumnTypeString = "COLUMNTYPE_";
+
+					sc.MustGetToken( TK_StringConst );
+
+					if ( sc.StringLen == 0 )
+						sc.ScriptError( "Got an empty string for a column name." );
+
+					FName ColumnName = sc.String;
+					ColumnTypeString += ColumnName.GetChars( );
+					ColumnTypeString.ToUpper( );
+
+					// [AK] If the column doesn't exist yet, then we must create a new one.
+					ScoreColumn *pColumn = SCOREBOARD_GetColumn( ColumnName, false );
+					const bool bMustCreateNewColumn = ( pColumn == NULL );
+
+					COLUMNTYPE_e ColumnType = static_cast<COLUMNTYPE_e>( GetValueCOLUMNTYPE_e( ColumnTypeString.GetChars( )));
+
+					if ( bIsCompositeBlock )
+					{
+						if ( bMustCreateNewColumn )
+						{
+							// [AK] Don't allow native types (e.g. "frags") to be used as names for composite columns.
+							if ( ColumnType != -1 )
+								sc.ScriptError( "You can't use '%s' as a name for a composite column.", ColumnName.GetChars( ));
+
+							pColumn = new CompositeScoreColumn( ColumnName );
+						}
+
+						if ( pColumn->GetTemplate( ) != COLUMNTEMPLATE_COMPOSITE )
+							sc.ScriptError( "Column '%s' isn't a composite column.", ColumnName.GetChars( ));
+					}
+					else
+					{
+						if ( bMustCreateNewColumn )
+						{
+							// [AK] Don't allow data columns to have an "unknown" name.
+							if ( ColumnType == COLUMNTYPE_UNKNOWN )
+								sc.ScriptError( "You can't use 'unknown' as a name for a data column." );
+
+							// [AK] If the column isn't using a native type for a name, then it's a custom column.
+							// This also implies that "custom" is a valid name for custom columns.
+							if ( ColumnType == -1 )
+								ColumnType = COLUMNTYPE_CUSTOM;
+
+							if ( ColumnType == COLUMNTYPE_COUNTRYFLAG )
+								pColumn = new CountryFlagScoreColumn( sc, ColumnName );
+							else
+								pColumn = new DataScoreColumn( ColumnType, ColumnName );
+						}
+
+						if ( pColumn->GetTemplate( ) != COLUMNTEMPLATE_DATA )
+							sc.ScriptError( "Column '%s' isn't a data column.", ColumnName.GetChars( ));
+					}
+
+					// [AK] If a new column was created, insert it to the global list.
+					if ( bMustCreateNewColumn )
+						g_Columns.Insert( ColumnName, pColumn );
+
+					pColumn->Parse( sc );
+				}
+				else
+				{
+					sc.ScriptError( "Unknown option '%s', on line %d in SCORINFO.", sc.String, sc.Line );
+				}
+			}
+		}
+	}
+
+	// [AK] Make sure that there's no custom columns without data on the scoreboard.
+	if ( g_Columns.CountUsed( ) > 0 )
+	{
+		TMapIterator<FName, ScoreColumn *> it( g_Columns );
+		TMap<FName, ScoreColumn *>::Pair *pair;
+
+		while ( it.NextPair( pair ))
+		{
+			if (( pair->Value->GetScoreboard( ) == NULL ) || ( pair->Value->GetTemplate( ) != COLUMNTEMPLATE_DATA ))
+				continue;
+
+			DataScoreColumn *pDataColumn = static_cast<DataScoreColumn *>( pair->Value );
+
+			if ( pDataColumn->GetNativeType( ) != COLUMNTYPE_CUSTOM )
+				continue;
+
+			if (( gameinfo.CustomPlayerData.CountUsed( ) == 0 ) || ( gameinfo.CustomPlayerData.CheckKey( pDataColumn->GetInternalName( )) == NULL ))
+				I_Error( "Custom column '%s' has no data and can't be on the scoreboard.", pair->Key.GetChars( ));
+		}
+	}
+}
+
+//*****************************************************************************
+//
 // [AK] SCOREBOARD_GetColumn
 //
 // Returns a pointer to a column by searching for its name.

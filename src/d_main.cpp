@@ -3075,6 +3075,9 @@ void D_DoomMain (void)
 		SBarInfo::Load();
 		HUD_InitHud();
 
+		// [AK] Parse any SCORINFO lumps.
+		SCOREBOARD_Construct( );
+
 		// [RH] User-configurable startup strings. Because BOOM does.
 		static const char *startupString[5] = {
 			"STARTUP1", "STARTUP2", "STARTUP3", "STARTUP4", "STARTUP5"

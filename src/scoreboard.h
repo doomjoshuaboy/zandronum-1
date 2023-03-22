@@ -495,6 +495,7 @@ private:
 //*****************************************************************************
 //	PROTOTYPES
 
+void			SCOREBOARD_Construct( void );
 ScoreColumn		*SCOREBOARD_GetColumn( FName Name, const bool bMustBeUsable );
 bool			SCOREBOARD_ShouldDrawBoard( void );
 void			SCOREBOARD_Reset( const bool bChangingLevel );
