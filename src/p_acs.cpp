@@ -7460,6 +7460,9 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 						if ( player->morphTics )
 							P_UndoPlayerMorph( player, player );
 
+						// [AK] Drop any important items this player might be carrying like flags, skulls, etc.
+						pmo->DropImportantItems( false );
+
 						// [AK] If we're the server, tell the clients to destroy the body.
 						if ( NETWORK_GetState() == NETSTATE_SERVER )
 							SERVERCOMMANDS_DestroyThing( pmo );
