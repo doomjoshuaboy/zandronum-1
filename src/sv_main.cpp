@@ -2997,8 +2997,6 @@ void SERVER_AdjustPlayersReactiontime( const ULONG ulPlayer )
 //
 void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo )
 {
-	ULONG	ulIdx;
-
 	if ( bBroadcast )
 	{
 		// [BB] Only broadcast disconnects if we already announced the connect
@@ -3114,7 +3112,7 @@ void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo )
 	PLAYER_ResetPlayerData( &players[ulClient] );
 
 	// If this player was the enemy of another bot, tell the bot.
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
 		if (( playeringame[ulIdx] == false ) || ( players[ulIdx].pSkullBot == NULL ))
 			continue;
