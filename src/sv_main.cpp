@@ -2997,6 +2997,8 @@ void SERVER_AdjustPlayersReactiontime( const ULONG ulPlayer )
 //
 void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo )
 {
+	const CLIENTSTATE_e OldState = g_aClients[ulClient].State;
+
 	if ( bBroadcast )
 	{
 		// [BB] Only broadcast disconnects if we already announced the connect
@@ -3088,11 +3090,9 @@ void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo )
 	playeringame[ulClient] = false;
 
 	// Run the disconnect scripts now that the player is leaving.
-	if (( players[ulClient].bSpectating == false ) ||
-		( players[ulClient].bDeadSpectator ))
-	{
+	// [AK] Only do this if the client is already spawned.
+	if (( OldState >= CLS_SPAWNED_BUT_NEEDS_AUTHENTICATION ) && (( players[ulClient].bSpectating == false ) || ( players[ulClient].bDeadSpectator )))
 		PLAYER_LeavesGame( ulClient );
-	}
 
 	// Redo the scoreboard.
 	SERVERCONSOLE_ReListPlayers( );
