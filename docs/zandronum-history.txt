@@ -95,6 +95,7 @@
 -	- Fixed: the "ready to respawn in..." message could appear even when compat_instantrespawn was enabled in online games. [Kaminsky]
 -	- Fixed: clients that weren't fully connected to the server still triggered DISCONNECT scripts if they were kicked because of an error. [Kaminsky]
 -	- Fixed: the localhost couldn't successfully join the server through the server console window if it was forcing a connect or join password. [Kaminsky]
+-	- Fixed: local CVars defined in CVARINFO were never saved in the user's config file. [Kaminsky]
 !	- The result value of GAMEEVENT_MEDALS event scripts can now be used to determine whether or not the player receives the medal. [Kaminsky]
 !	- GAMEMODE flags are now validated after all GAMEMODE lumps have been parsed instead of after each one. The internal game mode name (e.g. "TeamLMS") is now printed with the error message instead of the actual name. [Kaminsky]
 !	- Added an extra check to ensure that game modes have a (short) name. [Kaminsky]
