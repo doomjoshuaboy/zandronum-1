@@ -7964,7 +7964,7 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 				// [AK] Make sure that the column and player are both valid (unless we're resetting for all players).
 				if (( pData != NULL ) && (( ulPlayer == MAXPLAYERS ) || ( PLAYER_IsValidPlayer( ulPlayer ))))
 				{
-					pData->ResetToDefault( ulPlayer );
+					pData->ResetToDefault( ulPlayer, true );
 					return 1;
 				}
 

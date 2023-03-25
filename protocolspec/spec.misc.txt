@@ -46,3 +46,16 @@ Command ReplaceTextures
 	String toTexture
 	Byte textureFlags
 EndCommand
+
+Command SetCustomPlayerValue
+	ExtendedCommand
+	Byte index
+	Byte player
+	String value
+EndCommand
+
+Command ResetCustomPlayerValue
+	ExtendedCommand
+	Byte index
+	Byte player
+EndCommand

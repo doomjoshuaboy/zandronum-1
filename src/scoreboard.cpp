@@ -543,6 +543,10 @@ void CustomPlayerData::SetValue( const ULONG ulPlayer, const ColumnValue &Value 
 
 	Val[ulPlayer] = Value;
 	SCOREBOARD_ShouldRefreshBeforeRendering( );
+
+	// [AK] If we're the server, inform the clients that the value changed.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SetCustomPlayerValue( *this, ulPlayer );
 }
 
 //*****************************************************************************
@@ -554,7 +558,7 @@ void CustomPlayerData::SetValue( const ULONG ulPlayer, const ColumnValue &Value 
 //
 //*****************************************************************************
 
-void CustomPlayerData::ResetToDefault( const ULONG ulPlayer )
+void CustomPlayerData::ResetToDefault( const ULONG ulPlayer, const bool bInformClients )
 {
 	const ColumnValue DefaultVal = GetDefaultValue( );
 
@@ -571,6 +575,10 @@ void CustomPlayerData::ResetToDefault( const ULONG ulPlayer )
 	}
 
 	SCOREBOARD_ShouldRefreshBeforeRendering( );
+
+	// [AK] If we're the server, tell clients to reset the value(s) to default.
+	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( bInformClients ))
+		SERVERCOMMANDS_ResetCustomPlayerValue( *this, ulPlayer );
 }
 
 //*****************************************************************************
@@ -3274,7 +3282,7 @@ void SCOREBOARD_ResetCustomColumnsForPlayer( const ULONG ulPlayer )
 	TMap<FName, CustomPlayerData>::Pair *pair;
 
 	while ( it.NextPair( pair ))
-		pair->Value.ResetToDefault( ulPlayer );
+		pair->Value.ResetToDefault( ulPlayer, false );
 }
 
 //*****************************************************************************

@@ -1554,6 +1554,35 @@ void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 	// Send a snapshot of the level.
 	SERVER_SendFullUpdate( g_lCurrentClient );
 
+	// [AK] Tell the client everything they need to know about custom player values.
+	// This must be done after the client received the full update.
+	if ( gameinfo.CustomPlayerData.CountUsed( ) > 0 )
+	{
+		TMap<FName, CustomPlayerData>::Iterator it( gameinfo.CustomPlayerData );
+		TMap<FName, CustomPlayerData>::Pair *pair;
+
+		while ( it.NextPair( pair ))
+		{
+			const ColumnValue DefaultVal = pair->Value.GetDefaultValue( );
+
+			// [AK] First, tell them to reset everyone's values to default.
+			SERVERCOMMANDS_ResetCustomPlayerValue( pair->Value, MAXPLAYERS, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
+
+			for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+			{
+				// [AK] Ignore the client themselves, or invalid players.
+				if (( ulIdx == static_cast<ULONG>( g_lCurrentClient )) || ( PLAYER_IsValidPlayer( ulIdx ) == false ))
+					continue;
+
+				// [AK] Don't bother sending out values that are already equal to the default value.
+				if ( pair->Value.GetValue( ulIdx ) == DefaultVal )
+					continue;
+
+				SERVERCOMMANDS_SetCustomPlayerValue( pair->Value, ulIdx, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
+			}
+		}
+	}
+
 	// If we need to start this client's enter scripts, do that now.
 	if ( g_aClients[g_lCurrentClient].bRunEnterScripts )
 	{

@@ -5138,6 +5138,33 @@ void SERVERCOMMANDS_ResetMapRotation( ULONG ulPlayerExtra, ServerCommandFlags fl
 }
 
 //*****************************************************************************
+// [AK]
+void SERVERCOMMANDS_SetCustomPlayerValue( CustomPlayerData &Data, ULONG ulPlayer, ULONG ulPlayerExtra, ServerCommandFlags flags )
+{
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
+		return;
+
+	ServerCommands::SetCustomPlayerValue command;
+	command.SetIndex( Data.GetIndex( ));
+	command.SetPlayer( ulPlayer );
+	command.SetValue( Data.GetValue( ulPlayer ).ToString( ));
+	command.sendCommandToClients( ulPlayerExtra, flags );
+}
+
+//*****************************************************************************
+// [AK]
+void SERVERCOMMANDS_ResetCustomPlayerValue( CustomPlayerData &Data, ULONG ulPlayer, ULONG ulPlayerExtra, ServerCommandFlags flags )
+{
+	if (( ulPlayer != MAXPLAYERS ) && ( PLAYER_IsValidPlayer( ulPlayer ) == false ))
+		return;
+
+	ServerCommands::ResetCustomPlayerValue command;
+	command.SetIndex( Data.GetIndex( ));
+	command.SetPlayer( ulPlayer );
+	command.sendCommandToClients( ulPlayerExtra, flags );
+}
+
+//*****************************************************************************
 void APathFollower::SyncWithClient ( const ULONG ulClient )
 {
 	if ( !EnsureActorHasNetID (this) )

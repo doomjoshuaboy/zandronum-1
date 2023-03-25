@@ -203,7 +203,7 @@ public:
 	ColumnValue GetDefaultValue( void ) const;
 	BYTE GetIndex( void ) const { return Index; }
 	void SetValue( const ULONG ulPlayer, const ColumnValue &Value );
-	void ResetToDefault( const ULONG ulPlayer );
+	void ResetToDefault( const ULONG ulPlayer, const bool bInformClients );
 
 private:
 	COLUMNDATA_e DataType;

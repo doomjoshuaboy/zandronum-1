@@ -9255,6 +9255,59 @@ void ServerCommands::SyncMapRotation::Execute()
 
 //*****************************************************************************
 //
+static CustomPlayerData *client_GetCustomPlayerData( const char *pszFunctionName, const int index )
+{
+	if ( pszFunctionName == NULL )
+		I_Error( "client_GetCustomPlayerData: a function name is missing!" );
+
+	// [AK] Make sure that there's actually custom data defined.
+	if ( gameinfo.CustomPlayerData.CountUsed( ) == 0 )
+	{
+		CLIENT_PrintWarning( "ServerCommands::%s::Execute: No custom data defined.\n", pszFunctionName );
+		return NULL;
+	}
+
+	TMap<FName, CustomPlayerData>::Iterator it( gameinfo.CustomPlayerData );
+	TMap<FName, CustomPlayerData>::Pair *pair;
+
+	while ( it.NextPair( pair ))
+	{
+		if ( pair->Value.GetIndex( ) == index )
+			return &pair->Value;
+	}
+
+	// [AK] If we reached here, then something went wrong. Print a warning message.
+	CLIENT_PrintWarning( "ServerCommands::%s::Execute: Couldn't find custom data with index %d.\n", index );
+	return NULL;
+}
+
+//*****************************************************************************
+//
+void ServerCommands::SetCustomPlayerValue::Execute()
+{
+	CustomPlayerData *pData = client_GetCustomPlayerData( "SetCustomPlayerValue", index );
+
+	if ( pData != NULL )
+	{
+		ColumnValue Val;
+		Val.FromString( value, pData->GetDataType( ));
+
+		pData->SetValue( player, Val );
+	}
+}
+
+//*****************************************************************************
+//
+void ServerCommands::ResetCustomPlayerValue::Execute( )
+{
+	CustomPlayerData *pData = client_GetCustomPlayerData( "ResetCustomPlayerValue", index );
+
+	if ( pData != NULL )
+		pData->ResetToDefault( player, false );
+}
+
+//*****************************************************************************
+//
 void STACK_ARGS CLIENT_PrintWarning( const char* format, ... )
 {
 	if ( cl_showwarnings )
