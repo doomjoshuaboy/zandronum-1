@@ -431,6 +431,150 @@ bool ColumnValue::operator== ( const ColumnValue &Other ) const
 
 //*****************************************************************************
 //
+// [AK] CustomPlayerData::CustomPlayerData
+//
+// Initializes the data type and default value that will be used.
+//
+//*****************************************************************************
+
+CustomPlayerData::CustomPlayerData( FScanner &sc, BYTE NewIndex ) : Index( NewIndex )
+{
+	// [AK] Grab the data type first.
+	sc.MustGetToken( TK_StringConst );
+
+	if ( sc.StringLen == 0 )
+		sc.ScriptError( "Got an empty string for a data type." );
+
+	DataType = static_cast<COLUMNDATA_e>( sc.MustGetEnumName( "data type", "COLUMNDATA_", GetValueCOLUMNDATA_e, true ));
+
+	// [AK] Don't accept an "unknown" data type.
+	if ( DataType == COLUMNDATA_UNKNOWN )
+		sc.ScriptError( "You can't specify an 'unknown' data type!" );
+
+	sc.MustGetToken( ',' );
+
+	// [AK] Next, grab the default value and store it into a string.
+	switch ( DataType )
+	{
+		case COLUMNDATA_INT:
+		{
+			sc.MustGetNumber( );
+			DefaultValString.Format( "%d", sc.Number );
+			break;
+		}
+
+		case COLUMNDATA_FLOAT:
+		{
+			sc.MustGetFloat( );
+			DefaultValString.Format( "%f", static_cast<float>( sc.Float ));
+			break;
+		}
+
+		case COLUMNDATA_BOOL:
+		case COLUMNDATA_STRING:
+		case COLUMNDATA_COLOR:
+		case COLUMNDATA_TEXTURE:
+		{
+			sc.MustGetString( );
+
+			// [AK] Color values must be saved differently.
+			if ( DataType == COLUMNDATA_COLOR )
+			{
+				FString ColorString = V_GetColorStringByName( sc.String );
+				DefaultValString.Format( "%d", V_GetColorFromString( NULL, ColorString.IsNotEmpty( ) ? ColorString.GetChars( ) : sc.String ));
+			}
+			else
+			{
+				DefaultValString = sc.String;
+			}
+
+			break;
+		}
+	}
+}
+
+//*****************************************************************************
+//
+// [AK] CustomPlayerData::GetValue
+//
+// Returns a ColumnValue object containing the value associated with a player,
+// or the default value if the given player index is invalid.
+//
+//*****************************************************************************
+
+ColumnValue CustomPlayerData::GetValue( const ULONG ulPlayer ) const
+{
+	return PLAYER_IsValidPlayer( ulPlayer ) ? Val[ulPlayer] : GetDefaultValue( );
+}
+
+//*****************************************************************************
+//
+// [AK] CustomPlayerData::GetDefaultValue
+//
+// Returns a ColumnValue object containing the default value.
+//
+//*****************************************************************************
+
+ColumnValue CustomPlayerData::GetDefaultValue( void ) const
+{
+	ColumnValue DefaultVal;
+	DefaultVal.FromString( DefaultValString.GetChars( ), DataType );
+
+	return DefaultVal;
+}
+
+//*****************************************************************************
+//
+// [AK] CustomPlayerData::SetValue
+//
+// Changes the value for a player in this column.
+//
+//*****************************************************************************
+
+void CustomPlayerData::SetValue( const ULONG ulPlayer, const ColumnValue &Value )
+{
+	// [AK] Stop here if the player's invalid, or the new value is equal to the old one.
+	if (( PLAYER_IsValidPlayer( ulPlayer ) == false ) || ( GetValue( ulPlayer ) == Value ))
+		return;
+
+	// [AK] Only set the value if the data types match. Otherwise, throw a fatal error.
+	if ( DataType != Value.GetDataType( ))
+		I_Error( "CustomPlayerData::SetValue: data type doesn't match." );
+
+	Val[ulPlayer] = Value;
+	SCOREBOARD_ShouldRefreshBeforeRendering( );
+}
+
+//*****************************************************************************
+//
+// [AK] CustomPlayerData::ResetToDefault
+//
+// Resets the value of a single player or all players in this column to their
+// default values.
+//
+//*****************************************************************************
+
+void CustomPlayerData::ResetToDefault( const ULONG ulPlayer )
+{
+	const ColumnValue DefaultVal = GetDefaultValue( );
+
+	// [AK] Check if we want to restore the default value for all players.
+	if ( ulPlayer == MAXPLAYERS )
+	{
+		for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+			Val[ulIdx] = DefaultVal;
+	}
+	// [AK] Otherwise, restore it only for the one player.
+	else if ( ulPlayer < MAXPLAYERS )
+	{
+		Val[ulPlayer] = DefaultVal;
+	}
+
+	SCOREBOARD_ShouldRefreshBeforeRendering( );
+}
+
+//*****************************************************************************
+//
 // [AK] ScoreColumn::ScoreColumn
 //
 // Initializes the members of a ScoreColumn object to their default values.
@@ -1073,6 +1217,16 @@ COLUMNDATA_e DataScoreColumn::GetDataType( void ) const
 		case COLUMNTYPE_COUNTRYFLAG:
 			return COLUMNDATA_TEXTURE;
 
+		case COLUMNTYPE_CUSTOM:
+		{
+			CustomPlayerData *pData = gameinfo.CustomPlayerData.CheckKey( InternalName );
+
+			if ( pData == NULL )
+				I_Error( "DataScoreColumn::GetDataType: custom column '%s' has no data.", GetInternalName( ));
+
+			return pData->GetDataType( );
+		}
+
 		default:
 			return COLUMNDATA_UNKNOWN;
 	}
@@ -1394,6 +1548,16 @@ ColumnValue DataScoreColumn::GetValue( const ULONG ulPlayer ) const
 			case COLUMNTYPE_COUNTRYCODE:
 				Result = NETWORK_GetCountryCodeFromIndex( players[ulPlayer].ulCountryIndex, cl_usealpha3countrycode );
 				break;
+
+			case COLUMNTYPE_CUSTOM:
+			{
+				CustomPlayerData *pData = gameinfo.CustomPlayerData.CheckKey( InternalName );
+
+				if ( pData == NULL )
+					I_Error( "DataScoreColumn::GetValue: custom column '%s' has no data.", GetInternalName( ));
+
+				Result = pData->GetValue( ulPlayer );
+			}
 		}
 	}
 
@@ -1715,253 +1879,6 @@ void CountryFlagScoreColumn::DrawValue( const ULONG ulPlayer, const ULONG ulColo
 			DTA_Alpha, FLOAT2FIXED( fAlpha ),
 			TAG_DONE );
 	}
-}
-
-//*****************************************************************************
-//
-// [AK] CustomScoreColumn::CustomScoreColumn
-//
-// Initializes the custom column's data type and sets its default value to zero
-// (e.g. 0 for integers, booleans, floats, or colors, and NULL for strings
-// or textures).
-//
-//*****************************************************************************
-
-CustomScoreColumn::CustomScoreColumn( COLUMNDATA_e DataType, const char *pszName ) : DataScoreColumn( COLUMNTYPE_CUSTOM, pszName ), CurrentDataType( COLUMNDATA_UNKNOWN )
-{
-	ValidateDataType( DataType, "CustomScoreColumn::CustomScoreColumn" );
-	SetDataType( DataType );
-}
-
-//*****************************************************************************
-//
-// [AK] CustomScoreColumn::GetValue
-//
-// Returns a ColumnValue object containing the value associated with a player,
-// or the default value if the given player index is invalid.
-//
-//*****************************************************************************
-
-ColumnValue CustomScoreColumn::GetValue( ULONG ulPlayer ) const
-{
-	return PLAYER_IsValidPlayer( ulPlayer ) ? Val[ulPlayer] : DefaultVal;
-}
-
-//*****************************************************************************
-//
-// [AK] CustomScoreColumn::GetDefaultValue
-//
-// Returns a ColumnValue object containing the column's default value.
-//
-//*****************************************************************************
-
-ColumnValue CustomScoreColumn::GetDefaultValue( void ) const
-{
-	return DefaultVal;
-}
-
-//*****************************************************************************
-//
-// [AK] CustomScoreColumn::SetDataType
-//
-// Changes the columm's data type and zeroes every player's value.
-//
-//*****************************************************************************
-
-void CustomScoreColumn::SetDataType( COLUMNDATA_e NewDataType )
-{
-	if ( CurrentDataType == NewDataType )
-		return;
-
-	ValidateDataType( NewDataType, "CustomScoreColumn::SetDataType" );
-	CurrentDataType = NewDataType;
-
-	// [AK] We changed the custom column's data type. Now we need to do the same with
-	// the (default) values and zero everything.
-	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-		Val[ulIdx].ChangeDataType( CurrentDataType );
-
-	DefaultVal.ChangeDataType( CurrentDataType );
-}
-
-//*****************************************************************************
-//
-// [AK] CustomScoreColumn::SetValue
-//
-// Changes the value for a player in this column.
-//
-//*****************************************************************************
-
-void CustomScoreColumn::SetValue( const ULONG ulPlayer, const ColumnValue &Value )
-{
-	if ( PLAYER_IsValidPlayer( ulPlayer ))
-	{
-		// [AK] Stop here if the new value is equal to the old one.
-		if ( GetValue( ulPlayer ) == Value )
-			return;
-
-		TryChangingValue( Val[ulPlayer], Value, "CustomScoreColumn::SetValue" );
-		SCOREBOARD_ShouldRefreshBeforeRendering( );
-	}
-}
-
-//*****************************************************************************
-//
-// [AK] CustomScoreColumn::SetDefaultValue
-//
-// Changes the column's default value.
-//
-//*****************************************************************************
-
-void CustomScoreColumn::SetDefaultValue( const ColumnValue &Value )
-{
-	TryChangingValue( DefaultVal, Value, "CustomScoreColumn::SetDefaultValue" );
-}
-
-//*****************************************************************************
-//
-// [AK] CustomScoreColumn::ParseCommand
-//
-// Parses commands that are only used for custom columns.
-//
-//*****************************************************************************
-
-void CustomScoreColumn::ParseCommand( FScanner &sc, const COLUMNCMD_e Command, const FString CommandName )
-{
-	switch ( Command )
-	{
-		case COLUMNCMD_DEFAULTVALUE:
-		{
-			const COLUMNDATA_e DataType = GetDataType( );
-			ColumnValue Value;
-
-			switch ( DataType )
-			{
-				case COLUMNDATA_INT:
-				{
-					sc.MustGetNumber( );
-					Value = sc.Number;
-					break;
-				}
-
-				case COLUMNDATA_FLOAT:
-				{
-					sc.MustGetFloat( );
-					Value = static_cast<float>( sc.Float );
-					break;
-				}
-
-				case COLUMNDATA_BOOL:
-				case COLUMNDATA_STRING:
-				case COLUMNDATA_COLOR:
-				case COLUMNDATA_TEXTURE:
-				{
-					sc.MustGetString( );
-
-					if ( DataType == COLUMNDATA_BOOL )
-					{
-						if ( stricmp( sc.String, "true" ) == 0 )
-							Value = true;
-						else if ( stricmp( sc.String, "false" ) == 0 )
-							Value = false;
-						else
-							Value = !!atoi( sc.String );
-					}
-					else if ( DataType == COLUMNDATA_STRING )
-					{
-						Value = sc.String;
-					}
-					else if ( DataType == COLUMNDATA_COLOR )
-					{
-						FString ColorString = V_GetColorStringByName( sc.String );
-						Value = V_GetColorFromString( NULL, ColorString.IsNotEmpty( ) ? ColorString.GetChars( ) : sc.String );
-					}
-					else
-					{
-						FTexture *pTexture = TexMan.FindTexture( sc.String );
-
-						if ( pTexture == NULL )
-							sc.ScriptError( "Couldn't find texture '%s'.", sc.String );
-
-						Value = pTexture;
-					}
-
-					break;
-				}
-			}
-
-			SetDefaultValue( Value );
-			break;
-		}
-
-		// [AK] Parse any data column commands if we reach here.
-		default:
-			DataScoreColumn::ParseCommand( sc, Command, CommandName );
-			break;
-	}
-}
-
-//*****************************************************************************
-//
-// [AK] CustomScoreColumn::ResetToDefault
-//
-// Resets the value of a single player or all players in this column to their
-// default values.
-//
-//*****************************************************************************
-
-void CustomScoreColumn::ResetToDefault( const ULONG ulPlayer, const bool bChangingLevel )
-{
-	// [AK] Don't reset to default if this column forbids it during a level change.
-	if (( bChangingLevel ) && ( ulFlags & COLUMNFLAG_DONTRESETONLEVELCHANGE ))
-		return;
-
-	// [AK] Check if we want to restore the default value for all players.
-	if ( ulPlayer == MAXPLAYERS )
-	{
-		for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-			Val[ulIdx] = DefaultVal;
-	}
-	// [AK] Otherwise, restore it only for the one player.
-	else if ( ulPlayer < MAXPLAYERS )
-	{
-		Val[ulPlayer] = DefaultVal;
-	}
-
-	SCOREBOARD_ShouldRefreshBeforeRendering( );
-}
-
-//*****************************************************************************
-//
-// [AK] CustomScoreColumn::ValidateDataType
-//
-// Checks if a data type is valid, and throws a fatal error if it isn't.
-//
-//*****************************************************************************
-
-void CustomScoreColumn::ValidateDataType( COLUMNDATA_e DataType, const char *pszFunctionName ) const
-{
-	// [AK] Throw a fatal error if an invalid data type was used.
-	if (( DataType <= COLUMNDATA_UNKNOWN ) || ( DataType >= NUM_COLUMNDATA_TYPES ))
-		I_Error( "%s: an invalid data type was used, %d.", pszFunctionName ? pszFunctionName : "CustomScoreColumn", static_cast<int>( DataType ));
-}
-
-//*****************************************************************************
-//
-// [AK] CustomScoreColumn::TryChangingValue
-//
-// Checks if it's safe to change a value to that of another  ColumnValue object
-// (i.e. their data types match), and throws a fatal error if they aren't.
-//
-//*****************************************************************************
-
-void CustomScoreColumn::TryChangingValue( ColumnValue &To, const ColumnValue &From, const char *pszFunctionName )
-{
-	// [AK] Only set the value if the data types match. Otherwise, throw a fatal error.
-	if ( GetDataType( ) == From.GetDataType( ))
-		To = From;
-	else
-		I_Error( "%s: the value's data type doesn't match the column's data type.", pszFunctionName ? pszFunctionName : "CustomScoreColumn" );
 }
 
 //*****************************************************************************
@@ -3332,7 +3249,7 @@ void SCOREBOARD_Reset( const bool bChangingLevel )
 	}
 
 	// [AK] Reset custom columns to their default values for all players.
-	SCOREBOARD_ResetCustomColumnsForPlayer( MAXPLAYERS, bChangingLevel );
+	SCOREBOARD_ResetCustomColumnsForPlayer( MAXPLAYERS );
 
 	// [AK] It would be a good idea to refresh the scoreboard after resetting.
 	SCOREBOARD_ShouldRefreshBeforeRendering( );
@@ -3347,20 +3264,17 @@ void SCOREBOARD_Reset( const bool bChangingLevel )
 //
 //*****************************************************************************
 
-void SCOREBOARD_ResetCustomColumnsForPlayer( const ULONG ulPlayer, const bool bChangingLevel )
+void SCOREBOARD_ResetCustomColumnsForPlayer( const ULONG ulPlayer )
 {
-	// [AK] Don't do anything if there are no defined columns.
-	if ( g_Columns.CountUsed( ) == 0 )
+	// [AK] Don't do anything if there is no data.
+	if ( gameinfo.CustomPlayerData.CountUsed( ) == 0 )
 		return;
 
-	TMapIterator<FName, ScoreColumn *> it( g_Columns );
-	TMap<FName, ScoreColumn *>::Pair *pair;
+	TMapIterator<FName, CustomPlayerData> it( gameinfo.CustomPlayerData );
+	TMap<FName, CustomPlayerData>::Pair *pair;
 
 	while ( it.NextPair( pair ))
-	{
-		if (( pair->Value->IsUsableInCurrentGame( )) && ( pair->Value->IsCustomColumn( )))
-			static_cast<CustomScoreColumn *>( pair->Value )->ResetToDefault( ulPlayer, bChangingLevel );
-	}
+		pair->Value.ResetToDefault( ulPlayer );
 }
 
 //*****************************************************************************

@@ -1861,25 +1861,6 @@ static int SendNetworkString ( FBehavior* module, AActor* activator, int script,
 	return 0;
 }
 
-// ================================================================================================
-//
-// [AK] GetCustomScoreColumn
-//
-// Returns a pointer to a usable CustomScoreColumn object, using its name as an argument.
-//
-// ================================================================================================
-
-static CustomScoreColumn *GetCustomScoreColumn ( const char *pszColumnName )
-{
-	ScoreColumn *pColumn = SCOREBOARD_GetColumn( pszColumnName, true );
-
-	// [AK] Return NULL if the column doesn't exist, isn't usable right now, or isn't a custom column.
-	if (( pColumn == NULL ) || ( pColumn->IsCustomColumn( ) == false ))
-		return NULL;
-
-	return static_cast<CustomScoreColumn *>( pColumn );
-}
-
 //---- Plane watchers ----//
 
 class DPlaneWatcher : public DThinker
@@ -7897,14 +7878,14 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 
 		case ACSF_SetCustomColumnValue:
 			{
-				CustomScoreColumn *pCustomColumn = GetCustomScoreColumn( FBehavior::StaticLookupString( args[0] ));
+				CustomPlayerData *pData = gameinfo.CustomPlayerData.CheckKey( FBehavior::StaticLookupString( args[0] ));
 
 				// [AK] Make sure that the column and player are both valid.
-				if (( pCustomColumn != NULL ) && ( PLAYER_IsValidPlayer( args[1] )))
+				if (( pData != NULL ) && ( PLAYER_IsValidPlayer( args[1] )))
 				{
 					ColumnValue Val;
 
-					switch ( pCustomColumn->GetDataType( ))
+					switch ( pData->GetDataType( ))
 					{
 						case COLUMNDATA_INT:
 						case COLUMNDATA_COLOR:
@@ -7924,14 +7905,14 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 						{
 							const char *pszValue = FBehavior::StaticLookupString( args[2] );
 
-							if ( pCustomColumn->GetDataType( ) == COLUMNDATA_STRING )
+							if ( pData->GetDataType( ) == COLUMNDATA_STRING )
 								Val = pszValue;
 							else
 								Val = TexMan.FindTexture( pszValue );
 						}
 					}
 
-					pCustomColumn->SetValue( args[1], Val );
+					pData->SetValue( args[1], Val );
 					return 1;
 				}
 
@@ -7940,12 +7921,12 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 
 		case ACSF_GetCustomColumnValue:
 			{
-				CustomScoreColumn *pCustomColumn = GetCustomScoreColumn( FBehavior::StaticLookupString( args[0] ));
+				CustomPlayerData *pData = gameinfo.CustomPlayerData.CheckKey( FBehavior::StaticLookupString( args[0] ));
 
 				// [AK] Make sure that the column and player are both valid.
-				if (( pCustomColumn != NULL ) && ( PLAYER_IsValidPlayer( args[1] )))
+				if (( pData != NULL ) && ( PLAYER_IsValidPlayer( args[1] )))
 				{
-					const ColumnValue Val = pCustomColumn->GetValue( args[1] );
+					const ColumnValue Val = pData->GetValue( args[1] );
 
 					switch ( Val.GetDataType( ))
 					{
@@ -7977,13 +7958,13 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 
 		case ACSF_ResetCustomColumnToDefault:
 			{
-				CustomScoreColumn *pCustomColumn = GetCustomScoreColumn( FBehavior::StaticLookupString( args[0] ));
+				CustomPlayerData *pData = gameinfo.CustomPlayerData.CheckKey( FBehavior::StaticLookupString( args[0] ));
 				const ULONG ulPlayer = args[1] < 0 ? MAXPLAYERS : args[1];
 
 				// [AK] Make sure that the column and player are both valid (unless we're resetting for all players).
-				if (( pCustomColumn != NULL ) && (( ulPlayer == MAXPLAYERS ) || ( PLAYER_IsValidPlayer( ulPlayer ))))
+				if (( pData != NULL ) && (( ulPlayer == MAXPLAYERS ) || ( PLAYER_IsValidPlayer( ulPlayer ))))
 				{
-					pCustomColumn->ResetToDefault( ulPlayer, false );
+					pData->ResetToDefault( ulPlayer );
 					return 1;
 				}
 

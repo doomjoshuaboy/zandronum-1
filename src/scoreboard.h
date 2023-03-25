@@ -187,6 +187,37 @@ private:
 
 //*****************************************************************************
 //
+// [AK] CustomPlayerData
+//
+// An array of ColumnValues for each player, used by custom columns to store data.
+//
+//*****************************************************************************
+
+class CustomPlayerData
+{
+public:
+	CustomPlayerData( FScanner &sc, BYTE NewIndex );
+
+	COLUMNDATA_e GetDataType( void ) const { return DataType; }
+	ColumnValue GetValue( const ULONG ulPlayer ) const;
+	ColumnValue GetDefaultValue( void ) const;
+	BYTE GetIndex( void ) const { return Index; }
+	void SetValue( const ULONG ulPlayer, const ColumnValue &Value );
+	void ResetToDefault( const ULONG ulPlayer );
+
+private:
+	COLUMNDATA_e DataType;
+	ColumnValue Val[MAXPLAYERS];
+	BYTE Index;
+
+	// [AK] The default value as a string. MAPINFO lumps are parsed before any
+	// graphics are loaded, so if a custom column uses textures as data, then
+	// this is why the value must be stored as a string.
+	FString DefaultValString;
+};
+
+//*****************************************************************************
+//
 // [AK] ScoreColumn
 //
 // A base class for all column types (e.g. data or composite) that will appear
@@ -222,7 +253,6 @@ public:
 	void DrawTexture( FTexture *pTexture, const LONG lYPos, const ULONG ulHeight, const float fAlpha, const int clipWidth, const int clipHeight ) const;
 
 	virtual COLUMNTEMPLATE_e GetTemplate( void ) const { return COLUMNTEMPLATE_UNKNOWN; }
-	virtual bool IsCustomColumn( void ) const { return false; }
 	virtual void Parse( FScanner &sc );
 	virtual void ParseCommand( FScanner &sc, const COLUMNCMD_e Command, const FString CommandName );
 	virtual void CheckIfUsable( void );
@@ -333,39 +363,6 @@ private:
 	FTexture *pFlagIconSet;
 	ULONG ulFlagWidth;
 	ULONG ulFlagHeight;
-};
-
-//*****************************************************************************
-//
-// [AK] CustomScoreColumn
-//
-// A separate class for all custom columns and their respective data types.
-//
-//*****************************************************************************
-
-class CustomScoreColumn : public DataScoreColumn
-{
-public:
-	CustomScoreColumn( COLUMNDATA_e DataType, const char *pszName );
-
-	virtual bool IsCustomColumn( void ) const { return true; }
-	virtual COLUMNDATA_e GetDataType( void ) const { return CurrentDataType; }
-	virtual ColumnValue GetValue( const ULONG ulPlayer ) const;
-	virtual ColumnValue GetDefaultValue( void ) const;
-	virtual void SetDataType( COLUMNDATA_e NewDataType );
-	virtual void SetValue( const ULONG ulPlayer, const ColumnValue &Value );
-	virtual void SetDefaultValue( const ColumnValue &Value );
-	virtual void ParseCommand( FScanner &sc, const COLUMNCMD_e Command, const FString CommandName );
-	virtual void ResetToDefault( const ULONG ulPlayer, const bool bChangingLevel );
-
-protected:
-	COLUMNDATA_e CurrentDataType;
-	ColumnValue Val[MAXPLAYERS];
-	ColumnValue DefaultVal;
-
-private:
-	void ValidateDataType( COLUMNDATA_e DataType, const char *pszFunctionName ) const;
-	void TryChangingValue( ColumnValue &To, const ColumnValue &From, const char *pszFunctionName );
 };
 
 //*****************************************************************************
@@ -501,7 +498,7 @@ private:
 ScoreColumn		*SCOREBOARD_GetColumn( FName Name, const bool bMustBeUsable );
 bool			SCOREBOARD_ShouldDrawBoard( void );
 void			SCOREBOARD_Reset( const bool bChangingLevel );
-void			SCOREBOARD_ResetCustomColumnsForPlayer( const ULONG ulPlayer, const bool bChangingLevel );
+void			SCOREBOARD_ResetCustomColumnsForPlayer( const ULONG ulPlayer );
 void			SCOREBOARD_Render( ULONG ulDisplayPlayer );
 void			SCOREBOARD_Refresh( void );
 void			SCOREBOARD_ShouldRefreshBeforeRendering( void );

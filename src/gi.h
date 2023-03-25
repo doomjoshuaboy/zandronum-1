@@ -36,6 +36,8 @@
 
 #include "basictypes.h"
 #include "zstring.h"
+// [AK] New #includes.
+#include "scoreboard.h"
 
 // Flags are not user configurable and only depend on the standard IWADs
 #define GI_MAPxx				0x00000001
@@ -149,6 +151,9 @@ struct gameinfo_t
 	// enabled the STFL_NOSPAWNEVENTSCRIPT or STFL_NODAMAGEEVENTSCRIPT flags respectively.
 	bool bForceSpawnEventScripts;
 	bool bForceDamageEventScripts;
+
+	// [AK] A list of all custom data for players, particularly used by custom columns.
+	TMap<FName, CustomPlayerData> CustomPlayerData;
 
 	const char *GetFinalePage(unsigned int num) const;
 };

@@ -192,8 +192,6 @@ BEGIN_ENUM( COLUMNFLAG_e )
 	ENUM_ELEMENT2( COLUMNFLAG_CVARMUSTBEZERO, 0x4000 ),
 	// If the column's empty (i.e. no contents inside it), then it's disabled.
 	ENUM_ELEMENT2( COLUMNFLAG_DISABLEIFEMPTY, 0x8000 ),
-	// This column's values aren't reset to default when the level changes (custom columns only).
-	ENUM_ELEMENT2( COLUMNFLAG_DONTRESETONLEVELCHANGE, 0x10000 ),
 }
 END_ENUM( COLUMNFLAG_e )
 
@@ -256,8 +254,6 @@ BEGIN_ENUM( COLUMNCMD_e )
 	ENUM_ELEMENT( COLUMNCMD_TRUETEXT ),
 	// What gets drawn when a row's value is 0 (boolean columns only).
 	ENUM_ELEMENT( COLUMNCMD_FALSETEXT ),
-	// The default value of this column at the start of a new game (custom columns only).
-	ENUM_ELEMENT( COLUMNCMD_DEFAULTVALUE ),
 	// What sub-columns are inside the composite column and their order (composite columns only).
 	ENUM_ELEMENT( COLUMNCMD_COLUMNS ),
 	// Adds column(s) to the end of the composite column's sub-column list (composite columns only).

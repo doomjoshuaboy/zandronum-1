@@ -4545,7 +4545,7 @@ void ServerCommands::DisconnectPlayer::Execute()
 	CHAT_ClearChatMessages( player - players );
 
 	// [AK] Reset this player's custom columns to their default values.
-	SCOREBOARD_ResetCustomColumnsForPlayer( player - players, false );
+	SCOREBOARD_ResetCustomColumnsForPlayer( player - players );
 
 	// Zero out all the player information.
 	PLAYER_ResetPlayerData( player );
