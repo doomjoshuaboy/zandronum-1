@@ -7888,16 +7888,19 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 					switch ( pData->GetDataType( ))
 					{
 						case COLUMNDATA_INT:
-						case COLUMNDATA_COLOR:
-							Val = args[2];
+							Val.SetValue<int>( args[2] );
 							break;
 
 						case COLUMNDATA_BOOL:
-							Val = !!args[2];
+							Val.SetValue<bool>( !!args[2] );
 							break;
 
 						case COLUMNDATA_FLOAT:
-							Val = FIXED2FLOAT( args[2] );
+							Val.SetValue<float>( FIXED2FLOAT( args[2] ));
+							break;
+
+						case COLUMNDATA_COLOR:
+							Val.SetValue<PalEntry>( args[2] );
 							break;
 
 						case COLUMNDATA_STRING:
@@ -7906,9 +7909,9 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 							const char *pszValue = FBehavior::StaticLookupString( args[2] );
 
 							if ( pData->GetDataType( ) == COLUMNDATA_STRING )
-								Val = pszValue;
+								Val.SetValue<const char *>( pszValue );
 							else
-								Val = TexMan.FindTexture( pszValue );
+								Val.SetValue<FTexture *>( TexMan.FindTexture( pszValue ));
 						}
 					}
 

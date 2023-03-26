@@ -186,6 +186,62 @@ CUSTOM_CVAR( Float, cl_scoreboardalpha, 1.0f, CVAR_ARCHIVE )
 }
 
 //*****************************************************************************
+//	COLUMN VALUE TRAITS
+
+const COLUMNDATA_e ColumnValue::Trait<int>::DataType = COLUMNDATA_INT;
+const int ColumnValue::Trait<int>::Zero = 0;
+
+const COLUMNDATA_e ColumnValue::Trait<bool>::DataType = COLUMNDATA_BOOL;
+const bool ColumnValue::Trait<bool>::Zero = false;
+
+const COLUMNDATA_e ColumnValue::Trait<float>::DataType = COLUMNDATA_FLOAT;
+const float ColumnValue::Trait<float>::Zero = 0.0f;
+
+const COLUMNDATA_e ColumnValue::Trait<const char *>::DataType = COLUMNDATA_STRING;
+const char *const ColumnValue::Trait<const char *>::Zero = NULL;
+
+const COLUMNDATA_e ColumnValue::Trait<PalEntry>::DataType = COLUMNDATA_COLOR;
+const PalEntry ColumnValue::Trait<PalEntry>::Zero = 0;
+
+const COLUMNDATA_e ColumnValue::Trait<FTexture *>::DataType = COLUMNDATA_TEXTURE;
+FTexture *const ColumnValue::Trait<FTexture *>::Zero = 0;
+
+//*****************************************************************************
+//	FUNCTIONS
+
+//*****************************************************************************
+//
+// [AK] ColumnValue::GetValue
+//
+// Gets the value that a ColumnValue object is holding for a specific data
+// type. If the input data type doesn't match what is currently used, then the
+// "zero" value of that data type is returned instead.
+//
+//*****************************************************************************
+
+template <typename Type> Type ColumnValue::GetValue( void ) const
+{
+	return ( DataType == Trait<Type>::DataType ) ? RetrieveValue<Type>( ) : Trait<Type>::Zero;
+}
+
+//*****************************************************************************
+//
+// [AK] ColumnValue::SetValue
+//
+// Changes the value, and possibly the data type, of a ColumnValue object.
+//
+//*****************************************************************************
+
+template <typename Type> void ColumnValue::SetValue( Type NewValue )
+{
+	if ( DataType == COLUMNDATA_STRING )
+		DeleteString( );
+
+	DataType = Trait<Type>::DataType;
+	ModifyValue( NewValue );
+}
+
+//*****************************************************************************
 //
 // [AK] ColumnValue::ToString
 //
@@ -197,31 +253,31 @@ FString ColumnValue::ToString( void ) const
 {
 	FString Result;
 
-	switch ( GetDataType( ))
+	switch ( DataType )
 	{
 		case COLUMNDATA_INT:
-			Result.Format( "%d", GetValue<int>( ));
+			Result.Format( "%d", RetrieveValue<int>( ));
 			break;
 
 		case COLUMNDATA_BOOL:
-			Result.Format( "%d", GetValue<bool>( ));
+			Result.Format( "%d", RetrieveValue<bool>( ));
 			break;
 
 		case COLUMNDATA_FLOAT:
-			Result.Format( "%f", GetValue<float>( ));
+			Result.Format( "%f", RetrieveValue<float>( ));
 			break;
 
 		case COLUMNDATA_STRING:
-			Result = GetValue<const char *>( );
+			Result = RetrieveValue<const char *>( );
 			break;
 
 		case COLUMNDATA_COLOR:
-			Result.Format( "%d", GetValue<PalEntry>( ));
+			Result.Format( "%d", RetrieveValue<PalEntry>( ));
 			break;
 
 		case COLUMNDATA_TEXTURE:
 		{
-			FTexture *pTexture = GetValue<FTexture *>( );
+			FTexture *pTexture = RetrieveValue<FTexture *>( );
 
 			if ( pTexture != NULL )
 				Result.Format( "%s", pTexture->Name );
@@ -246,37 +302,35 @@ void ColumnValue::FromString( const char *pszString, const COLUMNDATA_e NewDataT
 	if (( pszString == NULL ) || ( NewDataType <= COLUMNDATA_UNKNOWN ) || ( NewDataType >= NUM_COLUMNDATA_TYPES ))
 		return;
 
-	ChangeDataType( NewDataType );
-
 	switch ( NewDataType )
 	{
 		case COLUMNDATA_INT:
 		case COLUMNDATA_COLOR:
-			Int = atoi( pszString );
+			SetValue<int>( atoi( pszString ));
 			break;
 
 		case COLUMNDATA_BOOL:
 		{
 			if ( stricmp( pszString, "true" ) == 0 )
-				Bool = true;
+				SetValue<bool>( true );
 			else if ( stricmp( pszString, "false" ) == 0 )
-				Bool = false;
+				SetValue<bool>( false );
 			else
-				Bool = !!atoi( pszString );
+				SetValue<bool>( !!atoi( pszString ));
 
 			break;
 		}
 
 		case COLUMNDATA_FLOAT:
-			Float = static_cast<float>( atof( pszString ));
+			SetValue<float>( static_cast<float>( atof( pszString )));
 			break;
 
 		case COLUMNDATA_STRING:
-			String = ncopystring( pszString );
+			SetValue<const char *>( pszString );
 			break;
 
 		case COLUMNDATA_TEXTURE:
-			Texture = TexMan.FindTexture( pszString );
+			SetValue<FTexture *>( TexMan.FindTexture( pszString ));
 			break;
 	}
 }
@@ -291,74 +345,30 @@ void ColumnValue::FromString( const char *pszString, const COLUMNDATA_e NewDataT
 
 void ColumnValue::TransferValue ( const ColumnValue &Other )
 {
-	ChangeDataType( Other.GetDataType( ));
-
-	switch ( DataType )
+	switch ( Other.GetDataType( ))
 	{
 		case COLUMNDATA_INT:
-			Int = Other.GetValue<int>( );
+			SetValue<int>( Other.RetrieveValue<int>( ));
 			break;
 
 		case COLUMNDATA_BOOL:
-			Bool = Other.GetValue<bool>( );
+			SetValue<bool>( Other.RetrieveValue<bool>( ));
 			break;
 
 		case COLUMNDATA_FLOAT:
-			Float = Other.GetValue<float>( );
+			SetValue<float>( Other.RetrieveValue<float>( ));
 			break;
 
 		case COLUMNDATA_STRING:
-			String = ncopystring( Other.GetValue<const char *>( ));
+			SetValue<const char *>( Other.RetrieveValue<const char *>( ));
 			break;
 
 		case COLUMNDATA_COLOR:
-			Int = Other.GetValue<PalEntry>( );
+			SetValue<PalEntry>( Other.RetrieveValue<PalEntry>( ));
 			break;
 
 		case COLUMNDATA_TEXTURE:
-			Texture = Other.GetValue<FTexture *>( );
-			break;
-	}
-}
-
-//*****************************************************************************
-//
-// [AK] ColumnValue::ChangeDataType
-//
-// Changes the data type of a ColumnValue object, then deletes its string from
-// memory if it's holding one.
-//
-//*****************************************************************************
-
-void ColumnValue::ChangeDataType( COLUMNDATA_e NewDataType )
-{
-	if (( NewDataType <= COLUMNDATA_UNKNOWN ) || ( NewDataType >= NUM_COLUMNDATA_TYPES ))
-		return;
-
-	DeleteString( );
-	DataType = NewDataType;
-
-	switch ( DataType )
-	{
-		case COLUMNDATA_INT:
-		case COLUMNDATA_COLOR:
-			Int = 0;
-			break;
-
-		case COLUMNDATA_BOOL:
-			Bool = false;
-			break;
-
-		case COLUMNDATA_FLOAT:
-			Float = 0.0f;
-			break;
-
-		case COLUMNDATA_STRING:
-			String = NULL;
-			break;
-
-		case COLUMNDATA_TEXTURE:
-			Texture = NULL;
+			SetValue<FTexture *>( Other.RetrieveValue<FTexture *>( ));
 			break;
 	}
 }
@@ -396,18 +406,18 @@ bool ColumnValue::operator== ( const ColumnValue &Other ) const
 		switch ( DataType )
 		{
 			case COLUMNDATA_INT:
-				return ( GetValue<int>( ) == Other.GetValue<int>( ));
+				return ( RetrieveValue<int>( ) == Other.RetrieveValue<int>( ));
 
 			case COLUMNDATA_BOOL:
-				return ( GetValue<bool>( ) == Other.GetValue<bool>( ));
+				return ( RetrieveValue<bool>( ) == Other.RetrieveValue<bool>( ));
 
 			case COLUMNDATA_FLOAT:
-				return ( GetValue<float>( ) == Other.GetValue<float>( ));
+				return ( RetrieveValue<float>( ) == Other.RetrieveValue<float>( ));
 
 			case COLUMNDATA_STRING:
 			{
-				const char *pszString1 = GetValue<const char *>( );
-				const char *pszString2 = Other.GetValue<const char *>( );
+				const char *pszString1 = RetrieveValue<const char *>( );
+				const char *pszString2 = Other.RetrieveValue<const char *>( );
 
 				// [AK] If one of the strings is NULL, then return either true if
 				// both of them are NULL (i.e. pszString1 and pszString2 are equal),
@@ -419,10 +429,10 @@ bool ColumnValue::operator== ( const ColumnValue &Other ) const
 			}
 
 			case COLUMNDATA_COLOR:
-				return ( GetValue<PalEntry>( ) == Other.GetValue<PalEntry>( ));
+				return ( RetrieveValue<PalEntry>( ) == Other.RetrieveValue<PalEntry>( ));
 
 			case COLUMNDATA_TEXTURE:
-				return ( GetValue<FTexture *>( ) == Other.GetValue<FTexture *>( ));
+				return ( RetrieveValue<FTexture *>( ) == Other.RetrieveValue<FTexture *>( ));
 		}
 	}
 
@@ -1382,51 +1392,51 @@ ColumnValue DataScoreColumn::GetValue( const ULONG ulPlayer ) const
 		switch ( NativeType )
 		{
 			case COLUMNTYPE_NAME:
-				Result = players[ulPlayer].userinfo.GetName( );
+				Result.SetValue<const char *>( players[ulPlayer].userinfo.GetName( ));
 				break;
 
 			case COLUMNTYPE_INDEX:
-				Result = ulPlayer;
+				Result.SetValue<int>( ulPlayer );
 				break;
 
 			case COLUMNTYPE_TIME:
-				Result = players[ulPlayer].ulTime / ( TICRATE * 60 );
+				Result.SetValue<int>( players[ulPlayer].ulTime / ( TICRATE * 60 ));
 				break;
 
 			case COLUMNTYPE_PING:
 				if ( players[ulPlayer].bIsBot )
-					Result = "BOT";
+					Result.SetValue< const char *>( "BOT" );
 				else
-					Result = players[ulPlayer].ulPing;
+					Result.SetValue<int>( players[ulPlayer].ulPing );
 				break;
 
 			case COLUMNTYPE_FRAGS:
-				Result = players[ulPlayer].fragcount;
+				Result.SetValue<int>( players[ulPlayer].fragcount );
 				break;
 
 			case COLUMNTYPE_POINTS:
 			case COLUMNTYPE_DAMAGE:
-				Result = players[ulPlayer].lPointCount;
+				Result.SetValue<int>( players[ulPlayer].lPointCount );
 				break;
 
 			case COLUMNTYPE_WINS:
-				Result = players[ulPlayer].ulWins;
+				Result.SetValue<int>( players[ulPlayer].ulWins );
 				break;
 
 			case COLUMNTYPE_KILLS:
-				Result = players[ulPlayer].killcount;
+				Result.SetValue<int>( players[ulPlayer].killcount );
 				break;
 
 			case COLUMNTYPE_DEATHS:
-				Result = players[ulPlayer].ulDeathCount;
+				Result.SetValue<int>( players[ulPlayer].ulDeathCount );
 				break;
 
 			case COLUMNTYPE_SECRETS:
-				Result = players[ulPlayer].secretcount;
+				Result.SetValue<int>( players[ulPlayer].secretcount );
 				break;
 
 			case COLUMNTYPE_LIVES:
-				Result = players[ulPlayer].ulLivesLeft + 1;
+				Result.SetValue<int>( players[ulPlayer].ulLivesLeft + 1 );
 				break;
 
 			case COLUMNTYPE_HANDICAP:
@@ -1437,9 +1447,9 @@ ColumnValue DataScoreColumn::GetValue( const ULONG ulPlayer ) const
 				if ( handicap > 0 )
 				{
 					if (( lastmanstanding ) || ( teamlms ))
-						Result = deh.MaxSoulsphere - handicap < 1 ? 1 : deh.MaxArmor - handicap;
+						Result.SetValue<int>( deh.MaxSoulsphere - handicap < 1 ? 1 : deh.MaxArmor - handicap );
 					else
-						Result = deh.StartHealth - handicap < 1 ? 1 : deh.StartHealth - handicap;
+						Result.SetValue<int>( deh.StartHealth - handicap < 1 ? 1 : deh.StartHealth - handicap );
 				}
 
 				break;
@@ -1451,7 +1461,7 @@ ColumnValue DataScoreColumn::GetValue( const ULONG ulPlayer ) const
 
 				// [AK] Only return the position if the player is in the join queue.
 				if ( position != -1 )
-					Result = position + 1;
+					Result.SetValue<int>( position + 1 );
 
 				break;
 			}
@@ -1462,7 +1472,7 @@ ColumnValue DataScoreColumn::GetValue( const ULONG ulPlayer ) const
 
 				// [AK] Check if this player either voted yes or no.
 				if ( ulVoteChoice != VOTE_UNDECIDED )
-					Result = ulVoteChoice == VOTE_YES ? "Yes" : "No";
+					Result.SetValue<const char *>( ulVoteChoice == VOTE_YES ? "Yes" : "No" );
 
 				break;
 			}
@@ -1473,29 +1483,31 @@ ColumnValue DataScoreColumn::GetValue( const ULONG ulPlayer ) const
 				D_GetPlayerColor( ulPlayer, &h, &s, &v, NULL );
 				HSVtoRGB( &r, &g, &b, h, s, v );
 
-				Result = PalEntry( clamp( static_cast<int>( r * 255.f ), 0, 255 ), clamp( static_cast<int>( g * 255.f ), 0, 255 ), clamp( static_cast<int>( b * 255.f ), 0, 255 ));
+				PalEntry color( clamp( static_cast<int>( r * 255.f ), 0, 255 ), clamp( static_cast<int>( g * 255.f ), 0, 255 ), clamp( static_cast<int>( b * 255.f ), 0, 255 ));
+
+				Result.SetValue<PalEntry>( color );
 				break;
 			}
 
 			case COLUMNTYPE_STATUSICON:
 				if ( players[ulPlayer].bLagging )
-					Result = TexMan.FindTexture( "LAGMINI" );
+					Result.SetValue<FTexture *>( TexMan.FindTexture( "LAGMINI" ));
 				else if ( players[ulPlayer].bChatting )
-					Result = TexMan.FindTexture( "TLKMINI" );
+					Result.SetValue<FTexture *>( TexMan.FindTexture( "TLKMINI" ));
 				else if ( players[ulPlayer].bInConsole )
-					Result = TexMan.FindTexture( "CONSMINI" );
+					Result.SetValue<FTexture *>( TexMan.FindTexture( "CONSMINI" ));
 				else if ( players[ulPlayer].bInMenu )
-					Result = TexMan.FindTexture( "MENUMINI" );
+					Result.SetValue<FTexture *>( TexMan.FindTexture( "MENUMINI" ));
 				break;
 
 			case COLUMNTYPE_READYTOGOICON:
 				if ( players[ulPlayer].bReadyToGoOn )
-					Result = TexMan.FindTexture( "RDYTOGO" );
+					Result.SetValue<FTexture *>( TexMan.FindTexture( "RDYTOGO" ));
 				break;
 
 			case COLUMNTYPE_SCOREICON:
 				if ( players[ulPlayer].mo != NULL )
-					Result = TexMan[players[ulPlayer].mo->ScoreIcon];
+					Result.SetValue<FTexture *>( TexMan[players[ulPlayer].mo->ScoreIcon] );
 				break;
 
 			case COLUMNTYPE_ARTIFACTICON:
@@ -1511,11 +1523,11 @@ ColumnValue DataScoreColumn::GetValue( const ULONG ulPlayer ) const
 					if (( pCarrier != NULL ) && ( pCarrier - players == ulPlayer ))
 					{
 						if ( oneflagctf )
-							Result = TexMan.FindTexture( "STFLA3" );
+							Result.SetValue<FTexture *>( TexMan.FindTexture( "STFLA3" ));
 						else if ( terminator )
-							Result = TexMan.FindTexture( "TERMINAT" );
+							Result.SetValue<FTexture *>( TexMan.FindTexture( "TERMINAT" ));
 						else
-							Result = TexMan.FindTexture( "HELLSTON" );
+							Result.SetValue<FTexture *>( TexMan.FindTexture( "HELLSTON" ));
 					}
 				}
 				// [AK] In CTF or skulltag, check if this player is carrying an enemy team's item.
@@ -1527,7 +1539,7 @@ ColumnValue DataScoreColumn::GetValue( const ULONG ulPlayer ) const
 
 						if (( pCarrier != NULL ) && ( pCarrier - players == ulPlayer ))
 						{
-							Result = TexMan.FindTexture( TEAM_GetSmallHUDIcon( ulTeam ));
+							Result.SetValue<FTexture *>( TexMan.FindTexture( TEAM_GetSmallHUDIcon( ulTeam )));
 							break;
 						}
 					}
@@ -1543,18 +1555,18 @@ ColumnValue DataScoreColumn::GetValue( const ULONG ulPlayer ) const
 					FString IconName;
 					IconName.Format( "BOTSKIL%d", botskill.GetGenericRep( CVAR_Int ).Int );
 
-					Result = TexMan.FindTexture( IconName.GetChars( ));
+					Result.SetValue<FTexture *>( TexMan.FindTexture( IconName.GetChars( )));
 				}
 
 				break;
 			}
 
 			case COLUMNTYPE_COUNTRYNAME:
-				Result = NETWORK_GetCountryNameFromIndex( players[ulPlayer].ulCountryIndex );
+				Result.SetValue<const char *>( NETWORK_GetCountryNameFromIndex( players[ulPlayer].ulCountryIndex ));
 				break;
 
 			case COLUMNTYPE_COUNTRYCODE:
-				Result = NETWORK_GetCountryCodeFromIndex( players[ulPlayer].ulCountryIndex, cl_usealpha3countrycode );
+				Result.SetValue<const char *>( NETWORK_GetCountryCodeFromIndex( players[ulPlayer].ulCountryIndex, cl_usealpha3countrycode ));
 				break;
 
 			case COLUMNTYPE_CUSTOM:
@@ -1842,7 +1854,7 @@ ColumnValue CountryFlagScoreColumn::GetValue( const ULONG ulPlayer ) const
 	ColumnValue result;
 
 	if ( PLAYER_IsValidPlayer( ulPlayer ))
-		result = pFlagIconSet;
+		result.SetValue<FTexture *>( pFlagIconSet );
 
 	return result;
 }
