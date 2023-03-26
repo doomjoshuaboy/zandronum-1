@@ -243,6 +243,44 @@ template <typename Type> void ColumnValue::SetValue( Type NewValue )
 
 //*****************************************************************************
 //
+// [AK] ColumnValue::TransferValue
+//
+// Transfers the value of one ColumnValue object to another.
+//
+//*****************************************************************************
+
+void ColumnValue::TransferValue ( const ColumnValue &Other )
+{
+	switch ( Other.GetDataType( ))
+	{
+		case COLUMNDATA_INT:
+			SetValue<int>( Other.RetrieveValue<int>( ));
+			break;
+
+		case COLUMNDATA_BOOL:
+			SetValue<bool>( Other.RetrieveValue<bool>( ));
+			break;
+
+		case COLUMNDATA_FLOAT:
+			SetValue<float>( Other.RetrieveValue<float>( ));
+			break;
+
+		case COLUMNDATA_STRING:
+			SetValue<const char *>( Other.RetrieveValue<const char *>( ));
+			break;
+
+		case COLUMNDATA_COLOR:
+			SetValue<PalEntry>( Other.RetrieveValue<PalEntry>( ));
+			break;
+
+		case COLUMNDATA_TEXTURE:
+			SetValue<FTexture *>( Other.RetrieveValue<FTexture *>( ));
+			break;
+	}
+}
+
+//*****************************************************************************
+//
 // [AK] ColumnValue::ToString
 //
 // Returns a string containing the value of a ColumnValue object.
@@ -337,62 +375,6 @@ void ColumnValue::FromString( const char *pszString, const COLUMNDATA_e NewDataT
 
 //*****************************************************************************
 //
-// [AK] ColumnValue::TransferValue
-//
-// Transfers the value of one ColumnValue object to another.
-//
-//*****************************************************************************
-
-void ColumnValue::TransferValue ( const ColumnValue &Other )
-{
-	switch ( Other.GetDataType( ))
-	{
-		case COLUMNDATA_INT:
-			SetValue<int>( Other.RetrieveValue<int>( ));
-			break;
-
-		case COLUMNDATA_BOOL:
-			SetValue<bool>( Other.RetrieveValue<bool>( ));
-			break;
-
-		case COLUMNDATA_FLOAT:
-			SetValue<float>( Other.RetrieveValue<float>( ));
-			break;
-
-		case COLUMNDATA_STRING:
-			SetValue<const char *>( Other.RetrieveValue<const char *>( ));
-			break;
-
-		case COLUMNDATA_COLOR:
-			SetValue<PalEntry>( Other.RetrieveValue<PalEntry>( ));
-			break;
-
-		case COLUMNDATA_TEXTURE:
-			SetValue<FTexture *>( Other.RetrieveValue<FTexture *>( ));
-			break;
-	}
-}
-
-//*****************************************************************************
-//
-// [AK] ColumnValue::DeleteString
-//
-// If a ColumnValue object has a pointer to a string that isn't NULL, then it
-// removes the string from memory.
-//
-//*****************************************************************************
-
-void ColumnValue::DeleteString( void )
-{
-	if (( GetDataType( ) == COLUMNDATA_STRING ) && ( String != NULL ))
-	{
-		delete[] String;
-		String = NULL;
-	}
-}
-
-//*****************************************************************************
-//
 // [AK] ColumnValue::operator==
 //
 // Checks if two ColumnValue objects have the same data type and value.
@@ -437,6 +419,24 @@ bool ColumnValue::operator== ( const ColumnValue &Other ) const
 	}
 
 	return false;
+}
+
+//*****************************************************************************
+//
+// [AK] ColumnValue::DeleteString
+//
+// If a ColumnValue object has a pointer to a string that isn't NULL, then it
+// removes the string from memory.
+//
+//*****************************************************************************
+
+void ColumnValue::DeleteString( void )
+{
+	if (( GetDataType( ) == COLUMNDATA_STRING ) && ( String != NULL ))
+	{
+		delete[] String;
+		String = NULL;
+	}
 }
 
 //*****************************************************************************
