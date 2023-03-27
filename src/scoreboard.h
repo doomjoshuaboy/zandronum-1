@@ -134,7 +134,7 @@ public:
 	};
 
 	ColumnValue( void ) : DataType( COLUMNDATA_UNKNOWN ) { }
-	ColumnValue( const ColumnValue &Other ) { TransferValue( Other ); }
+	ColumnValue( const ColumnValue &Other ) : DataType( COLUMNDATA_UNKNOWN ) { TransferValue( Other ); }
 
 	~ColumnValue( void ) { DeleteString( ); }
 
