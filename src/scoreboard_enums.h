@@ -57,18 +57,33 @@
 
 //*****************************************************************************
 //
-// How the contents inside of a column are aligned.
+// How the contents inside of something (e.g. a column) are horizontally aligned.
 //
-BEGIN_ENUM( COLUMNALIGN_e )
+BEGIN_ENUM( HORIZALIGN_e )
 {
-	// Aligns contents to the left of the column header.
-	ENUM_ELEMENT( COLUMNALIGN_LEFT ),
-	// Aligns contents to the center of the column header.
-	ENUM_ELEMENT( COLUMNALIGN_CENTER ),
-	// Aligns contents to the right of the column header.
-	ENUM_ELEMENT( COLUMNALIGN_RIGHT ),
+	// Aligns contents to the left.
+	ENUM_ELEMENT( HORIZALIGN_LEFT ),
+	// Aligns contents to the center.
+	ENUM_ELEMENT( HORIZALIGN_CENTER ),
+	// Aligns contents to the right.
+	ENUM_ELEMENT( HORIZALIGN_RIGHT ),
 }
-END_ENUM( COLUMNALIGN_e )
+END_ENUM( HORIZALIGN_e )
+
+//*****************************************************************************
+//
+// How the contents inside of something (e.g. a header) are vertically aligned.
+//
+BEGIN_ENUM( VERTALIGN_e )
+{
+	// Aligns contents to the top.
+	ENUM_ELEMENT( VERTALIGN_TOP ),
+	// Aligns contents to the center.
+	ENUM_ELEMENT( VERTALIGN_CENTER ),
+	// Aligns contents to the bottom.
+	ENUM_ELEMENT( VERTALIGN_BOTTOM ),
+}
+END_ENUM( VERTALIGN_e )
 
 //*****************************************************************************
 //

@@ -270,7 +270,7 @@ protected:
 	const FName InternalName;
 	FString DisplayName;
 	FString ShortName;
-	COLUMNALIGN_e Alignment;
+	HORIZALIGN_e Alignment;
 	FBaseCVar *pCVar;
 	ULONG ulFlags;
 	ULONG ulGameAndEarnTypeFlags;

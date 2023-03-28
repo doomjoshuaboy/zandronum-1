@@ -602,7 +602,7 @@ void CustomPlayerData::ResetToDefault( const ULONG ulPlayer, const bool bInformC
 ScoreColumn::ScoreColumn( const char *pszName ) :
 	InternalName( pszName ),
 	DisplayName( pszName ),
-	Alignment( COLUMNALIGN_LEFT ),
+	Alignment( HORIZALIGN_LEFT ),
 	pCVar( NULL ),
 	ulFlags( 0 ),
 	ulSizing( 0 ),
@@ -634,9 +634,9 @@ ScoreColumn::ScoreColumn( const char *pszName ) :
 
 LONG ScoreColumn::GetAlignmentPosition( ULONG ulContentWidth ) const
 {
-	if ( Alignment == COLUMNALIGN_LEFT )
+	if ( Alignment == HORIZALIGN_LEFT )
 		return lRelX;
-	else if ( Alignment == COLUMNALIGN_CENTER )
+	else if ( Alignment == HORIZALIGN_CENTER )
 		return lRelX + ( ulWidth - ulContentWidth ) / 2;
 	else
 		return lRelX + ulWidth - ulContentWidth;
@@ -719,7 +719,7 @@ void ScoreColumn::ParseCommand( FScanner &sc, const COLUMNCMD_e Command, const F
 
 		case COLUMNCMD_ALIGNMENT:
 		{
-			Alignment = static_cast<COLUMNALIGN_e>( sc.MustGetEnumName( "alignment", "COLUMNALIGN_", GetValueCOLUMNALIGN_e ));
+			Alignment = static_cast<HORIZALIGN_e>( sc.MustGetEnumName( "alignment", "HORIZALIGN_", GetValueHORIZALIGN_e ));
 			break;
 		}
 
@@ -1603,7 +1603,7 @@ void DataScoreColumn::Parse( FScanner &sc )
 		if (( ulFlags & COLUMNFLAG_DONTSHOWHEADER ) == false )
 			sc.ScriptError( "You can't remove the 'DONTSHOWHEADER' flag from column '%s' while it's inside a composite column.", GetInternalName( ));
 
-		if ( Alignment != COLUMNALIGN_LEFT )
+		if ( Alignment != HORIZALIGN_LEFT )
 			sc.ScriptError( "You can't change the alignment of column '%s' while it's inside a composite column.", GetInternalName( ));
 	}
 }
@@ -1938,7 +1938,7 @@ void CompositeScoreColumn::ParseCommand( FScanner &sc, const COLUMNCMD_e Command
 					sc.ScriptError( "Column '%s' must have 'DONTSHOWHEADER' enabled before it can be put inside a composite column.", sc.String );
 
 				// [AK] All data columns must be alignment to the left to be inside a composite column.
-				if ( pDataColumn->Alignment != COLUMNALIGN_LEFT )
+				if ( pDataColumn->Alignment != HORIZALIGN_LEFT )
 					sc.ScriptError( "Column '%s' must be aligned to the left before it can be put inside a composite column.", sc.String );
 
 				if ( scoreboard_TryPushingColumnToList( sc, SubColumns, pDataColumn ))
