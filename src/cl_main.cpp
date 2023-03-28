@@ -4544,8 +4544,8 @@ void ServerCommands::DisconnectPlayer::Execute()
 	// [AK] Clear all the saved chat messages this player said.
 	CHAT_ClearChatMessages( player - players );
 
-	// [AK] Reset this player's custom columns to their default values.
-	SCOREBOARD_ResetCustomColumnsForPlayer( player - players );
+	// [AK] Reset this player's custom values to their default values.
+	PLAYER_ResetCustomValues( player - players );
 
 	// Zero out all the player information.
 	PLAYER_ResetPlayerData( player );

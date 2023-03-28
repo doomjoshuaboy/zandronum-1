@@ -3039,8 +3039,8 @@ void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo )
 	// [AK] Clear all the saved chat messages this player said.
 	CHAT_ClearChatMessages( ulClient );
 
-	// [AK] Reset this player's custom columns to their default values.
-	SCOREBOARD_ResetCustomColumnsForPlayer( ulClient );
+	// [AK] Reset this player's custom values to their default values.
+	PLAYER_ResetCustomValues( ulClient );
 
 	// [BB] Morphed players need to be unmorphed before disconnecting.
 	if (players[ulClient].morphTics)

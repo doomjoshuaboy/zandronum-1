@@ -3387,33 +3387,11 @@ void SCOREBOARD_Reset( const bool bChangingLevel )
 		}
 	}
 
-	// [AK] Reset custom columns to their default values for all players.
-	SCOREBOARD_ResetCustomColumnsForPlayer( MAXPLAYERS );
+	// [AK] Reset custom values to their default values for all players.
+	PLAYER_ResetCustomValues( MAXPLAYERS );
 
 	// [AK] It would be a good idea to refresh the scoreboard after resetting.
 	SCOREBOARD_ShouldRefreshBeforeRendering( );
-}
-
-//*****************************************************************************
-//
-// [AK] SCOREBOARD_ResetCustomColumnsToDefault
-//
-// Resets all existing custom columns to their default values for one player
-// or all players (if MAXPLAYERS is passed).
-//
-//*****************************************************************************
-
-void SCOREBOARD_ResetCustomColumnsForPlayer( const ULONG ulPlayer )
-{
-	// [AK] Don't do anything if there is no data.
-	if ( gameinfo.CustomPlayerData.CountUsed( ) == 0 )
-		return;
-
-	TMapIterator<FName, CustomPlayerData> it( gameinfo.CustomPlayerData );
-	TMap<FName, CustomPlayerData>::Pair *pair;
-
-	while ( it.NextPair( pair ))
-		pair->Value.ResetToDefault( ulPlayer, false );
 }
 
 //*****************************************************************************

@@ -3648,6 +3648,21 @@ void PLAYER_ScaleDamageCountWithMaxHealth( player_t *pPlayer, int &damage )
 
 //*****************************************************************************
 //
+void PLAYER_ResetCustomValues( const ULONG ulPlayer )
+{
+	// [AK] Don't do anything if there is no data.
+	if ( gameinfo.CustomPlayerData.CountUsed( ) == 0 )
+		return;
+
+	TMapIterator<FName, CustomPlayerData> it( gameinfo.CustomPlayerData );
+	TMap<FName, CustomPlayerData>::Pair *pair;
+
+	while ( it.NextPair( pair ))
+		pair->Value.ResetToDefault( ulPlayer, false );
+}
+
+//*****************************************************************************
+//
 CCMD (kill)
 {
 	// Only allow it in a level.

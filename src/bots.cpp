@@ -597,8 +597,8 @@ void BOTS_RemoveBot( ULONG ulPlayerIdx, bool bExitMsg )
 	// [AK] Clear all the saved chat messages this bot said.
 	CHAT_ClearChatMessages( ulPlayerIdx );
 
-	// [AK] Reset this player's custom columns to their default values.
-	SCOREBOARD_ResetCustomColumnsForPlayer( ulPlayerIdx );
+	// [AK] Reset this player's custom values to their default values.
+	PLAYER_ResetCustomValues( ulPlayerIdx );
 
 	// [BB] Morphed bots need to be unmorphed before disconnecting.
 	if (players[ulPlayerIdx].morphTics)
