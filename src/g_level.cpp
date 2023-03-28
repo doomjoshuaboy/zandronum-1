@@ -437,8 +437,11 @@ void G_InitNew (const char *mapname, bool bTitleLevel)
 		for ( ULONG ulPlayer = 0; ulPlayer <= MAXPLAYERS; ulPlayer++ )
 			CHAT_ClearChatMessages( ulPlayer );
 
+		// [AK] Reset custom values to their default values for all players.
+		PLAYER_ResetCustomValues( MAXPLAYERS );
+
 		// [AK] Reset the scoreboard at the start of a new game.
-		SCOREBOARD_Reset( false );
+		SCOREBOARD_Reset( );
 	}
 
 	if (StatusBar != NULL)
@@ -1091,9 +1094,6 @@ void G_DoLoadLevel (int position, bool autosave)
 
 	// [AK] Reset all locked CVars to what they're supposed to be, in case they somehow changed.
 	GAMEMODE_ResetGameplaySettings( true, false );
-
-	// [AK] Reset the scoreboard at the start of a new level.
-	SCOREBOARD_Reset( true );
 
 	// Loop through the teams, and reset the scores.
 	for ( i = 0; i < teams.Size( ); i++ )

@@ -3360,14 +3360,12 @@ bool SCOREBOARD_ShouldDrawBoard( void )
 //
 // [AK] SCOREBOARD_Reset
 //
-// This should only be executed at the start of a new game or level, or at the
-// start of the intermission screen. It checks if any columns that are part of
-// the scoreboard are usable in the current game, and resets any custom columns
-// for all players to their default values.
+// This should only be executed at the start of a new game. It checks if any
+// columns that are part of the scoreboard are usable in the current game.
 //
 //*****************************************************************************
 
-void SCOREBOARD_Reset( const bool bChangingLevel )
+void SCOREBOARD_Reset( void )
 {
 	// [AK] Don't do anything if there are no defined columns.
 	if ( g_Columns.CountUsed( ) == 0 )
@@ -3376,19 +3374,13 @@ void SCOREBOARD_Reset( const bool bChangingLevel )
 	TMapIterator<FName, ScoreColumn *> it( g_Columns );
 	TMap<FName, ScoreColumn *>::Pair *pair;
 
-	if ( bChangingLevel == false )
+	while ( it.NextPair( pair ))
 	{
-		while ( it.NextPair( pair ))
-		{
-			// [AK] Ignore data columns that are part of a composite column, the latter
-			// also checks if their sub-columns are usable.
-			if (( pair->Value->GetTemplate( ) != COLUMNTEMPLATE_DATA ) || ( static_cast<DataScoreColumn *>( pair->Value )->GetCompositeColumn( ) == NULL ))
-				pair->Value->CheckIfUsable( );
-		}
+		// [AK] Ignore data columns that are part of a composite column, the latter
+		// also checks if their sub-columns are usable.
+		if (( pair->Value->GetTemplate( ) != COLUMNTEMPLATE_DATA ) || ( static_cast<DataScoreColumn *>( pair->Value )->GetCompositeColumn( ) == NULL ))
+			pair->Value->CheckIfUsable( );
 	}
-
-	// [AK] Reset custom values to their default values for all players.
-	PLAYER_ResetCustomValues( MAXPLAYERS );
 
 	// [AK] It would be a good idea to refresh the scoreboard after resetting.
 	SCOREBOARD_ShouldRefreshBeforeRendering( );

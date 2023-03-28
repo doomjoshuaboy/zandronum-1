@@ -501,7 +501,7 @@ private:
 void			SCOREBOARD_Construct( void );
 ScoreColumn		*SCOREBOARD_GetColumn( FName Name, const bool bMustBeUsable );
 bool			SCOREBOARD_ShouldDrawBoard( void );
-void			SCOREBOARD_Reset( const bool bChangingLevel );
+void			SCOREBOARD_Reset( void );
 void			SCOREBOARD_Render( ULONG ulDisplayPlayer );
 void			SCOREBOARD_Refresh( void );
 void			SCOREBOARD_ShouldRefreshBeforeRendering( void );
