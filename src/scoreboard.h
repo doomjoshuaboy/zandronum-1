@@ -129,20 +129,20 @@ class ColumnValue
 public:
 	template <typename Type> struct Trait
 	{
-		static const COLUMNDATA_e DataType;
+		static const DATATYPE_e DataType;
 		static const Type Zero;
 	};
 
-	ColumnValue( void ) : DataType( COLUMNDATA_UNKNOWN ) { }
-	ColumnValue( const ColumnValue &Other ) : DataType( COLUMNDATA_UNKNOWN ) { TransferValue( Other ); }
+	ColumnValue( void ) : DataType( DATATYPE_UNKNOWN ) { }
+	ColumnValue( const ColumnValue &Other ) : DataType( DATATYPE_UNKNOWN ) { TransferValue( Other ); }
 
 	~ColumnValue( void ) { DeleteString( ); }
 
-	inline COLUMNDATA_e GetDataType( void ) const { return DataType; }
+	inline DATATYPE_e GetDataType( void ) const { return DataType; }
 	template <typename Type> Type GetValue( void ) const;
 	template <typename Type> void SetValue( Type NewValue );
 	FString ToString( void ) const;
-	void FromString( const char *pszString, const COLUMNDATA_e NewDataType );
+	void FromString( const char *pszString, const DATATYPE_e NewDataType );
 
 	void operator= ( const ColumnValue &Other ) { TransferValue( Other ); }
 
@@ -177,7 +177,7 @@ private:
 	template <> FTexture *RetrieveValue( void ) const { return Texture; }
 	void ModifyValue( FTexture *NewValue ) { Texture = NewValue; }
 
-	COLUMNDATA_e DataType;
+	DATATYPE_e DataType;
 	union
 	{
 		int Int;
@@ -201,7 +201,7 @@ class CustomPlayerData
 public:
 	CustomPlayerData( FScanner &sc, BYTE NewIndex );
 
-	COLUMNDATA_e GetDataType( void ) const { return DataType; }
+	DATATYPE_e GetDataType( void ) const { return DataType; }
 	ColumnValue GetValue( const ULONG ulPlayer ) const;
 	ColumnValue GetDefaultValue( void ) const;
 	BYTE GetIndex( void ) const { return Index; }
@@ -209,7 +209,7 @@ public:
 	void ResetToDefault( const ULONG ulPlayer, const bool bInformClients );
 
 private:
-	COLUMNDATA_e DataType;
+	DATATYPE_e DataType;
 	ColumnValue Val[MAXPLAYERS];
 	BYTE Index;
 
@@ -321,7 +321,7 @@ public:
 	FString GetValueString( const ColumnValue &Value ) const;
 
 	virtual COLUMNTEMPLATE_e GetTemplate( void ) const { return COLUMNTEMPLATE_DATA; }
-	virtual COLUMNDATA_e GetDataType( void ) const;
+	virtual DATATYPE_e GetDataType( void ) const;
 	virtual ULONG GetValueWidth( const ColumnValue &Value ) const;
 	virtual ColumnValue GetValue( const ULONG ulPlayer ) const;
 	virtual void Parse( FScanner &sc );

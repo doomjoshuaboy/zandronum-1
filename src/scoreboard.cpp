@@ -188,22 +188,22 @@ CUSTOM_CVAR( Float, cl_scoreboardalpha, 1.0f, CVAR_ARCHIVE )
 //*****************************************************************************
 //	COLUMN VALUE TRAITS
 
-const COLUMNDATA_e ColumnValue::Trait<int>::DataType = COLUMNDATA_INT;
+const DATATYPE_e ColumnValue::Trait<int>::DataType = DATATYPE_INT;
 const int ColumnValue::Trait<int>::Zero = 0;
 
-const COLUMNDATA_e ColumnValue::Trait<bool>::DataType = COLUMNDATA_BOOL;
+const DATATYPE_e ColumnValue::Trait<bool>::DataType = DATATYPE_BOOL;
 const bool ColumnValue::Trait<bool>::Zero = false;
 
-const COLUMNDATA_e ColumnValue::Trait<float>::DataType = COLUMNDATA_FLOAT;
+const DATATYPE_e ColumnValue::Trait<float>::DataType = DATATYPE_FLOAT;
 const float ColumnValue::Trait<float>::Zero = 0.0f;
 
-const COLUMNDATA_e ColumnValue::Trait<const char *>::DataType = COLUMNDATA_STRING;
+const DATATYPE_e ColumnValue::Trait<const char *>::DataType = DATATYPE_STRING;
 const char *const ColumnValue::Trait<const char *>::Zero = NULL;
 
-const COLUMNDATA_e ColumnValue::Trait<PalEntry>::DataType = COLUMNDATA_COLOR;
+const DATATYPE_e ColumnValue::Trait<PalEntry>::DataType = DATATYPE_COLOR;
 const PalEntry ColumnValue::Trait<PalEntry>::Zero = 0;
 
-const COLUMNDATA_e ColumnValue::Trait<FTexture *>::DataType = COLUMNDATA_TEXTURE;
+const DATATYPE_e ColumnValue::Trait<FTexture *>::DataType = DATATYPE_TEXTURE;
 FTexture *const ColumnValue::Trait<FTexture *>::Zero = 0;
 
 //*****************************************************************************
@@ -234,7 +234,7 @@ template <typename Type> Type ColumnValue::GetValue( void ) const
 
 template <typename Type> void ColumnValue::SetValue( Type NewValue )
 {
-	if ( DataType == COLUMNDATA_STRING )
+	if ( DataType == DATATYPE_STRING )
 		DeleteString( );
 
 	DataType = Trait<Type>::DataType;
@@ -253,27 +253,27 @@ void ColumnValue::TransferValue ( const ColumnValue &Other )
 {
 	switch ( Other.GetDataType( ))
 	{
-		case COLUMNDATA_INT:
+		case DATATYPE_INT:
 			SetValue<int>( Other.RetrieveValue<int>( ));
 			break;
 
-		case COLUMNDATA_BOOL:
+		case DATATYPE_BOOL:
 			SetValue<bool>( Other.RetrieveValue<bool>( ));
 			break;
 
-		case COLUMNDATA_FLOAT:
+		case DATATYPE_FLOAT:
 			SetValue<float>( Other.RetrieveValue<float>( ));
 			break;
 
-		case COLUMNDATA_STRING:
+		case DATATYPE_STRING:
 			SetValue<const char *>( Other.RetrieveValue<const char *>( ));
 			break;
 
-		case COLUMNDATA_COLOR:
+		case DATATYPE_COLOR:
 			SetValue<PalEntry>( Other.RetrieveValue<PalEntry>( ));
 			break;
 
-		case COLUMNDATA_TEXTURE:
+		case DATATYPE_TEXTURE:
 			SetValue<FTexture *>( Other.RetrieveValue<FTexture *>( ));
 			break;
 	}
@@ -293,27 +293,27 @@ FString ColumnValue::ToString( void ) const
 
 	switch ( DataType )
 	{
-		case COLUMNDATA_INT:
+		case DATATYPE_INT:
 			Result.Format( "%d", RetrieveValue<int>( ));
 			break;
 
-		case COLUMNDATA_BOOL:
+		case DATATYPE_BOOL:
 			Result.Format( "%d", RetrieveValue<bool>( ));
 			break;
 
-		case COLUMNDATA_FLOAT:
+		case DATATYPE_FLOAT:
 			Result.Format( "%f", RetrieveValue<float>( ));
 			break;
 
-		case COLUMNDATA_STRING:
+		case DATATYPE_STRING:
 			Result = RetrieveValue<const char *>( );
 			break;
 
-		case COLUMNDATA_COLOR:
+		case DATATYPE_COLOR:
 			Result.Format( "%d", RetrieveValue<PalEntry>( ));
 			break;
 
-		case COLUMNDATA_TEXTURE:
+		case DATATYPE_TEXTURE:
 		{
 			FTexture *pTexture = RetrieveValue<FTexture *>( );
 
@@ -335,19 +335,19 @@ FString ColumnValue::ToString( void ) const
 //
 //*****************************************************************************
 
-void ColumnValue::FromString( const char *pszString, const COLUMNDATA_e NewDataType )
+void ColumnValue::FromString( const char *pszString, const DATATYPE_e NewDataType )
 {
-	if (( pszString == NULL ) || ( NewDataType <= COLUMNDATA_UNKNOWN ) || ( NewDataType >= NUM_COLUMNDATA_TYPES ))
+	if (( pszString == NULL ) || ( NewDataType <= DATATYPE_UNKNOWN ) || ( NewDataType >= NUM_DATATYPES ))
 		return;
 
 	switch ( NewDataType )
 	{
-		case COLUMNDATA_INT:
-		case COLUMNDATA_COLOR:
+		case DATATYPE_INT:
+		case DATATYPE_COLOR:
 			SetValue<int>( atoi( pszString ));
 			break;
 
-		case COLUMNDATA_BOOL:
+		case DATATYPE_BOOL:
 		{
 			if ( stricmp( pszString, "true" ) == 0 )
 				SetValue<bool>( true );
@@ -359,15 +359,15 @@ void ColumnValue::FromString( const char *pszString, const COLUMNDATA_e NewDataT
 			break;
 		}
 
-		case COLUMNDATA_FLOAT:
+		case DATATYPE_FLOAT:
 			SetValue<float>( static_cast<float>( atof( pszString )));
 			break;
 
-		case COLUMNDATA_STRING:
+		case DATATYPE_STRING:
 			SetValue<const char *>( pszString );
 			break;
 
-		case COLUMNDATA_TEXTURE:
+		case DATATYPE_TEXTURE:
 			SetValue<FTexture *>( TexMan.FindTexture( pszString ));
 			break;
 	}
@@ -387,16 +387,16 @@ bool ColumnValue::operator== ( const ColumnValue &Other ) const
 	{
 		switch ( DataType )
 		{
-			case COLUMNDATA_INT:
+			case DATATYPE_INT:
 				return ( RetrieveValue<int>( ) == Other.RetrieveValue<int>( ));
 
-			case COLUMNDATA_BOOL:
+			case DATATYPE_BOOL:
 				return ( RetrieveValue<bool>( ) == Other.RetrieveValue<bool>( ));
 
-			case COLUMNDATA_FLOAT:
+			case DATATYPE_FLOAT:
 				return ( RetrieveValue<float>( ) == Other.RetrieveValue<float>( ));
 
-			case COLUMNDATA_STRING:
+			case DATATYPE_STRING:
 			{
 				const char *pszString1 = RetrieveValue<const char *>( );
 				const char *pszString2 = Other.RetrieveValue<const char *>( );
@@ -410,10 +410,10 @@ bool ColumnValue::operator== ( const ColumnValue &Other ) const
 				return ( strcmp( pszString1, pszString2 ) == 0 );
 			}
 
-			case COLUMNDATA_COLOR:
+			case DATATYPE_COLOR:
 				return ( RetrieveValue<PalEntry>( ) == Other.RetrieveValue<PalEntry>( ));
 
-			case COLUMNDATA_TEXTURE:
+			case DATATYPE_TEXTURE:
 				return ( RetrieveValue<FTexture *>( ) == Other.RetrieveValue<FTexture *>( ));
 		}
 	}
@@ -432,7 +432,7 @@ bool ColumnValue::operator== ( const ColumnValue &Other ) const
 
 void ColumnValue::DeleteString( void )
 {
-	if (( GetDataType( ) == COLUMNDATA_STRING ) && ( String != NULL ))
+	if (( GetDataType( ) == DATATYPE_STRING ) && ( String != NULL ))
 	{
 		delete[] String;
 		String = NULL;
@@ -455,10 +455,10 @@ CustomPlayerData::CustomPlayerData( FScanner &sc, BYTE NewIndex ) : Index( NewIn
 	if ( sc.StringLen == 0 )
 		sc.ScriptError( "Got an empty string for a data type." );
 
-	DataType = static_cast<COLUMNDATA_e>( sc.MustGetEnumName( "data type", "COLUMNDATA_", GetValueCOLUMNDATA_e, true ));
+	DataType = static_cast<DATATYPE_e>( sc.MustGetEnumName( "data type", "DATATYPE_", GetValueDATATYPE_e, true ));
 
 	// [AK] Don't accept an "unknown" data type.
-	if ( DataType == COLUMNDATA_UNKNOWN )
+	if ( DataType == DATATYPE_UNKNOWN )
 		sc.ScriptError( "You can't specify an 'unknown' data type!" );
 
 	sc.MustGetToken( ',' );
@@ -466,29 +466,29 @@ CustomPlayerData::CustomPlayerData( FScanner &sc, BYTE NewIndex ) : Index( NewIn
 	// [AK] Next, grab the default value and store it into a string.
 	switch ( DataType )
 	{
-		case COLUMNDATA_INT:
+		case DATATYPE_INT:
 		{
 			sc.MustGetNumber( );
 			DefaultValString.Format( "%d", sc.Number );
 			break;
 		}
 
-		case COLUMNDATA_FLOAT:
+		case DATATYPE_FLOAT:
 		{
 			sc.MustGetFloat( );
 			DefaultValString.Format( "%f", static_cast<float>( sc.Float ));
 			break;
 		}
 
-		case COLUMNDATA_BOOL:
-		case COLUMNDATA_STRING:
-		case COLUMNDATA_COLOR:
-		case COLUMNDATA_TEXTURE:
+		case DATATYPE_BOOL:
+		case DATATYPE_STRING:
+		case DATATYPE_COLOR:
+		case DATATYPE_TEXTURE:
 		{
 			sc.MustGetString( );
 
 			// [AK] Color values must be saved differently.
-			if ( DataType == COLUMNDATA_COLOR )
+			if ( DataType == DATATYPE_COLOR )
 			{
 				FString ColorString = V_GetColorStringByName( sc.String );
 				DefaultValString.Format( "%d", V_GetColorFromString( NULL, ColorString.IsNotEmpty( ) ? ColorString.GetChars( ) : sc.String ));
@@ -1175,14 +1175,14 @@ DATACONTENT_e DataScoreColumn::GetContentType( void ) const
 {
 	switch ( GetDataType( ))
 	{
-		case COLUMNDATA_INT:
-		case COLUMNDATA_BOOL:
-		case COLUMNDATA_FLOAT:
-		case COLUMNDATA_STRING:
+		case DATATYPE_INT:
+		case DATATYPE_BOOL:
+		case DATATYPE_FLOAT:
+		case DATATYPE_STRING:
 			return DATACONTENT_TEXT;
 
-		case COLUMNDATA_COLOR:
-		case COLUMNDATA_TEXTURE:
+		case DATATYPE_COLOR:
+		case DATATYPE_TEXTURE:
 			return DATACONTENT_GRAPHIC;
 
 		default:
@@ -1199,7 +1199,7 @@ DATACONTENT_e DataScoreColumn::GetContentType( void ) const
 //
 //*****************************************************************************
 
-COLUMNDATA_e DataScoreColumn::GetDataType( void ) const
+DATATYPE_e DataScoreColumn::GetDataType( void ) const
 {
 	switch ( NativeType )
 	{
@@ -1216,16 +1216,16 @@ COLUMNDATA_e DataScoreColumn::GetDataType( void ) const
 		case COLUMNTYPE_DAMAGE:
 		case COLUMNTYPE_HANDICAP:
 		case COLUMNTYPE_JOINQUEUE:
-			return COLUMNDATA_INT;
+			return DATATYPE_INT;
 
 		case COLUMNTYPE_NAME:
 		case COLUMNTYPE_VOTE:
 		case COLUMNTYPE_COUNTRYNAME:
 		case COLUMNTYPE_COUNTRYCODE:
-			return COLUMNDATA_STRING;
+			return DATATYPE_STRING;
 
 		case COLUMNTYPE_PLAYERCOLOR:
-			return COLUMNDATA_COLOR;
+			return DATATYPE_COLOR;
 
 		case COLUMNTYPE_STATUSICON:
 		case COLUMNTYPE_READYTOGOICON:
@@ -1233,7 +1233,7 @@ COLUMNDATA_e DataScoreColumn::GetDataType( void ) const
 		case COLUMNTYPE_ARTIFACTICON:
 		case COLUMNTYPE_BOTSKILLICON:
 		case COLUMNTYPE_COUNTRYFLAG:
-			return COLUMNDATA_TEXTURE;
+			return DATATYPE_TEXTURE;
 
 		case COLUMNTYPE_CUSTOM:
 		{
@@ -1246,7 +1246,7 @@ COLUMNDATA_e DataScoreColumn::GetDataType( void ) const
 		}
 
 		default:
-			return COLUMNDATA_UNKNOWN;
+			return DATATYPE_UNKNOWN;
 	}
 }
 
@@ -1267,12 +1267,12 @@ FString DataScoreColumn::GetValueString( const ColumnValue &Value ) const
 {
 	FString text;
 
-	if ( Value.GetDataType( ) == COLUMNDATA_INT )
+	if ( Value.GetDataType( ) == DATATYPE_INT )
 	{
 		// [AK] A column's maximum length doesn't apply to integers.
 		text.Format( "%d", Value.GetValue<int>( ));
 	}
-	else if ( Value.GetDataType( ) == COLUMNDATA_FLOAT )
+	else if ( Value.GetDataType( ) == DATATYPE_FLOAT )
 	{
 		// [AK] If the maximum length of a column is non-zero, then the floating point
 		// number is rounded to the same number of decimals. Otherwise, the number is
@@ -1283,10 +1283,10 @@ FString DataScoreColumn::GetValueString( const ColumnValue &Value ) const
 		else
 			text.Format( "%.*f", ulMaxLength, Value.GetValue<float>( ));
 	}
-	else if (( Value.GetDataType( ) == COLUMNDATA_BOOL ) || ( Value.GetDataType( ) == COLUMNDATA_STRING ))
+	else if (( Value.GetDataType( ) == DATATYPE_BOOL ) || ( Value.GetDataType( ) == DATATYPE_STRING ))
 	{
 		// [AK] If the data type is boolean, use the column's true or false text instead.
-		if ( Value.GetDataType( ) == COLUMNDATA_BOOL )
+		if ( Value.GetDataType( ) == DATATYPE_BOOL )
 		{
 			text = Value.GetValue<bool>( ) ? TrueText : FalseText;
 
@@ -1334,10 +1334,10 @@ ULONG DataScoreColumn::GetValueWidth( const ColumnValue &Value ) const
 	{
 		switch ( Value.GetDataType( ))
 		{
-			case COLUMNDATA_INT:
-			case COLUMNDATA_BOOL:
-			case COLUMNDATA_FLOAT:
-			case COLUMNDATA_STRING:
+			case DATATYPE_INT:
+			case DATATYPE_BOOL:
+			case DATATYPE_FLOAT:
+			case DATATYPE_STRING:
 			{
 				if ( pScoreboard->pRowFont == NULL )
 					return 0;
@@ -1345,7 +1345,7 @@ ULONG DataScoreColumn::GetValueWidth( const ColumnValue &Value ) const
 				return pScoreboard->pRowFont->StringWidth( GetValueString( Value ).GetChars( ));
 			}
 
-			case COLUMNDATA_COLOR:
+			case DATATYPE_COLOR:
 			{
 				// [AK] If this column must always use the shortest possible width, then return the
 				// clipping rectangle's width, whether it's zero or not.
@@ -1357,7 +1357,7 @@ ULONG DataScoreColumn::GetValueWidth( const ColumnValue &Value ) const
 				return ulClipRectWidth > 0 ? MIN( ulSizing, ulClipRectWidth ) : ulSizing;
 			}
 
-			case COLUMNDATA_TEXTURE:
+			case DATATYPE_TEXTURE:
 			{
 				FTexture *pTexture = Value.GetValue<FTexture *>( );
 
@@ -1383,7 +1383,7 @@ ULONG DataScoreColumn::GetValueWidth( const ColumnValue &Value ) const
 
 ColumnValue DataScoreColumn::GetValue( const ULONG ulPlayer ) const
 {
-	// [AK] By default, a ColumnValue object's data type is initialized to COLUMNDATA_UNKNOWN.
+	// [AK] By default, a ColumnValue object's data type is initialized to DATATYPE_UNKNOWN.
 	// If the result's data type is still unknown in the end, then no value was retrieved.
 	ColumnValue Result;
 
@@ -1632,7 +1632,7 @@ void DataScoreColumn::ParseCommand( FScanner &sc, const COLUMNCMD_e Command, con
 			{
 				// [AK] Since maximum length doesn't apply to integer columns, we should
 				// make sure that this command cannot be used for them.
-				if ( GetDataType( ) == COLUMNDATA_INT )
+				if ( GetDataType( ) == DATATYPE_INT )
 					sc.ScriptError( "Option '%s' cannot be used with integer columns.", CommandName.GetChars( ));
 
 				sc.MustGetNumber( );
@@ -1672,7 +1672,7 @@ void DataScoreColumn::ParseCommand( FScanner &sc, const COLUMNCMD_e Command, con
 		case COLUMNCMD_FALSETEXT:
 		{
 			// [AK] True and false text are only available for boolean columns.
-			if ( GetDataType( ) != COLUMNDATA_BOOL )
+			if ( GetDataType( ) != DATATYPE_BOOL )
 				sc.ScriptError( "Option '%s' is only available for boolean columns.", CommandName.GetChars( ));
 
 			sc.MustGetString( );
@@ -1775,18 +1775,18 @@ void DataScoreColumn::DrawValue( const ULONG ulPlayer, const ULONG ulColor, cons
 
 	switch( Value.GetDataType( ))
 	{
-		case COLUMNDATA_INT:
-		case COLUMNDATA_BOOL:
-		case COLUMNDATA_FLOAT:
-		case COLUMNDATA_STRING:
+		case DATATYPE_INT:
+		case DATATYPE_BOOL:
+		case DATATYPE_FLOAT:
+		case DATATYPE_STRING:
 			DrawString( GetValueString( Value ).GetChars( ), pScoreboard->pRowFont, ulColorToUse, lYPos, ulHeight, fAlpha );
 			break;
 
-		case COLUMNDATA_COLOR:
+		case DATATYPE_COLOR:
 			DrawColor( Value.GetValue<PalEntry>( ), lYPos, ulHeight, fAlpha, ulClipRectWidth, ulClipRectHeight );
 			break;
 
-		case COLUMNDATA_TEXTURE:
+		case DATATYPE_TEXTURE:
 			DrawTexture( Value.GetValue<FTexture *>( ), lYPos, ulHeight, fAlpha, ulClipRectWidth, ulClipRectHeight );
 			break;
 	}
@@ -1831,7 +1831,7 @@ ULONG CountryFlagScoreColumn::GetValueWidth( const ColumnValue &Value ) const
 	// [AK] Always return zero if this column isn't part of a scoreboard.
 	if ( pScoreboard != NULL )
 	{
-		if (( Value.GetDataType( ) == COLUMNDATA_TEXTURE ) && ( Value.GetValue<FTexture *>( ) == pFlagIconSet ))
+		if (( Value.GetDataType( ) == DATATYPE_TEXTURE ) && ( Value.GetValue<FTexture *>( ) == pFlagIconSet ))
 			return ulFlagWidth;
 
 		// [AK] If we somehow end up here, throw a fatal error.
@@ -2103,7 +2103,7 @@ void CompositeScoreColumn::DrawValue( const ULONG ulPlayer, const ULONG ulColor,
 
 		Value = SubColumns[i]->GetValue( ulPlayer );
 
-		if ( Value.GetDataType( ) != COLUMNDATA_UNKNOWN )
+		if ( Value.GetDataType( ) != DATATYPE_UNKNOWN )
 		{
 			const ULONG ulValueWidth = SubColumns[i]->GetValueWidth( Value );
 
@@ -2185,7 +2185,7 @@ ULONG CompositeScoreColumn::GetRowWidth( const ULONG ulPlayer ) const
 
 		ColumnValue Value = SubColumns[i]->GetValue( ulPlayer );
 
-		if ( Value.GetDataType( ) != COLUMNDATA_UNKNOWN )
+		if ( Value.GetDataType( ) != DATATYPE_UNKNOWN )
 			ulRowWidth += GetSubColumnWidth( i, SubColumns[i]->GetValueWidth( Value ));
 	}
 
@@ -2701,27 +2701,27 @@ bool Scoreboard::PlayerComparator::operator( )( const int &arg1, const int &arg2
 
 		// [AK] Always return false if the data type of the first value is unknown.
 		// This is also the case when both values have unknown data types.
-		if ( Value1.GetDataType( ) == COLUMNDATA_UNKNOWN )
+		if ( Value1.GetDataType( ) == DATATYPE_UNKNOWN )
 			return false;
 
 		// [AK] Always return true if the second value is unknown.
-		if ( Value2.GetDataType( ) == COLUMNDATA_UNKNOWN )
+		if ( Value2.GetDataType( ) == DATATYPE_UNKNOWN )
 			return true;
 
 		switch ( Value1.GetDataType( ))
 		{
-			case COLUMNDATA_INT:
+			case DATATYPE_INT:
 				result = Value1.GetValue<int>( ) - Value2.GetValue<int>( );
 				break;
 
-			case COLUMNDATA_BOOL:
+			case DATATYPE_BOOL:
 				result = static_cast<int>( Value1.GetValue<bool>( ) - Value2.GetValue<bool>( ));
 				break;
 
-			case COLUMNDATA_FLOAT:
+			case DATATYPE_FLOAT:
 				result = static_cast<int>( Value1.GetValue<float>( ) - Value2.GetValue<float>( ));
 
-			case COLUMNDATA_STRING:
+			case DATATYPE_STRING:
 			{
 				FString firstString = Value1.GetValue<const char *>( );
 				FString secondString = Value2.GetValue<const char *>( );

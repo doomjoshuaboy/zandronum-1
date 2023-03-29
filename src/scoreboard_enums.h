@@ -87,27 +87,27 @@ END_ENUM( VERTALIGN_e )
 
 //*****************************************************************************
 //
-// Supported column data types.
+// Supported data types.
 //
-BEGIN_ENUM( COLUMNDATA_e )
+BEGIN_ENUM( DATATYPE_e )
 {
-	ENUM_ELEMENT( COLUMNDATA_UNKNOWN ),
-	// Treat the column as an integer.
-	ENUM_ELEMENT( COLUMNDATA_INT ),
-	// Treat the column as a boolean (1 = true, 0 = false).
-	ENUM_ELEMENT( COLUMNDATA_BOOL ),
-	// Treat the column as a float or fixed-point number.
-	ENUM_ELEMENT( COLUMNDATA_FLOAT ),
-	// Treat the column as text.
-	ENUM_ELEMENT( COLUMNDATA_STRING ),
-	// Treat the column as a box drawn in a flat color.
-	ENUM_ELEMENT( COLUMNDATA_COLOR ),
-	// Treat the column as a graphic or image.
-	ENUM_ELEMENT( COLUMNDATA_TEXTURE ),
+	ENUM_ELEMENT( DATATYPE_UNKNOWN ),
+	// Integer.
+	ENUM_ELEMENT( DATATYPE_INT ),
+	// Boolean (1 = true, 0 = false).
+	ENUM_ELEMENT( DATATYPE_BOOL ),
+	// Float or fixed-point number.
+	ENUM_ELEMENT( DATATYPE_FLOAT ),
+	// String.
+	ENUM_ELEMENT( DATATYPE_STRING ),
+	// Color.
+	ENUM_ELEMENT( DATATYPE_COLOR ),
+	// Graphic or image.
+	ENUM_ELEMENT( DATATYPE_TEXTURE ),
 
-	ENUM_ELEMENT( NUM_COLUMNDATA_TYPES )
+	ENUM_ELEMENT( NUM_DATATYPES )
 }
-END_ENUM( COLUMNDATA_e )
+END_ENUM( DATATYPE_e )
 
 //*****************************************************************************
 //

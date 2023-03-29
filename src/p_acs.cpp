@@ -7887,28 +7887,28 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 
 					switch ( pData->GetDataType( ))
 					{
-						case COLUMNDATA_INT:
+						case DATATYPE_INT:
 							Val.SetValue<int>( args[2] );
 							break;
 
-						case COLUMNDATA_BOOL:
+						case DATATYPE_BOOL:
 							Val.SetValue<bool>( !!args[2] );
 							break;
 
-						case COLUMNDATA_FLOAT:
+						case DATATYPE_FLOAT:
 							Val.SetValue<float>( FIXED2FLOAT( args[2] ));
 							break;
 
-						case COLUMNDATA_COLOR:
+						case DATATYPE_COLOR:
 							Val.SetValue<PalEntry>( args[2] );
 							break;
 
-						case COLUMNDATA_STRING:
-						case COLUMNDATA_TEXTURE:
+						case DATATYPE_STRING:
+						case DATATYPE_TEXTURE:
 						{
 							const char *pszValue = FBehavior::StaticLookupString( args[2] );
 
-							if ( pData->GetDataType( ) == COLUMNDATA_STRING )
+							if ( pData->GetDataType( ) == DATATYPE_STRING )
 								Val.SetValue<const char *>( pszValue );
 							else
 								Val.SetValue<FTexture *>( TexMan.FindTexture( pszValue ));
@@ -7933,22 +7933,22 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 
 					switch ( Val.GetDataType( ))
 					{
-						case COLUMNDATA_INT:
+						case DATATYPE_INT:
 							return Val.GetValue<int>( );
 
-						case COLUMNDATA_BOOL:
+						case DATATYPE_BOOL:
 							return Val.GetValue<bool>( );
 
-						case COLUMNDATA_FLOAT:
+						case DATATYPE_FLOAT:
 							return FLOAT2FIXED( Val.GetValue<float>( ));
 
-						case COLUMNDATA_STRING:
+						case DATATYPE_STRING:
 							return GlobalACSStrings.AddString( Val.GetValue<const char *>( ));
 
-						case COLUMNDATA_COLOR:
+						case DATATYPE_COLOR:
 							return Val.GetValue<PalEntry>( );
 
-						case COLUMNDATA_TEXTURE:
+						case DATATYPE_TEXTURE:
 						{
 							FTexture *pTexture = Val.GetValue<FTexture *>( );
 							return GlobalACSStrings.AddString( pTexture != NULL ? pTexture->Name : "" );
