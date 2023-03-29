@@ -1563,7 +1563,7 @@ void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 
 		while ( it.NextPair( pair ))
 		{
-			const ColumnValue DefaultVal = pair->Value.GetDefaultValue( );
+			const PlayerValue DefaultVal = pair->Value.GetDefaultValue( );
 
 			// [AK] First, tell them to reset everyone's values to default.
 			SERVERCOMMANDS_ResetCustomPlayerValue( pair->Value, MAXPLAYERS, g_lCurrentClient, SVCF_ONLYTHISCLIENT );

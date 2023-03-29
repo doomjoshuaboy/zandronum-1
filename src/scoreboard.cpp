@@ -186,53 +186,53 @@ CUSTOM_CVAR( Float, cl_scoreboardalpha, 1.0f, CVAR_ARCHIVE )
 }
 
 //*****************************************************************************
-//	COLUMN VALUE TRAITS
+//	PLAYER VALUE TRAITS
 
-const DATATYPE_e ColumnValue::Trait<int>::DataType = DATATYPE_INT;
-const int ColumnValue::Trait<int>::Zero = 0;
+const DATATYPE_e PlayerValue::Trait<int>::DataType = DATATYPE_INT;
+const int PlayerValue::Trait<int>::Zero = 0;
 
-const DATATYPE_e ColumnValue::Trait<bool>::DataType = DATATYPE_BOOL;
-const bool ColumnValue::Trait<bool>::Zero = false;
+const DATATYPE_e PlayerValue::Trait<bool>::DataType = DATATYPE_BOOL;
+const bool PlayerValue::Trait<bool>::Zero = false;
 
-const DATATYPE_e ColumnValue::Trait<float>::DataType = DATATYPE_FLOAT;
-const float ColumnValue::Trait<float>::Zero = 0.0f;
+const DATATYPE_e PlayerValue::Trait<float>::DataType = DATATYPE_FLOAT;
+const float PlayerValue::Trait<float>::Zero = 0.0f;
 
-const DATATYPE_e ColumnValue::Trait<const char *>::DataType = DATATYPE_STRING;
-const char *const ColumnValue::Trait<const char *>::Zero = NULL;
+const DATATYPE_e PlayerValue::Trait<const char *>::DataType = DATATYPE_STRING;
+const char *const PlayerValue::Trait<const char *>::Zero = NULL;
 
-const DATATYPE_e ColumnValue::Trait<PalEntry>::DataType = DATATYPE_COLOR;
-const PalEntry ColumnValue::Trait<PalEntry>::Zero = 0;
+const DATATYPE_e PlayerValue::Trait<PalEntry>::DataType = DATATYPE_COLOR;
+const PalEntry PlayerValue::Trait<PalEntry>::Zero = 0;
 
-const DATATYPE_e ColumnValue::Trait<FTexture *>::DataType = DATATYPE_TEXTURE;
-FTexture *const ColumnValue::Trait<FTexture *>::Zero = 0;
+const DATATYPE_e PlayerValue::Trait<FTexture *>::DataType = DATATYPE_TEXTURE;
+FTexture *const PlayerValue::Trait<FTexture *>::Zero = 0;
 
 //*****************************************************************************
 //	FUNCTIONS
 
 //*****************************************************************************
 //
-// [AK] ColumnValue::GetValue
+// [AK] PlayerValue::GetValue
 //
-// Gets the value that a ColumnValue object is holding for a specific data
-// type. If the input data type doesn't match what is currently used, then the
-// "zero" value of that data type is returned instead.
+// Gets the value that is currently being held. If the input data type doesn't
+// match what is currently used, then the "zero" value of that data type is
+// returned instead.
 //
 //*****************************************************************************
 
-template <typename Type> Type ColumnValue::GetValue( void ) const
+template <typename Type> Type PlayerValue::GetValue( void ) const
 {
 	return ( DataType == Trait<Type>::DataType ) ? RetrieveValue<Type>( ) : Trait<Type>::Zero;
 }
 
 //*****************************************************************************
 //
-// [AK] ColumnValue::SetValue
+// [AK] PlayerValue::SetValue
 //
-// Changes the value, and possibly the data type, of a ColumnValue object.
+// Changes the value, and possibly the data type, that's stored.
 //
 //*****************************************************************************
 
-template <typename Type> void ColumnValue::SetValue( Type NewValue )
+template <typename Type> void PlayerValue::SetValue( Type NewValue )
 {
 	if ( DataType == DATATYPE_STRING )
 		DeleteString( );
@@ -243,13 +243,13 @@ template <typename Type> void ColumnValue::SetValue( Type NewValue )
 
 //*****************************************************************************
 //
-// [AK] ColumnValue::TransferValue
+// [AK] PlayerValue::TransferValue
 //
-// Transfers the value of one ColumnValue object to another.
+// Transfers the value of one object to another.
 //
 //*****************************************************************************
 
-void ColumnValue::TransferValue ( const ColumnValue &Other )
+void PlayerValue::TransferValue ( const PlayerValue &Other )
 {
 	switch ( Other.GetDataType( ))
 	{
@@ -281,13 +281,13 @@ void ColumnValue::TransferValue ( const ColumnValue &Other )
 
 //*****************************************************************************
 //
-// [AK] ColumnValue::ToString
+// [AK] PlayerValue::ToString
 //
-// Returns a string containing the value of a ColumnValue object.
+// Returns a string containing the value that's currently stored.
 //
 //*****************************************************************************
 
-FString ColumnValue::ToString( void ) const
+FString PlayerValue::ToString( void ) const
 {
 	FString Result;
 
@@ -329,13 +329,13 @@ FString ColumnValue::ToString( void ) const
 
 //*****************************************************************************
 //
-// [AK] ColumnValue::FromString
+// [AK] PlayerValue::FromString
 //
-// Assigns a value and data type to a ColumnValue object using an input string.
+// Assigns a value and data type using an input string.
 //
 //*****************************************************************************
 
-void ColumnValue::FromString( const char *pszString, const DATATYPE_e NewDataType )
+void PlayerValue::FromString( const char *pszString, const DATATYPE_e NewDataType )
 {
 	if (( pszString == NULL ) || ( NewDataType <= DATATYPE_UNKNOWN ) || ( NewDataType >= NUM_DATATYPES ))
 		return;
@@ -375,13 +375,13 @@ void ColumnValue::FromString( const char *pszString, const DATATYPE_e NewDataTyp
 
 //*****************************************************************************
 //
-// [AK] ColumnValue::operator==
+// [AK] PlayerValue::operator==
 //
-// Checks if two ColumnValue objects have the same data type and value.
+// Checks if two objects have the same data type and value.
 //
 //*****************************************************************************
 
-bool ColumnValue::operator== ( const ColumnValue &Other ) const
+bool PlayerValue::operator== ( const PlayerValue &Other ) const
 {
 	if ( DataType == Other.GetDataType( ))
 	{
@@ -423,14 +423,13 @@ bool ColumnValue::operator== ( const ColumnValue &Other ) const
 
 //*****************************************************************************
 //
-// [AK] ColumnValue::DeleteString
+// [AK] PlayerValue::DeleteString
 //
-// If a ColumnValue object has a pointer to a string that isn't NULL, then it
-// removes the string from memory.
+// If the value is a string that isn't NULL, then it's removed from memory.
 //
 //*****************************************************************************
 
-void ColumnValue::DeleteString( void )
+void PlayerValue::DeleteString( void )
 {
 	if (( GetDataType( ) == DATATYPE_STRING ) && ( String != NULL ))
 	{
@@ -507,12 +506,12 @@ CustomPlayerData::CustomPlayerData( FScanner &sc, BYTE NewIndex ) : Index( NewIn
 //
 // [AK] CustomPlayerData::GetValue
 //
-// Returns a ColumnValue object containing the value associated with a player,
-// or the default value if the given player index is invalid.
+// Returns the value associated with a player, or the default value if the
+// given player index is invalid.
 //
 //*****************************************************************************
 
-ColumnValue CustomPlayerData::GetValue( const ULONG ulPlayer ) const
+PlayerValue CustomPlayerData::GetValue( const ULONG ulPlayer ) const
 {
 	return PLAYER_IsValidPlayer( ulPlayer ) ? Val[ulPlayer] : GetDefaultValue( );
 }
@@ -521,13 +520,13 @@ ColumnValue CustomPlayerData::GetValue( const ULONG ulPlayer ) const
 //
 // [AK] CustomPlayerData::GetDefaultValue
 //
-// Returns a ColumnValue object containing the default value.
+// Returns the default value.
 //
 //*****************************************************************************
 
-ColumnValue CustomPlayerData::GetDefaultValue( void ) const
+PlayerValue CustomPlayerData::GetDefaultValue( void ) const
 {
-	ColumnValue DefaultVal;
+	PlayerValue DefaultVal;
 	DefaultVal.FromString( DefaultValString.GetChars( ), DataType );
 
 	return DefaultVal;
@@ -537,11 +536,11 @@ ColumnValue CustomPlayerData::GetDefaultValue( void ) const
 //
 // [AK] CustomPlayerData::SetValue
 //
-// Changes the value for a player in this column.
+// Changes the value of a player.
 //
 //*****************************************************************************
 
-void CustomPlayerData::SetValue( const ULONG ulPlayer, const ColumnValue &Value )
+void CustomPlayerData::SetValue( const ULONG ulPlayer, const PlayerValue &Value )
 {
 	// [AK] Stop here if the player's invalid, or the new value is equal to the old one.
 	if (( PLAYER_IsValidPlayer( ulPlayer ) == false ) || ( GetValue( ulPlayer ) == Value ))
@@ -563,14 +562,13 @@ void CustomPlayerData::SetValue( const ULONG ulPlayer, const ColumnValue &Value 
 //
 // [AK] CustomPlayerData::ResetToDefault
 //
-// Resets the value of a single player or all players in this column to their
-// default values.
+// Resets the value of a single player, or all players, to the default value.
 //
 //*****************************************************************************
 
 void CustomPlayerData::ResetToDefault( const ULONG ulPlayer, const bool bInformClients )
 {
-	const ColumnValue DefaultVal = GetDefaultValue( );
+	const PlayerValue DefaultVal = GetDefaultValue( );
 
 	// [AK] Check if we want to restore the default value for all players.
 	if ( ulPlayer == MAXPLAYERS )
@@ -1263,7 +1261,7 @@ DATATYPE_e DataScoreColumn::GetDataType( void ) const
 //
 //*****************************************************************************
 
-FString DataScoreColumn::GetValueString( const ColumnValue &Value ) const
+FString DataScoreColumn::GetValueString( const PlayerValue &Value ) const
 {
 	FString text;
 
@@ -1323,11 +1321,11 @@ FString DataScoreColumn::GetValueString( const ColumnValue &Value ) const
 //
 // [AK] DataScoreColumn::GetValueWidth
 //
-// Gets the width of a value inside a ColumnValue object.
+// Gets the width of a value.
 //
 //*****************************************************************************
 
-ULONG DataScoreColumn::GetValueWidth( const ColumnValue &Value ) const
+ULONG DataScoreColumn::GetValueWidth( const PlayerValue &Value ) const
 {
 	// [AK] Make sure that the column is part of a scoreboard.
 	if ( pScoreboard != NULL )
@@ -1377,15 +1375,15 @@ ULONG DataScoreColumn::GetValueWidth( const ColumnValue &Value ) const
 //
 // [AK] DataScoreColumn::GetValue
 //
-// Returns a ColumnValue object containing the value associated with a player.
+// Returns the value associated with a player.
 //
 //*****************************************************************************
 
-ColumnValue DataScoreColumn::GetValue( const ULONG ulPlayer ) const
+PlayerValue DataScoreColumn::GetValue( const ULONG ulPlayer ) const
 {
-	// [AK] By default, a ColumnValue object's data type is initialized to DATATYPE_UNKNOWN.
-	// If the result's data type is still unknown in the end, then no value was retrieved.
-	ColumnValue Result;
+	// [AK] By default, the result's data type is initialized to DATATYPE_UNKNOWN.
+	// If it's still unknown in the end, then no value was retrieved.
+	PlayerValue Result;
 
 	if ( PLAYER_IsValidPlayer( ulPlayer ))
 	{
@@ -1716,7 +1714,7 @@ void DataScoreColumn::UpdateWidth( void )
 		if ( CanDrawForPlayer( ulIdx ) == false )
 			continue;
 
-		ColumnValue Value = GetValue( ulIdx );
+		PlayerValue Value = GetValue( ulIdx );
 		ulShortestWidth = MAX( ulShortestWidth, GetValueWidth( Value ));
 	}
 
@@ -1728,7 +1726,7 @@ void DataScoreColumn::UpdateWidth( void )
 //
 // [AK] DataScoreColumn::DrawValue
 //
-// Draws the value of a particular player passed into a ColumnValue object.
+// Draws the value of a particular player.
 //
 //*****************************************************************************
 
@@ -1737,7 +1735,7 @@ void DataScoreColumn::DrawValue( const ULONG ulPlayer, const ULONG ulColor, cons
 	if (( pScoreboard == NULL ) || ( CanDrawForPlayer( ulPlayer ) == false ))
 		return;
 
-	ColumnValue Value = GetValue( ulPlayer );
+	PlayerValue Value = GetValue( ulPlayer );
 	ULONG ulColorToUse;
 
 	// [AK] The text color used in the join queue and vote columns changes depending
@@ -1821,12 +1819,12 @@ CountryFlagScoreColumn::CountryFlagScoreColumn( FScanner &sc, const char *pszNam
 //
 // [AK] CountryFlagScoreColumn::GetValueWidth
 //
-// If the passed ColumnValue object is "CTRYFLAG", then the width of a mini
-// flag icon is returned. Otherwise, the superclass's function is called.
+// This should always return the width of a mini flag icon, assuming that the
+// passed value is a texture set to "CTRYFLAG".
 //
 //*****************************************************************************
 
-ULONG CountryFlagScoreColumn::GetValueWidth( const ColumnValue &Value ) const
+ULONG CountryFlagScoreColumn::GetValueWidth( const PlayerValue &Value ) const
 {
 	// [AK] Always return zero if this column isn't part of a scoreboard.
 	if ( pScoreboard != NULL )
@@ -1849,9 +1847,9 @@ ULONG CountryFlagScoreColumn::GetValueWidth( const ColumnValue &Value ) const
 //
 //*****************************************************************************
 
-ColumnValue CountryFlagScoreColumn::GetValue( const ULONG ulPlayer ) const
+PlayerValue CountryFlagScoreColumn::GetValue( const ULONG ulPlayer ) const
 {
-	ColumnValue result;
+	PlayerValue result;
 
 	if ( PLAYER_IsValidPlayer( ulPlayer ))
 		result.SetValue<FTexture *>( pFlagIconSet );
@@ -2080,7 +2078,7 @@ void CompositeScoreColumn::UpdateWidth( void )
 
 void CompositeScoreColumn::DrawValue( const ULONG ulPlayer, const ULONG ulColor, const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const
 {
-	ColumnValue Value;
+	PlayerValue Value;
 
 	if (( pScoreboard == NULL ) || ( CanDrawForPlayer( ulPlayer ) == false ))
 		return;
@@ -2183,7 +2181,7 @@ ULONG CompositeScoreColumn::GetRowWidth( const ULONG ulPlayer ) const
 		if (( SubColumns[i]->IsDisabled( )) || (( SubColumns[i]->GetFlags( ) & COLUMNFLAG_NOSPECTATORS ) && ( bIsTrueSpectator )))
 			continue;
 
-		ColumnValue Value = SubColumns[i]->GetValue( ulPlayer );
+		PlayerValue Value = SubColumns[i]->GetValue( ulPlayer );
 
 		if ( Value.GetDataType( ) != DATATYPE_UNKNOWN )
 			ulRowWidth += GetSubColumnWidth( i, SubColumns[i]->GetValueWidth( Value ));
@@ -2196,7 +2194,7 @@ ULONG CompositeScoreColumn::GetRowWidth( const ULONG ulPlayer ) const
 //
 // [AK] CompositeScoreColumn::GetSubColumnWidth
 //
-// Gets the width of a sub-column. This requires that a ColumnValue's width is
+// Gets the width of a sub-column. This requires that the width of the value be
 // determined first (using DataScoreColumn::GetValueWidth) and passed into this
 // function to work.
 //
@@ -2696,8 +2694,8 @@ bool Scoreboard::PlayerComparator::operator( )( const int &arg1, const int &arg2
 		if ( pScoreboard->RankOrder[i]->IsDisabled( ))
 			continue;
 
-		const ColumnValue Value1 = pScoreboard->RankOrder[i]->GetValue( arg1 );
-		const ColumnValue Value2 = pScoreboard->RankOrder[i]->GetValue( arg2 );
+		const PlayerValue Value1 = pScoreboard->RankOrder[i]->GetValue( arg1 );
+		const PlayerValue Value2 = pScoreboard->RankOrder[i]->GetValue( arg2 );
 
 		// [AK] Always return false if the data type of the first value is unknown.
 		// This is also the case when both values have unknown data types.

@@ -5372,9 +5372,9 @@ enum EACSFunctions
 	ACSF_GetActorSectorLocation,
 	ACSF_ChangeTeamScore,
 	ACSF_SetGameplaySetting,
-	ACSF_SetCustomColumnValue,
-	ACSF_GetCustomColumnValue,
-	ACSF_ResetCustomColumnToDefault,
+	ACSF_SetCustomPlayerValue,
+	ACSF_GetCustomPlayerValue,
+	ACSF_ResetCustomDataToDefault,
 	ACSF_IsColumnUsable,
 
 	// ZDaemon
@@ -7876,14 +7876,14 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 				return 0;
 			}
 
-		case ACSF_SetCustomColumnValue:
+		case ACSF_SetCustomPlayerValue:
 			{
 				CustomPlayerData *pData = gameinfo.CustomPlayerData.CheckKey( FBehavior::StaticLookupString( args[0] ));
 
 				// [AK] Make sure that the column and player are both valid.
 				if (( pData != NULL ) && ( PLAYER_IsValidPlayer( args[1] )))
 				{
-					ColumnValue Val;
+					PlayerValue Val;
 
 					switch ( pData->GetDataType( ))
 					{
@@ -7922,14 +7922,14 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 				return 0;
 			}
 
-		case ACSF_GetCustomColumnValue:
+		case ACSF_GetCustomPlayerValue:
 			{
 				CustomPlayerData *pData = gameinfo.CustomPlayerData.CheckKey( FBehavior::StaticLookupString( args[0] ));
 
 				// [AK] Make sure that the column and player are both valid.
 				if (( pData != NULL ) && ( PLAYER_IsValidPlayer( args[1] )))
 				{
-					const ColumnValue Val = pData->GetValue( args[1] );
+					const PlayerValue Val = pData->GetValue( args[1] );
 
 					switch ( Val.GetDataType( ))
 					{
@@ -7959,7 +7959,7 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 				return 0;
 			}
 
-		case ACSF_ResetCustomColumnToDefault:
+		case ACSF_ResetCustomDataToDefault:
 			{
 				CustomPlayerData *pData = gameinfo.CustomPlayerData.CheckKey( FBehavior::StaticLookupString( args[0] ));
 				const ULONG ulPlayer = args[1] < 0 ? MAXPLAYERS : args[1];

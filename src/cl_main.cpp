@@ -9289,7 +9289,7 @@ void ServerCommands::SetCustomPlayerValue::Execute()
 
 	if ( pData != NULL )
 	{
-		ColumnValue Val;
+		PlayerValue Val;
 		Val.FromString( value, pData->GetDataType( ));
 
 		pData->SetValue( player, Val );

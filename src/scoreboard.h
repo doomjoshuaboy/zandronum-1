@@ -118,13 +118,13 @@ enum
 
 //*****************************************************************************
 //
-// [AK] ColumnValue
+// [AK] PlayerValue
 //
-// Allows for easy storage of different data types that a column might use.
+// Allows for easy storage of a player's value with different data types.
 //
 //*****************************************************************************
 
-class ColumnValue
+class PlayerValue
 {
 public:
 	template <typename Type> struct Trait
@@ -133,10 +133,10 @@ public:
 		static const Type Zero;
 	};
 
-	ColumnValue( void ) : DataType( DATATYPE_UNKNOWN ) { }
-	ColumnValue( const ColumnValue &Other ) : DataType( DATATYPE_UNKNOWN ) { TransferValue( Other ); }
+	PlayerValue( void ) : DataType( DATATYPE_UNKNOWN ) { }
+	PlayerValue( const PlayerValue &Other ) : DataType( DATATYPE_UNKNOWN ) { TransferValue( Other ); }
 
-	~ColumnValue( void ) { DeleteString( ); }
+	~PlayerValue( void ) { DeleteString( ); }
 
 	inline DATATYPE_e GetDataType( void ) const { return DataType; }
 	template <typename Type> Type GetValue( void ) const;
@@ -144,13 +144,13 @@ public:
 	FString ToString( void ) const;
 	void FromString( const char *pszString, const DATATYPE_e NewDataType );
 
-	void operator= ( const ColumnValue &Other ) { TransferValue( Other ); }
+	void operator= ( const PlayerValue &Other ) { TransferValue( Other ); }
 
-	bool operator== ( const ColumnValue &Other ) const;
+	bool operator== ( const PlayerValue &Other ) const;
 
 private:
 	template <typename Type> Type RetrieveValue( void ) const;
-	void TransferValue( const ColumnValue &Other );
+	void TransferValue( const PlayerValue &Other );
 	void DeleteString( void );
 
 	// Int data type.
@@ -192,7 +192,7 @@ private:
 //
 // [AK] CustomPlayerData
 //
-// An array of ColumnValues for each player, used by custom columns to store data.
+// An array of values for each player, used by custom columns to store data.
 //
 //*****************************************************************************
 
@@ -202,15 +202,15 @@ public:
 	CustomPlayerData( FScanner &sc, BYTE NewIndex );
 
 	DATATYPE_e GetDataType( void ) const { return DataType; }
-	ColumnValue GetValue( const ULONG ulPlayer ) const;
-	ColumnValue GetDefaultValue( void ) const;
+	PlayerValue GetValue( const ULONG ulPlayer ) const;
+	PlayerValue GetDefaultValue( void ) const;
 	BYTE GetIndex( void ) const { return Index; }
-	void SetValue( const ULONG ulPlayer, const ColumnValue &Value );
+	void SetValue( const ULONG ulPlayer, const PlayerValue &Value );
 	void ResetToDefault( const ULONG ulPlayer, const bool bInformClients );
 
 private:
 	DATATYPE_e DataType;
-	ColumnValue Val[MAXPLAYERS];
+	PlayerValue Val[MAXPLAYERS];
 	BYTE Index;
 
 	// [AK] The default value as a string. MAPINFO lumps are parsed before any
@@ -318,12 +318,12 @@ public:
 	CompositeScoreColumn *GetCompositeColumn( void ) const { return pCompositeColumn; }
 	COLUMNTYPE_e GetNativeType( void ) const { return NativeType; }
 	DATACONTENT_e GetContentType( void ) const;
-	FString GetValueString( const ColumnValue &Value ) const;
+	FString GetValueString( const PlayerValue &Value ) const;
 
 	virtual COLUMNTEMPLATE_e GetTemplate( void ) const { return COLUMNTEMPLATE_DATA; }
 	virtual DATATYPE_e GetDataType( void ) const;
-	virtual ULONG GetValueWidth( const ColumnValue &Value ) const;
-	virtual ColumnValue GetValue( const ULONG ulPlayer ) const;
+	virtual ULONG GetValueWidth( const PlayerValue &Value ) const;
+	virtual PlayerValue GetValue( const ULONG ulPlayer ) const;
 	virtual void Parse( FScanner &sc );
 	virtual void ParseCommand( FScanner &sc, const COLUMNCMD_e Command, const FString CommandName );
 	virtual void UpdateWidth( void );
@@ -355,8 +355,8 @@ class CountryFlagScoreColumn : public DataScoreColumn
 public:
 	CountryFlagScoreColumn( FScanner &sc, const char *pszName );
 
-	virtual ULONG GetValueWidth( const ColumnValue &Value ) const;
-	virtual ColumnValue GetValue( const ULONG ulPlayer ) const;
+	virtual ULONG GetValueWidth( const PlayerValue &Value ) const;
+	virtual PlayerValue GetValue( const ULONG ulPlayer ) const;
 	virtual void DrawValue( const ULONG ulPlayer, const ULONG ulColor, const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const;
 
 	// [AK] The "CTRYFLAG" texture is supposed to be a 16x16 grid of country flag icons.
