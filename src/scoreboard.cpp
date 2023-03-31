@@ -3269,9 +3269,20 @@ void SCOREBOARD_Construct( void )
 								ColumnType = COLUMNTYPE_CUSTOM;
 
 							if ( ColumnType == COLUMNTYPE_COUNTRYFLAG )
+							{
 								pColumn = new CountryFlagScoreColumn( sc, ColumnName );
+							}
 							else
+							{
+								if ( ColumnType == COLUMNTYPE_CUSTOM )
+								{
+									// [AK] Make sure that this custom column has data already defined.
+									if (( gameinfo.CustomPlayerData.CountUsed( ) == 0 ) || ( gameinfo.CustomPlayerData.CheckKey( ColumnName ) == NULL ))
+										sc.ScriptError( "Custom column '%s' cannot be created without defining the data first.", ColumnName.GetChars( ));
+								}
+
 								pColumn = new DataScoreColumn( ColumnType, ColumnName );
+							}
 						}
 
 						if ( pColumn->GetTemplate( ) != COLUMNTEMPLATE_DATA )
@@ -3289,27 +3300,6 @@ void SCOREBOARD_Construct( void )
 					sc.ScriptError( "Unknown option '%s', on line %d in SCORINFO.", sc.String, sc.Line );
 				}
 			}
-		}
-	}
-
-	// [AK] Make sure that there's no custom columns without data on the scoreboard.
-	if ( g_Columns.CountUsed( ) > 0 )
-	{
-		TMapIterator<FName, ScoreColumn *> it( g_Columns );
-		TMap<FName, ScoreColumn *>::Pair *pair;
-
-		while ( it.NextPair( pair ))
-		{
-			if (( pair->Value->GetScoreboard( ) == NULL ) || ( pair->Value->GetTemplate( ) != COLUMNTEMPLATE_DATA ))
-				continue;
-
-			DataScoreColumn *pDataColumn = static_cast<DataScoreColumn *>( pair->Value );
-
-			if ( pDataColumn->GetNativeType( ) != COLUMNTYPE_CUSTOM )
-				continue;
-
-			if (( gameinfo.CustomPlayerData.CountUsed( ) == 0 ) || ( gameinfo.CustomPlayerData.CheckKey( pDataColumn->GetInternalName( )) == NULL ))
-				I_Error( "Custom column '%s' has no data and can't be on the scoreboard.", pair->Key.GetChars( ));
 		}
 	}
 }
