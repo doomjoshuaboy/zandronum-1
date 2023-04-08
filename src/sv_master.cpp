@@ -822,7 +822,7 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 	for ( ULONG ulBit = 0; ulBit < 32; )
 	{
 		const ULONG ulCurrentSetValue = flags[ulCurrentSetNum];
-		const ULONG ulField = 1 << ulBit;
+		const ULONG ulField = 1U << ulBit;
 
 		if ( ulCurrentSetValue & ulField )
 		{
