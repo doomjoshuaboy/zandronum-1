@@ -5375,7 +5375,6 @@ enum EACSFunctions
 	ACSF_SetCustomPlayerValue,
 	ACSF_GetCustomPlayerValue,
 	ACSF_ResetCustomDataToDefault,
-	ACSF_IsColumnUsable,
 
 	// ZDaemon
 	ACSF_GetTeamScore = 19620,	// (int team)
@@ -7972,12 +7971,6 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 				}
 
 				return 0;
-			}
-
-		case ACSF_IsColumnUsable:
-			{
-				ScoreColumn *pColumn = SCOREBOARD_GetColumn( FBehavior::StaticLookupString( args[0] ), true );
-				return pColumn != NULL ? pColumn->IsUsableInCurrentGame( ) : false;
 			}
 
 		case ACSF_GetActorFloorTexture:
