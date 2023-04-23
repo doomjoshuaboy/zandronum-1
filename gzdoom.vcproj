@@ -1089,6 +1089,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\scoreboard_margin.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\sectinfo.cpp"
 				>
 			</File>

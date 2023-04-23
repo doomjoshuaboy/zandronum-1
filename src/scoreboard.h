@@ -88,6 +88,17 @@ enum DATACONTENT_e
 };
 
 //*****************************************************************************
+//
+// [AK] Margin types, either a header/footer, or a team or spectator header.
+//
+enum MARGINTYPE_e
+{
+	MARGINTYPE_HEADER_OR_FOOTER,
+	MARGINTYPE_TEAM,
+	MARGINTYPE_SPECTATOR,
+};
+
+//*****************************************************************************
 enum
 {
 	COLUMN_EMPTY,
@@ -402,6 +413,56 @@ private:
 
 //*****************************************************************************
 //
+// [AK] ScoreMargin
+//
+// Draws the main header, footer, and all of the team/spectator headers using
+// a variety of commands that are parsed from the SCORINFO lumps.
+//
+//*****************************************************************************
+
+class ScoreMargin
+{
+public:
+	// [AK] A base class for all boundary commands in SCORINFO.
+	class BaseCommand
+	{
+	public:
+		BaseCommand( ScoreMargin *pMargin );
+
+		virtual void Parse( FScanner &sc ) = 0;
+		virtual void Refresh( const ULONG ulDisplayPlayer ) = 0;
+		virtual void Draw( const ULONG ulDisplayPlayer, const ULONG ulTeam, const LONG lYPos, const float fAlpha ) const = 0;
+
+	protected:
+		ScoreMargin *const pParentMargin;
+	};
+
+	ScoreMargin( MARGINTYPE_e MarginType, const char *pszName );
+	~ScoreMargin( void ) { ClearCommands( ); }
+
+	MARGINTYPE_e GetType( void ) const { return Type; }
+	const char *GetName( void ) const { return Name.GetChars( ); }
+	ULONG GetWidth( void ) const { return ulWidth; }
+	ULONG GetHeight( void ) const { return ulHeight; }
+	void IncreaseHeight( ULONG ulExtraHeight ) { ulHeight += ulExtraHeight; }
+	void Refresh( const ULONG ulDisplayPlayer, const ULONG ulNewWidth );
+	void Render( const ULONG ulDisplayPlayer, const ULONG ulTeam, LONG &lYPos, const float fAlpha ) const;
+
+	// [AK] Indicates that this margin is drawing for no team.
+	const static unsigned int NO_TEAM = UCHAR_MAX;
+
+private:
+	void ClearCommands( void );
+
+	TArray<BaseCommand *> Commands;
+	const MARGINTYPE_e Type;
+	const FName Name;
+	ULONG ulWidth;
+	ULONG ulHeight;
+};
+
+//*****************************************************************************
+//
 // [AK] Scoreboard
 //
 // Contains all properties and columns on the scoreboard. The scoreboard is
@@ -487,11 +548,15 @@ private:
 	ULONG ulPlayerList[MAXPLAYERS];
 	TArray<ScoreColumn *> ColumnOrder;
 	TArray<DataScoreColumn *> RankOrder;
+	ScoreMargin MainHeader;
+	ScoreMargin TeamHeader;
+	ScoreMargin SpectatorHeader;
+	ScoreMargin Footer;
 
 	void AddColumnToList( FScanner &sc, const bool bAddToRankOrder );
 	void RemoveColumnFromList( FScanner &sc, const bool bRemoveFromRankOrder );
 	void UpdateWidth( void );
-	void UpdateHeight( void );
+	void UpdateHeight( const ULONG ulDisplayPlayer );
 	void DrawRow( const ULONG ulPlayer, const ULONG ulDisplayPlayer, LONG &lYPos, const float fAlpha, bool &bUseLightBackground ) const;
 };
 

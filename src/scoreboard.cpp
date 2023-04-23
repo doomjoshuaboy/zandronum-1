@@ -2247,7 +2247,11 @@ Scoreboard::Scoreboard( void ) :
 	ulGapBetweenColumns( 0 ),
 	ulGapBetweenRows( 0 ),
 	lHeaderHeight( 0 ),
-	lRowHeight( 0 ) { }
+	lRowHeight( 0 ),
+	MainHeader( MARGINTYPE_HEADER_OR_FOOTER, "MainHeader" ),
+	TeamHeader( MARGINTYPE_TEAM, "TeamHeader" ),
+	SpectatorHeader( MARGINTYPE_SPECTATOR, "SpectatorHeader" ),
+	Footer( MARGINTYPE_HEADER_OR_FOOTER, "Footer" ) { }
 
 //*****************************************************************************
 //
@@ -2772,7 +2776,7 @@ void Scoreboard::Refresh( const ULONG ulDisplayPlayer )
 	if ( ulWidth == 0 )
 		return;
 
-	UpdateHeight( );
+	UpdateHeight( ulDisplayPlayer );
 
 	// [AK] Reset the player list then sort players based on the scoreboard's rank order.
 	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -2839,13 +2843,17 @@ void Scoreboard::UpdateWidth( void )
 //
 //*****************************************************************************
 
-void Scoreboard::UpdateHeight( void )
+void Scoreboard::UpdateHeight( const ULONG ulDisplayPlayer )
 {
 	const ULONG ulRowYOffset = lRowHeight + ulGapBetweenRows;
 	const ULONG ulNumActivePlayers = HUD_GetNumPlayers( );
 	const ULONG ulNumSpectators = HUD_GetNumSpectators( );
+	const ULONG ulWidthWithoutBorder = ulWidth - 2 * ulBackgroundBorderSize;
 
 	ulHeight = 2 * ulBackgroundBorderSize + lHeaderHeight + ulGapBetweenHeaderAndRows;
+
+	MainHeader.Refresh( ulDisplayPlayer, ulWidthWithoutBorder );
+	ulHeight += MainHeader.GetHeight( );
 
 	if (( ulFlags & SCOREBOARDFLAG_DONTDRAWBORDERS ) == false )
 	{
@@ -2869,7 +2877,16 @@ void Scoreboard::UpdateHeight( void )
 			const ULONG ulNumTeamsWithPlayers = TEAM_TeamsWithPlayersOn( );
 
 			if ( ulNumTeamsWithPlayers > 0 )
+			{
+				// [AK] Refresh and add the heights of all team headers too, if allowed.
+				if (( ulFlags & SCOREBOARDFLAG_DONTSHOWTEAMHEADERS ) == false )
+				{
+					TeamHeader.Refresh( ulDisplayPlayer, ulWidthWithoutBorder );
+					ulHeight += TeamHeader.GetHeight( ) * ulNumTeamsWithPlayers;
+				}
+
 				ulHeight += lRowHeight * ( ulNumTeamsWithPlayers - 1 );
+			}
 		}
 	}
 
@@ -2879,8 +2896,18 @@ void Scoreboard::UpdateHeight( void )
 		if ( ulNumActivePlayers > 0 )
 			ulHeight += lRowHeight;
 
+		// [AK] Refresh and add the height of the spectator header too, if allowed.
+		if (( ulFlags & SCOREBOARDFLAG_DONTSHOWTEAMHEADERS ) == false )
+		{
+			SpectatorHeader.Refresh( ulDisplayPlayer, ulWidthWithoutBorder );
+			ulHeight += SpectatorHeader.GetHeight( );
+		}
+
 		ulHeight += ulNumSpectators * ulRowYOffset;
 	}
+
+	Footer.Refresh( ulDisplayPlayer, ulWidthWithoutBorder );
+	ulHeight += Footer.GetHeight( );
 
 	lRelY = ( HUD_GetHeight( ) - ulHeight ) / 2;
 }
@@ -2915,6 +2942,9 @@ void Scoreboard::Render( const ULONG ulDisplayPlayer, const float fAlpha )
 	LONG lYPos = lRelY + ulBackgroundBorderSize;
 	bool bUseLightBackground = true;
 
+	// [AK] Draw the main header first.
+	MainHeader.Render( ulDisplayPlayer, ScoreMargin::NO_TEAM, lYPos, fAlpha );
+
 	// [AK] Draw a border above the column headers.
 	DrawBorder( HeaderColor, lYPos, fAlpha, false );
 
@@ -2932,13 +2962,21 @@ void Scoreboard::Render( const ULONG ulDisplayPlayer, const float fAlpha )
 	for ( ULONG ulIdx = 0; ulIdx < ulNumActivePlayers; ulIdx++ )
 	{
 		const ULONG ulPlayer = ulPlayerList[ulIdx];
+		const ULONG ulTeam = players[ulPlayer].Team;
 
 		// [AK] In team-based game modes, if the previous player is on a different team than
 		// the current player, leave a gap between both teams and make the row background light.
-		if (( ShouldSeparateTeams( )) && ( ulIdx > 0 ) && ( players[ulPlayer].Team != players[ulPlayerList[ulIdx - 1]].Team ))
+		if (( ShouldSeparateTeams( )) && (( ulIdx == 0 ) || ( ulTeam != players[ulPlayerList[ulIdx - 1]].Team )))
 		{
-			lYPos += lRowHeight;
-			bUseLightBackground = true;
+			if ( ulIdx > 0 )
+			{
+				lYPos += lRowHeight;
+				bUseLightBackground = true;
+			}
+
+			// [AK] Draw the header for this team, if allowed.
+			if (( ulFlags & SCOREBOARDFLAG_DONTSHOWTEAMHEADERS ) == false )
+				TeamHeader.Render( ulDisplayPlayer, ulTeam, lYPos, fAlpha );
 		}
 
 		DrawRow( ulPlayer, ulDisplayPlayer, lYPos, fAlpha, bUseLightBackground );
@@ -2957,16 +2995,23 @@ void Scoreboard::Render( const ULONG ulDisplayPlayer, const float fAlpha )
 			bUseLightBackground = true;
 		}
 
+		// [AK] Draw the header for spectators, if allowed.
+		if (( ulFlags & SCOREBOARDFLAG_DONTSHOWTEAMHEADERS ) == false )
+			SpectatorHeader.Render( ulDisplayPlayer, ScoreMargin::NO_TEAM, lYPos, fAlpha );
+
 		// [AK] The index of the first true spectator should be the same as the number of active
 		// players. The list is organized such that all active players come before any true spectators.
 		for ( ULONG ulIdx = ulNumActivePlayers; ulIdx < ulTotalPlayers; ulIdx++ )
 			DrawRow( ulPlayerList[ulIdx], ulDisplayPlayer, lYPos, fAlpha, bUseLightBackground );
 	}
 
-	// [AK] Finally, draw a border at the bottom of the scoreboard. We must subtract ulGapBetweenRows here (a bit hacky)
+	// [AK] Draw a border at the bottom of the scoreboard. We must subtract ulGapBetweenRows here (a bit hacky)
 	// because SCOREBOARD_s::DrawPlayerRow adds it every time a row is drawn. This isn't necessary for the last row.
 	lYPos += ulGapBetweenHeaderAndRows - ulGapBetweenRows;
 	DrawBorder( HeaderColor, lYPos, fAlpha, false );
+
+	// [AK] Finally, draw the footer.
+	Footer.Render( ulDisplayPlayer, ScoreMargin::NO_TEAM, lYPos, fAlpha );
 }
 
 //*****************************************************************************

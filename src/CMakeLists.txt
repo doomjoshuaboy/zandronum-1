@@ -1218,6 +1218,7 @@ add_executable( zdoom WIN32
 	s_sound.cpp
 	sc_man.cpp
 	scoreboard.cpp #ST
+	scoreboard_margin.cpp #ZA
 	sectinfo.cpp #ST
 	st_stuff.cpp
 	statistics.cpp
