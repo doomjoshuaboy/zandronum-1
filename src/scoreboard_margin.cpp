@@ -50,8 +50,16 @@
 
 #include <map>
 #include <tuple>
+#include "c_console.h"
 #include "scoreboard.h"
+#include "team.h"
 #include "st_hud.h"
+#include "v_video.h"
+#include "wi_stuff.h"
+
+EXTERN_CVAR( Int, con_virtualwidth )
+EXTERN_CVAR( Int, con_virtualheight )
+EXTERN_CVAR( Bool, con_scaletext_usescreenratio )
 
 //*****************************************************************************
 //	DEFINITIONS
@@ -372,6 +380,465 @@ protected:
 	LONG lXOffset;
 	LONG lYOffset;
 	float fTranslucency;
+};
+
+//*****************************************************************************
+//*****************************************************************************
+//
+// [AK] DrawString
+//
+// Draws text somewhere in the margin.
+//
+//*****************************************************************************
+//*****************************************************************************
+
+class DrawString : public DrawBaseCommand
+{
+public:
+	DrawString( ScoreMargin *pMargin ) : DrawBaseCommand( pMargin, COMMAND_STRING ),
+		pFont( SmallFont ),
+		Color( CR_UNTRANSLATED ),
+		ulGapSize( 1 ),
+		bUsingTeamColor( false ) { }
+
+	//*************************************************************************
+	//
+	// [AK] Creates the text that will be drawn on the margin beforehand.
+	//
+	//*************************************************************************
+
+	virtual void Refresh( const ULONG ulDisplayPlayer )
+	{
+		for ( unsigned int i = 0; i < PreprocessedStrings.Size( ); i++ )
+			V_FreeBrokenLines( PreprocessedStrings[i].pLines );
+
+		PreprocessedStrings.Clear( );
+
+		// [AK] If this command belongs in a team header, create a string for each valid team.
+		if ( pParentMargin->GetType( ) == MARGINTYPE_TEAM )
+		{
+			for ( ULONG ulTeam = 0; ulTeam < TEAM_GetNumAvailableTeams( ); ulTeam++ )
+				CreateString( ulDisplayPlayer, ulTeam );
+		}
+		else
+		{
+			CreateString( ulDisplayPlayer, ScoreMargin::NO_TEAM );
+		}
+	}
+
+	//*************************************************************************
+	//
+	// [AK] Draws the string on the margin.
+	//
+	//*************************************************************************
+
+	virtual void Draw( const ULONG ulDisplayPlayer, const ULONG ulTeam, const LONG lYPos, const float fAlpha ) const
+	{
+		const PreprocessedString *pString = RetrieveString( ulTeam );
+		const EColorRange TextColorToUse = bUsingTeamColor ? static_cast<EColorRange>( TEAM_GetTextColor( ulTeam )) : Color;
+		const fixed_t combinedAlpha = FLOAT2FIXED( fAlpha * fTranslucency );
+
+		int clipLeft = ( HUD_GetWidth( ) - pParentMargin->GetWidth( )) / 2;
+		int clipWidth = pParentMargin->GetWidth( );
+		int clipTop = lYPos;
+		int clipHeight = pParentMargin->GetHeight( );
+
+		// [AK] We must take into account the virtual screen's size when setting up the clipping rectangle.
+		if ( g_bScale )
+			screen->VirtualToRealCoordsInt( clipLeft, clipTop, clipWidth, clipHeight, con_virtualwidth, con_virtualheight, false, !con_scaletext_usescreenratio );
+
+		for ( unsigned int i = 0; pString->pLines[i].Width >= 0; i++ )
+		{
+			TVector2<LONG> Pos = GetDrawingPosition( pString->pLines[i].Width, pString->ulTotalHeight );
+
+			if ( i > 0 )
+				Pos.Y += ( pFont->GetHeight( ) + ulGapSize ) * i;
+
+			screen->DrawText( pFont, TextColorToUse, Pos.X, Pos.Y + lYPos, pString->pLines[i].Text.GetChars( ),
+				DTA_UseVirtualScreen, g_bScale,
+				DTA_ClipLeft, clipLeft,
+				DTA_ClipRight, clipLeft + clipWidth,
+				DTA_ClipTop, clipTop,
+				DTA_ClipBottom, clipTop + clipHeight,
+				DTA_Alpha, combinedAlpha,
+				TAG_DONE );
+		}
+	}
+
+protected:
+	enum DRAWSTRINGVALUE_e
+	{
+		// The name of the server we're connected to.
+		DRAWSTRING_HOSTNAME,
+		// The name of the current game mode.
+		DRAWSTRING_GAMEMODE,
+		// The name of the current level.
+		DRAWSTRING_LEVELNAME,
+		// The lump of the current level.
+		DRAWSTRING_LEVELLUMP,
+		// The name of the current skill.
+		DRAWSTRING_SKILLNAME,
+		// The time, frags, points, wins, or kills left until the level ends.
+		DRAWSTRING_LIMITSTRINGS,
+		// The team scores and their relation.
+		DRAWSTRING_POINTSTRING,
+		// The current player's rank and score.
+		DRAWSTRING_PLACESTRING,
+		// The amount of time that has passed since the level started.
+		DRAWSTRING_LEVELTIME,
+		// The amount of time left in the round (or level).
+		DRAWSTRING_LEVELTIMELEFT,
+		// The amount of time left on the intermission screen.
+		DRAWSTRING_INTERMISSIONTIMELEFT,
+		// The number of players in the server.
+		DRAWSTRING_TOTALPLAYERS,
+		// The number of players that are in the game.
+		DRAWSTRING_PLAYERSINGAME,
+		// The name of a team.
+		DRAWSTRING_TEAMNAME,
+		// The total number of players on a team.
+		DRAWSTRING_TEAMPLAYERCOUNT,
+		// The number of players still alive on a team.
+		DRAWSTRING_TEAMLIVEPLAYERCOUNT,
+		// How many frags this team has.
+		DRAWSTRING_TEAMFRAGCOUNT,
+		// How many points this team has.
+		DRAWSTRING_TEAMPOINTCOUNT,
+		// How many wins this team has.
+		DRAWSTRING_TEAMWINCOUNT,
+		// How many deaths this team has.
+		DRAWSTRING_TEAMDEATHCOUNT,
+		// The number of true spectators.
+		DRAWSTRING_SPECTATORCOUNT,
+
+		DRAWSTRING_STATIC = -1
+	};
+
+	struct PreprocessedString
+	{
+		FBrokenLines *pLines;
+		ULONG ulTotalHeight;
+	};
+
+	//*************************************************************************
+	//
+	// [AK] Parses the string, font, or text color, or parses the parameters
+	// from the DrawBaseCommand class.
+	//
+	//*************************************************************************
+
+	virtual void ParseParameter( FScanner &sc, const FName ParameterName, const PARAMETER_e Parameter )
+	{
+		// [AK] All special values supported by the "DrawString" command.
+		const SpecialValueList<DRAWSTRINGVALUE_e> SpecialValues
+		{
+			{ "hostname",				{ DRAWSTRING_HOSTNAME,				MARGINTYPE_HEADER_OR_FOOTER }},
+			{ "gamemode",				{ DRAWSTRING_GAMEMODE,				MARGINTYPE_HEADER_OR_FOOTER }},
+			{ "levelname",				{ DRAWSTRING_LEVELNAME,				MARGINTYPE_HEADER_OR_FOOTER }},
+			{ "levellump",				{ DRAWSTRING_LEVELLUMP,				MARGINTYPE_HEADER_OR_FOOTER }},
+			{ "skillname",				{ DRAWSTRING_SKILLNAME,				MARGINTYPE_HEADER_OR_FOOTER }},
+			{ "limitstrings",			{ DRAWSTRING_LIMITSTRINGS,			MARGINTYPE_HEADER_OR_FOOTER }},
+			{ "pointstring",			{ DRAWSTRING_POINTSTRING,			MARGINTYPE_HEADER_OR_FOOTER }},
+			{ "placestring",			{ DRAWSTRING_PLACESTRING,			MARGINTYPE_HEADER_OR_FOOTER }},
+			{ "leveltime",				{ DRAWSTRING_LEVELTIME,				MARGINTYPE_HEADER_OR_FOOTER }},
+			{ "leveltimeleft",			{ DRAWSTRING_LEVELTIMELEFT,			MARGINTYPE_HEADER_OR_FOOTER }},
+			{ "intermissiontimeleft",	{ DRAWSTRING_INTERMISSIONTIMELEFT,	MARGINTYPE_HEADER_OR_FOOTER }},
+			{ "totalplayers",			{ DRAWSTRING_TOTALPLAYERS,			MARGINTYPE_HEADER_OR_FOOTER }},
+			{ "playersingame",			{ DRAWSTRING_PLAYERSINGAME,			MARGINTYPE_HEADER_OR_FOOTER }},
+			{ "teamname",				{ DRAWSTRING_TEAMNAME,				MARGINTYPE_TEAM }},
+			{ "teamplayercount",		{ DRAWSTRING_TEAMPLAYERCOUNT,		MARGINTYPE_TEAM }},
+			{ "teamliveplayercount",	{ DRAWSTRING_TEAMLIVEPLAYERCOUNT,	MARGINTYPE_TEAM }},
+			{ "teamfragcount",			{ DRAWSTRING_TEAMFRAGCOUNT,			MARGINTYPE_TEAM }},
+			{ "teampointcount",			{ DRAWSTRING_TEAMPOINTCOUNT,		MARGINTYPE_TEAM }},
+			{ "teamwincount",			{ DRAWSTRING_TEAMWINCOUNT,			MARGINTYPE_TEAM }},
+			{ "teamdeathcount",			{ DRAWSTRING_TEAMDEATHCOUNT,		MARGINTYPE_TEAM }},
+			{ "spectatorcount",			{ DRAWSTRING_SPECTATORCOUNT,		MARGINTYPE_SPECTATOR }},
+		};
+
+		switch ( Parameter )
+		{
+			case PARAMETER_VALUE:
+			{
+				// [AK] Keep processing the string "chunks", each separated by a '+'.
+				do
+				{
+					const DRAWSTRINGVALUE_e SpecialValue = GetSpecialValue( sc, SpecialValues );
+					StringChunks.Push( { SpecialValue, ( SpecialValue != DRAWSTRING_STATIC ) ? "" : sc.String } );
+
+				} while ( sc.CheckToken( '+' ));
+
+				break;
+			}
+
+			case PARAMETER_FONT:
+			{
+				sc.MustGetToken( TK_StringConst );
+
+				// [AK] Throw a fatal error if an empty font name was passed.
+				if ( sc.StringLen == 0 )
+					sc.ScriptError( "Got an empty string for a font name." );
+
+				pFont = V_GetFont( sc.String );
+
+				// [AK] Throw a fatal error if the font wasn't found.
+				if ( pFont == NULL )
+					sc.ScriptError( "Couldn't find font '%s'.", sc.String );
+
+				break;
+			}
+
+			case PARAMETER_TEXTCOLOR:
+			{
+				if ( sc.CheckToken( TK_Identifier ))
+				{
+					// [AK] A team's text colour can be used inside a team header.
+					if ( stricmp( sc.String, "teamtextcolor" ) == 0 )
+					{
+						if ( pParentMargin->GetType( ) != MARGINTYPE_TEAM )
+							sc.ScriptError( "'teamtextcolor' can't be used inside a '%s' margin.", pParentMargin->GetName( ));
+
+						bUsingTeamColor = true;
+					}
+					else
+					{
+						sc.ScriptError( "Unknown identifier '%s'. Did you mean to use 'teamtextcolor'?", sc.String );
+					}
+				}
+				else
+				{
+					sc.MustGetToken( TK_StringConst );
+
+					// [AK] If an empty string was passed, inform the user of the error and switch to untranslated.
+					if ( sc.StringLen == 0 )
+					{
+						sc.ScriptMessage( "Got an empty string for a text color, using untranslated instead." );
+					}
+					else
+					{
+						Color = V_FindFontColor( sc.String );
+
+						// [AK] If the text color name was invalid, let the user know about it.
+						if (( Color == CR_UNTRANSLATED ) && ( stricmp( sc.String, "untranslated" ) != 0 ))
+							sc.ScriptMessage( "'%s' is an unknown text color, using untranslated instead.", sc.String );
+					}
+				}
+
+				break;
+			}
+
+			case PARAMETER_GAPSIZE:
+			{
+				sc.MustGetToken( TK_IntConst );
+				ulGapSize = MAX( sc.Number, 0 );
+
+				break;
+			}
+
+			default:
+				DrawBaseCommand::ParseParameter( sc, ParameterName, Parameter );
+		}
+	}
+
+	//*************************************************************************
+	//
+	// [AK] Processes a string.
+	//
+	//*************************************************************************
+
+	void CreateString( const ULONG ulDisplayPlayer, const ULONG ulTeam )
+	{
+		PreprocessedString String;
+		FString text;
+
+		// [AK] Create the final string using all of the string chunks.
+		for ( unsigned int i = 0; i < StringChunks.Size( ); i++ )
+		{
+			if ( StringChunks[i].first != DRAWSTRING_STATIC )
+			{
+				const DRAWSTRINGVALUE_e Value = StringChunks[i].first;
+
+				switch ( Value )
+				{
+					case DRAWSTRING_HOSTNAME:
+					{
+						FString HostName = sv_hostname.GetGenericRep( CVAR_String ).String;
+						V_ColorizeString( HostName );
+
+						text += HostName;
+						break;
+					}
+
+					case DRAWSTRING_GAMEMODE:
+						text += GAMEMODE_GetCurrentName( );
+						break;
+
+					case DRAWSTRING_LEVELNAME:
+						text += level.LevelName;
+						break;
+
+					case DRAWSTRING_LEVELLUMP:
+						text += level.mapname;
+						break;
+
+					case DRAWSTRING_SKILLNAME:
+						text += G_SkillName( );
+						break;
+
+					case DRAWSTRING_LIMITSTRINGS:
+					{
+						std::list<FString> lines;
+						SCOREBOARD_BuildLimitStrings( lines, true );
+
+						for ( std::list<FString>::iterator it = lines.begin( ); it != lines.end( ); it++ )
+						{
+							if ( it != lines.begin( ))
+								text += '\n';
+
+							text += *it;
+						}
+
+						break;
+					}
+
+					case DRAWSTRING_POINTSTRING:
+						text += HUD_BuildPointString( );
+						break;
+
+					case DRAWSTRING_PLACESTRING:
+						text += HUD_BuildPlaceString( ulDisplayPlayer );
+						break;
+
+					case DRAWSTRING_LEVELTIME:
+					case DRAWSTRING_LEVELTIMELEFT:
+					{
+						if ( Value == DRAWSTRING_LEVELTIME )
+						{
+							// [AK] The level time is only active while in the level.
+							if ( gamestate == GS_LEVEL )
+							{
+								const int levelTime = level.time / TICRATE;
+								text.AppendFormat( "%02d:%02d:%02d", levelTime / 3600, ( levelTime % 3600 ) / 60, levelTime % 60 );
+
+								break;
+							}
+						}
+						else
+						{
+							// [AK] Make sure that the time limit is active right now.
+							if ( GAMEMODE_IsTimelimitActive( ))
+							{
+								FString TimeLeft;
+								GAMEMODE_GetTimeLeftString( TimeLeft );
+
+								text += TimeLeft;
+								break;
+							}
+						}
+
+						text += "00:00:00";
+						break;
+					}
+
+					case DRAWSTRING_INTERMISSIONTIMELEFT:
+						text.AppendFormat( "%d", ( gamestate == GS_INTERMISSION ) ? WI_GetStopWatch( ) / TICRATE + 1 : 0 );
+						break;
+
+					case DRAWSTRING_TOTALPLAYERS:
+						text.AppendFormat( "%d", SERVER_CountPlayers( true ));
+						break;
+
+					case DRAWSTRING_PLAYERSINGAME:
+						text.AppendFormat( "%d", HUD_GetNumPlayers( ));
+						break;
+
+					case DRAWSTRING_TEAMNAME:
+						text += TEAM_GetName( ulTeam );
+						break;
+
+					case DRAWSTRING_TEAMPLAYERCOUNT:
+						text.AppendFormat( "%d", TEAM_CountPlayers( ulTeam ));
+						break;
+
+					case DRAWSTRING_TEAMLIVEPLAYERCOUNT:
+						text.AppendFormat( "%d", TEAM_CountLivingAndRespawnablePlayers( ulTeam ));
+						break;
+
+					case DRAWSTRING_TEAMFRAGCOUNT:
+						text.AppendFormat( "%d", TEAM_GetFragCount( ulTeam ));
+						break;
+
+					case DRAWSTRING_TEAMPOINTCOUNT:
+						text.AppendFormat( "%d", TEAM_GetPointCount( ulTeam ));
+						break;
+
+					case DRAWSTRING_TEAMWINCOUNT:
+						text.AppendFormat( "%d", TEAM_GetWinCount( ulTeam ));
+						break;
+
+					case DRAWSTRING_TEAMDEATHCOUNT:
+						text.AppendFormat( "%d", TEAM_GetDeathCount( ulTeam ));
+						break;
+
+					case DRAWSTRING_SPECTATORCOUNT:
+						text.AppendFormat( "%d", HUD_GetNumSpectators( ));
+						break;
+				}
+			}
+			else
+			{
+				text += StringChunks[i].second;
+			}
+		}
+
+		String.pLines = V_BreakLines( pFont, pParentMargin->GetWidth( ), text.GetChars( ));
+		String.ulTotalHeight = 0;
+
+		// [AK] Determine the total height of the string.
+		for ( unsigned int i = 0; String.pLines[i].Width >= 0; i++ )
+		{
+			if ( i > 0 )
+				String.ulTotalHeight += ulGapSize;
+
+			String.ulTotalHeight += pFont->GetHeight( );
+		}
+
+		PreprocessedStrings.Push( String );
+		EnsureContentFitsInMargin( String.ulTotalHeight );
+	}
+
+	//*************************************************************************
+	//
+	// [AK] Returns a pointer to a preprocessed string belonging to a specific
+	// team (or no team). Includes checks to ensure that the string exists.
+	//
+	//*************************************************************************
+
+	PreprocessedString *RetrieveString( const ULONG ulTeam ) const
+	{
+		if ( ulTeam == ScoreMargin::NO_TEAM )
+		{
+			// [AK] If there's no string at all, then something went wrong.
+			if ( PreprocessedStrings.Size( ) == 0 )
+				I_Error( "DrawString::RetrieveString: there is no string to retrieve." );
+
+			return &PreprocessedStrings[0];
+		}
+		else
+		{
+			// [AK] If this team has no string, then something went wrong.
+			if ( ulTeam >= PreprocessedStrings.Size( ))
+				I_Error( "DrawString::RetrieveString: there is no string to retrieve for team %d.", ulTeam );
+
+			return &PreprocessedStrings[ulTeam];
+		}
+	}
+
+	TArray<std::pair<DRAWSTRINGVALUE_e, FString>> StringChunks;
+	TArray<PreprocessedString> PreprocessedStrings;
+	FFont *pFont;
+	EColorRange Color;
+	ULONG ulGapSize;
+	bool bUsingTeamColor;
 };
 
 //*****************************************************************************
