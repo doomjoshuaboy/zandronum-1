@@ -1103,6 +1103,119 @@ protected:
 };
 
 //*****************************************************************************
+//*****************************************************************************
+//
+// [AK] FlowControlBaseCommand
+//
+// An abstract class for all margin commands that evaluate a condition, which
+// then execute all commands nested inside an "if" block when the condition
+// evaluates to true, or an "else" block when it evaluates to false.
+//
+//*****************************************************************************
+//*****************************************************************************
+
+class FlowControlBaseCommand : public ScoreMargin::BaseCommand
+{
+public:
+	FlowControlBaseCommand( ScoreMargin *pMargin ) : BaseCommand( pMargin ), bResult( false ) { }
+
+	//*************************************************************************
+	//
+	// [AK] Deletes all nested commands from memory.
+	//
+	//*************************************************************************
+
+	~FlowControlBaseCommand( void )
+	{
+		for ( unsigned int i = 0; i < 2; i++ )
+		{
+			for ( unsigned int j = 0; j < Commands[i].Size( ); j++ )
+			{
+				delete Commands[i][j];
+				Commands[i][j] = NULL;
+			}
+		}
+	}
+
+	//*************************************************************************
+	//
+	// [AK] Parses new margin commands inside the "if" or "else" blocks.
+	//
+	//*************************************************************************
+
+	virtual void Parse( FScanner &sc )
+	{
+		bool bNotInElseBlock = true;
+
+		sc.MustGetToken( ')' );
+		sc.MustGetToken( '{' );
+
+		while ( true )
+		{
+			if ( sc.CheckToken( '}' ))
+			{
+				// [AK] There needs to be at least one command inside a block in order to continue.
+				if ( Commands[bNotInElseBlock].Size( ) == 0 )
+					sc.ScriptError( "This flow control command has no commands inside a block!" );
+
+				if ( sc.CheckToken( TK_Else ))
+				{
+					// [AK] We can't have more than one else block.
+					if ( bNotInElseBlock == false )
+						sc.ScriptError( "This flow control command has more than one 'else' block!" );
+
+					sc.MustGetToken( '{' );
+
+					bNotInElseBlock = false;
+					continue;
+				}
+
+				break;
+			}
+			else
+			{
+				Commands[bNotInElseBlock].Push( ScoreMargin::CreateCommand( sc, pParentMargin ));
+			}
+		}
+	}
+
+	//*************************************************************************
+	//
+	// [AK] Gets the result of the flow control command's condition, and uses
+	// that result to determine which block of commands should be refreshed.
+	//
+	//*************************************************************************
+
+	virtual void Refresh( const ULONG ulDisplayPlayer )
+	{
+		bResult = EvaluateCondition( ulDisplayPlayer );
+
+		for ( unsigned int i = 0; i < Commands[bResult].Size( ); i++ )
+			Commands[bResult][i]->Refresh( ulDisplayPlayer );
+	}
+
+	//*************************************************************************
+	//
+	// [AK] Draws the block of commands that corresponds to the result of the
+	// flow control command's condition.
+	//
+	//*************************************************************************
+
+	virtual void Draw( const ULONG ulDisplayPlayer, const ULONG ulTeam, const LONG lYPos, const float fAlpha ) const
+	{
+		for ( unsigned int i = 0; i < Commands[bResult].Size( ); i++ )
+			Commands[bResult][i]->Draw( ulDisplayPlayer, ulTeam, lYPos, fAlpha );
+	}
+
+protected:
+	virtual bool EvaluateCondition( const ULONG ulDisplayPlayer ) = 0;
+
+private:
+	TArray<BaseCommand *> Commands[2];
+	bool bResult;
+};
+
+//*****************************************************************************
 //	FUNCTIONS
 
 //*****************************************************************************
