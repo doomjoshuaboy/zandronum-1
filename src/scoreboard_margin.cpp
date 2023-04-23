@@ -1216,6 +1216,115 @@ private:
 };
 
 //*****************************************************************************
+//*****************************************************************************
+//
+// [AK] TrueOrFalseFlowControl
+//
+// This class handles these margin commands:
+//
+// - IfOnlineGame: if the current game is a network game.
+// - IfIntermission: if the intermission screen is being shown.
+// - IfPlayersOnTeams: if players are supposed to be on teams.
+// - IfPlayersHaveLives: if players are supposed to have lives.
+// - IfShouldShowRank: if the current player's rank should be shown.
+//
+// These commands accept one boolean parameter that inverts the condition
+// (i.e. the "if" block will be executed when the condition is false).
+//
+//*****************************************************************************
+//*****************************************************************************
+
+class TrueOrFalseFlowControl : public FlowControlBaseCommand
+{
+public:
+	TrueOrFalseFlowControl( ScoreMargin *pMargin, MARGINCMD_e Command ) : FlowControlBaseCommand( pMargin ),
+		CommandType( Command ),
+		bMustBeTrue( false )
+	{
+		// [AK] If the command type isn't one of these listed here, throw an error.
+		if (( CommandType != MARGINCMD_IFONLINEGAME ) &&
+			( CommandType != MARGINCMD_IFINTERMISSION ) &&
+			( CommandType != MARGINCMD_IFPLAYERSONTEAMS ) &&
+			( CommandType != MARGINCMD_IFPLAYERSHAVELIVES ) &&
+			( CommandType != MARGINCMD_IFSHOULDSHOWRANK ))
+		{
+			if (( CommandType >= 0 ) && ( CommandType < NUM_MARGINCMDS ))
+			{
+				FString CommandName = GetStringMARGINCMD_e( CommandType ) + strlen( "MARGINCMD_" );
+				CommandName.ToLower( );
+
+				I_Error( "TrueOrFalseFlowControlBaseCommand: margin command '%s' cannot be used.", CommandName.GetChars( ));
+			}
+			else
+			{
+				I_Error( "TrueOrFalseFlowControlBaseCommand: an unknown margin command was used." );
+			}
+		}
+	}
+
+	//*************************************************************************
+	//
+	// [AK] Checks if the parameter is "true", "false", or something else.
+	//
+	//*************************************************************************
+
+	virtual void Parse( FScanner &sc )
+	{
+		sc.MustGetString( );
+
+		if ( stricmp( sc.String, "true" ) == 0 )
+			bMustBeTrue = true;
+		else if ( stricmp( sc.String, "false" ) == 0 )
+			bMustBeTrue = false;
+		else
+			bMustBeTrue = !!atoi( sc.String );
+
+		FlowControlBaseCommand::Parse( sc );
+	}
+
+protected:
+
+	//*************************************************************************
+	//
+	// [AK] Checks if the command's condition evaluates to true or false.
+	//
+	//*************************************************************************
+
+	virtual bool EvaluateCondition( const ULONG ulDisplayPlayer )
+	{
+		bool bValue = false;
+
+		switch ( CommandType )
+		{
+			case MARGINCMD_IFONLINEGAME:
+				bValue = NETWORK_InClientMode( );
+				break;
+
+			case MARGINCMD_IFINTERMISSION:
+				bValue = ( gamestate == GS_INTERMISSION );
+				break;
+
+			case MARGINCMD_IFPLAYERSONTEAMS:
+				bValue = !!( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSONTEAMS );
+				break;
+
+			case MARGINCMD_IFPLAYERSHAVELIVES:
+				bValue = !!( GAMEMODE_GetCurrentFlags( ) & GMF_USEMAXLIVES );
+				break;
+
+			case MARGINCMD_IFSHOULDSHOWRANK:
+				bValue = HUD_ShouldDrawRank( ulDisplayPlayer );
+				break;
+		}
+
+		return ( bValue == bMustBeTrue );
+	}
+
+	const MARGINCMD_e CommandType;
+	bool bMustBeTrue;
+};
+
+//*****************************************************************************
 //	FUNCTIONS
 
 //*****************************************************************************
@@ -1347,6 +1456,14 @@ ScoreMargin::BaseCommand *ScoreMargin::CreateCommand( FScanner &sc, ScoreMargin 
 
 		case MARGINCMD_DRAWTEXTURE:
 			pNewCommand = new DrawTexture( pMargin );
+			break;
+
+		case MARGINCMD_IFONLINEGAME:
+		case MARGINCMD_IFINTERMISSION:
+		case MARGINCMD_IFPLAYERSONTEAMS:
+		case MARGINCMD_IFPLAYERSHAVELIVES:
+		case MARGINCMD_IFSHOULDSHOWRANK:
+			pNewCommand = new TrueOrFalseFlowControl( pMargin, Command );
 			break;
 	}
 

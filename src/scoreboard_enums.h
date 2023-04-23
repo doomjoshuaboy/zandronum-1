@@ -363,6 +363,16 @@ BEGIN_ENUM( MARGINCMD_e )
 	ENUM_ELEMENT( MARGINCMD_DRAWCOLOR ),
 	// Draws a graphic or image somewhere in the boundary.
 	ENUM_ELEMENT( MARGINCMD_DRAWTEXTURE ),
+	// Executes a block if the current game is a network game.
+	ENUM_ELEMENT( MARGINCMD_IFONLINEGAME ),
+	// Executes a block if the intermission screen is being shown.
+	ENUM_ELEMENT( MARGINCMD_IFINTERMISSION ),
+	// Executes a block if players are supposed to be on teams.
+	ENUM_ELEMENT( MARGINCMD_IFPLAYERSONTEAMS ),
+	// Executes a block if players are supposed to have lives.
+	ENUM_ELEMENT( MARGINCMD_IFPLAYERSHAVELIVES ),
+	// Executes a block if the current player's rank should be shown.
+	ENUM_ELEMENT( MARGINCMD_IFSHOULDSHOWRANK ),
 
 	ENUM_ELEMENT( NUM_MARGINCMDS )
 }
