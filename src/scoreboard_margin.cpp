@@ -1374,6 +1374,75 @@ protected:
 };
 
 //*****************************************************************************
+//*****************************************************************************
+//
+// [AK] IfGameOrEarnTypeFlowControl
+//
+// This class handles these margin commands:
+//
+// - IfGameType: if any of the listed game types are being played.
+// - IfEarnType: if any of the listed earn types are being played.
+//
+//*****************************************************************************
+//*****************************************************************************
+
+class IfGameOrEarnTypeFlowControl : public FlowControlBaseCommand
+{
+public:
+	IfGameOrEarnTypeFlowControl( ScoreMargin *pMargin, const bool bIsGameType ) : FlowControlBaseCommand( pMargin ),
+		bIsGameTypeCommand( bIsGameType ),
+		ulFlags( 0 ) { }
+
+	//*************************************************************************
+	//
+	// [AK] Parses a list of game types or earn types that this command requires.
+	//
+	//*************************************************************************
+
+	virtual void Parse ( FScanner &sc )
+	{
+		do
+		{
+			sc.MustGetToken( TK_Identifier );
+
+			if ( bIsGameTypeCommand )
+			{
+				ULONG ulFlag = sc.MustGetEnumName( "game type", "GMF_", GetValueGMF, true );
+
+				if (( ulFlag & GAMETYPE_MASK ) == 0 )
+					sc.ScriptError( "You must only use COOPERATIVE, DEATHMATCH, or TEAMGAME. Using '%s' is invalid.", sc.String );
+
+				ulFlags |= ulFlag;
+			}
+			else
+			{
+				ulFlags |= sc.MustGetEnumName( "earn type", "GMF_PLAYERSEARN", GetValueGMF, true );
+			}
+
+		} while ( sc.CheckToken( ',' ));
+
+		FlowControlBaseCommand::Parse( sc );
+	}
+
+protected:
+
+	//*************************************************************************
+	//
+	// [AK] Checks if the current game mode supports the same game type or earn
+	// type as required by this command.
+	//
+	//*************************************************************************
+
+	virtual bool EvaluateCondition( const ULONG ulDisplayPlayer )
+	{
+		return !!( GAMEMODE_GetCurrentFlags( ) & ulFlags );
+	}
+
+	const bool bIsGameTypeCommand;
+	ULONG ulFlags;
+};
+
+//*****************************************************************************
 //	FUNCTIONS
 
 //*****************************************************************************
@@ -1517,6 +1586,11 @@ ScoreMargin::BaseCommand *ScoreMargin::CreateCommand( FScanner &sc, ScoreMargin 
 
 		case MARGINCMD_IFGAMEMODE:
 			pNewCommand = new IfGameModeFlowControl( pMargin );
+			break;
+
+		case MARGINCMD_IFGAMETYPE:
+		case MARGINCMD_IFEARNTYPE:
+			pNewCommand = new IfGameOrEarnTypeFlowControl( pMargin, Command == MARGINCMD_IFGAMETYPE );
 			break;
 	}
 

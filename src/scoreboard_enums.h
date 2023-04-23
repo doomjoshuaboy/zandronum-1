@@ -375,6 +375,10 @@ BEGIN_ENUM( MARGINCMD_e )
 	ENUM_ELEMENT( MARGINCMD_IFSHOULDSHOWRANK ),
 	// Executes a block when any of the given game modes are being played.
 	ENUM_ELEMENT( MARGINCMD_IFGAMEMODE ),
+	// Executes a block when any of the given game types are being played.
+	ENUM_ELEMENT( MARGINCMD_IFGAMETYPE ),
+	// Executes a block when any of the given earn types are being played.
+	ENUM_ELEMENT( MARGINCMD_IFEARNTYPE ),
 
 	ENUM_ELEMENT( NUM_MARGINCMDS )
 }
