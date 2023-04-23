@@ -842,6 +842,123 @@ protected:
 };
 
 //*****************************************************************************
+//*****************************************************************************
+//
+// [AK] DrawColor
+//
+// Draws a rectangular box of a color somewhere in the margin.
+//
+//*****************************************************************************
+//*****************************************************************************
+
+class DrawColor : public DrawBaseCommand
+{
+public:
+	DrawColor( ScoreMargin *pMargin ) : DrawBaseCommand( pMargin, COMMAND_COLOR ),
+		ValueType( DRAWCOLOR_STATIC ),
+		Color( 0 ),
+		ulWidth( 0 ),
+		ulHeight( 0 ) { }
+
+	//*************************************************************************
+	//
+	// [AK] Increases the height of the margin to ensure that it fits the box.
+	//
+	//*************************************************************************
+
+	virtual void Refresh( const ULONG ulDisplayPlayer )
+	{
+		EnsureContentFitsInMargin( ulHeight );
+	}
+
+	//*************************************************************************
+	//
+	// [AK] Draws the color box on the margin.
+	//
+	//*************************************************************************
+
+	virtual void Draw( const ULONG ulDisplayPlayer, const ULONG ulTeam, const LONG lYPos, const float fAlpha ) const
+	{
+		const ULONG ulWidthToUse = MIN( ulWidth, pParentMargin->GetWidth( ));
+		const TVector2<LONG> Pos = GetDrawingPosition( ulWidthToUse, ulHeight );
+		const PalEntry ColorToDraw = ( ValueType == DRAWCOLOR_TEAMCOLOR ) ? TEAM_GetColor( ulTeam ) : Color;
+
+		int clipLeft = Pos.X;
+		int clipWidth = ulWidthToUse;
+		int clipTop = Pos.Y + lYPos;
+		int clipHeight = ulHeight;
+
+		// [AK] We must take into account the virtual screen's size when setting up the clipping rectangle.
+		if ( g_bScale )
+			screen->VirtualToRealCoordsInt( clipLeft, clipTop, clipWidth, clipHeight, con_virtualwidth, con_virtualheight, false, !con_scaletext_usescreenratio );
+
+		screen->Dim( ColorToDraw, fAlpha * fTranslucency, clipLeft, clipTop, clipWidth, clipHeight );
+	}
+
+protected:
+	enum DRAWCOLORVALUE_e
+	{
+		// The color of a team.
+		DRAWCOLOR_TEAMCOLOR,
+
+		DRAWCOLOR_STATIC = -1
+	};
+
+	//*************************************************************************
+	//
+	// [AK] Parses the color, width, or height, or parses any parameters
+	// from the DrawBaseCommand class.
+	//
+	//*************************************************************************
+
+	virtual void ParseParameter( FScanner &sc, const FName ParameterName, const PARAMETER_e Parameter )
+	{
+		// [AK] All special values supported by the "DrawColor" command.
+		const SpecialValueList<DRAWCOLORVALUE_e> SpecialValues
+		{
+			{ "teamcolor",	{ DRAWCOLOR_TEAMCOLOR,	MARGINTYPE_TEAM }},
+		};
+
+		switch ( Parameter )
+		{
+			case PARAMETER_VALUE:
+			{
+				ValueType = GetSpecialValue( sc, SpecialValues );
+
+				if ( ValueType == DRAWCOLOR_STATIC )
+				{
+					FString ColorString = V_GetColorStringByName( sc.String );
+					Color = V_GetColorFromString( NULL, ColorString.IsNotEmpty( ) ? ColorString.GetChars( ) : sc.String );
+				}
+
+				break;
+			}
+
+			case PARAMETER_WIDTH:
+			case PARAMETER_HEIGHT:
+			{
+				sc.MustGetToken( TK_IntConst );
+
+				if ( Parameter == PARAMETER_WIDTH )
+					ulWidth = MAX( sc.Number, 1 );
+				else
+					ulHeight = MAX( sc.Number, 1 );
+
+				break;
+			}
+
+			default:
+				DrawBaseCommand::ParseParameter( sc, ParameterName, Parameter );
+		}
+	}
+
+	DRAWCOLORVALUE_e ValueType;
+	PalEntry Color;
+	ULONG ulWidth;
+	ULONG ulHeight;
+};
+
+//*****************************************************************************
 //	FUNCTIONS
 
 //*****************************************************************************
