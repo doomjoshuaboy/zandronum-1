@@ -1136,6 +1136,24 @@ ScoreMargin::ScoreMargin( MARGINTYPE_e MarginType, const char *pszName ) :
 
 //*****************************************************************************
 //
+// [AK] ScoreMargin::Parse
+//
+// Parses a margin (e.g. "mainheader", "teamheader", "spectatorheader", or
+// "footer") block in SCORINFO.
+//
+//*****************************************************************************
+
+void ScoreMargin::Parse( FScanner &sc )
+{
+	ClearCommands( );
+	sc.MustGetToken( '{' );
+
+	while ( sc.CheckToken( '}' ) == false )
+		Commands.Push( CreateCommand( sc, this ));
+}
+
+//*****************************************************************************
+//
 // [AK] ScoreMargin::Refresh
 //
 // Updates the margin's width and height, then refreshes its command list.
@@ -1189,6 +1207,45 @@ void ScoreMargin::Render( const ULONG ulDisplayPlayer, const ULONG ulTeam, LONG 
 		Commands[i]->Draw( ulDisplayPlayer, ulTeam, lYPos, fAlpha );
 
 	lYPos += ulHeight;
+}
+
+//*****************************************************************************
+//
+// [AK] ScoreMargin::CreateCommand
+//
+// A "factory" function that's responsible for creating new margin commands.
+//
+//*****************************************************************************
+
+ScoreMargin::BaseCommand *ScoreMargin::CreateCommand( FScanner &sc, ScoreMargin *pMargin )
+{
+	const MARGINCMD_e Command = static_cast<MARGINCMD_e>( sc.MustGetEnumName( "margin command", "MARGINCMD_", GetValueMARGINCMD_e ));
+	ScoreMargin::BaseCommand *pNewCommand = NULL;
+
+	switch ( Command )
+	{
+		case MARGINCMD_DRAWSTRING:
+			pNewCommand = new DrawString( pMargin );
+			break;
+
+		case MARGINCMD_DRAWCOLOR:
+			pNewCommand = new DrawColor( pMargin );
+			break;
+
+		case MARGINCMD_DRAWTEXTURE:
+			pNewCommand = new DrawTexture( pMargin );
+			break;
+	}
+
+	// [AK] If the command wasn't created, then something went wrong.
+	if ( pNewCommand == NULL )
+		sc.ScriptError( "Couldn't create margin command '%s'.", sc.String );
+
+	// [AK] A command's arguments must always be prepended by a '('.
+	sc.MustGetToken( '(' );
+	pNewCommand->Parse( sc );
+
+	return pNewCommand;
 }
 
 //*****************************************************************************

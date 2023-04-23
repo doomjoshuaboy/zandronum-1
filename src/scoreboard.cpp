@@ -2283,7 +2283,23 @@ void Scoreboard::Parse( FScanner &sc )
 	{
 		sc.MustGetString( );
 
-		if ( stricmp( sc.String, "addflag" ) == 0 )
+		if ( stricmp( sc.String, "mainheader" ) == 0 )
+		{
+			MainHeader.Parse( sc );
+		}
+		else if ( stricmp( sc.String, "teamheader" ) == 0 )
+		{
+			TeamHeader.Parse( sc );
+		}
+		else if ( stricmp( sc.String, "spectatorheader" ) == 0 )
+		{
+			SpectatorHeader.Parse( sc );
+		}
+		else if ( stricmp( sc.String, "footer" ) == 0 )
+		{
+			Footer.Parse( sc );
+		}
+		else if ( stricmp( sc.String, "addflag" ) == 0 )
 		{
 			ulFlags |= sc.MustGetEnumName( "scoreboard flag", "SCOREBOARDFLAG_", GetValueSCOREBOARDFLAG_e );
 		}

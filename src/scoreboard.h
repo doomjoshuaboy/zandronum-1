@@ -445,8 +445,11 @@ public:
 	ULONG GetWidth( void ) const { return ulWidth; }
 	ULONG GetHeight( void ) const { return ulHeight; }
 	void IncreaseHeight( ULONG ulExtraHeight ) { ulHeight += ulExtraHeight; }
+	void Parse( FScanner &sc );
 	void Refresh( const ULONG ulDisplayPlayer, const ULONG ulNewWidth );
 	void Render( const ULONG ulDisplayPlayer, const ULONG ulTeam, LONG &lYPos, const float fAlpha ) const;
+
+	static BaseCommand *CreateCommand( FScanner &sc, ScoreMargin *pMargin );
 
 	// [AK] Indicates that this margin is drawing for no team.
 	const static unsigned int NO_TEAM = UCHAR_MAX;

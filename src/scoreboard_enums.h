@@ -351,4 +351,21 @@ BEGIN_ENUM( SCOREBOARDCMD_e )
 }
 END_ENUM( SCOREBOARDCMD_e )
 
+//*****************************************************************************
+//
+// All margin (main header, team/spectator header, and footer) commands in SCORINFO.
+//
+BEGIN_ENUM( MARGINCMD_e )
+{
+	// Draws text somewhere in the boundary.
+	ENUM_ELEMENT( MARGINCMD_DRAWSTRING ),
+	// Draws a color somewhere in the boundary.
+	ENUM_ELEMENT( MARGINCMD_DRAWCOLOR ),
+	// Draws a graphic or image somewhere in the boundary.
+	ENUM_ELEMENT( MARGINCMD_DRAWTEXTURE ),
+
+	ENUM_ELEMENT( NUM_MARGINCMDS )
+}
+END_ENUM( MARGINCMD_e )
+
 #endif // ( !defined( __SCOREBOARD_ENUMS_H__ ) || defined( GENERATE_ENUM_STRINGS ))
