@@ -1325,6 +1325,55 @@ protected:
 };
 
 //*****************************************************************************
+//*****************************************************************************
+//
+// [AK] IfGameModeFlowControl
+//
+// Executes a block when any of the given game modes are being played.
+//
+//*****************************************************************************
+//*****************************************************************************
+
+class IfGameModeFlowControl : public FlowControlBaseCommand
+{
+public:
+	IfGameModeFlowControl( ScoreMargin *pMargin ) : FlowControlBaseCommand( pMargin ) { }
+
+	//*************************************************************************
+	//
+	// [AK] Parses the game mode list.
+	//
+	//*************************************************************************
+
+	virtual void Parse( FScanner &sc )
+	{
+		do
+		{
+			sc.MustGetToken( TK_Identifier );
+			GameModeList.insert( static_cast<GAMEMODE_e>( sc.MustGetEnumName( "game mode", "GAMEMODE_", GetValueGAMEMODE_e, true )));
+
+		} while ( sc.CheckToken( ',' ));
+
+		FlowControlBaseCommand::Parse( sc );
+	}
+
+protected:
+
+	//*************************************************************************
+	//
+	// [AK] Checks if the current game mode is on the list.
+	//
+	//*************************************************************************
+
+	virtual bool EvaluateCondition( const ULONG ulDisplayPlayer )
+	{
+		return ( GameModeList.find( GAMEMODE_GetCurrentMode( )) != GameModeList.end( ));
+	}
+
+	std::set<GAMEMODE_e> GameModeList;
+};
+
+//*****************************************************************************
 //	FUNCTIONS
 
 //*****************************************************************************
@@ -1464,6 +1513,10 @@ ScoreMargin::BaseCommand *ScoreMargin::CreateCommand( FScanner &sc, ScoreMargin 
 		case MARGINCMD_IFPLAYERSHAVELIVES:
 		case MARGINCMD_IFSHOULDSHOWRANK:
 			pNewCommand = new TrueOrFalseFlowControl( pMargin, Command );
+			break;
+
+		case MARGINCMD_IFGAMEMODE:
+			pNewCommand = new IfGameModeFlowControl( pMargin );
 			break;
 	}
 

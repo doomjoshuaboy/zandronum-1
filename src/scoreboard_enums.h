@@ -373,6 +373,8 @@ BEGIN_ENUM( MARGINCMD_e )
 	ENUM_ELEMENT( MARGINCMD_IFPLAYERSHAVELIVES ),
 	// Executes a block if the current player's rank should be shown.
 	ENUM_ELEMENT( MARGINCMD_IFSHOULDSHOWRANK ),
+	// Executes a block when any of the given game modes are being played.
+	ENUM_ELEMENT( MARGINCMD_IFGAMEMODE ),
 
 	ENUM_ELEMENT( NUM_MARGINCMDS )
 }
