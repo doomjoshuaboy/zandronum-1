@@ -118,6 +118,9 @@ struct TEAMINFO
 	FString		WinnerTheme;
 	FString		LoserTheme;
 
+	// [AK] The name of the texture that this team uses as their logo.
+	FString		Logo;
+
 	bool		bAnnouncedLeadState;
 
 	// This team's player starts.

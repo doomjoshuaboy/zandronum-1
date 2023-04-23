@@ -959,6 +959,150 @@ protected:
 };
 
 //*****************************************************************************
+//*****************************************************************************
+//
+// [AK] DrawTexture
+//
+// Draws a graphic or image somewhere in the margin.
+//
+//*****************************************************************************
+//*****************************************************************************
+
+class DrawTexture : public DrawBaseCommand
+{
+public:
+	DrawTexture( ScoreMargin *pMargin ) : DrawBaseCommand( pMargin, COMMAND_TEXTURE ),
+		ValueType( DRAWTEXTURE_STATIC ),
+		pTexture( NULL ) { }
+
+	//*************************************************************************
+	//
+	// [AK] Increases the height of the margin so that it can fit the texture.
+	//
+	//*************************************************************************
+
+	virtual void Refresh( const ULONG ulDisplayPlayer )
+	{
+		if ( pParentMargin->GetType( ) == MARGINTYPE_TEAM )
+		{
+			for ( ULONG ulTeam = 0; ulTeam < TEAM_GetNumAvailableTeams( ); ulTeam++ )
+			{
+				FTexture *pTeamTexture = RetrieveTexture( ulTeam );
+
+				if ( pTeamTexture != NULL )
+					EnsureContentFitsInMargin( pTeamTexture->GetScaledHeight( ));
+			}
+		}
+		else if ( pTexture != NULL )
+		{
+			EnsureContentFitsInMargin( pTexture->GetScaledHeight( ));
+		}
+	}
+
+	//*************************************************************************
+	//
+	// [AK] Draws the texture on the margin.
+	//
+	//*************************************************************************
+
+	virtual void Draw( const ULONG ulDisplayPlayer, const ULONG ulTeam, const LONG lYPos, const float fAlpha ) const
+	{
+		FTexture *pTextureToDraw = RetrieveTexture( ulTeam );
+
+		// [AK] Stop here if the texture doesn't exist for some reason.
+		if ( pTextureToDraw == NULL )
+			return;
+
+		const TVector2<LONG> Pos = GetDrawingPosition( pTextureToDraw->GetScaledWidth( ), pTextureToDraw->GetScaledHeight( ));
+
+		int clipLeft = ( HUD_GetWidth( ) - pParentMargin->GetWidth( )) / 2;
+		int clipWidth = pParentMargin->GetWidth( );
+		int clipTop = lYPos;
+		int clipHeight = pParentMargin->GetHeight( );
+
+		// [AK] We must take into account the virtual screen's size when setting up the clipping rectangle.
+		if ( g_bScale )
+			screen->VirtualToRealCoordsInt( clipLeft, clipTop, clipWidth, clipHeight, con_virtualwidth, con_virtualheight, false, !con_scaletext_usescreenratio );
+
+		screen->DrawTexture( pTextureToDraw, Pos.X, Pos.Y + lYPos,
+			DTA_UseVirtualScreen, g_bScale,
+			DTA_ClipLeft, clipLeft,
+			DTA_ClipRight, clipLeft + clipWidth,
+			DTA_ClipTop, clipTop,
+			DTA_ClipBottom, clipTop + clipHeight,
+			DTA_Alpha, FLOAT2FIXED( fAlpha * fTranslucency ),
+			TAG_DONE );
+	}
+
+protected:
+	enum DRAWTEXTUREVALUE_e
+	{
+		// The logo of a team.
+		DRAWTEXTURE_TEAMLOGO,
+
+		DRAWTEXTURE_STATIC = -1
+	};
+
+	//*************************************************************************
+	//
+	// [AK] Parses the texture, also making sure that it's valid, or parses
+	// any parameters from the DrawBaseCommand class.
+	//
+	//*************************************************************************
+
+	virtual void ParseParameter( FScanner &sc, const FName ParameterName, const PARAMETER_e Parameter )
+	{
+		// [AK] All special values supported by the "DrawTexture" command.
+		const SpecialValueList<DRAWTEXTUREVALUE_e> SpecialValues
+		{
+			{ "teamlogo",	{ DRAWTEXTURE_TEAMLOGO,		MARGINTYPE_TEAM }},
+		};
+
+		if ( Parameter == PARAMETER_VALUE )
+		{
+			ValueType = GetSpecialValue( sc, SpecialValues );
+
+			if ( ValueType == DRAWTEXTURE_STATIC )
+			{
+				pTexture = TexMan.FindTexture( sc.String );
+
+				// [AK] If the texture wasn't found, throw a fatal error.
+				if ( pTexture == NULL )
+					sc.ScriptError( "Couldn't find texture '%s'.", sc.String );
+			}
+		}
+		else
+		{
+			DrawBaseCommand::ParseParameter( sc, ParameterName, Parameter );
+		}
+	}
+
+	//*************************************************************************
+	//
+	// [AK] Returns a pointer to the texture that should be used.
+	//
+	//*************************************************************************
+
+	FTexture *RetrieveTexture( const ULONG ulTeam ) const
+	{
+		if ( ulTeam != ScoreMargin::NO_TEAM )
+		{
+			if (( ulTeam < teams.Size( )) && ( ValueType == DRAWTEXTURE_TEAMLOGO ))
+				return TexMan.FindTexture( teams[ulTeam].Logo );
+		}
+		else
+		{
+			return pTexture;
+		}
+
+		return NULL;
+	}
+
+	DRAWTEXTUREVALUE_e ValueType;
+	FTexture *pTexture;
+};
+
+//*****************************************************************************
 //	FUNCTIONS
 
 //*****************************************************************************
