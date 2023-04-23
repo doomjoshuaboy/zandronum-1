@@ -48,7 +48,331 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <map>
+#include <tuple>
 #include "scoreboard.h"
+#include "st_hud.h"
+
+//*****************************************************************************
+//	DEFINITIONS
+
+// What kind of parameter is this?
+#define PARAMETER_CONSTANT		0
+// Which command can this parameter be used in?
+#define COMMAND_CONSTANT		1
+// Must this parameter be initialized?
+#define MUST_BE_INITIALIZED		2
+
+//*****************************************************************************
+//
+// [AK] All parameters used by DrawBaseCommand and its derivatives.
+//
+enum PARAMETER_e
+{
+	// The value used when drawing the contents.
+	PARAMETER_VALUE,
+	// How much the contents are offset horizontally.
+	PARAMETER_XOFFSET,
+	// How much the contents are offset vertically.
+	PARAMETER_YOFFSET,
+	// How the contents are aligned horizontally (left, center, or right).
+	PARAMETER_HORIZALIGN,
+	// How the contents are aligned vertically (top, center, or bottom).
+	PARAMETER_VERTALIGN,
+	// The transparency of the contents.
+	PARAMETER_ALPHA,
+	// What font to use when drawing a string.
+	PARAMETER_FONT,
+	// What text color to use when drawing a string.
+	PARAMETER_TEXTCOLOR,
+	// How large are the gaps between each separate line.
+	PARAMETER_GAPSIZE,
+	// The width of a color box.
+	PARAMETER_WIDTH,
+	// The height of a color box.
+	PARAMETER_HEIGHT,
+
+	NUM_PARAMETERS
+};
+
+//*****************************************************************************
+//
+// [AK] The command (DrawString, DrawColor, or DrawTexture) a parameter is intended for.
+//
+enum COMMAND_e
+{
+	COMMAND_ALL,
+	COMMAND_STRING,
+	COMMAND_COLOR,
+	COMMAND_TEXTURE,
+};
+
+//*****************************************************************************
+//	VARIABLES
+
+// [AK] A map of all of the parameters used by DrawBaseCommand and its derivatives.
+static const std::map<FName, std::tuple<PARAMETER_e, COMMAND_e, bool>> g_NamedParameters =
+{
+	{ "value",				{ PARAMETER_VALUE,			COMMAND_ALL,		true  }},
+	{ "x",					{ PARAMETER_XOFFSET,		COMMAND_ALL,		false }},
+	{ "y",					{ PARAMETER_YOFFSET,		COMMAND_ALL,		false }},
+	{ "horizontalalign",	{ PARAMETER_HORIZALIGN,		COMMAND_ALL,		false }},
+	{ "verticalalign",		{ PARAMETER_VERTALIGN,		COMMAND_ALL,		false }},
+	{ "alpha",				{ PARAMETER_ALPHA,			COMMAND_ALL,		false }},
+	{ "font",				{ PARAMETER_FONT,			COMMAND_STRING,		false }},
+	{ "textcolor",			{ PARAMETER_TEXTCOLOR,		COMMAND_STRING,		false }},
+	{ "gapsize",			{ PARAMETER_GAPSIZE,		COMMAND_STRING,		false }},
+	{ "width",				{ PARAMETER_WIDTH,			COMMAND_COLOR,		true  }},
+	{ "height",				{ PARAMETER_HEIGHT,			COMMAND_COLOR,		true  }},
+};
+
+//*****************************************************************************
+//	CLASSES
+
+//*****************************************************************************
+//*****************************************************************************
+//
+// [AK] DrawBaseCommand
+//
+// An abstract class that is shared by all margin commands that are responsible
+// for drawing something.
+//
+//*****************************************************************************
+//*****************************************************************************
+
+class DrawBaseCommand : public ScoreMargin::BaseCommand
+{
+public:
+	DrawBaseCommand( ScoreMargin *pMargin, COMMAND_e Type ) : BaseCommand( pMargin ),
+		Command( Type ),
+		HorizontalAlignment( HORIZALIGN_LEFT ),
+		VerticalAlignment( VERTALIGN_TOP ),
+		lXOffset( 0 ),
+		lYOffset( 0 ),
+		fTranslucency( 1.0f ) { }
+
+	//*************************************************************************
+	//
+	// [AK] Scans for any parameters until it reaches the end of the command.
+	//
+	//*************************************************************************
+
+	virtual void Parse( FScanner &sc )
+	{
+		bool bParameterInitialized[NUM_PARAMETERS] = { false };
+
+		do
+		{
+			sc.MustGetToken( TK_Identifier );
+			auto parameter = g_NamedParameters.find( sc.String );
+
+			// [AK] Make sure that the user entered a valid parameter.
+			if ( parameter == g_NamedParameters.end( ))
+				sc.ScriptError( "Unknown parameter '%s'.", sc.String );
+
+			const PARAMETER_e ParameterConstant = std::get<PARAMETER_CONSTANT>( parameter->second );
+			const COMMAND_e CommandConstant = std::get<COMMAND_CONSTANT>( parameter->second );
+
+			// [AK] Make sure that the parameter can be used by this command.
+			if (( CommandConstant != COMMAND_ALL ) && ( CommandConstant != Command ))
+				sc.ScriptError( "Parameter '%s' cannot be used inside this command.", sc.String );
+
+			// [AK] Don't allow the same parameter to be initialized more than once.
+			if ( bParameterInitialized[ParameterConstant] )
+				sc.ScriptError( "Parameter '%s' is already initialized.", sc.String );
+
+			sc.MustGetToken( '=' );
+			ParseParameter( sc, parameter->first, ParameterConstant );
+
+			// [AK] This parameter has been initialized now, so mark it.
+			bParameterInitialized[ParameterConstant] = true;
+
+		} while ( sc.CheckToken( ',' ));
+
+		sc.MustGetToken( ')' );
+
+		// [AK] Throw an error if there are parameters that were supposed to be initialized, but aren't.
+		for ( auto it = g_NamedParameters.begin( ); it != g_NamedParameters.end( ); it++ )
+		{
+			const COMMAND_e CommandConstant = std::get<COMMAND_CONSTANT>( it->second );
+
+			// [AK] Skip parameters that aren't associated with this command.
+			if (( CommandConstant != COMMAND_ALL ) && ( CommandConstant != Command ))
+				continue;
+
+			if (( std::get<MUST_BE_INITIALIZED>( it->second )) && ( bParameterInitialized[std::get<PARAMETER_CONSTANT>( it->second )] == false ))
+				sc.ScriptError( "Parameter '%s' isn't initialized.", it->first.GetChars( ));
+		}
+	}
+
+protected:
+	template <typename EnumType>
+	using SpecialValue = std::pair<EnumType, MARGINTYPE_e>;
+
+	template <typename EnumType>
+	using SpecialValueList = std::map<FName, SpecialValue<EnumType>, std::less<FName>, std::allocator<std::pair<FName, SpecialValue<EnumType>>>>;
+
+	//*************************************************************************
+	//
+	// [AK] Parses any parameters that every draw command can have. Derived
+	// classes can handle their own parameters by overriding this function.
+	//
+	//*************************************************************************
+
+	virtual void ParseParameter( FScanner &sc, const FName ParameterName, const PARAMETER_e Parameter )
+	{
+		switch ( Parameter )
+		{
+			case PARAMETER_XOFFSET:
+			case PARAMETER_YOFFSET:
+			{
+				sc.MustGetToken( TK_IntConst );
+
+				if ( Parameter == PARAMETER_XOFFSET )
+					lXOffset = sc.Number;
+				else
+					lYOffset = sc.Number;
+
+				break;
+			}
+
+			case PARAMETER_HORIZALIGN:
+			case PARAMETER_VERTALIGN:
+			{
+				sc.MustGetToken( TK_Identifier );
+
+				if ( Parameter == PARAMETER_HORIZALIGN )
+					HorizontalAlignment = static_cast<HORIZALIGN_e>( sc.MustGetEnumName( "alignment", "HORIZALIGN_", GetValueHORIZALIGN_e, true ));
+				else
+					VerticalAlignment = static_cast<VERTALIGN_e>( sc.MustGetEnumName( "alignment", "VERTALIGN_", GetValueVERTALIGN_e, true ));
+
+				break;
+			}
+
+			case PARAMETER_ALPHA:
+			{
+				sc.MustGetToken( TK_FloatConst );
+				fTranslucency = clamp( static_cast<float>( sc.Float ), 0.0f, 1.0f );
+
+				break;
+			}
+
+			default:
+				sc.ScriptError( "Couldn't process parameter '%s'.", ParameterName.GetChars( ));
+		}
+
+		// [AK] Don't offset to the left when aligned to the left, or to the right when aligned to the right.
+		if ((( HorizontalAlignment == HORIZALIGN_LEFT ) || ( HorizontalAlignment == HORIZALIGN_RIGHT )) && ( lXOffset < 0 ))
+			sc.ScriptError( "Can't have a negative x-offset when aligned to the left or right." );
+
+		// [AK] Don't offset upward when aligned to the top, or downward when aligned to the bottom.
+		if ((( VerticalAlignment == VERTALIGN_TOP ) || ( VerticalAlignment == VERTALIGN_BOTTOM )) && ( lYOffset < 0 ))
+			sc.ScriptError( "Can't have a negative y-offset when aligned to the top or bottom." );
+	}
+
+	//*************************************************************************
+	//
+	// [AK] Checks for identifiers that correspond to "special" values. These
+	// values can only be used in the margins they're intended for, which is
+	// also checked. If no identifier was passed, then the value is assumed to
+	// be "static", which is parsed in the form of a string.
+	//
+	//*************************************************************************
+
+	template <typename EnumType>
+	EnumType GetSpecialValue( FScanner &sc, const SpecialValueList<EnumType> &ValueList )
+	{
+		if ( sc.CheckToken( TK_Identifier ))
+		{
+			auto value = ValueList.find( sc.String );
+
+			if ( value != ValueList.end( ))
+			{
+				const MARGINTYPE_e MarginType = value->second.second;
+
+				// [AK] Throw an error if this value can't be used in the margin that the commands belongs to.
+				if ( MarginType != pParentMargin->GetType( ))
+					sc.ScriptError( "Special value '%s' can't be used inside a '%s' margin.", sc.String, pParentMargin->GetName( ));
+
+				// [AK] Return the constant that corresponds to this special value.
+				return value->second.first;
+			}
+			else
+			{
+				sc.ScriptError( "Unknown special value '%s'.", sc.String );
+			}
+		}
+
+		sc.MustGetToken( TK_StringConst );
+
+		// [AK] Throw a fatal error if an empty string was passed.
+		if ( sc.StringLen == 0 )
+			sc.ScriptError( "Got an empty string for a value." );
+
+		// [AK] Return the constant that indicates the value as "static".
+		return static_cast<EnumType>( -1 );
+	}
+
+	//*************************************************************************
+	//
+	// [AK] Determines the position to draw the contents on the screen.
+	//
+	//*************************************************************************
+
+	TVector2<LONG> GetDrawingPosition( const ULONG ulWidth, const ULONG ulHeight ) const
+	{
+		const ULONG ulHUDWidth = HUD_GetWidth( );
+		TVector2<LONG> result;
+
+		// [AK] Get the x-position based on the horizontal alignment.
+		if ( HorizontalAlignment == HORIZALIGN_LEFT )
+			result.X = ( ulHUDWidth - pParentMargin->GetWidth( )) / 2 + lXOffset;
+		else if ( HorizontalAlignment == HORIZALIGN_CENTER )
+			result.X = ( ulHUDWidth - ulWidth ) / 2 + lXOffset;
+		else
+			result.X = ( ulHUDWidth + pParentMargin->GetWidth( )) / 2 - ulWidth - lXOffset;
+
+		// [AK] Next, get the y-position based on the vertical alignment.
+		if ( VerticalAlignment == VERTALIGN_TOP )
+			result.Y = lYOffset;
+		else if ( VerticalAlignment == VERTALIGN_CENTER )
+			result.Y = ( pParentMargin->GetHeight( ) - ulHeight ) / 2 + lYOffset;
+		else
+			result.Y = pParentMargin->GetHeight( ) - ulHeight - lYOffset;
+
+		return result;
+	}
+
+	//*************************************************************************
+	//
+	// [AK] Increases the margin's height to fit the contents, if necessary.
+	//
+	//*************************************************************************
+
+	void EnsureContentFitsInMargin( const ULONG ulHeight )
+	{
+		if ( ulHeight > 0 )
+		{
+			LONG lAbsoluteOffset = abs( lYOffset );
+
+			// [AK] Double the y-offset if the content is aligned to the center.
+			if ( VerticalAlignment == VERTALIGN_CENTER )
+				lAbsoluteOffset *= 2;
+
+			const LONG lHeightDiff = lAbsoluteOffset + ulHeight - pParentMargin->GetHeight( );
+
+			if ( lHeightDiff > 0 )
+				pParentMargin->IncreaseHeight( lHeightDiff );
+		}
+	}
+
+	const COMMAND_e Command;
+	HORIZALIGN_e HorizontalAlignment;
+	VERTALIGN_e VerticalAlignment;
+	LONG lXOffset;
+	LONG lYOffset;
+	float fTranslucency;
+};
 
 //*****************************************************************************
 //	FUNCTIONS
