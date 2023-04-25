@@ -213,6 +213,33 @@ public:
 		}
 	}
 
+	//*************************************************************************
+	//
+	// [AK] Ensures that the margin can fit the contents (for all teams).
+	//
+	//*************************************************************************
+
+	virtual void Refresh( const ULONG ulDisplayPlayer )
+	{
+		if ( pParentMargin->GetType( ) == MARGINTYPE_TEAM )
+		{
+			for ( ULONG ulTeam = 0; ulTeam < TEAM_GetNumAvailableTeams( ); ulTeam++ )
+				EnsureContentFitsInMargin( GetContentHeight( ulTeam ));
+		}
+		else
+		{
+			EnsureContentFitsInMargin( GetContentHeight( ScoreMargin::NO_TEAM ));
+		}
+	}
+
+	//*************************************************************************
+	//
+	// [AK] Pure virtual function that return the height of the contents.
+	//
+	//*************************************************************************
+
+	virtual ULONG GetContentHeight( const ULONG ulTeam ) const = 0;
+
 protected:
 	template <typename EnumType>
 	using SpecialValue = std::pair<EnumType, MARGINTYPE_e>;
@@ -424,6 +451,8 @@ public:
 		{
 			CreateString( ulDisplayPlayer, ScoreMargin::NO_TEAM );
 		}
+
+		DrawBaseCommand::Refresh( ulDisplayPlayer );
 	}
 
 	//*************************************************************************
@@ -463,6 +492,18 @@ public:
 				DTA_Alpha, combinedAlpha,
 				TAG_DONE );
 		}
+	}
+
+	//*************************************************************************
+	//
+	// [AK] Gets the total height of a preprocessed string.
+	//
+	//*************************************************************************
+
+	virtual ULONG GetContentHeight( const ULONG ulTeam ) const
+	{
+		PreprocessedString *pString = RetrieveString( ulTeam );
+		return pString != NULL ? pString->ulTotalHeight : 0;
 	}
 
 protected:
@@ -803,7 +844,6 @@ protected:
 		}
 
 		PreprocessedStrings.Push( String );
-		EnsureContentFitsInMargin( String.ulTotalHeight );
 	}
 
 	//*************************************************************************
@@ -862,17 +902,6 @@ public:
 
 	//*************************************************************************
 	//
-	// [AK] Increases the height of the margin to ensure that it fits the box.
-	//
-	//*************************************************************************
-
-	virtual void Refresh( const ULONG ulDisplayPlayer )
-	{
-		EnsureContentFitsInMargin( ulHeight );
-	}
-
-	//*************************************************************************
-	//
 	// [AK] Draws the color box on the margin.
 	//
 	//*************************************************************************
@@ -894,6 +923,14 @@ public:
 
 		screen->Dim( ColorToDraw, fAlpha * fTranslucency, clipLeft, clipTop, clipWidth, clipHeight );
 	}
+
+	//*************************************************************************
+	//
+	// [AK] Returns the height of the color box.
+	//
+	//*************************************************************************
+
+	virtual ULONG GetContentHeight( const ULONG ulTeam ) const { return ulHeight; }
 
 protected:
 	enum DRAWCOLORVALUE_e
@@ -977,30 +1014,6 @@ public:
 
 	//*************************************************************************
 	//
-	// [AK] Increases the height of the margin so that it can fit the texture.
-	//
-	//*************************************************************************
-
-	virtual void Refresh( const ULONG ulDisplayPlayer )
-	{
-		if ( pParentMargin->GetType( ) == MARGINTYPE_TEAM )
-		{
-			for ( ULONG ulTeam = 0; ulTeam < TEAM_GetNumAvailableTeams( ); ulTeam++ )
-			{
-				FTexture *pTeamTexture = RetrieveTexture( ulTeam );
-
-				if ( pTeamTexture != NULL )
-					EnsureContentFitsInMargin( pTeamTexture->GetScaledHeight( ));
-			}
-		}
-		else if ( pTexture != NULL )
-		{
-			EnsureContentFitsInMargin( pTexture->GetScaledHeight( ));
-		}
-	}
-
-	//*************************************************************************
-	//
 	// [AK] Draws the texture on the margin.
 	//
 	//*************************************************************************
@@ -1032,6 +1045,18 @@ public:
 			DTA_ClipBottom, clipTop + clipHeight,
 			DTA_Alpha, FLOAT2FIXED( fAlpha * fTranslucency ),
 			TAG_DONE );
+	}
+
+	//*************************************************************************
+	//
+	// [AK] Gets the height of a texture (for a team).
+	//
+	//*************************************************************************
+
+	virtual ULONG GetContentHeight( const ULONG ulTeam ) const
+	{
+		FTexture *pTexture = RetrieveTexture( ulTeam );
+		return pTexture != NULL ? pTexture->GetScaledHeight( ) : 0;
 	}
 
 protected:
