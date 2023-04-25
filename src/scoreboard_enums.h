@@ -379,6 +379,8 @@ BEGIN_ENUM( MARGINCMD_e )
 	ENUM_ELEMENT( MARGINCMD_IFGAMETYPE ),
 	// Executes a block when any of the given earn types are being played.
 	ENUM_ELEMENT( MARGINCMD_IFEARNTYPE ),
+	// Executes a block depending on a CVar's value.
+	ENUM_ELEMENT( MARGINCMD_IFCVAR ),
 
 	ENUM_ELEMENT( NUM_MARGINCMDS )
 }

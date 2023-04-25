@@ -1443,6 +1443,179 @@ protected:
 };
 
 //*****************************************************************************
+//*****************************************************************************
+//
+// [AK] IfCVarFlowControl
+//
+// Executes a block depending on a CVar's value.
+//
+//*****************************************************************************
+//*****************************************************************************
+
+class IfCVarFlowControl : public FlowControlBaseCommand
+{
+public:
+	IfCVarFlowControl( ScoreMargin *pMargin ) : FlowControlBaseCommand( pMargin ),
+		pCVar( NULL ),
+		Operator( OPERATOR_EQUAL ) { }
+
+	//*************************************************************************
+	//
+	// [AK] Removes the CVAR_REFRESHSCOREBOARD flag from the CVar, and if the
+	// CVar is a string, deletes the string to be compared from memory.
+	//
+	//*************************************************************************
+
+	~IfCVarFlowControl( void )
+	{
+		pCVar->SetRefreshScoreboardBit( false );
+
+		if (( pCVar != NULL ) && ( pCVar->GetRealType( ) == CVAR_String ) && ( Val.String != NULL ))
+		{
+			delete[] Val.String;
+			Val.String = NULL;
+		}
+	}
+
+	//*************************************************************************
+	//
+	// [AK] Gets the CVar, the operator, and the value to compare with.
+	//
+	//*************************************************************************
+
+	virtual void Parse( FScanner &sc )
+	{
+		sc.MustGetToken( TK_Identifier );
+		pCVar = FindCVar( sc.String, NULL );
+
+		if ( pCVar == NULL )
+			sc.ScriptError( "'%s' is not a CVar.", sc.String );
+
+		pCVar->SetRefreshScoreboardBit( true );
+
+		// [AK] Check which operator to use.
+		if ( sc.CheckToken( TK_Eq ))
+			Operator = OPERATOR_EQUAL;
+		else if ( sc.CheckToken( TK_Neq ))
+			Operator = OPERATOR_NOT_EQUAL;
+		else if ( sc.CheckToken( '>' ))
+			Operator = OPERATOR_GREATER;
+		else if ( sc.CheckToken( TK_Geq ))
+			Operator = OPERATOR_GREATER_OR_EQUAL;
+		else if ( sc.CheckToken( '<' ))
+			Operator = OPERATOR_LESS;
+		else if ( sc.CheckToken( TK_Leq ))
+			Operator = OPERATOR_LESS_OR_EQUAL;
+		else
+			sc.ScriptError( "Invalid or missing operator." );
+
+		// [AK] Scan the value to be compared, depending on the CVar's data type. To keep
+		// everything simple, values for non-string CVars are saved as floats.
+		switch ( pCVar->GetRealType( ))
+		{
+			case CVAR_Int:
+				sc.MustGetNumber( );
+				Val.Float = static_cast<float>( sc.Number );
+				break;
+
+			case CVAR_Bool:
+			case CVAR_Dummy:
+			{
+				bool bValue = false;
+
+				if ( sc.CheckToken( TK_True ))
+				{
+					bValue = true;
+				}
+				else if ( sc.CheckToken( TK_False ))
+				{
+					bValue = false;
+				}
+				else
+				{
+					sc.MustGetNumber( );
+					bValue = !!sc.Number;
+				}
+
+				Val.Float = static_cast<float>( bValue );
+				break;
+			}
+
+			case CVAR_Float:
+				sc.MustGetFloat( );
+				Val.Float = static_cast<float>( sc.Float );
+				break;
+
+			case CVAR_String:
+				sc.MustGetToken( TK_StringConst );
+				Val.String = ncopystring( sc.String );
+				break;
+
+			default:
+				sc.ScriptError( "CVar '%s' uses an invalid data type.", pCVar->GetName( ));
+		}
+
+		FlowControlBaseCommand::Parse( sc );
+	}
+
+protected:
+	enum OPERATOR_TYPE_e
+	{
+		OPERATOR_EQUAL,
+		OPERATOR_NOT_EQUAL,
+		OPERATOR_GREATER,
+		OPERATOR_GREATER_OR_EQUAL,
+		OPERATOR_LESS,
+		OPERATOR_LESS_OR_EQUAL,
+	};
+
+	//*************************************************************************
+	//
+	// [AK] Compares the CVar's current value with the other value.
+	//
+	//*************************************************************************
+
+	virtual bool EvaluateCondition( const ULONG ulDisplayPlayer )
+	{
+		float fResult = 0.0f;
+
+		// [AK] For all non-string CVars, the values are saved as floats.
+		if ( pCVar->GetRealType( ) == CVAR_String )
+			fResult = static_cast<float>( strcmp( pCVar->GetGenericRep( CVAR_String ).String, Val.String ));
+		else
+			fResult = pCVar->GetGenericRep( CVAR_Float ).Float - Val.Float;
+
+		switch ( Operator )
+		{
+			case OPERATOR_EQUAL:
+				return fResult == 0.0f;
+
+			case OPERATOR_NOT_EQUAL:
+				return fResult != 0.0f;
+
+			case OPERATOR_GREATER:
+				return fResult > 0.0f;
+
+			case OPERATOR_GREATER_OR_EQUAL:
+				return fResult >= 0.0f;
+
+			case OPERATOR_LESS:
+				return fResult < 0.0f;
+
+			case OPERATOR_LESS_OR_EQUAL:
+				return fResult <= 0.0f;
+		}
+
+		// [AK] In case we reach here, just return false.
+		return false;
+	}
+
+	FBaseCVar *pCVar;
+	UCVarValue Val;
+	OPERATOR_TYPE_e Operator;
+};
+
+//*****************************************************************************
 //	FUNCTIONS
 
 //*****************************************************************************
@@ -1591,6 +1764,10 @@ ScoreMargin::BaseCommand *ScoreMargin::CreateCommand( FScanner &sc, ScoreMargin 
 		case MARGINCMD_IFGAMETYPE:
 		case MARGINCMD_IFEARNTYPE:
 			pNewCommand = new IfGameOrEarnTypeFlowControl( pMargin, Command == MARGINCMD_IFGAMETYPE );
+			break;
+
+		case MARGINCMD_IFCVAR:
+			pNewCommand = new IfCVarFlowControl( pMargin );
 			break;
 	}
 
