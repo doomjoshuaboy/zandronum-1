@@ -110,6 +110,7 @@ enum PARAMETER_e
 enum COMMAND_e
 {
 	COMMAND_ALL,
+	COMMAND_MULTILINE,
 	COMMAND_STRING,
 	COMMAND_COLOR,
 	COMMAND_TEXTURE,
@@ -148,16 +149,12 @@ static const std::map<FName, std::tuple<PARAMETER_e, COMMAND_e, bool>> g_NamedPa
 //*****************************************************************************
 //*****************************************************************************
 
+class DrawMultiLineBlock;
+
 class DrawBaseCommand : public ScoreMargin::BaseCommand
 {
 public:
-	DrawBaseCommand( ScoreMargin *pMargin, COMMAND_e Type ) : BaseCommand( pMargin ),
-		Command( Type ),
-		HorizontalAlignment( HORIZALIGN_LEFT ),
-		VerticalAlignment( VERTALIGN_TOP ),
-		lXOffset( 0 ),
-		lYOffset( 0 ),
-		fTranslucency( 1.0f ) { }
+	DrawBaseCommand( ScoreMargin *pMargin, COMMAND_e Type, DrawMultiLineBlock *pBlock );
 
 	//*************************************************************************
 	//
@@ -202,35 +199,31 @@ public:
 		// [AK] Throw an error if there are parameters that were supposed to be initialized, but aren't.
 		for ( auto it = g_NamedParameters.begin( ); it != g_NamedParameters.end( ); it++ )
 		{
+			const PARAMETER_e ParameterConstant = std::get<PARAMETER_CONSTANT>( it->second );
 			const COMMAND_e CommandConstant = std::get<COMMAND_CONSTANT>( it->second );
+
+			// [AK] If this is a DrawMultiLineBlock command, skip the value parameter.
+			if (( ParameterConstant == PARAMETER_VALUE ) && ( Command == COMMAND_MULTILINE ))
+				continue;
 
 			// [AK] Skip parameters that aren't associated with this command.
 			if (( CommandConstant != COMMAND_ALL ) && ( CommandConstant != Command ))
 				continue;
 
-			if (( std::get<MUST_BE_INITIALIZED>( it->second )) && ( bParameterInitialized[std::get<PARAMETER_CONSTANT>( it->second )] == false ))
+			if (( std::get<MUST_BE_INITIALIZED>( it->second )) && ( bParameterInitialized[ParameterConstant] == false ))
 				sc.ScriptError( "Parameter '%s' isn't initialized.", it->first.GetChars( ));
 		}
 	}
 
 	//*************************************************************************
 	//
-	// [AK] Ensures that the margin can fit the contents (for all teams).
+	// [AK] DrawBaseCommand::Refresh
+	//
+	// Ensures that the margin can fit the contents (for all teams).
 	//
 	//*************************************************************************
 
-	virtual void Refresh( const ULONG ulDisplayPlayer )
-	{
-		if ( pParentMargin->GetType( ) == MARGINTYPE_TEAM )
-		{
-			for ( ULONG ulTeam = 0; ulTeam < TEAM_GetNumAvailableTeams( ); ulTeam++ )
-				EnsureContentFitsInMargin( GetContentHeight( ulTeam ));
-		}
-		else
-		{
-			EnsureContentFitsInMargin( GetContentHeight( ScoreMargin::NO_TEAM ));
-		}
-	}
+	virtual void Refresh( const ULONG ulDisplayPlayer );
 
 	//*************************************************************************
 	//
@@ -256,6 +249,16 @@ protected:
 
 	virtual void ParseParameter( FScanner &sc, const FName ParameterName, const PARAMETER_e Parameter )
 	{
+		// [AK] Commands nested inside a DrawMultiLineBlock command can't use these parameters.
+		if ( pMultiLineBlock != NULL )
+		{
+			if (( Parameter == PARAMETER_XOFFSET ) || ( Parameter == PARAMETER_YOFFSET ) ||
+				( Parameter == PARAMETER_HORIZALIGN ) || ( Parameter == PARAMETER_VERTALIGN ))
+			{
+				sc.ScriptError( "Parameter '%s' cannot be used by commands that are inside a 'DrawMultiLineBlock' command.", ParameterName.GetChars( ));
+			}
+		}
+
 		switch ( Parameter )
 		{
 			case PARAMETER_XOFFSET:
@@ -402,11 +405,166 @@ protected:
 	}
 
 	const COMMAND_e Command;
+	DrawMultiLineBlock *const pMultiLineBlock;
 	HORIZALIGN_e HorizontalAlignment;
 	VERTALIGN_e VerticalAlignment;
 	LONG lXOffset;
 	LONG lYOffset;
 	float fTranslucency;
+
+	// [AK] Let the DrawMultiLineBlock class have access to this class's protected members.
+	friend class DrawMultiLineBlock;
+};
+
+//*****************************************************************************
+//*****************************************************************************
+//
+// [AK] DrawMultiLineBlock
+//
+// Starts a block of lines that consist of strings, colors, or textures.
+//
+//*****************************************************************************
+//*****************************************************************************
+
+class DrawMultiLineBlock : public DrawBaseCommand
+{
+public:
+	DrawMultiLineBlock( ScoreMargin *pMargin ) : DrawBaseCommand( pMargin, COMMAND_MULTILINE, NULL ) { }
+
+	//*************************************************************************
+	//
+	// [AK] Deletes all nested commands from memory.
+	//
+	//*************************************************************************
+
+	~DrawMultiLineBlock( void )
+	{
+		for ( unsigned int i = 0; i < Commands.Size( ); i++ )
+		{
+			delete Commands[i];
+			Commands[i] = NULL;
+		}
+	}
+
+	//*************************************************************************
+	//
+	// [AK] Starts a block and parses new margin commands inside it.
+	//
+	//*************************************************************************
+
+	virtual void Parse( FScanner &sc )
+	{
+		DrawBaseCommand::Parse( sc );
+		sc.MustGetToken( '{' );
+
+		while ( sc.CheckToken( '}' ) == false )
+			Commands.Push( ScoreMargin::CreateCommand( sc, pParentMargin ));
+	}
+
+	//*************************************************************************
+	//
+	// [AK] Refreshes all the commands inside the block, then makes sure that
+	// the margin will fit everything.
+	//
+	//*************************************************************************
+
+	virtual void Refresh( const ULONG ulDisplayPlayer )
+	{
+		CommandsToDraw.Clear( );
+
+		for ( unsigned int i = 0; i < Commands.Size( ); i++ )
+			Commands[i]->Refresh( ulDisplayPlayer );
+
+		DrawBaseCommand::Refresh( ulDisplayPlayer );
+	}
+
+	//*************************************************************************
+	//
+	// [AK] Draws all commands that can be drawn, from top to bottom.
+	//
+	//*************************************************************************
+
+	virtual void Draw( const ULONG ulDisplayPlayer, const ULONG ulTeam, const LONG lYPos, const float fAlpha ) const
+	{
+		if ( CommandsToDraw.Size( ) == 0 )
+			return;
+
+		const float fCombinedAlpha = fAlpha * fTranslucency;
+		TVector2<LONG> Pos = GetDrawingPosition( 0, GetContentHeight( ulTeam )) + lYPos;
+
+		for ( unsigned int i = 0; i < CommandsToDraw.Size( ); i++ )
+		{
+			const ULONG ulContentHeight = CommandsToDraw[i]->GetContentHeight( ulTeam );
+
+			// [AK] Skip commands whose heights are zero.
+			if ( ulContentHeight == 0 )
+				continue;
+
+			CommandsToDraw[i]->Draw( ulDisplayPlayer, ulTeam, Pos.Y, fCombinedAlpha );
+
+			// [AK] Shift the y-position based on the command's height and y-offset.
+			Pos.Y += ulContentHeight + CommandsToDraw[i]->lYOffset;
+		}
+	}
+
+	//*************************************************************************
+	//
+	// [AK] Gets the total height of all commands that will be drawn.
+	//
+	//*************************************************************************
+
+	virtual ULONG GetContentHeight( const ULONG ulTeam ) const
+	{
+		ULONG ulTotalHeight = 0;
+
+		for ( unsigned int i = 0; i < CommandsToDraw.Size( ); i++ )
+		{
+			const ULONG ulContentHeight = CommandsToDraw[i]->GetContentHeight( ulTeam );
+
+			// [AK] Don't include commands whose heights are zero.
+			if ( ulContentHeight == 0 )
+				continue;
+
+			ulTotalHeight += ulContentHeight + CommandsToDraw[i]->lYOffset;
+		}
+
+		return ulTotalHeight;
+	}
+
+	//*************************************************************************
+	//
+	// [AK] Adds a command to the list of commands that will be drawn. This is
+	// called by other DrawBaseCommand objects when they're refreshed.
+	//
+	//*************************************************************************
+
+	void AddToDrawList( DrawBaseCommand *pCommand )
+	{
+		// [AK] Don't accept commands that aren't part of this block.
+		if (( pCommand == NULL ) || ( pCommand->pMultiLineBlock != this ))
+			return;
+
+		CommandsToDraw.Push( pCommand );
+	}
+
+protected:
+
+	//*************************************************************************
+	//
+	// [AK] Ensures that this command can't define the value parameter.
+	//
+	//*************************************************************************
+
+	virtual void ParseParameter( FScanner &sc, const FName ParameterName, const PARAMETER_e Parameter )
+	{
+		if ( Parameter == PARAMETER_VALUE )
+			sc.ScriptError( "Parameter '%s' cannot be used by 'DrawMultiLineBlock' commands.", ParameterName.GetChars( ));
+
+		DrawBaseCommand::ParseParameter( sc, ParameterName, Parameter );
+	}
+
+	TArray<BaseCommand *> Commands;
+	TArray<DrawBaseCommand *> CommandsToDraw;
 };
 
 //*****************************************************************************
@@ -422,7 +580,7 @@ protected:
 class DrawString : public DrawBaseCommand
 {
 public:
-	DrawString( ScoreMargin *pMargin ) : DrawBaseCommand( pMargin, COMMAND_STRING ),
+	DrawString( ScoreMargin *pMargin, DrawMultiLineBlock *pBlock ) : DrawBaseCommand( pMargin, COMMAND_STRING, pBlock ),
 		pFont( SmallFont ),
 		Color( CR_UNTRANSLATED ),
 		ulGapSize( 1 ),
@@ -894,7 +1052,7 @@ protected:
 class DrawColor : public DrawBaseCommand
 {
 public:
-	DrawColor( ScoreMargin *pMargin ) : DrawBaseCommand( pMargin, COMMAND_COLOR ),
+	DrawColor( ScoreMargin *pMargin, DrawMultiLineBlock *pBlock ) : DrawBaseCommand( pMargin, COMMAND_COLOR, pBlock ),
 		ValueType( DRAWCOLOR_STATIC ),
 		Color( 0 ),
 		ulWidth( 0 ),
@@ -1008,7 +1166,7 @@ protected:
 class DrawTexture : public DrawBaseCommand
 {
 public:
-	DrawTexture( ScoreMargin *pMargin ) : DrawBaseCommand( pMargin, COMMAND_TEXTURE ),
+	DrawTexture( ScoreMargin *pMargin, DrawMultiLineBlock *pBlock ) : DrawBaseCommand( pMargin, COMMAND_TEXTURE, pBlock ),
 		ValueType( DRAWTEXTURE_STATIC ),
 		pTexture( NULL ) { }
 
@@ -1660,6 +1818,53 @@ ScoreMargin::BaseCommand::BaseCommand( ScoreMargin *pMargin ) : pParentMargin( p
 
 //*****************************************************************************
 //
+// [AK] DrawBaseCommand::DrawBaseCommand
+//
+// Initializes a DrawBaseCommand object.
+//
+//*****************************************************************************
+
+DrawBaseCommand::DrawBaseCommand( ScoreMargin *pMargin, COMMAND_e Type, DrawMultiLineBlock *pBlock ) : BaseCommand( pMargin ),
+	Command( Type ),
+	pMultiLineBlock( pBlock ),
+	HorizontalAlignment( pMultiLineBlock ? pMultiLineBlock->HorizontalAlignment : HORIZALIGN_LEFT ),
+	VerticalAlignment( VERTALIGN_TOP ),
+	lXOffset( pMultiLineBlock ? pMultiLineBlock->lXOffset : 0 ),
+	lYOffset( 0 ),
+	fTranslucency( 1.0f ) { }
+
+//*************************************************************************
+//
+// [AK] DrawBaseCommand::Refresh
+//
+// Ensures that the margin can fit the contents (for all teams).
+//
+//*************************************************************************
+
+void DrawBaseCommand::Refresh( const ULONG ulDisplayPlayer )
+{
+	// [AK] Only do this if the command isn't nested inside a DrawMultiLineBlock command.
+	// Otherwise, add this command to the latter's draw list.
+	if ( pMultiLineBlock == NULL )
+	{
+		if ( pParentMargin->GetType( ) == MARGINTYPE_TEAM )
+		{
+			for ( ULONG ulTeam = 0; ulTeam < TEAM_GetNumAvailableTeams( ); ulTeam++ )
+				EnsureContentFitsInMargin( GetContentHeight( ulTeam ));
+		}
+		else
+		{
+			EnsureContentFitsInMargin( GetContentHeight( ScoreMargin::NO_TEAM ));
+		}
+	}
+	else
+	{
+		pMultiLineBlock->AddToDrawList( this );
+	}
+}
+
+//*****************************************************************************
+//
 // [AK] ScoreMargin::ScoreMargin
 //
 // Initializes a margin's members to their default values.
@@ -1760,18 +1965,34 @@ ScoreMargin::BaseCommand *ScoreMargin::CreateCommand( FScanner &sc, ScoreMargin 
 	const MARGINCMD_e Command = static_cast<MARGINCMD_e>( sc.MustGetEnumName( "margin command", "MARGINCMD_", GetValueMARGINCMD_e ));
 	ScoreMargin::BaseCommand *pNewCommand = NULL;
 
+	// [AK] A pointer to the DrawMultiLineBlock command that we're in the middle of parsing.
+	static DrawMultiLineBlock *pMultiLineBlock = NULL;
+	bool bIsMultiLineBlock = false;
+
 	switch ( Command )
 	{
+		case MARGINCMD_DRAWMULTILINEBLOCK:
+		{
+			// [AK] DrawMultiLineBlock commands can't be nested inside each other.
+			if ( pMultiLineBlock != NULL )
+				sc.ScriptError( "A 'DrawMultiLineBlock' command cannot be created inside another one." );
+
+			pNewCommand = new DrawMultiLineBlock( pMargin );
+			pMultiLineBlock = static_cast<DrawMultiLineBlock *>( pNewCommand );
+			bIsMultiLineBlock = true;
+			break;
+		}
+
 		case MARGINCMD_DRAWSTRING:
-			pNewCommand = new DrawString( pMargin );
+			pNewCommand = new DrawString( pMargin, pMultiLineBlock );
 			break;
 
 		case MARGINCMD_DRAWCOLOR:
-			pNewCommand = new DrawColor( pMargin );
+			pNewCommand = new DrawColor( pMargin, pMultiLineBlock );
 			break;
 
 		case MARGINCMD_DRAWTEXTURE:
-			pNewCommand = new DrawTexture( pMargin );
+			pNewCommand = new DrawTexture( pMargin, pMultiLineBlock );
 			break;
 
 		case MARGINCMD_IFONLINEGAME:
@@ -1803,6 +2024,10 @@ ScoreMargin::BaseCommand *ScoreMargin::CreateCommand( FScanner &sc, ScoreMargin 
 	// [AK] A command's arguments must always be prepended by a '('.
 	sc.MustGetToken( '(' );
 	pNewCommand->Parse( sc );
+
+	// [AK] Are we done parsing the current DrawMultiLineBlock command?
+	if ( bIsMultiLineBlock )
+		pMultiLineBlock = NULL;
 
 	return pNewCommand;
 }

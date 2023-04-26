@@ -357,6 +357,8 @@ END_ENUM( SCOREBOARDCMD_e )
 //
 BEGIN_ENUM( MARGINCMD_e )
 {
+	// Starts a block of lines that consist of strings, colors, or textures.
+	ENUM_ELEMENT( MARGINCMD_DRAWMULTILINEBLOCK ),
 	// Draws text somewhere in the boundary.
 	ENUM_ELEMENT( MARGINCMD_DRAWSTRING ),
 	// Draws a color somewhere in the boundary.
