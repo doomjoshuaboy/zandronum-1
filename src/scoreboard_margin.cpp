@@ -87,6 +87,8 @@ enum PARAMETER_e
 	PARAMETER_HORIZALIGN,
 	// How the contents are aligned vertically (top, center, or bottom).
 	PARAMETER_VERTALIGN,
+	// How much room to leave underneath the contents.
+	PARAMETER_BOTTOMPADDING,
 	// The transparency of the contents.
 	PARAMETER_ALPHA,
 	// What font to use when drawing a string.
@@ -127,6 +129,7 @@ static const std::map<FName, std::tuple<PARAMETER_e, COMMAND_e, bool>> g_NamedPa
 	{ "y",					{ PARAMETER_YOFFSET,		COMMAND_ALL,		false }},
 	{ "horizontalalign",	{ PARAMETER_HORIZALIGN,		COMMAND_ALL,		false }},
 	{ "verticalalign",		{ PARAMETER_VERTALIGN,		COMMAND_ALL,		false }},
+	{ "bottompadding",		{ PARAMETER_BOTTOMPADDING,	COMMAND_ALL,		false }},
 	{ "alpha",				{ PARAMETER_ALPHA,			COMMAND_ALL,		false }},
 	{ "font",				{ PARAMETER_FONT,			COMMAND_STRING,		false }},
 	{ "textcolor",			{ PARAMETER_TEXTCOLOR,		COMMAND_STRING,		false }},
@@ -263,13 +266,16 @@ protected:
 		{
 			case PARAMETER_XOFFSET:
 			case PARAMETER_YOFFSET:
+			case PARAMETER_BOTTOMPADDING:
 			{
 				sc.MustGetToken( TK_IntConst );
 
 				if ( Parameter == PARAMETER_XOFFSET )
 					lXOffset = sc.Number;
-				else
+				else if ( Parameter == PARAMETER_YOFFSET )
 					lYOffset = sc.Number;
+				else
+					ulBottomPadding = MAX( sc.Number, 0 );
 
 				break;
 			}
@@ -410,6 +416,7 @@ protected:
 	VERTALIGN_e VerticalAlignment;
 	LONG lXOffset;
 	LONG lYOffset;
+	ULONG ulBottomPadding;
 	float fTranslucency;
 
 	// [AK] Let the DrawMultiLineBlock class have access to this class's protected members.
@@ -527,6 +534,10 @@ public:
 
 			ulTotalHeight += ulContentHeight + CommandsToDraw[i]->lYOffset;
 		}
+
+		// [AK] Include the bottom padding only when the total height isn't zero.
+		if ( ulTotalHeight > 0 )
+			ulTotalHeight += ulBottomPadding;
 
 		return ulTotalHeight;
 	}
@@ -661,7 +672,13 @@ public:
 	virtual ULONG GetContentHeight( const ULONG ulTeam ) const
 	{
 		PreprocessedString *pString = RetrieveString( ulTeam );
-		return pString != NULL ? pString->ulTotalHeight : 0;
+		ULONG ulHeight = pString != NULL ? pString->ulTotalHeight : 0;
+
+		// [AK] Include the bottom padding only when the height isn't zero.
+		if ( ulHeight > 0 )
+			ulHeight += ulBottomPadding;
+
+		return ulHeight;
 	}
 
 protected:
@@ -1088,7 +1105,7 @@ public:
 	//
 	//*************************************************************************
 
-	virtual ULONG GetContentHeight( const ULONG ulTeam ) const { return ulHeight; }
+	virtual ULONG GetContentHeight( const ULONG ulTeam ) const { return ulHeight + ulBottomPadding; }
 
 protected:
 	enum DRAWCOLORVALUE_e
@@ -1214,7 +1231,7 @@ public:
 	virtual ULONG GetContentHeight( const ULONG ulTeam ) const
 	{
 		FTexture *pTexture = RetrieveTexture( ulTeam );
-		return pTexture != NULL ? pTexture->GetScaledHeight( ) : 0;
+		return pTexture != NULL ? pTexture->GetScaledHeight( ) + ulBottomPadding : 0;
 	}
 
 protected:
@@ -1831,6 +1848,7 @@ DrawBaseCommand::DrawBaseCommand( ScoreMargin *pMargin, COMMAND_e Type, DrawMult
 	VerticalAlignment( VERTALIGN_TOP ),
 	lXOffset( pMultiLineBlock ? pMultiLineBlock->lXOffset : 0 ),
 	lYOffset( 0 ),
+	ulBottomPadding( 0 ),
 	fTranslucency( 1.0f ) { }
 
 //*************************************************************************
