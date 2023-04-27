@@ -599,6 +599,27 @@ public:
 
 	//*************************************************************************
 	//
+	// [AK] If this command used any "cvar" special values, then this will
+	// remove the CVAR_REFRESHSCOREBOARD flag any CVars that were used.
+	//
+	//*************************************************************************
+
+	~DrawString( void )
+	{
+		for ( unsigned int i = 0; i < StringChunks.Size( ); i++ )
+		{
+			if ( StringChunks[i].first == DRAWSTRING_CVAR )
+			{
+				FBaseCVar *pCVar = FindCVar( StringChunks[i].second.GetChars( ), NULL );
+
+				if ( pCVar != NULL )
+					pCVar->SetRefreshScoreboardBit( false );
+			}
+		}
+	}
+
+	//*************************************************************************
+	//
 	// [AK] Creates the text that will be drawn on the margin beforehand.
 	//
 	//*************************************************************************
@@ -684,8 +705,8 @@ public:
 protected:
 	enum DRAWSTRINGVALUE_e
 	{
-		// The name of the server we're connected to.
-		DRAWSTRING_HOSTNAME,
+		// The value of a CVar.
+		DRAWSTRING_CVAR,
 		// The name of the current game mode.
 		DRAWSTRING_GAMEMODE,
 		// The name of the current level.
@@ -748,7 +769,7 @@ protected:
 		// [AK] All special values supported by the "DrawString" command.
 		const SpecialValueList<DRAWSTRINGVALUE_e> SpecialValues
 		{
-			{ "hostname",				{ DRAWSTRING_HOSTNAME,				MARGINTYPE_HEADER_OR_FOOTER }},
+			{ "cvar",					{ DRAWSTRING_CVAR,					MARGINTYPE_HEADER_OR_FOOTER }},
 			{ "gamemode",				{ DRAWSTRING_GAMEMODE,				MARGINTYPE_HEADER_OR_FOOTER }},
 			{ "levelname",				{ DRAWSTRING_LEVELNAME,				MARGINTYPE_HEADER_OR_FOOTER }},
 			{ "levellump",				{ DRAWSTRING_LEVELLUMP,				MARGINTYPE_HEADER_OR_FOOTER }},
@@ -779,7 +800,27 @@ protected:
 				do
 				{
 					const DRAWSTRINGVALUE_e SpecialValue = GetSpecialValue( sc, SpecialValues );
-					StringChunks.Push( { SpecialValue, ( SpecialValue != DRAWSTRING_STATIC ) ? "" : sc.String } );
+
+					if ( SpecialValue == DRAWSTRING_CVAR )
+					{
+						sc.MustGetToken( '(' );
+						sc.MustGetToken( TK_Identifier );
+
+						FString CVarName = sc.String;
+						FBaseCVar *pCVar = FindCVar( CVarName.GetChars( ), NULL );
+
+						if ( pCVar == NULL )
+							sc.ScriptError( "'%s' is not a CVar.", CVarName.GetChars( ));
+
+						sc.MustGetToken( ')' );
+
+						pCVar->SetRefreshScoreboardBit( true );
+						StringChunks.Push( { SpecialValue, CVarName } );
+					}
+					else
+					{
+						StringChunks.Push( { SpecialValue, ( SpecialValue != DRAWSTRING_STATIC ) ? "" : sc.String } );
+					}
 
 				} while ( sc.CheckToken( '+' ));
 
@@ -875,12 +916,18 @@ protected:
 
 				switch ( Value )
 				{
-					case DRAWSTRING_HOSTNAME:
+					case DRAWSTRING_CVAR:
 					{
-						FString HostName = sv_hostname.GetGenericRep( CVAR_String ).String;
-						V_ColorizeString( HostName );
+						FBaseCVar *pCVar = FindCVar( StringChunks[i].second.GetChars( ), NULL );
 
-						text += HostName;
+						if ( pCVar != NULL )
+						{
+							FString CVarValue = pCVar->GetGenericRep( CVAR_String ).String;
+							V_ColorizeString( CVarValue );
+
+							text += CVarValue;
+						}
+
 						break;
 					}
 
