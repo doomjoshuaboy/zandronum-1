@@ -713,6 +713,10 @@ protected:
 		DRAWSTRING_LEVELNAME,
 		// The lump of the current level.
 		DRAWSTRING_LEVELLUMP,
+		// The name of the next level.
+		DRAWSTRING_NEXTLEVELNAME,
+		// The lump of the next level.
+		DRAWSTRING_NEXTLEVELLUMP,
 		// The name of the current skill.
 		DRAWSTRING_SKILLNAME,
 		// The time, frags, points, wins, or kills left until the level ends.
@@ -773,6 +777,8 @@ protected:
 			{ "gamemode",				{ DRAWSTRING_GAMEMODE,				MARGINTYPE_HEADER_OR_FOOTER }},
 			{ "levelname",				{ DRAWSTRING_LEVELNAME,				MARGINTYPE_HEADER_OR_FOOTER }},
 			{ "levellump",				{ DRAWSTRING_LEVELLUMP,				MARGINTYPE_HEADER_OR_FOOTER }},
+			{ "nextlevelname",			{ DRAWSTRING_NEXTLEVELNAME,			MARGINTYPE_HEADER_OR_FOOTER }},
+			{ "nextlevellump",			{ DRAWSTRING_NEXTLEVELLUMP,			MARGINTYPE_HEADER_OR_FOOTER }},
 			{ "skillname",				{ DRAWSTRING_SKILLNAME,				MARGINTYPE_HEADER_OR_FOOTER }},
 			{ "limitstrings",			{ DRAWSTRING_LIMITSTRINGS,			MARGINTYPE_HEADER_OR_FOOTER }},
 			{ "pointstring",			{ DRAWSTRING_POINTSTRING,			MARGINTYPE_HEADER_OR_FOOTER }},
@@ -942,6 +948,27 @@ protected:
 					case DRAWSTRING_LEVELLUMP:
 						text += level.mapname;
 						break;
+
+					case DRAWSTRING_NEXTLEVELNAME:
+					case DRAWSTRING_NEXTLEVELLUMP:
+					{
+						level_info_t *pNextLevel = SCOREBOARD_GetNextLevel( );
+
+						// [AK] The next level is only available on the intermission screen.
+						if (( gamestate == GS_INTERMISSION ) && ( pNextLevel != NULL ))
+						{
+							if ( Value == DRAWSTRING_NEXTLEVELNAME )
+								text += pNextLevel->LookupLevelName( );
+							else
+								text += pNextLevel->mapname;
+						}
+						else
+						{
+							text += "???";
+						}
+
+						break;
+					}
 
 					case DRAWSTRING_SKILLNAME:
 						text += G_SkillName( );

@@ -575,6 +575,7 @@ void			SCOREBOARD_Refresh( void );
 void			SCOREBOARD_ShouldRefreshBeforeRendering( void );
 void			SCOREBOARD_BuildLimitStrings( std::list<FString> &lines, bool bAcceptColors );
 LONG			SCOREBOARD_GetLeftToLimit( void );
+level_info_t	*SCOREBOARD_GetNextLevel( void );
 void			SCOREBOARD_SetNextLevel( const char *pszMapName );
 
 #endif // __SCOREBOARD_H__
