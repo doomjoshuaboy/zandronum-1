@@ -276,6 +276,15 @@ void PlayerValue::TransferValue ( const PlayerValue &Other )
 		case DATATYPE_TEXTURE:
 			SetValue<FTexture *>( Other.RetrieveValue<FTexture *>( ));
 			break;
+
+		default:
+		{
+			if ( DataType == DATATYPE_STRING )
+				DeleteString( );
+
+			DataType = DATATYPE_UNKNOWN;
+			break;
+		}
 	}
 }
 
