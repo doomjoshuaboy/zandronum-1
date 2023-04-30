@@ -2028,13 +2028,15 @@ void ScoreMargin::Render( const ULONG ulDisplayPlayer, const ULONG ulTeam, LONG 
 	// [AK] If this is supposed to be a team header, then we can't draw for invalid teams!
 	if ( Type == MARGINTYPE_TEAM )
 	{
-		if (( ulTeam == NO_TEAM ) || ( ulTeam >= teams.Size( )))
-			I_Error( "ScoreMargin::Render: '%s' can't be drawn for invalid teams.", GetName( ));
+		if ( ulTeam == NO_TEAM )
+			I_Error( "ScoreMargin::Render: '%s' can't be drawn for no team.", GetName( ));
+		else if ( ulTeam >= teams.Size( ))
+			I_Error( "ScoreMargin::Render: '%s' can't be drawn for an invalid team (%d).", GetName( ), ulTeam );
 	}
 	// [AK] Otherwise, if this is a non-team header, then we can't draw for any specific team!
 	else if ( ulTeam != NO_TEAM )
 	{
-		I_Error( "ScoreMargin::Render: '%s' must not be drawn for any specific team.", GetName( ));
+		I_Error( "ScoreMargin::Render: '%s' must not be drawn for any specific team (%d).", GetName( ), ulTeam );
 	}
 
 	// [AK] If there's no commands, or the width or height are zero, then we can't draw anything.
