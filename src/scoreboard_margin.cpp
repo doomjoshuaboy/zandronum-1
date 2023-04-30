@@ -268,14 +268,17 @@ protected:
 			case PARAMETER_YOFFSET:
 			case PARAMETER_BOTTOMPADDING:
 			{
+				const bool bIsNegative = sc.CheckToken( '-' );
 				sc.MustGetToken( TK_IntConst );
 
+				const int value = bIsNegative ? -sc.Number : sc.Number;
+
 				if ( Parameter == PARAMETER_XOFFSET )
-					lXOffset = sc.Number;
+					lXOffset = value;
 				else if ( Parameter == PARAMETER_YOFFSET )
-					lYOffset = sc.Number;
+					lYOffset = value;
 				else
-					ulBottomPadding = MAX( sc.Number, 0 );
+					ulBottomPadding = MAX( value, 0 );
 
 				break;
 			}
