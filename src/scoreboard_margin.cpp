@@ -1083,7 +1083,10 @@ protected:
 			}
 		}
 
-		String.pLines = V_BreakLines( pFont, pParentMargin->GetWidth( ), text.GetChars( ));
+		// [AK] The x-offset must be accounted for when determining the largest possible line width.
+		// If the string is aligned to the center, then the x-offset must be doubled.
+		const ULONG ulMaxWidth = pParentMargin->GetWidth( ) - ( HorizontalAlignment == HORIZALIGN_CENTER ? 2 : 1 ) * abs( lXOffset );
+		String.pLines = V_BreakLines( pFont, ulMaxWidth, text.GetChars( ));
 		String.ulTotalHeight = 0;
 
 		// [AK] Determine the total height of the string.
