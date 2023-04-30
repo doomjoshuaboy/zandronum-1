@@ -2992,7 +2992,7 @@ void Scoreboard::Render( const ULONG ulDisplayPlayer, const float fAlpha )
 
 		// [AK] In team-based game modes, if the previous player is on a different team than
 		// the current player, leave a gap between both teams and make the row background light.
-		if (( ShouldSeparateTeams( )) && (( ulIdx == 0 ) || ( ulTeam != players[ulPlayerList[ulIdx - 1]].Team )))
+		if (( ShouldSeparateTeams( )) && ( players[ulPlayer].bOnTeam ) && (( ulIdx == 0 ) || ( ulTeam != players[ulPlayerList[ulIdx - 1]].Team )))
 		{
 			if ( ulIdx > 0 )
 			{
