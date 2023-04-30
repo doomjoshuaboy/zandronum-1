@@ -52,6 +52,8 @@
 #include <sys/utsname.h>
 #endif
 #include <map>
+#include <vector>
+#include <utility>
 #include "networkheaders.h"
 #include "c_dispatch.h"
 #include "cooperative.h"
@@ -79,6 +81,8 @@ struct LauncherResponseContext
 	BYTESTREAM_s *pByteStream;
 	// Corrected flags.
 	ULONG ulFlags, ulFlags2;
+	// Whether this is a segmented response.
+	bool bSegmented;
 };
 
 using LauncherFieldFunction = void(*)(const LauncherResponseContext &);
@@ -92,6 +96,9 @@ static	NETADDRESS_s		g_AddressMasterServer;
 
 // Message buffer for sending messages to the master server.
 static	NETBUFFER_s			g_MasterServerBuffer;
+
+// [SB] Work buffer for launcher fields. Made this a global to avoid allocating and freeing it each query.
+static	NETBUFFER_s			g_FieldWorkBuffer;
 
 // Port the master server is located on.
 static	USHORT				g_usMasterPort;
@@ -284,6 +291,15 @@ static void server_master_WriteNumPlayers( const LauncherResponseContext &ctx )
 //
 static void server_master_WritePlayerData( const LauncherResponseContext &ctx )
 {
+	// [SB] SQF_PLAYERDATA only sends a player's team field if the game uses teams, but the only
+	// other way for a launcher to reliably determine this is with SQF_TEAMINFO_*, which could
+	// be sent out-of-order when segmented. To solve this we send another bool here to indicate
+	// whether player teams are included.
+	if ( ctx.bSegmented )
+	{
+		ctx.pByteStream->WriteByte( !!( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS ) );
+	}
+
 	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
 		if ( playeringame[ulIdx] == false )
@@ -566,6 +582,10 @@ void SERVER_MASTER_Construct( void )
 			g_OptionalWadIndices.Push( i );
 	}
 
+	// [SB] Set up the field work buffer.
+	g_FieldWorkBuffer.Init( MAX_UDP_PACKET, BUFFERTYPE_WRITE );
+	g_FieldWorkBuffer.Clear();
+
 	// Call SERVER_MASTER_Destruct() when Skulltag closes.
 	atterm( SERVER_MASTER_Destruct );
 }
@@ -574,6 +594,9 @@ void SERVER_MASTER_Construct( void )
 //
 void SERVER_MASTER_Destruct( void )
 {
+	// [SB] Free the field work buffer.
+	g_FieldWorkBuffer.Free();
+
 	// Free our local buffer.
 	g_MasterServerBuffer.Free();
 }
@@ -677,14 +700,71 @@ void SERVER_MASTER_Broadcast( void )
 #endif
 
 	// Broadcast our packet.
-	SERVER_MASTER_SendServerInfo( AddressBroadcast, SQF_ALL, 0, SQF2_ALL, true );
+	SERVER_MASTER_SendServerInfo( AddressBroadcast, 0, SQF_ALL, SQF2_ALL, false, true );
 //	NETWORK_WriteLong( &g_MasterServerBuffer, MASTER_CHALLENGE );
 //	NETWORK_LaunchPacket( g_MasterServerBuffer, AddressBroadcast, true );
 }
 
 //*****************************************************************************
+// [SB] Segment stuff.
+struct FillInData
+{
+	BYTE *pHeader;
+	// (pointer, bits)
+	std::vector<std::pair<BYTE *, ULONG>> BitInfo;
+};
+
+static void server_master_PrepareSegment( const ULONG ulSegmentNumber, const ULONG ulTime, FillInData &fillIn )
+{
+	g_MasterServerBuffer.Clear();
+	g_MasterServerBuffer.ByteStream.WriteLong( SERVER_LAUNCHER_SEGMENTED_CHALLENGE );
+
+	// [SB] These will be filled in later:
+	fillIn = {};
+	fillIn.pHeader = g_MasterServerBuffer.ByteStream.pbStream;
+	g_MasterServerBuffer.ByteStream.WriteByte( 0 ); // Segment number. We know this now, but set the MSB if this is the last segment during flush.
+	g_MasterServerBuffer.ByteStream.WriteShort( 0 ); // Total uncompressed size of this packet.
+
+	// [SB] Additional info sent in the first segment.
+	if ( ulSegmentNumber == 0 )
+	{
+		g_MasterServerBuffer.ByteStream.WriteLong( ulTime );
+		g_MasterServerBuffer.ByteStream.WriteString( g_VersionWithOS.GetChars() );
+	}
+}
+
+static void server_master_FlushSegment( NETADDRESS_s Address, const FillInData &fillIn, ULONG &ulSegmentNumber, const bool bIsEnd )
+{
+	BYTE *ptr = g_MasterServerBuffer.ByteStream.pbStream;
+	const ULONG size = g_MasterServerBuffer.CalcSize();
+
+	// [SB] If this is the last segment, set the MSB.
+	if ( bIsEnd )
+	{
+		ulSegmentNumber |= LAUNCHER_LAST_SEGMENT;
+	}
+
+	// [SB] Fill in those fields.
+	g_MasterServerBuffer.ByteStream.pbStream = fillIn.pHeader;
+	g_MasterServerBuffer.ByteStream.WriteByte( ulSegmentNumber );
+	g_MasterServerBuffer.ByteStream.WriteShort( size );
+
+	for ( const auto &info : fillIn.BitInfo )
+	{
+		g_MasterServerBuffer.ByteStream.pbStream = info.first;
+		g_MasterServerBuffer.ByteStream.WriteLong( info.second );
+	}
+
+	g_MasterServerBuffer.ByteStream.pbStream = ptr;
+
+	NETWORK_LaunchPacket( &g_MasterServerBuffer, Address );
+
+	ulSegmentNumber++;
+}
+
+//*****************************************************************************
 //
-void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ulTime, ULONG ulFlags2, bool bBroadcasting )
+void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulTime, ULONG ulFlags, ULONG ulFlags2, bool bSendSegmentedResponse, bool bBroadcasting )
 {
 	IPStringArray szAddress;
 	ULONG		ulIdx;
@@ -759,15 +839,6 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 			Printf( "SERVER_MASTER_SendServerInfo: WARNING! g_lStoredQueryIPTail == g_lStoredQueryIPHead\n" );
 	}
 
-	// Write our header.
-	g_MasterServerBuffer.ByteStream.WriteLong( SERVER_LAUNCHER_CHALLENGE );
-
-	// Send the time the launcher sent to us.
-	g_MasterServerBuffer.ByteStream.WriteLong( ulTime );
-
-	// Send our version. [K6] ...with OS
-	g_MasterServerBuffer.ByteStream.WriteString( g_VersionWithOS.GetChars() );
-
 	// Send the information about the data that will be sent.
 	ulBits = ulFlags;
 
@@ -806,16 +877,45 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 		ulBits2 = ulFlags2;
 		ulBits2 &= SQF2_ALL;
 
-		// [SB] If there are no extended flags to return, don't send any extended info
-		if ( ulBits2 == 0 )
+		// [SB] Omit this field in segmented responses as we handle it automatically.
+		if ( ulBits2 == 0 || bSendSegmentedResponse )
 			ulBits &= ~SQF_EXTENDED_INFO;
 	}
 
 	const ULONG flags[] = { ulBits, ulBits2 }; // [SB] The bits for each field set we'll be sending.
 	ULONG ulCurrentSetNum = 0; // [SB] Current field set. 0 -> SQF_, 1 -> SQF2_
-	const LauncherResponseContext ctx{ &g_MasterServerBuffer.ByteStream, ulBits, ulBits2 };
 
-	g_MasterServerBuffer.ByteStream.WriteLong( ulBits );
+	ULONG ulSegmentNumber = 0;
+	bool bEmptySegment = true;
+	FillInData fillIn;
+	ULONG ulLastFieldSet = -1;
+
+	const LauncherResponseContext ctx
+	{ 
+		bSendSegmentedResponse ? &g_FieldWorkBuffer.ByteStream : &g_MasterServerBuffer.ByteStream,
+		ulBits, ulBits2,
+		bSendSegmentedResponse
+	};
+
+	// [SB] Prepare the initial segmented packet.
+	if ( bSendSegmentedResponse )
+	{
+		server_master_PrepareSegment( ulSegmentNumber, ulTime, fillIn );
+	}
+	// [SB] Send the single packet response.
+	else
+	{
+		// Write our header.
+		g_MasterServerBuffer.ByteStream.WriteLong( SERVER_LAUNCHER_CHALLENGE );
+
+		// Send the time the launcher sent to us.
+		g_MasterServerBuffer.ByteStream.WriteLong( ulTime );
+
+		// Send our version. [K6] ...with OS
+		g_MasterServerBuffer.ByteStream.WriteString( g_VersionWithOS.GetChars() );
+
+		g_MasterServerBuffer.ByteStream.WriteLong( ulBits );
+	}
 
 	// [SB] Reworked the packet assembly logic so that it tests each field and calls the relevant function,
 	// instead of being a giant list of bit-testing if statements.
@@ -833,6 +933,48 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 				const auto pFunction = map.at( ulField );
 				pFunction( ctx );
 			}
+
+			if ( bSendSegmentedResponse )
+			{
+				const ULONG ulFieldSize = g_FieldWorkBuffer.CalcSize();
+
+				if ( !bEmptySegment )
+				{
+					const ULONG ulSegmentSize = g_MasterServerBuffer.CalcSize();
+
+					// [SB] If it's too big, flush this segment and start a new one.
+					if ( ulSegmentSize + ulFieldSize > static_cast<ULONG>( sv_maxpacketsize ) )
+					{
+						server_master_FlushSegment( Address, fillIn, ulSegmentNumber, false );
+						server_master_PrepareSegment( ulSegmentNumber, ulTime, fillIn );
+						ulLastFieldSet = -1;
+					}
+				}
+
+				// [SB] If this field is from a different set than the last one,
+				// insert an SQF_EXTENDED_INFO field and prepare the next set.
+				if ( ulCurrentSetNum != ulLastFieldSet )
+				{
+					if ( !fillIn.BitInfo.empty() )
+					{
+						fillIn.BitInfo.back().second |= SQF_EXTENDED_INFO;
+					}
+
+					g_MasterServerBuffer.ByteStream.WriteByte( ulCurrentSetNum ); // [SB] Write the new field set number.
+
+					// [SB] And fill this in later:
+					fillIn.BitInfo.emplace_back( g_MasterServerBuffer.ByteStream.pbStream, 0 );
+					g_MasterServerBuffer.ByteStream.WriteLong( 0 ); // The flags in this set.
+				}
+
+				// [SB] Add this field to the current segment.
+				fillIn.BitInfo.back().second |= ulField;
+				g_MasterServerBuffer.ByteStream.WriteBuffer( g_FieldWorkBuffer.pbData, ulFieldSize );
+				g_FieldWorkBuffer.Clear();
+				bEmptySegment = false;
+			}
+
+			ulLastFieldSet = ulCurrentSetNum;
 		}
 
 		// [SB] We exhausted all the bits in this set.
@@ -856,7 +998,14 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 		}
 	}
 
-	NETWORK_LaunchPacket( &g_MasterServerBuffer, Address );
+	if ( bSendSegmentedResponse )
+	{
+		server_master_FlushSegment( Address, fillIn, ulSegmentNumber, true );
+	} 
+	else
+	{
+		NETWORK_LaunchPacket( &g_MasterServerBuffer, Address );
+	}
 }
 
 //*****************************************************************************
