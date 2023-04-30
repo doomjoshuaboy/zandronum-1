@@ -1584,6 +1584,7 @@ PlayerValue DataScoreColumn::GetValue( const ULONG ulPlayer ) const
 					I_Error( "DataScoreColumn::GetValue: custom column '%s' has no data.", GetInternalName( ));
 
 				Result = pData->GetValue( ulPlayer );
+				break;
 			}
 		}
 	}
