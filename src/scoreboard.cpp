@@ -1135,7 +1135,7 @@ void ScoreColumn::DrawTexture( FTexture *pTexture, const LONG lYPos, const ULONG
 bool ScoreColumn::CanDrawForPlayer( const ULONG ulPlayer ) const
 {
 	// [AK] Don't draw if the column's disabled, or the player's invalid.
-	if (( bDisabled ) || ( PLAYER_IsValidPlayer( ulPlayer ) == false ))
+	if (( pScoreboard == NULL ) || ( bDisabled ) || ( PLAYER_IsValidPlayer( ulPlayer ) == false ))
 		return false;
 
 	// [AK] Don't draw for true spectators if they're meant to be excluded.
@@ -1742,7 +1742,7 @@ void DataScoreColumn::UpdateWidth( void )
 
 void DataScoreColumn::DrawValue( const ULONG ulPlayer, const ULONG ulColor, const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const
 {
-	if (( pScoreboard == NULL ) || ( CanDrawForPlayer( ulPlayer ) == false ))
+	if ( CanDrawForPlayer( ulPlayer ) == false )
 		return;
 
 	PlayerValue Value = GetValue( ulPlayer );
@@ -1879,6 +1879,9 @@ PlayerValue CountryFlagScoreColumn::GetValue( const ULONG ulPlayer ) const
 
 void CountryFlagScoreColumn::DrawValue( const ULONG ulPlayer, const ULONG ulColor, const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const
 {
+	if ( CanDrawForPlayer( ulPlayer ) == false )
+		return;
+
 	if (( pFlagIconSet != NULL ) && ( players[ulPlayer].ulCountryIndex <= COUNTRYINDEX_LAN ))
 	{
 		const int leftOffset = ( players[ulPlayer].ulCountryIndex % NUM_FLAGS_PER_SIDE ) * ulFlagWidth;
@@ -2090,7 +2093,7 @@ void CompositeScoreColumn::DrawValue( const ULONG ulPlayer, const ULONG ulColor,
 {
 	PlayerValue Value;
 
-	if (( pScoreboard == NULL ) || ( CanDrawForPlayer( ulPlayer ) == false ))
+	if ( CanDrawForPlayer( ulPlayer ) == false )
 		return;
 
 	const bool bIsTrueSpectator = PLAYER_IsTrueSpectator( &players[ulPlayer] );
