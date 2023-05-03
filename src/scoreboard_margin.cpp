@@ -65,11 +65,11 @@ EXTERN_CVAR( Bool, con_scaletext_usescreenratio )
 //	DEFINITIONS
 
 // What kind of parameter is this?
-#define PARAMETER_CONSTANT		0
-// Which command can this parameter be used in?
-#define COMMAND_CONSTANT		1
+#define WHICH_PARAMETER			0
 // Must this parameter be initialized?
-#define MUST_BE_INITIALIZED		2
+#define MUST_BE_INITIALIZED		1
+// Which command(s) can this parameter be used in?
+#define USABLE_COMMANDS			2
 
 //*****************************************************************************
 //
@@ -122,20 +122,20 @@ enum COMMAND_e
 //	VARIABLES
 
 // [AK] A map of all of the parameters used by DrawBaseCommand and its derivatives.
-static const std::map<FName, std::tuple<PARAMETER_e, COMMAND_e, bool>> g_NamedParameters =
+static const std::map<FName, std::tuple<PARAMETER_e, bool, std::set<COMMAND_e>>> g_NamedParameters =
 {
-	{ "value",				{ PARAMETER_VALUE,			COMMAND_ALL,		true  }},
-	{ "x",					{ PARAMETER_XOFFSET,		COMMAND_ALL,		false }},
-	{ "y",					{ PARAMETER_YOFFSET,		COMMAND_ALL,		false }},
-	{ "horizontalalign",	{ PARAMETER_HORIZALIGN,		COMMAND_ALL,		false }},
-	{ "verticalalign",		{ PARAMETER_VERTALIGN,		COMMAND_ALL,		false }},
-	{ "bottompadding",		{ PARAMETER_BOTTOMPADDING,	COMMAND_ALL,		false }},
-	{ "alpha",				{ PARAMETER_ALPHA,			COMMAND_ALL,		false }},
-	{ "font",				{ PARAMETER_FONT,			COMMAND_STRING,		false }},
-	{ "textcolor",			{ PARAMETER_TEXTCOLOR,		COMMAND_STRING,		false }},
-	{ "gapsize",			{ PARAMETER_GAPSIZE,		COMMAND_STRING,		false }},
-	{ "width",				{ PARAMETER_WIDTH,			COMMAND_COLOR,		true  }},
-	{ "height",				{ PARAMETER_HEIGHT,			COMMAND_COLOR,		true  }},
+	{ "value",				{ PARAMETER_VALUE,			true,	{ COMMAND_STRING, COMMAND_COLOR, COMMAND_TEXTURE }}},
+	{ "x",					{ PARAMETER_XOFFSET,		false,	{ COMMAND_ALL }}},
+	{ "y",					{ PARAMETER_YOFFSET,		false,	{ COMMAND_ALL }}},
+	{ "horizontalalign",	{ PARAMETER_HORIZALIGN,		false,	{ COMMAND_ALL }}},
+	{ "verticalalign",		{ PARAMETER_VERTALIGN,		false,	{ COMMAND_ALL }}},
+	{ "bottompadding",		{ PARAMETER_BOTTOMPADDING,	false,	{ COMMAND_ALL }}},
+	{ "alpha",				{ PARAMETER_ALPHA,			false,	{ COMMAND_ALL }}},
+	{ "font",				{ PARAMETER_FONT,			false,	{ COMMAND_STRING }}},
+	{ "textcolor",			{ PARAMETER_TEXTCOLOR,		false,	{ COMMAND_STRING }}},
+	{ "gapsize",			{ PARAMETER_GAPSIZE,		false,	{ COMMAND_STRING }}},
+	{ "width",				{ PARAMETER_WIDTH,			true,	{ COMMAND_COLOR }}},
+	{ "height",				{ PARAMETER_HEIGHT,			true,	{ COMMAND_COLOR }}},
 };
 
 //*****************************************************************************
@@ -178,11 +178,10 @@ public:
 			if ( parameter == g_NamedParameters.end( ))
 				sc.ScriptError( "Unknown parameter '%s'.", sc.String );
 
-			const PARAMETER_e ParameterConstant = std::get<PARAMETER_CONSTANT>( parameter->second );
-			const COMMAND_e CommandConstant = std::get<COMMAND_CONSTANT>( parameter->second );
+			const PARAMETER_e ParameterConstant = std::get<WHICH_PARAMETER>( parameter->second );
 
 			// [AK] Make sure that the parameter can be used by this command.
-			if (( CommandConstant != COMMAND_ALL ) && ( CommandConstant != Command ))
+			if ( CanUseParameter( parameter->first ) == false )
 				sc.ScriptError( "Parameter '%s' cannot be used inside this command.", sc.String );
 
 			// [AK] Don't allow the same parameter to be initialized more than once.
@@ -202,15 +201,10 @@ public:
 		// [AK] Throw an error if there are parameters that were supposed to be initialized, but aren't.
 		for ( auto it = g_NamedParameters.begin( ); it != g_NamedParameters.end( ); it++ )
 		{
-			const PARAMETER_e ParameterConstant = std::get<PARAMETER_CONSTANT>( it->second );
-			const COMMAND_e CommandConstant = std::get<COMMAND_CONSTANT>( it->second );
-
-			// [AK] If this is a DrawMultiLineBlock command, skip the value parameter.
-			if (( ParameterConstant == PARAMETER_VALUE ) && ( Command == COMMAND_MULTILINE ))
-				continue;
+			const PARAMETER_e ParameterConstant = std::get<WHICH_PARAMETER>( it->second );
 
 			// [AK] Skip parameters that aren't associated with this command.
-			if (( CommandConstant != COMMAND_ALL ) && ( CommandConstant != Command ))
+			if ( CanUseParameter( it->first ) == false )
 				continue;
 
 			if (( std::get<MUST_BE_INITIALIZED>( it->second )) && ( bParameterInitialized[ParameterConstant] == false ))
@@ -413,7 +407,6 @@ protected:
 		}
 	}
 
-	const COMMAND_e Command;
 	DrawMultiLineBlock *const pMultiLineBlock;
 	HORIZALIGN_e HorizontalAlignment;
 	VERTALIGN_e VerticalAlignment;
@@ -424,6 +417,32 @@ protected:
 
 	// [AK] Let the DrawMultiLineBlock class have access to this class's protected members.
 	friend class DrawMultiLineBlock;
+
+private:
+
+	//*************************************************************************
+	//
+	// [AK] Checks if this command can use the given parameter.
+	//
+	//*************************************************************************
+
+	bool CanUseParameter( const FName ParameterName )
+	{
+		auto parameter = g_NamedParameters.find( ParameterName );
+
+		if ( parameter == g_NamedParameters.end( ))
+			return false;
+
+		const std::set<COMMAND_e> &set = std::get<USABLE_COMMANDS>( parameter->second );
+
+		// [AK] If the set contains COMMAND_ALL, then the parameter is usable by all commands.
+		if (( set.find( COMMAND_ALL ) != set.end( )) || ( set.find( Command ) != set.end( )))
+			return true;
+
+		return false;
+	}
+
+	const COMMAND_e Command;
 };
 
 //*****************************************************************************
@@ -542,21 +561,6 @@ public:
 	}
 
 protected:
-
-	//*************************************************************************
-	//
-	// [AK] Ensures that this command can't define the value parameter.
-	//
-	//*************************************************************************
-
-	virtual void ParseParameter( FScanner &sc, const FName ParameterName, const PARAMETER_e Parameter )
-	{
-		if ( Parameter == PARAMETER_VALUE )
-			sc.ScriptError( "Parameter '%s' cannot be used by 'DrawMultiLineBlock' commands.", ParameterName.GetChars( ));
-
-		DrawBaseCommand::ParseParameter( sc, ParameterName, Parameter );
-	}
-
 	ScoreMargin::CommandBlock Block;
 	TArray<DrawBaseCommand *> CommandsToDraw;
 };
