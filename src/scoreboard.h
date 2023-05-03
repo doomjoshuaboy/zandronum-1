@@ -423,7 +423,7 @@ private:
 class ScoreMargin
 {
 public:
-	// [AK] A base class for all boundary commands in SCORINFO.
+	// [AK] A base class for all margin commands in SCORINFO.
 	class BaseCommand
 	{
 	public:
@@ -437,8 +437,24 @@ public:
 		ScoreMargin *const pParentMargin;
 	};
 
+	// [AK] A block of margin commands in-between braces.
+	class CommandBlock
+	{
+	public:
+		~CommandBlock( void ) { Clear( ); }
+
+		void ParseCommands( FScanner &sc, ScoreMargin *pMargin );
+		void Clear( void );
+		void Refresh( const ULONG ulDisplayPlayer );
+		void Draw( const ULONG ulDisplayPlayer, const ULONG ulTeam, const LONG lYPos, const float fAlpha ) const;
+
+		inline bool HasCommands( void ) const { return ( Commands.Size( ) > 0 ); }
+
+	private:
+		TArray<BaseCommand *> Commands;
+	};
+
 	ScoreMargin( MARGINTYPE_e MarginType, const char *pszName );
-	~ScoreMargin( void ) { ClearCommands( ); }
 
 	MARGINTYPE_e GetType( void ) const { return Type; }
 	const char *GetName( void ) const { return Name.GetChars( ); }
@@ -449,15 +465,11 @@ public:
 	void Refresh( const ULONG ulDisplayPlayer, const ULONG ulNewWidth );
 	void Render( const ULONG ulDisplayPlayer, const ULONG ulTeam, LONG &lYPos, const float fAlpha ) const;
 
-	static BaseCommand *CreateCommand( FScanner &sc, ScoreMargin *pMargin );
-
 	// [AK] Indicates that this margin is drawing for no team.
 	const static unsigned int NO_TEAM = UCHAR_MAX;
 
 private:
-	void ClearCommands( void );
-
-	TArray<BaseCommand *> Commands;
+	CommandBlock Block;
 	const MARGINTYPE_e Type;
 	const FName Name;
 	ULONG ulWidth;

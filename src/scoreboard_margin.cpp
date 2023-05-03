@@ -443,21 +443,6 @@ public:
 
 	//*************************************************************************
 	//
-	// [AK] Deletes all nested commands from memory.
-	//
-	//*************************************************************************
-
-	~DrawMultiLineBlock( void )
-	{
-		for ( unsigned int i = 0; i < Commands.Size( ); i++ )
-		{
-			delete Commands[i];
-			Commands[i] = NULL;
-		}
-	}
-
-	//*************************************************************************
-	//
 	// [AK] Starts a block and parses new margin commands inside it.
 	//
 	//*************************************************************************
@@ -465,10 +450,7 @@ public:
 	virtual void Parse( FScanner &sc )
 	{
 		DrawBaseCommand::Parse( sc );
-		sc.MustGetToken( '{' );
-
-		while ( sc.CheckToken( '}' ) == false )
-			Commands.Push( ScoreMargin::CreateCommand( sc, pParentMargin ));
+		Block.ParseCommands( sc, pParentMargin );
 	}
 
 	//*************************************************************************
@@ -482,9 +464,7 @@ public:
 	{
 		CommandsToDraw.Clear( );
 
-		for ( unsigned int i = 0; i < Commands.Size( ); i++ )
-			Commands[i]->Refresh( ulDisplayPlayer );
-
+		Block.Refresh( ulDisplayPlayer );
 		DrawBaseCommand::Refresh( ulDisplayPlayer );
 	}
 
@@ -577,7 +557,7 @@ protected:
 		DrawBaseCommand::ParseParameter( sc, ParameterName, Parameter );
 	}
 
-	TArray<BaseCommand *> Commands;
+	ScoreMargin::CommandBlock Block;
 	TArray<DrawBaseCommand *> CommandsToDraw;
 };
 
@@ -1401,62 +1381,17 @@ public:
 
 	//*************************************************************************
 	//
-	// [AK] Deletes all nested commands from memory.
-	//
-	//*************************************************************************
-
-	~FlowControlBaseCommand( void )
-	{
-		for ( unsigned int i = 0; i < 2; i++ )
-		{
-			for ( unsigned int j = 0; j < Commands[i].Size( ); j++ )
-			{
-				delete Commands[i][j];
-				Commands[i][j] = NULL;
-			}
-		}
-	}
-
-	//*************************************************************************
-	//
 	// [AK] Parses new margin commands inside the "if" or "else" blocks.
 	//
 	//*************************************************************************
 
 	virtual void Parse( FScanner &sc )
 	{
-		bool bNotInElseBlock = true;
-
 		sc.MustGetToken( ')' );
-		sc.MustGetToken( '{' );
+		ParseBlock( sc, true );
 
-		while ( true )
-		{
-			if ( sc.CheckToken( '}' ))
-			{
-				// [AK] There needs to be at least one command inside a block in order to continue.
-				if ( Commands[bNotInElseBlock].Size( ) == 0 )
-					sc.ScriptError( "This flow control command has no commands inside a block!" );
-
-				if ( sc.CheckToken( TK_Else ))
-				{
-					// [AK] We can't have more than one else block.
-					if ( bNotInElseBlock == false )
-						sc.ScriptError( "This flow control command has more than one 'else' block!" );
-
-					sc.MustGetToken( '{' );
-
-					bNotInElseBlock = false;
-					continue;
-				}
-
-				break;
-			}
-			else
-			{
-				Commands[bNotInElseBlock].Push( ScoreMargin::CreateCommand( sc, pParentMargin ));
-			}
-		}
+		if ( sc.CheckToken( TK_Else ))
+			ParseBlock( sc, false );
 	}
 
 	//*************************************************************************
@@ -1469,9 +1404,7 @@ public:
 	virtual void Refresh( const ULONG ulDisplayPlayer )
 	{
 		bResult = EvaluateCondition( ulDisplayPlayer );
-
-		for ( unsigned int i = 0; i < Commands[bResult].Size( ); i++ )
-			Commands[bResult][i]->Refresh( ulDisplayPlayer );
+		Blocks[bResult].Refresh( ulDisplayPlayer );
 	}
 
 	//*************************************************************************
@@ -1483,15 +1416,30 @@ public:
 
 	virtual void Draw( const ULONG ulDisplayPlayer, const ULONG ulTeam, const LONG lYPos, const float fAlpha ) const
 	{
-		for ( unsigned int i = 0; i < Commands[bResult].Size( ); i++ )
-			Commands[bResult][i]->Draw( ulDisplayPlayer, ulTeam, lYPos, fAlpha );
+		Blocks[bResult].Draw( ulDisplayPlayer, ulTeam, lYPos, fAlpha );
 	}
 
 protected:
 	virtual bool EvaluateCondition( const ULONG ulDisplayPlayer ) = 0;
 
 private:
-	TArray<BaseCommand *> Commands[2];
+
+	//*************************************************************************
+	//
+	// [AK] Parses the "true" or "false" blocks.
+	//
+	//*************************************************************************
+
+	void ParseBlock( FScanner &sc, const bool bWhichBlock )
+	{
+		Blocks[bWhichBlock].ParseCommands( sc, pParentMargin );
+
+		// [AK] There needs to be at least one command inside the block.
+		if ( Blocks[bWhichBlock].HasCommands( ) == false )
+			sc.ScriptError( "This flow control command has no commands inside a block!" );
+	}
+
+	ScoreMargin::CommandBlock Blocks[2];
 	bool bResult;
 };
 
@@ -1915,6 +1863,139 @@ ScoreMargin::BaseCommand::BaseCommand( ScoreMargin *pMargin ) : pParentMargin( p
 
 //*****************************************************************************
 //
+// [AK] ScoreMargin::CommandBlock::ParseCommand
+//
+// A "factory" function that's starts a block and creates new margin commands.
+//
+//*****************************************************************************
+
+void ScoreMargin::CommandBlock::ParseCommands( FScanner &sc, ScoreMargin *pMargin )
+{
+	Commands.Clear( );
+	sc.MustGetToken( '{' );
+
+	while ( sc.CheckToken( '}' ) == false )
+	{
+		const MARGINCMD_e Command = static_cast<MARGINCMD_e>( sc.MustGetEnumName( "margin command", "MARGINCMD_", GetValueMARGINCMD_e ));
+		ScoreMargin::BaseCommand *pNewCommand = NULL;
+
+		// [AK] A pointer to the DrawMultiLineBlock command that we're in the middle of parsing.
+		static DrawMultiLineBlock *pMultiLineBlock = NULL;
+		bool bIsMultiLineBlock = false;
+
+		switch ( Command )
+		{
+			case MARGINCMD_DRAWMULTILINEBLOCK:
+			{
+				// [AK] DrawMultiLineBlock commands can't be nested inside each other.
+				if ( pMultiLineBlock != NULL )
+					sc.ScriptError( "A 'DrawMultiLineBlock' command cannot be created inside another one." );
+
+				pNewCommand = new DrawMultiLineBlock( pMargin );
+				pMultiLineBlock = static_cast<DrawMultiLineBlock *>( pNewCommand );
+				bIsMultiLineBlock = true;
+				break;
+			}
+
+			case MARGINCMD_DRAWSTRING:
+				pNewCommand = new DrawString( pMargin, pMultiLineBlock );
+				break;
+
+			case MARGINCMD_DRAWCOLOR:
+				pNewCommand = new DrawColor( pMargin, pMultiLineBlock );
+				break;
+
+			case MARGINCMD_DRAWTEXTURE:
+				pNewCommand = new DrawTexture( pMargin, pMultiLineBlock );
+				break;
+
+			case MARGINCMD_IFONLINEGAME:
+			case MARGINCMD_IFINTERMISSION:
+			case MARGINCMD_IFPLAYERSONTEAMS:
+			case MARGINCMD_IFPLAYERSHAVELIVES:
+			case MARGINCMD_IFSHOULDSHOWRANK:
+				pNewCommand = new TrueOrFalseFlowControl( pMargin, Command );
+				break;
+
+			case MARGINCMD_IFGAMEMODE:
+				pNewCommand = new IfGameModeFlowControl( pMargin );
+				break;
+
+			case MARGINCMD_IFGAMETYPE:
+			case MARGINCMD_IFEARNTYPE:
+				pNewCommand = new IfGameOrEarnTypeFlowControl( pMargin, Command == MARGINCMD_IFGAMETYPE );
+				break;
+
+			case MARGINCMD_IFCVAR:
+				pNewCommand = new IfCVarFlowControl( pMargin );
+				break;
+		}
+
+		// [AK] If the command wasn't created, then something went wrong.
+		if ( pNewCommand == NULL )
+			sc.ScriptError( "Couldn't create margin command '%s'.", sc.String );
+
+		// [AK] A command's arguments must always be prepended by a '('.
+		sc.MustGetToken( '(' );
+		pNewCommand->Parse( sc );
+
+		// [AK] Are we done parsing the current DrawMultiLineBlock command?
+		if ( bIsMultiLineBlock )
+			pMultiLineBlock = NULL;
+
+		Commands.Push( pNewCommand );
+	}
+}
+
+//*****************************************************************************
+//
+// [AK] ScoreMargin::CommandBlock::Clear
+//
+// Deletes all of the commands from memory.
+//
+//*****************************************************************************
+
+void ScoreMargin::CommandBlock::Clear( void )
+{
+	for ( unsigned int i = 0; i < Commands.Size( ); i++ )
+	{
+		delete Commands[i];
+		Commands[i] = NULL;
+	}
+
+	Commands.Clear( );
+}
+
+//*****************************************************************************
+//
+// [AK] ScoreMargin::CommandBlock::Refresh
+//
+// Invokes the refresh function on all of the listed commands.
+//
+//*****************************************************************************
+
+void ScoreMargin::CommandBlock::Refresh( const ULONG ulDisplayPlayer )
+{
+	for ( unsigned int i = 0; i < Commands.Size( ); i++ )
+		Commands[i]->Refresh( ulDisplayPlayer );
+}
+
+//*****************************************************************************
+//
+// [AK] ScoreMargin::CommandBlock::Draw
+//
+// Invokes the draw function on all of the listed commands.
+//
+//*****************************************************************************
+
+void ScoreMargin::CommandBlock::Draw( const ULONG ulDisplayPlayer, const ULONG ulTeam, const LONG lYPos, const float fAlpha ) const
+{
+	for ( unsigned int i = 0; i < Commands.Size( ); i++ )
+		Commands[i]->Draw( ulDisplayPlayer, ulTeam, lYPos, fAlpha );
+}
+
+//*****************************************************************************
+//
 // [AK] DrawBaseCommand::DrawBaseCommand
 //
 // Initializes a DrawBaseCommand object.
@@ -1986,25 +2067,21 @@ ScoreMargin::ScoreMargin( MARGINTYPE_e MarginType, const char *pszName ) :
 
 void ScoreMargin::Parse( FScanner &sc )
 {
-	ClearCommands( );
-	sc.MustGetToken( '{' );
-
-	while ( sc.CheckToken( '}' ) == false )
-		Commands.Push( CreateCommand( sc, this ));
+	Block.ParseCommands( sc, this );
 }
 
 //*****************************************************************************
 //
 // [AK] ScoreMargin::Refresh
 //
-// Updates the margin's width and height, then refreshes its command list.
+// Updates the margin's width and height, then refreshes all commands.
 //
 //*****************************************************************************
 
 void ScoreMargin::Refresh( const ULONG ulDisplayPlayer, const ULONG ulNewWidth )
 {
 	// [AK] If there's no commands, then don't do anything.
-	if ( Commands.Size( ) == 0 )
+	if ( Block.HasCommands( ) == false )
 		return;
 
 	// [AK] Never accept a width of zero, throw a fatal error if this happens.
@@ -2014,8 +2091,7 @@ void ScoreMargin::Refresh( const ULONG ulDisplayPlayer, const ULONG ulNewWidth )
 	ulWidth = ulNewWidth;
 	ulHeight = 0;
 
-	for ( unsigned int i = 0; i < Commands.Size( ); i++ )
-		Commands[i]->Refresh( ulDisplayPlayer );
+	Block.Refresh( ulDisplayPlayer );
 }
 
 //*****************************************************************************
@@ -2043,110 +2119,9 @@ void ScoreMargin::Render( const ULONG ulDisplayPlayer, const ULONG ulTeam, LONG 
 	}
 
 	// [AK] If there's no commands, or the width or height are zero, then we can't draw anything.
-	if (( Commands.Size( ) == 0 ) || ( ulWidth == 0 ) || ( ulHeight == 0 ))
+	if (( Block.HasCommands( ) == false ) || ( ulWidth == 0 ) || ( ulHeight == 0 ))
 		return;
 
-	for ( unsigned int i = 0; i < Commands.Size( ); i++ )
-		Commands[i]->Draw( ulDisplayPlayer, ulTeam, lYPos, fAlpha );
-
+	Block.Draw( ulDisplayPlayer, ulTeam, lYPos, fAlpha );
 	lYPos += ulHeight;
-}
-
-//*****************************************************************************
-//
-// [AK] ScoreMargin::CreateCommand
-//
-// A "factory" function that's responsible for creating new margin commands.
-//
-//*****************************************************************************
-
-ScoreMargin::BaseCommand *ScoreMargin::CreateCommand( FScanner &sc, ScoreMargin *pMargin )
-{
-	const MARGINCMD_e Command = static_cast<MARGINCMD_e>( sc.MustGetEnumName( "margin command", "MARGINCMD_", GetValueMARGINCMD_e ));
-	ScoreMargin::BaseCommand *pNewCommand = NULL;
-
-	// [AK] A pointer to the DrawMultiLineBlock command that we're in the middle of parsing.
-	static DrawMultiLineBlock *pMultiLineBlock = NULL;
-	bool bIsMultiLineBlock = false;
-
-	switch ( Command )
-	{
-		case MARGINCMD_DRAWMULTILINEBLOCK:
-		{
-			// [AK] DrawMultiLineBlock commands can't be nested inside each other.
-			if ( pMultiLineBlock != NULL )
-				sc.ScriptError( "A 'DrawMultiLineBlock' command cannot be created inside another one." );
-
-			pNewCommand = new DrawMultiLineBlock( pMargin );
-			pMultiLineBlock = static_cast<DrawMultiLineBlock *>( pNewCommand );
-			bIsMultiLineBlock = true;
-			break;
-		}
-
-		case MARGINCMD_DRAWSTRING:
-			pNewCommand = new DrawString( pMargin, pMultiLineBlock );
-			break;
-
-		case MARGINCMD_DRAWCOLOR:
-			pNewCommand = new DrawColor( pMargin, pMultiLineBlock );
-			break;
-
-		case MARGINCMD_DRAWTEXTURE:
-			pNewCommand = new DrawTexture( pMargin, pMultiLineBlock );
-			break;
-
-		case MARGINCMD_IFONLINEGAME:
-		case MARGINCMD_IFINTERMISSION:
-		case MARGINCMD_IFPLAYERSONTEAMS:
-		case MARGINCMD_IFPLAYERSHAVELIVES:
-		case MARGINCMD_IFSHOULDSHOWRANK:
-			pNewCommand = new TrueOrFalseFlowControl( pMargin, Command );
-			break;
-
-		case MARGINCMD_IFGAMEMODE:
-			pNewCommand = new IfGameModeFlowControl( pMargin );
-			break;
-
-		case MARGINCMD_IFGAMETYPE:
-		case MARGINCMD_IFEARNTYPE:
-			pNewCommand = new IfGameOrEarnTypeFlowControl( pMargin, Command == MARGINCMD_IFGAMETYPE );
-			break;
-
-		case MARGINCMD_IFCVAR:
-			pNewCommand = new IfCVarFlowControl( pMargin );
-			break;
-	}
-
-	// [AK] If the command wasn't created, then something went wrong.
-	if ( pNewCommand == NULL )
-		sc.ScriptError( "Couldn't create margin command '%s'.", sc.String );
-
-	// [AK] A command's arguments must always be prepended by a '('.
-	sc.MustGetToken( '(' );
-	pNewCommand->Parse( sc );
-
-	// [AK] Are we done parsing the current DrawMultiLineBlock command?
-	if ( bIsMultiLineBlock )
-		pMultiLineBlock = NULL;
-
-	return pNewCommand;
-}
-
-//*****************************************************************************
-//
-// [AK] ScoreMargin::ClearCommands
-//
-// Deletes all of the margin's commands from memory.
-//
-//*****************************************************************************
-
-void ScoreMargin::ClearCommands( void )
-{
-	for ( unsigned int i = 0; i < Commands.Size( ); i++ )
-	{
-		delete Commands[i];
-		Commands[i] = NULL;
-	}
-
-	Commands.Clear( );
 }
