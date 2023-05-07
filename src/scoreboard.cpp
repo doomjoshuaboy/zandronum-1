@@ -2845,7 +2845,7 @@ void Scoreboard::UpdateWidth( void )
 
 	// [AK] Add the gaps between each of the active columns and the background border size to the total width.
 	ulWidth += ( ulNumActiveColumns - 1 ) * ulGapBetweenColumns + 2 * ulBackgroundBorderSize;
-	lRelX = ( HUD_GetWidth( ) - ulWidth ) / 2;
+	lRelX = ( HUD_GetWidth( ) - static_cast<LONG>( ulWidth )) / 2;
 
 	LONG lCurXPos = lRelX + ulBackgroundBorderSize;
 
@@ -2938,7 +2938,7 @@ void Scoreboard::UpdateHeight( const ULONG ulDisplayPlayer )
 	Footer.Refresh( ulDisplayPlayer, ulWidthWithoutBorder );
 	ulHeight += Footer.GetHeight( );
 
-	lRelY = ( HUD_GetHeight( ) - ulHeight ) / 2;
+	lRelY = ( HUD_GetHeight( ) - static_cast<LONG>( ulHeight )) / 2;
 }
 
 //*****************************************************************************
