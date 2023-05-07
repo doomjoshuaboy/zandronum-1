@@ -971,15 +971,17 @@ void ScoreColumn::UpdateWidth( void )
 	if ((( ulFlags & COLUMNFLAG_DONTSHOWHEADER ) == false ) && ( pScoreboard->pHeaderFont != NULL ))
 		ulHeaderWidth = pScoreboard->pHeaderFont->StringWidth( bUseShortName ? ShortName.GetChars( ) : DisplayName.GetChars( ));
 
+	ulShortestWidth = MAX( ulShortestWidth, ulHeaderWidth );
+
 	// [AK] Always use the shortest (or header) width if required. In this case,
 	// the sizing is added onto the shortest width as padding instead.
 	if ( ulFlags & COLUMNFLAG_ALWAYSUSESHORTESTWIDTH )
-		ulWidth = MAX( ulShortestWidth, ulHeaderWidth ) + ulSizing;
+		ulWidth = ulShortestWidth + ulSizing;
 	// [AK] Otherwise, set the column's width to whichever is bigger: the sizing
 	// (which becomes the default width of the column), the shortest width, or
 	// the header's width.
 	else
-		ulWidth = MAX( ulSizing, MAX( ulShortestWidth, ulHeaderWidth ));
+		ulWidth = MAX( ulSizing, ulShortestWidth );
 
 	// [AK] If the column's width is still zero, just disable it.
 	if ( ulWidth == 0 )
@@ -2827,6 +2829,7 @@ void Scoreboard::UpdateWidth( void )
 {
 	const ULONG ulGameModeFlags = GAMEMODE_GetCurrentFlags( );
 	ULONG ulNumActiveColumns = 0;
+	ULONG ulShortestWidthOfAllColumns = 0;
 
 	ulWidth = 0;
 
@@ -2836,6 +2839,7 @@ void Scoreboard::UpdateWidth( void )
 			continue;
 
 		ulWidth += ColumnOrder[i]->GetWidth( );
+		ulShortestWidthOfAllColumns += ColumnOrder[i]->GetShortestWidth( );
 		ulNumActiveColumns++;
 	}
 
@@ -2843,8 +2847,46 @@ void Scoreboard::UpdateWidth( void )
 	if ( ulWidth == 0 )
 		return;
 
+	const ULONG ulExtraSpace = ( ulNumActiveColumns - 1 ) * ulGapBetweenColumns + 2 * ulBackgroundBorderSize;
+
 	// [AK] Add the gaps between each of the active columns and the background border size to the total width.
-	ulWidth += ( ulNumActiveColumns - 1 ) * ulGapBetweenColumns + 2 * ulBackgroundBorderSize;
+	ulWidth += ulExtraSpace;
+
+	// [AK] If the scoreboard is too wide, try shrinking the columns as much as possible.
+	if ( ulWidth > static_cast<ULONG>( HUD_GetWidth( )))
+	{
+		// [AK] Choose whichever's bigger: the shortest combined width of all active columns, or the width of
+		// the screen minus the extra space.
+		const ULONG ulShortestPossibleWidth = MAX<ULONG>( ulShortestWidthOfAllColumns, HUD_GetWidth( ) - ulExtraSpace );
+		const ULONG ulWidthWithoutSpace = ulWidth - ulExtraSpace;
+
+		// [AK] If we're able to shrink down any active columns, then re-adjust their widths as necessary.
+		if ( ulShortestPossibleWidth < ulWidthWithoutSpace )
+		{
+			const ULONG ulMinWidthDiff = ulWidthWithoutSpace - ulShortestPossibleWidth;
+			const ULONG ulMaxWidthDiff = ulWidthWithoutSpace - ulShortestWidthOfAllColumns;
+
+			ulWidth = ulExtraSpace;
+
+			for ( unsigned int i = 0; i < ColumnOrder.Size( ); i++ )
+			{
+				if ( ColumnOrder[i]->IsDisabled( ))
+					continue;
+
+				// [AK] Only re-adjust columns that can be shrunken down.
+				if ( ColumnOrder[i]->GetShortestWidth( ) < ColumnOrder[i]->GetWidth( ))
+				{
+					const ULONG ulColumnWidthDiff = ColumnOrder[i]->GetWidth( ) - ColumnOrder[i]->GetShortestWidth( );
+					const float fScale = static_cast<float>( ulColumnWidthDiff ) / static_cast<float>( ulMaxWidthDiff );
+
+					ColumnOrder[i]->ulWidth -= static_cast<ULONG>( ulMinWidthDiff * fScale );
+				}
+
+				ulWidth += ColumnOrder[i]->GetWidth( );
+			}
+		}
+	}
+
 	lRelX = ( HUD_GetWidth( ) - static_cast<LONG>( ulWidth )) / 2;
 
 	LONG lCurXPos = lRelX + ulBackgroundBorderSize;
