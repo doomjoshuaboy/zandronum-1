@@ -511,8 +511,8 @@ public:
 
 			CommandsToDraw[i]->Draw( ulDisplayPlayer, ulTeam, Pos.Y, fCombinedAlpha );
 
-			// [AK] Shift the y-position based on the command's height and y-offset.
-			Pos.Y += ulContentHeight + CommandsToDraw[i]->lYOffset;
+			// [AK] Shift the y-position based on the command's height.
+			Pos.Y += ulContentHeight;
 		}
 	}
 
@@ -534,7 +534,7 @@ public:
 			if ( ulContentHeight == 0 )
 				continue;
 
-			ulTotalHeight += ulContentHeight + CommandsToDraw[i]->lYOffset;
+			ulTotalHeight += ulContentHeight;
 		}
 
 		// [AK] Include the bottom padding only when the total height isn't zero.
