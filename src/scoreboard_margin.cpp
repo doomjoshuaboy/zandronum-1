@@ -144,20 +144,17 @@ static const std::map<FName, std::tuple<PARAMETER_e, bool, std::set<COMMAND_e>>>
 //*****************************************************************************
 //*****************************************************************************
 //
-// [AK] DrawBaseCommand
+// [AK] ElementBaseCommand
 //
-// An abstract class that is shared by all margin commands that are responsible
-// for drawing something.
+// An abstract class for all margin commands that should appear on the screen.
 //
 //*****************************************************************************
 //*****************************************************************************
 
-class DrawMultiLineBlock;
-
-class DrawBaseCommand : public ScoreMargin::BaseCommand
+class ElementBaseCommand : public ScoreMargin::BaseCommand
 {
 public:
-	DrawBaseCommand( ScoreMargin *pMargin, COMMAND_e Type, DrawMultiLineBlock *pBlock );
+	ElementBaseCommand( ScoreMargin *pMargin, BaseCommand *pParentCommand, COMMAND_e Type );
 
 	//*************************************************************************
 	//
@@ -169,34 +166,38 @@ public:
 	{
 		bool bParameterInitialized[NUM_PARAMETERS] = { false };
 
-		do
+		// [AK] If there's already a parenthesis, then don't scan for the parameters.
+		if ( sc.CheckToken( ')' ) == false )
 		{
-			sc.MustGetToken( TK_Identifier );
-			auto parameter = g_NamedParameters.find( sc.String );
+			do
+			{
+				sc.MustGetToken( TK_Identifier );
+				auto parameter = g_NamedParameters.find( sc.String );
 
-			// [AK] Make sure that the user entered a valid parameter.
-			if ( parameter == g_NamedParameters.end( ))
-				sc.ScriptError( "Unknown parameter '%s'.", sc.String );
+				// [AK] Make sure that the user entered a valid parameter.
+				if ( parameter == g_NamedParameters.end( ))
+					sc.ScriptError( "Unknown parameter '%s'.", sc.String );
 
-			const PARAMETER_e ParameterConstant = std::get<WHICH_PARAMETER>( parameter->second );
+				const PARAMETER_e ParameterConstant = std::get<WHICH_PARAMETER>( parameter->second );
 
-			// [AK] Make sure that the parameter can be used by this command.
-			if ( CanUseParameter( parameter->first ) == false )
-				sc.ScriptError( "Parameter '%s' cannot be used inside this command.", sc.String );
+				// [AK] Make sure that the parameter can be used by this command.
+				if ( CanUseParameter( parameter->first ) == false )
+					sc.ScriptError( "Parameter '%s' cannot be used inside this command.", sc.String );
 
-			// [AK] Don't allow the same parameter to be initialized more than once.
-			if ( bParameterInitialized[ParameterConstant] )
-				sc.ScriptError( "Parameter '%s' is already initialized.", sc.String );
+				// [AK] Don't allow the same parameter to be initialized more than once.
+				if ( bParameterInitialized[ParameterConstant] )
+					sc.ScriptError( "Parameter '%s' is already initialized.", sc.String );
 
-			sc.MustGetToken( '=' );
-			ParseParameter( sc, parameter->first, ParameterConstant );
+				sc.MustGetToken( '=' );
+				ParseParameter( sc, parameter->first, ParameterConstant );
 
-			// [AK] This parameter has been initialized now, so mark it.
-			bParameterInitialized[ParameterConstant] = true;
+				// [AK] This parameter has been initialized now, so mark it.
+				bParameterInitialized[ParameterConstant] = true;
 
-		} while ( sc.CheckToken( ',' ));
+			} while ( sc.CheckToken( ',' ));
 
-		sc.MustGetToken( ')' );
+			sc.MustGetToken( ')' );
+		}
 
 		// [AK] Throw an error if there are parameters that were supposed to be initialized, but aren't.
 		for ( auto it = g_NamedParameters.begin( ); it != g_NamedParameters.end( ); it++ )
@@ -214,9 +215,7 @@ public:
 
 	//*************************************************************************
 	//
-	// [AK] DrawBaseCommand::Refresh
-	//
-	// Ensures that the margin can fit the contents (for all teams).
+	// [AK] Ensures that the margin can fit the contents (for all teams).
 	//
 	//*************************************************************************
 
@@ -231,28 +230,23 @@ public:
 	virtual ULONG GetContentHeight( const ULONG ulTeam ) const = 0;
 
 protected:
-	template <typename EnumType>
-	using SpecialValue = std::pair<EnumType, MARGINTYPE_e>;
-
-	template <typename EnumType>
-	using SpecialValueList = std::map<FName, SpecialValue<EnumType>, std::less<FName>, std::allocator<std::pair<FName, SpecialValue<EnumType>>>>;
 
 	//*************************************************************************
 	//
-	// [AK] Parses any parameters that every draw command can have. Derived
+	// [AK] Parses any parameters that every element command can have. Derived
 	// classes can handle their own parameters by overriding this function.
 	//
 	//*************************************************************************
 
 	virtual void ParseParameter( FScanner &sc, const FName ParameterName, const PARAMETER_e Parameter )
 	{
-		// [AK] Commands nested inside a DrawMultiLineBlock command can't use these parameters.
-		if ( pMultiLineBlock != NULL )
+		// [AK] Commands nested inside MultiLineBlock commands can't use these parameters.
+		if (( pParentCommand != NULL ) && ( pParentCommand->IsMultiLineBlock( )))
 		{
 			if (( Parameter == PARAMETER_XOFFSET ) || ( Parameter == PARAMETER_YOFFSET ) ||
 				( Parameter == PARAMETER_HORIZALIGN ) || ( Parameter == PARAMETER_VERTALIGN ))
 			{
-				sc.ScriptError( "Parameter '%s' cannot be used by commands that are inside a 'DrawMultiLineBlock' command.", ParameterName.GetChars( ));
+				sc.ScriptError( "Parameter '%s' cannot be used by commands that are inside a 'MultiLineBlock' command.", ParameterName.GetChars( ));
 			}
 		}
 
@@ -313,49 +307,6 @@ protected:
 
 	//*************************************************************************
 	//
-	// [AK] Checks for identifiers that correspond to "special" values. These
-	// values can only be used in the margins they're intended for, which is
-	// also checked. If no identifier was passed, then the value is assumed to
-	// be "static", which is parsed in the form of a string.
-	//
-	//*************************************************************************
-
-	template <typename EnumType>
-	EnumType GetSpecialValue( FScanner &sc, const SpecialValueList<EnumType> &ValueList )
-	{
-		if ( sc.CheckToken( TK_Identifier ))
-		{
-			auto value = ValueList.find( sc.String );
-
-			if ( value != ValueList.end( ))
-			{
-				const MARGINTYPE_e MarginType = value->second.second;
-
-				// [AK] Throw an error if this value can't be used in the margin that the commands belongs to.
-				if ( MarginType != pParentMargin->GetType( ))
-					sc.ScriptError( "Special value '%s' can't be used inside a '%s' margin.", sc.String, pParentMargin->GetName( ));
-
-				// [AK] Return the constant that corresponds to this special value.
-				return value->second.first;
-			}
-			else
-			{
-				sc.ScriptError( "Unknown special value '%s'.", sc.String );
-			}
-		}
-
-		sc.MustGetToken( TK_StringConst );
-
-		// [AK] Throw a fatal error if an empty string was passed.
-		if ( sc.StringLen == 0 )
-			sc.ScriptError( "Got an empty string for a value." );
-
-		// [AK] Return the constant that indicates the value as "static".
-		return static_cast<EnumType>( -1 );
-	}
-
-	//*************************************************************************
-	//
 	// [AK] Determines the position to draw the contents on the screen.
 	//
 	//*************************************************************************
@@ -407,16 +358,12 @@ protected:
 		}
 	}
 
-	DrawMultiLineBlock *const pMultiLineBlock;
 	HORIZALIGN_e HorizontalAlignment;
 	VERTALIGN_e VerticalAlignment;
 	LONG lXOffset;
 	LONG lYOffset;
 	ULONG ulBottomPadding;
 	float fTranslucency;
-
-	// [AK] Let the DrawMultiLineBlock class have access to this class's protected members.
-	friend class DrawMultiLineBlock;
 
 private:
 
@@ -448,17 +395,17 @@ private:
 //*****************************************************************************
 //*****************************************************************************
 //
-// [AK] DrawMultiLineBlock
+// [AK] MultiLineBlock
 //
 // Starts a block of lines that consist of strings, colors, or textures.
 //
 //*****************************************************************************
 //*****************************************************************************
 
-class DrawMultiLineBlock : public DrawBaseCommand
+class MultiLineBlock : public ElementBaseCommand
 {
 public:
-	DrawMultiLineBlock( ScoreMargin *pMargin ) : DrawBaseCommand( pMargin, COMMAND_MULTILINE, NULL ) { }
+	MultiLineBlock( ScoreMargin *pMargin, BaseCommand *pParentCommand ) : ElementBaseCommand( pMargin, pParentCommand, COMMAND_MULTILINE ) { }
 
 	//*************************************************************************
 	//
@@ -468,8 +415,8 @@ public:
 
 	virtual void Parse( FScanner &sc )
 	{
-		DrawBaseCommand::Parse( sc );
-		Block.ParseCommands( sc, pParentMargin );
+		ElementBaseCommand::Parse( sc );
+		Block.ParseCommands( sc, pParentMargin, this );
 	}
 
 	//*************************************************************************
@@ -484,7 +431,7 @@ public:
 		CommandsToDraw.Clear( );
 
 		Block.Refresh( ulDisplayPlayer );
-		DrawBaseCommand::Refresh( ulDisplayPlayer );
+		ElementBaseCommand::Refresh( ulDisplayPlayer );
 	}
 
 	//*************************************************************************
@@ -546,15 +493,23 @@ public:
 
 	//*************************************************************************
 	//
-	// [AK] Adds a command to the list of commands that will be drawn. This is
-	// called by other DrawBaseCommand objects when they're refreshed.
+	// [AK] This is the MultiLineBlock command, so always return true.
 	//
 	//*************************************************************************
 
-	void AddToDrawList( DrawBaseCommand *pCommand )
+	virtual bool IsMultiLineBlock( void ) const { return true; }
+
+	//*************************************************************************
+	//
+	// [AK] Adds a command to the list of commands that will be drawn. This is
+	// called by other ElementBaseCommand objects after they've refreshed.
+	//
+	//*************************************************************************
+
+	void AddToDrawList( ElementBaseCommand *pCommand )
 	{
 		// [AK] Don't accept commands that aren't part of this block.
-		if (( pCommand == NULL ) || ( pCommand->pMultiLineBlock != this ))
+		if (( pCommand == NULL ) || ( pCommand->GetParentCommand( ) != this ))
 			return;
 
 		CommandsToDraw.Push( pCommand );
@@ -562,7 +517,74 @@ public:
 
 protected:
 	ScoreMargin::CommandBlock Block;
-	TArray<DrawBaseCommand *> CommandsToDraw;
+	TArray<ElementBaseCommand *> CommandsToDraw;
+};
+
+//*****************************************************************************
+//*****************************************************************************
+//
+// [AK] DrawBaseCommand
+//
+// An abstract class that is shared by all margin commands that are responsible
+// for drawing something.
+//
+//*****************************************************************************
+//*****************************************************************************
+
+class DrawBaseCommand : public ElementBaseCommand
+{
+public:
+	DrawBaseCommand( ScoreMargin *pMargin, BaseCommand *pParentCommand, COMMAND_e Type ) : ElementBaseCommand( pMargin, pParentCommand, Type ) { }
+
+protected:
+	template <typename EnumType>
+	using SpecialValue = std::pair<EnumType, MARGINTYPE_e>;
+
+	template <typename EnumType>
+	using SpecialValueList = std::map<FName, SpecialValue<EnumType>, std::less<FName>, std::allocator<std::pair<FName, SpecialValue<EnumType>>>>;
+
+	//*************************************************************************
+	//
+	// [AK] Checks for identifiers that correspond to "special" values. These
+	// values can only be used in the margins they're intended for, which is
+	// also checked. If no identifier was passed, then the value is assumed to
+	// be "static", which is parsed in the form of a string.
+	//
+	//*************************************************************************
+
+	template <typename EnumType>
+	EnumType GetSpecialValue( FScanner &sc, const SpecialValueList<EnumType> &ValueList )
+	{
+		if ( sc.CheckToken( TK_Identifier ))
+		{
+			auto value = ValueList.find( sc.String );
+
+			if ( value != ValueList.end( ))
+			{
+				const MARGINTYPE_e MarginType = value->second.second;
+
+				// [AK] Throw an error if this value can't be used in the margin that the commands belongs to.
+				if ( MarginType != pParentMargin->GetType( ))
+					sc.ScriptError( "Special value '%s' can't be used inside a '%s' margin.", sc.String, pParentMargin->GetName( ));
+
+				// [AK] Return the constant that corresponds to this special value.
+				return value->second.first;
+			}
+			else
+			{
+				sc.ScriptError( "Unknown special value '%s'.", sc.String );
+			}
+		}
+
+		sc.MustGetToken( TK_StringConst );
+
+		// [AK] Throw a fatal error if an empty string was passed.
+		if ( sc.StringLen == 0 )
+			sc.ScriptError( "Got an empty string for a value." );
+
+		// [AK] Return the constant that indicates the value as "static".
+		return static_cast<EnumType>( -1 );
+	}
 };
 
 //*****************************************************************************
@@ -578,7 +600,7 @@ protected:
 class DrawString : public DrawBaseCommand
 {
 public:
-	DrawString( ScoreMargin *pMargin, DrawMultiLineBlock *pBlock ) : DrawBaseCommand( pMargin, COMMAND_STRING, pBlock ),
+	DrawString( ScoreMargin *pMargin, BaseCommand *pParentCommand ) : DrawBaseCommand( pMargin, pParentCommand, COMMAND_STRING ),
 		pFont( SmallFont ),
 		Color( CR_UNTRANSLATED ),
 		ulGapSize( 1 ),
@@ -1133,7 +1155,7 @@ protected:
 class DrawColor : public DrawBaseCommand
 {
 public:
-	DrawColor( ScoreMargin *pMargin, DrawMultiLineBlock *pBlock ) : DrawBaseCommand( pMargin, COMMAND_COLOR, pBlock ),
+	DrawColor( ScoreMargin *pMargin, BaseCommand *pParentCommand ) : DrawBaseCommand( pMargin, pParentCommand, COMMAND_COLOR ),
 		ValueType( DRAWCOLOR_STATIC ),
 		Color( 0 ),
 		ulWidth( 0 ),
@@ -1247,7 +1269,7 @@ protected:
 class DrawTexture : public DrawBaseCommand
 {
 public:
-	DrawTexture( ScoreMargin *pMargin, DrawMultiLineBlock *pBlock ) : DrawBaseCommand( pMargin, COMMAND_TEXTURE, pBlock ),
+	DrawTexture( ScoreMargin *pMargin, BaseCommand *pParentCommand ) : DrawBaseCommand( pMargin, pParentCommand, COMMAND_TEXTURE ),
 		ValueType( DRAWTEXTURE_STATIC ),
 		pTexture( NULL ) { }
 
@@ -1381,7 +1403,7 @@ protected:
 class FlowControlBaseCommand : public ScoreMargin::BaseCommand
 {
 public:
-	FlowControlBaseCommand( ScoreMargin *pMargin ) : BaseCommand( pMargin ), bResult( false ) { }
+	FlowControlBaseCommand( ScoreMargin *pMargin, BaseCommand *pParentCommand ) : BaseCommand( pMargin, pParentCommand ), bResult( false ) { }
 
 	//*************************************************************************
 	//
@@ -1436,7 +1458,7 @@ private:
 
 	void ParseBlock( FScanner &sc, const bool bWhichBlock )
 	{
-		Blocks[bWhichBlock].ParseCommands( sc, pParentMargin );
+		Blocks[bWhichBlock].ParseCommands( sc, pParentMargin, pParentCommand );
 
 		// [AK] There needs to be at least one command inside the block.
 		if ( Blocks[bWhichBlock].HasCommands( ) == false )
@@ -1469,7 +1491,7 @@ private:
 class TrueOrFalseFlowControl : public FlowControlBaseCommand
 {
 public:
-	TrueOrFalseFlowControl( ScoreMargin *pMargin, MARGINCMD_e Command ) : FlowControlBaseCommand( pMargin ),
+	TrueOrFalseFlowControl( ScoreMargin *pMargin, BaseCommand *pParentCommand, MARGINCMD_e Command ) : FlowControlBaseCommand( pMargin, pParentCommand ),
 		CommandType( Command ),
 		bMustBeTrue( false )
 	{
@@ -1569,7 +1591,7 @@ protected:
 class IfGameModeFlowControl : public FlowControlBaseCommand
 {
 public:
-	IfGameModeFlowControl( ScoreMargin *pMargin ) : FlowControlBaseCommand( pMargin ) { }
+	IfGameModeFlowControl( ScoreMargin *pMargin, BaseCommand *pParentCommand ) : FlowControlBaseCommand( pMargin, pParentCommand ) { }
 
 	//*************************************************************************
 	//
@@ -1621,7 +1643,7 @@ protected:
 class IfGameOrEarnTypeFlowControl : public FlowControlBaseCommand
 {
 public:
-	IfGameOrEarnTypeFlowControl( ScoreMargin *pMargin, const bool bIsGameType ) : FlowControlBaseCommand( pMargin ),
+	IfGameOrEarnTypeFlowControl( ScoreMargin *pMargin, BaseCommand *pParentCommand, const bool bIsGameType ) : FlowControlBaseCommand( pMargin, pParentCommand ),
 		bIsGameTypeCommand( bIsGameType ),
 		ulFlags( 0 ) { }
 
@@ -1687,7 +1709,7 @@ protected:
 class IfCVarFlowControl : public FlowControlBaseCommand
 {
 public:
-	IfCVarFlowControl( ScoreMargin *pMargin ) : FlowControlBaseCommand( pMargin ),
+	IfCVarFlowControl( ScoreMargin *pMargin, BaseCommand *pParentCommand ) : FlowControlBaseCommand( pMargin, pParentCommand ),
 		pCVar( NULL ),
 		Operator( OPERATOR_EQUAL ) { }
 
@@ -1858,7 +1880,7 @@ protected:
 //
 //*****************************************************************************
 
-ScoreMargin::BaseCommand::BaseCommand( ScoreMargin *pMargin ) : pParentMargin( pMargin )
+ScoreMargin::BaseCommand::BaseCommand( ScoreMargin *pMargin, BaseCommand *pParentCommand ) : pParentMargin( pMargin ), pParentCommand( pParentCommand )
 {
 	// [AK] This should never happen, but throw a fatal error if it does.
 	if ( pParentMargin == NULL )
@@ -1873,7 +1895,7 @@ ScoreMargin::BaseCommand::BaseCommand( ScoreMargin *pMargin ) : pParentMargin( p
 //
 //*****************************************************************************
 
-void ScoreMargin::CommandBlock::ParseCommands( FScanner &sc, ScoreMargin *pMargin )
+void ScoreMargin::CommandBlock::ParseCommands( FScanner &sc, ScoreMargin *pMargin, BaseCommand *pParentCommand )
 {
 	Commands.Clear( );
 	sc.MustGetToken( '{' );
@@ -1881,36 +1903,24 @@ void ScoreMargin::CommandBlock::ParseCommands( FScanner &sc, ScoreMargin *pMargi
 	while ( sc.CheckToken( '}' ) == false )
 	{
 		const MARGINCMD_e Command = static_cast<MARGINCMD_e>( sc.MustGetEnumName( "margin command", "MARGINCMD_", GetValueMARGINCMD_e ));
-		ScoreMargin::BaseCommand *pNewCommand = NULL;
-
-		// [AK] A pointer to the DrawMultiLineBlock command that we're in the middle of parsing.
-		static DrawMultiLineBlock *pMultiLineBlock = NULL;
-		bool bIsMultiLineBlock = false;
+		BaseCommand *pNewCommand = NULL;
 
 		switch ( Command )
 		{
-			case MARGINCMD_DRAWMULTILINEBLOCK:
-			{
-				// [AK] DrawMultiLineBlock commands can't be nested inside each other.
-				if ( pMultiLineBlock != NULL )
-					sc.ScriptError( "A 'DrawMultiLineBlock' command cannot be created inside another one." );
-
-				pNewCommand = new DrawMultiLineBlock( pMargin );
-				pMultiLineBlock = static_cast<DrawMultiLineBlock *>( pNewCommand );
-				bIsMultiLineBlock = true;
+			case MARGINCMD_MULTILINEBLOCK:
+				pNewCommand = new MultiLineBlock( pMargin, pParentCommand );
 				break;
-			}
 
 			case MARGINCMD_DRAWSTRING:
-				pNewCommand = new DrawString( pMargin, pMultiLineBlock );
+				pNewCommand = new DrawString( pMargin, pParentCommand );
 				break;
 
 			case MARGINCMD_DRAWCOLOR:
-				pNewCommand = new DrawColor( pMargin, pMultiLineBlock );
+				pNewCommand = new DrawColor( pMargin, pParentCommand );
 				break;
 
 			case MARGINCMD_DRAWTEXTURE:
-				pNewCommand = new DrawTexture( pMargin, pMultiLineBlock );
+				pNewCommand = new DrawTexture( pMargin, pParentCommand );
 				break;
 
 			case MARGINCMD_IFONLINEGAME:
@@ -1918,20 +1928,20 @@ void ScoreMargin::CommandBlock::ParseCommands( FScanner &sc, ScoreMargin *pMargi
 			case MARGINCMD_IFPLAYERSONTEAMS:
 			case MARGINCMD_IFPLAYERSHAVELIVES:
 			case MARGINCMD_IFSHOULDSHOWRANK:
-				pNewCommand = new TrueOrFalseFlowControl( pMargin, Command );
+				pNewCommand = new TrueOrFalseFlowControl( pMargin, pParentCommand, Command );
 				break;
 
 			case MARGINCMD_IFGAMEMODE:
-				pNewCommand = new IfGameModeFlowControl( pMargin );
+				pNewCommand = new IfGameModeFlowControl( pMargin, pParentCommand );
 				break;
 
 			case MARGINCMD_IFGAMETYPE:
 			case MARGINCMD_IFEARNTYPE:
-				pNewCommand = new IfGameOrEarnTypeFlowControl( pMargin, Command == MARGINCMD_IFGAMETYPE );
+				pNewCommand = new IfGameOrEarnTypeFlowControl( pMargin, pParentCommand, Command == MARGINCMD_IFGAMETYPE );
 				break;
 
 			case MARGINCMD_IFCVAR:
-				pNewCommand = new IfCVarFlowControl( pMargin );
+				pNewCommand = new IfCVarFlowControl( pMargin, pParentCommand );
 				break;
 		}
 
@@ -1942,10 +1952,6 @@ void ScoreMargin::CommandBlock::ParseCommands( FScanner &sc, ScoreMargin *pMargi
 		// [AK] A command's arguments must always be prepended by a '('.
 		sc.MustGetToken( '(' );
 		pNewCommand->Parse( sc );
-
-		// [AK] Are we done parsing the current DrawMultiLineBlock command?
-		if ( bIsMultiLineBlock )
-			pMultiLineBlock = NULL;
 
 		Commands.Push( pNewCommand );
 	}
@@ -2000,35 +2006,42 @@ void ScoreMargin::CommandBlock::Draw( const ULONG ulDisplayPlayer, const ULONG u
 
 //*****************************************************************************
 //
-// [AK] DrawBaseCommand::DrawBaseCommand
+// [AK] ElementBaseCommand::ElementBaseCommand
 //
-// Initializes a DrawBaseCommand object.
+// Initializes an ElementBaseCommand object.
 //
 //*****************************************************************************
 
-DrawBaseCommand::DrawBaseCommand( ScoreMargin *pMargin, COMMAND_e Type, DrawMultiLineBlock *pBlock ) : BaseCommand( pMargin ),
+ElementBaseCommand::ElementBaseCommand( ScoreMargin *pMargin, BaseCommand *pParentCommand, COMMAND_e Type ) : BaseCommand( pMargin, pParentCommand ),
 	Command( Type ),
-	pMultiLineBlock( pBlock ),
-	HorizontalAlignment( pMultiLineBlock ? pMultiLineBlock->HorizontalAlignment : HORIZALIGN_LEFT ),
+	HorizontalAlignment( HORIZALIGN_LEFT ),
 	VerticalAlignment( VERTALIGN_TOP ),
-	lXOffset( pMultiLineBlock ? pMultiLineBlock->lXOffset : 0 ),
+	lXOffset( 0 ),
 	lYOffset( 0 ),
 	ulBottomPadding( 0 ),
-	fTranslucency( 1.0f ) { }
+	fTranslucency( 1.0f )
+{
+	if (( pParentCommand != NULL ) && ( pParentCommand->IsMultiLineBlock( )))
+	{
+		ElementBaseCommand *pOther = static_cast<ElementBaseCommand *>( pParentCommand );
+		HorizontalAlignment = pOther->HorizontalAlignment;
+		lXOffset = pOther->lXOffset;
+	}
+}
 
 //*************************************************************************
 //
-// [AK] DrawBaseCommand::Refresh
+// [AK] ElementBaseCommand::Refresh
 //
 // Ensures that the margin can fit the contents (for all teams).
 //
 //*************************************************************************
 
-void DrawBaseCommand::Refresh( const ULONG ulDisplayPlayer )
+void ElementBaseCommand::Refresh( const ULONG ulDisplayPlayer )
 {
-	// [AK] Only do this if the command isn't nested inside a DrawMultiLineBlock command.
+	// [AK] Only do this if the command isn't nested inside a MultiLineBlock command.
 	// Otherwise, add this command to the latter's draw list.
-	if ( pMultiLineBlock == NULL )
+	if (( pParentCommand == NULL ) || ( pParentCommand->IsMultiLineBlock( ) == false ))
 	{
 		if ( pParentMargin->GetType( ) == MARGINTYPE_TEAM )
 		{
@@ -2042,7 +2055,7 @@ void DrawBaseCommand::Refresh( const ULONG ulDisplayPlayer )
 	}
 	else
 	{
-		pMultiLineBlock->AddToDrawList( this );
+		static_cast<MultiLineBlock *>( pParentCommand )->AddToDrawList( this );
 	}
 }
 
@@ -2071,7 +2084,7 @@ ScoreMargin::ScoreMargin( MARGINTYPE_e MarginType, const char *pszName ) :
 
 void ScoreMargin::Parse( FScanner &sc )
 {
-	Block.ParseCommands( sc, this );
+	Block.ParseCommands( sc, this, NULL );
 }
 
 //*****************************************************************************

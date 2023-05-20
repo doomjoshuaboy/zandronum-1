@@ -427,14 +427,19 @@ public:
 	class BaseCommand
 	{
 	public:
-		BaseCommand( ScoreMargin *pMargin );
+		BaseCommand( ScoreMargin *pMargin, BaseCommand *pParentCommand );
+		BaseCommand *GetParentCommand( void ) const { return pParentCommand; }
 
 		virtual void Parse( FScanner &sc ) = 0;
 		virtual void Refresh( const ULONG ulDisplayPlayer ) = 0;
 		virtual void Draw( const ULONG ulDisplayPlayer, const ULONG ulTeam, const LONG lYPos, const float fAlpha ) const = 0;
 
+		// [AK] By default, a margin command isn't a MultiLineBlock.
+		virtual bool IsMultiLineBlock( void ) const { return false; }
+
 	protected:
 		ScoreMargin *const pParentMargin;
+		BaseCommand *const pParentCommand;
 	};
 
 	// [AK] A block of margin commands in-between braces.
@@ -443,7 +448,7 @@ public:
 	public:
 		~CommandBlock( void ) { Clear( ); }
 
-		void ParseCommands( FScanner &sc, ScoreMargin *pMargin );
+		void ParseCommands( FScanner &sc, ScoreMargin *pMargin, BaseCommand *pParentCommand );
 		void Clear( void );
 		void Refresh( const ULONG ulDisplayPlayer );
 		void Draw( const ULONG ulDisplayPlayer, const ULONG ulTeam, const LONG lYPos, const float fAlpha ) const;
