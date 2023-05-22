@@ -432,10 +432,10 @@ public:
 
 		virtual void Parse( FScanner &sc ) = 0;
 		virtual void Refresh( const ULONG ulDisplayPlayer ) = 0;
-		virtual void Draw( const ULONG ulDisplayPlayer, const ULONG ulTeam, const LONG lYPos, const float fAlpha ) const = 0;
+		virtual void Draw( const ULONG ulDisplayPlayer, const ULONG ulTeam, const LONG lYPos, const float fAlpha, const LONG lXOffsetBonus ) const = 0;
 
-		// [AK] By default, a margin command isn't a MultiLineBlock.
-		virtual bool IsMultiLineBlock( void ) const { return false; }
+		// [AK] By default, a margin command isn't a block (i.e. multi-line or row) element.
+		virtual bool IsBlockElement( void ) const { return false; }
 
 	protected:
 		ScoreMargin *const pParentMargin;
@@ -451,7 +451,7 @@ public:
 		void ParseCommands( FScanner &sc, ScoreMargin *pMargin, BaseCommand *pParentCommand );
 		void Clear( void );
 		void Refresh( const ULONG ulDisplayPlayer );
-		void Draw( const ULONG ulDisplayPlayer, const ULONG ulTeam, const LONG lYPos, const float fAlpha ) const;
+		void Draw( const ULONG ulDisplayPlayer, const ULONG ulTeam, const LONG lYPos, const float fAlpha, const LONG lXOffsetBonus = 0 ) const;
 
 		inline bool HasCommands( void ) const { return ( Commands.Size( ) > 0 ); }
 

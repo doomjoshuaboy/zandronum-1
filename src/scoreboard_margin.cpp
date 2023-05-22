@@ -89,6 +89,8 @@ enum PARAMETER_e
 	PARAMETER_VERTALIGN,
 	// How much room to leave underneath the contents.
 	PARAMETER_BOTTOMPADDING,
+	// How much room to leave to the right of the contents.
+	PARAMETER_RIGHTPADDING,
 	// The transparency of the contents.
 	PARAMETER_ALPHA,
 	// What font to use when drawing a string.
@@ -112,7 +114,7 @@ enum PARAMETER_e
 enum COMMAND_e
 {
 	COMMAND_ALL,
-	COMMAND_MULTILINE,
+	COMMAND_BLOCK,
 	COMMAND_STRING,
 	COMMAND_COLOR,
 	COMMAND_TEXTURE,
@@ -130,6 +132,7 @@ static const std::map<FName, std::tuple<PARAMETER_e, bool, std::set<COMMAND_e>>>
 	{ "horizontalalign",	{ PARAMETER_HORIZALIGN,		false,	{ COMMAND_ALL }}},
 	{ "verticalalign",		{ PARAMETER_VERTALIGN,		false,	{ COMMAND_ALL }}},
 	{ "bottompadding",		{ PARAMETER_BOTTOMPADDING,	false,	{ COMMAND_ALL }}},
+	{ "rightpadding",		{ PARAMETER_RIGHTPADDING,	false,	{ COMMAND_ALL }}},
 	{ "alpha",				{ PARAMETER_ALPHA,			false,	{ COMMAND_ALL }}},
 	{ "font",				{ PARAMETER_FONT,			false,	{ COMMAND_STRING }}},
 	{ "textcolor",			{ PARAMETER_TEXTCOLOR,		false,	{ COMMAND_STRING }}},
@@ -154,7 +157,15 @@ static const std::map<FName, std::tuple<PARAMETER_e, bool, std::set<COMMAND_e>>>
 class ElementBaseCommand : public ScoreMargin::BaseCommand
 {
 public:
-	ElementBaseCommand( ScoreMargin *pMargin, BaseCommand *pParentCommand, COMMAND_e Type );
+	ElementBaseCommand( ScoreMargin *pMargin, BaseCommand *pParentCommand, COMMAND_e Type ) : BaseCommand( pMargin, pParentCommand ),
+		Command( Type ),
+		HorizontalAlignment( HORIZALIGN_LEFT ),
+		VerticalAlignment( VERTALIGN_TOP ),
+		lXOffset( 0 ),
+		lYOffset( 0 ),
+		ulBottomPadding( 0 ),
+		ulRightPadding( 0 ),
+		fTranslucency( 1.0f ) { }
 
 	//*************************************************************************
 	//
@@ -223,10 +234,11 @@ public:
 
 	//*************************************************************************
 	//
-	// [AK] Pure virtual function that return the height of the contents.
+	// [AK] Pure virtual functions that return the width/height of the contents.
 	//
 	//*************************************************************************
 
+	virtual ULONG GetContentWidth( const ULONG ulTeam ) const = 0;
 	virtual ULONG GetContentHeight( const ULONG ulTeam ) const = 0;
 
 protected:
@@ -240,8 +252,8 @@ protected:
 
 	virtual void ParseParameter( FScanner &sc, const FName ParameterName, const PARAMETER_e Parameter )
 	{
-		// [AK] Commands nested inside MultiLineBlock commands can't use these parameters.
-		if (( pParentCommand != NULL ) && ( pParentCommand->IsMultiLineBlock( )))
+		// [AK] Commands nested inside MultiLineBlock or RowBlock commands can't use these parameters.
+		if (( pParentCommand != NULL ) && ( pParentCommand->IsBlockElement( )))
 		{
 			if (( Parameter == PARAMETER_XOFFSET ) || ( Parameter == PARAMETER_YOFFSET ) ||
 				( Parameter == PARAMETER_HORIZALIGN ) || ( Parameter == PARAMETER_VERTALIGN ))
@@ -255,6 +267,7 @@ protected:
 			case PARAMETER_XOFFSET:
 			case PARAMETER_YOFFSET:
 			case PARAMETER_BOTTOMPADDING:
+			case PARAMETER_RIGHTPADDING:
 			{
 				const bool bIsNegative = sc.CheckToken( '-' );
 				sc.MustGetToken( TK_IntConst );
@@ -265,8 +278,10 @@ protected:
 					lXOffset = value;
 				else if ( Parameter == PARAMETER_YOFFSET )
 					lYOffset = value;
-				else
+				else if ( Parameter == PARAMETER_BOTTOMPADDING )
 					ulBottomPadding = MAX( value, 0 );
+				else
+					ulRightPadding = MAX( value, 0 );
 
 				break;
 			}
@@ -307,22 +322,39 @@ protected:
 
 	//*************************************************************************
 	//
+	// [AK] If this element command is part of a MultiLineBlock or RowBlock,
+	// then return the latter's horizontal alignment (and so on). Otherwise,
+	// just return this command's own alignment.
+	//
+	//*************************************************************************
+
+	HORIZALIGN_e GetHorizontalAlignment( void ) const
+	{
+		if (( pParentCommand != NULL ) && ( pParentCommand->IsBlockElement( )))
+			return static_cast<ElementBaseCommand *>( pParentCommand )->GetHorizontalAlignment( );
+
+		return HorizontalAlignment;
+	}
+
+	//*************************************************************************
+	//
 	// [AK] Determines the position to draw the contents on the screen.
 	//
 	//*************************************************************************
 
-	TVector2<LONG> GetDrawingPosition( const ULONG ulWidth, const ULONG ulHeight ) const
+	TVector2<LONG> GetDrawingPosition( const ULONG ulWidth, const ULONG ulHeight, const LONG lXOffsetBonus = 0 ) const
 	{
 		const ULONG ulHUDWidth = HUD_GetWidth( );
+		const LONG lActualXOffset = lXOffset + lXOffsetBonus;
 		TVector2<LONG> result;
 
 		// [AK] Get the x-position based on the horizontal alignment.
 		if ( HorizontalAlignment == HORIZALIGN_LEFT )
-			result.X = ( ulHUDWidth - pParentMargin->GetWidth( )) / 2 + lXOffset;
+			result.X = ( ulHUDWidth - pParentMargin->GetWidth( )) / 2 + lActualXOffset;
 		else if ( HorizontalAlignment == HORIZALIGN_CENTER )
-			result.X = ( ulHUDWidth - ulWidth ) / 2 + lXOffset;
+			result.X = ( ulHUDWidth - ulWidth ) / 2 + lActualXOffset;
 		else
-			result.X = ( ulHUDWidth + pParentMargin->GetWidth( )) / 2 - ulWidth - lXOffset;
+			result.X = ( ulHUDWidth + pParentMargin->GetWidth( )) / 2 - ulWidth - lActualXOffset;
 
 		// [AK] Next, get the y-position based on the vertical alignment.
 		if ( VerticalAlignment == VERTALIGN_TOP )
@@ -363,6 +395,7 @@ protected:
 	LONG lXOffset;
 	LONG lYOffset;
 	ULONG ulBottomPadding;
+	ULONG ulRightPadding;
 	float fTranslucency;
 
 private:
@@ -395,17 +428,17 @@ private:
 //*****************************************************************************
 //*****************************************************************************
 //
-// [AK] MultiLineBlock
+// [AK] BlockBaseCommand
 //
-// Starts a block of lines that consist of strings, colors, or textures.
+// An abstract class used for the MultiLineBlock and RowBlock margin commands.
 //
 //*****************************************************************************
 //*****************************************************************************
 
-class MultiLineBlock : public ElementBaseCommand
+class BlockBaseCommand : public ElementBaseCommand
 {
 public:
-	MultiLineBlock( ScoreMargin *pMargin, BaseCommand *pParentCommand ) : ElementBaseCommand( pMargin, pParentCommand, COMMAND_MULTILINE ) { }
+	BlockBaseCommand( ScoreMargin *pMargin, BaseCommand *pParentCommand ) : ElementBaseCommand( pMargin, pParentCommand, COMMAND_BLOCK ) { }
 
 	//*************************************************************************
 	//
@@ -436,68 +469,11 @@ public:
 
 	//*************************************************************************
 	//
-	// [AK] Draws all commands that can be drawn, from top to bottom.
+	// [AK] This is a block element, so always return true.
 	//
 	//*************************************************************************
 
-	virtual void Draw( const ULONG ulDisplayPlayer, const ULONG ulTeam, const LONG lYPos, const float fAlpha ) const
-	{
-		if ( CommandsToDraw.Size( ) == 0 )
-			return;
-
-		const float fCombinedAlpha = fAlpha * fTranslucency;
-		TVector2<LONG> Pos = GetDrawingPosition( 0, GetContentHeight( ulTeam )) + lYPos;
-
-		for ( unsigned int i = 0; i < CommandsToDraw.Size( ); i++ )
-		{
-			const ULONG ulContentHeight = CommandsToDraw[i]->GetContentHeight( ulTeam );
-
-			// [AK] Skip commands whose heights are zero.
-			if ( ulContentHeight == 0 )
-				continue;
-
-			CommandsToDraw[i]->Draw( ulDisplayPlayer, ulTeam, Pos.Y, fCombinedAlpha );
-
-			// [AK] Shift the y-position based on the command's height.
-			Pos.Y += ulContentHeight;
-		}
-	}
-
-	//*************************************************************************
-	//
-	// [AK] Gets the total height of all commands that will be drawn.
-	//
-	//*************************************************************************
-
-	virtual ULONG GetContentHeight( const ULONG ulTeam ) const
-	{
-		ULONG ulTotalHeight = 0;
-
-		for ( unsigned int i = 0; i < CommandsToDraw.Size( ); i++ )
-		{
-			const ULONG ulContentHeight = CommandsToDraw[i]->GetContentHeight( ulTeam );
-
-			// [AK] Don't include commands whose heights are zero.
-			if ( ulContentHeight == 0 )
-				continue;
-
-			ulTotalHeight += ulContentHeight;
-		}
-
-		// [AK] Include the bottom padding only when the total height isn't zero.
-		if ( ulTotalHeight > 0 )
-			ulTotalHeight += ulBottomPadding;
-
-		return ulTotalHeight;
-	}
-
-	//*************************************************************************
-	//
-	// [AK] This is the MultiLineBlock command, so always return true.
-	//
-	//*************************************************************************
-
-	virtual bool IsMultiLineBlock( void ) const { return true; }
+	virtual bool IsBlockElement( void ) const { return true; }
 
 	//*************************************************************************
 	//
@@ -516,8 +492,201 @@ public:
 	}
 
 protected:
+
+	//*************************************************************************
+	//
+	// [AK] Helper function that gets the largest width/height of the commands.
+	//
+	//*************************************************************************
+
+	ULONG GetMaxFromList( const ULONG ulTeam, const ULONG ulPadding, ULONG ( ElementBaseCommand::*pGetterFunc )( const ULONG ) const ) const
+	{
+		ULONG ulMax = 0;
+
+		for ( unsigned int i = 0; i < CommandsToDraw.Size( ); i++ )
+			ulMax = MAX<ULONG>( ulMax, ( CommandsToDraw[i]->*pGetterFunc )( ulTeam ));
+
+		// [AK] Add the padding (bottom/right), but only if the result is non-zero.
+		if ( ulMax > 0 )
+			ulMax += ulPadding;
+
+		return ulMax;
+	}
+
+	//*************************************************************************
+	//
+	// [AK] Another helper function that gets the total width/height instead.
+	//
+	//*************************************************************************
+
+	ULONG GetTotalFromList( const ULONG ulTeam, const ULONG ulPadding, ULONG ( ElementBaseCommand::*pGetterFunc )( const ULONG ) const ) const
+	{
+		ULONG ulTotal = 0;
+
+		for ( unsigned int i = 0; i < CommandsToDraw.Size( ); i++ )
+			ulTotal += ( CommandsToDraw[i]->*pGetterFunc )( ulTeam );
+
+		if ( ulTotal > 0 )
+			ulTotal += ulPadding;
+
+		return ulTotal;
+	}
+
 	ScoreMargin::CommandBlock Block;
 	TArray<ElementBaseCommand *> CommandsToDraw;
+};
+
+//*****************************************************************************
+//*****************************************************************************
+//
+// [AK] MultiLineBlock
+//
+// Starts a block of lines that consist of strings, colors, or textures.
+//
+//*****************************************************************************
+//*****************************************************************************
+
+class MultiLineBlock : public BlockBaseCommand
+{
+public:
+	MultiLineBlock( ScoreMargin *pMargin, BaseCommand *pParentCommand ) : BlockBaseCommand( pMargin, pParentCommand ) { }
+
+	//*************************************************************************
+	//
+	// [AK] Draws all commands that can be drawn, from top to bottom.
+	//
+	//*************************************************************************
+
+	virtual void Draw( const ULONG ulDisplayPlayer, const ULONG ulTeam, const LONG lYPos, const float fAlpha, const LONG lXOffsetBonus ) const
+	{
+		if ( CommandsToDraw.Size( ) == 0 )
+			return;
+
+		const float fCombinedAlpha = fAlpha * fTranslucency;
+		const HORIZALIGN_e AlignmentToUse = GetHorizontalAlignment( );
+		const ULONG ulWidth = GetContentWidth( ulTeam );
+		TVector2<LONG> Pos = GetDrawingPosition( ulWidth, GetContentHeight( ulTeam ), lXOffsetBonus );
+
+		Pos.X -= ( HUD_GetWidth( ) - pParentMargin->GetWidth( )) / 2;
+		Pos.Y += lYPos;
+
+		for ( unsigned int i = 0; i < CommandsToDraw.Size( ); i++ )
+		{
+			const ULONG ulContentHeight = CommandsToDraw[i]->GetContentHeight( ulTeam );
+
+			// [AK] Skip commands whose heights are zero.
+			if ( ulContentHeight == 0 )
+				continue;
+
+			const ULONG ulContentWidth = CommandsToDraw[i]->GetContentWidth( ulTeam );
+			LONG lActualXOffset = Pos.X;
+
+			if ( AlignmentToUse == HORIZALIGN_CENTER )
+				lActualXOffset += ( ulWidth - ulContentWidth ) / 2;
+			else if ( AlignmentToUse == HORIZALIGN_RIGHT )
+				lActualXOffset += ulWidth - ulContentWidth;
+
+			CommandsToDraw[i]->Draw( ulDisplayPlayer, ulTeam, Pos.Y, fCombinedAlpha, lActualXOffset );
+
+			// [AK] Shift the y-position based on the command's height.
+			Pos.Y += ulContentHeight;
+		}
+	}
+
+	//*************************************************************************
+	//
+	// [AK] Gets the largest width required by all commands that will be drawn.
+	//
+	//*************************************************************************
+
+	virtual ULONG GetContentWidth( const ULONG ulTeam ) const
+	{
+		return GetMaxFromList( ulTeam, ulRightPadding, &ElementBaseCommand::GetContentWidth );
+	}
+
+	//*************************************************************************
+	//
+	// [AK] Gets the total height of all commands that will be drawn.
+	//
+	//*************************************************************************
+
+	virtual ULONG GetContentHeight( const ULONG ulTeam ) const
+	{
+		return GetTotalFromList( ulTeam, ulBottomPadding, &ElementBaseCommand::GetContentHeight );
+	}
+};
+
+//*****************************************************************************
+//*****************************************************************************
+//
+// [AK] RowBlock
+//
+// Starts a row that consists of strings, colors, or textures.
+//
+//*****************************************************************************
+//*****************************************************************************
+
+class RowBlock : public BlockBaseCommand
+{
+public:
+	RowBlock( ScoreMargin *pMargin, BaseCommand *pParentCommand ) : BlockBaseCommand( pMargin, pParentCommand ) { }
+
+	//*************************************************************************
+	//
+	// [AK] Draws all commands that can be drawn, from left to right.
+	//
+	//*************************************************************************
+
+	virtual void Draw( const ULONG ulDisplayPlayer, const ULONG ulTeam, const LONG lYPos, const float fAlpha, const LONG lXOffsetBonus ) const
+	{
+		if ( CommandsToDraw.Size( ) == 0 )
+			return;
+
+		const float fCombinedAlpha = fAlpha * fTranslucency;
+		const ULONG ulWidth = GetContentWidth( ulTeam );
+		const ULONG ulHeight = GetContentHeight( ulTeam );
+		TVector2<LONG> Pos = GetDrawingPosition( ulWidth, ulHeight, lXOffsetBonus );
+
+		Pos.X -= ( HUD_GetWidth( ) - pParentMargin->GetWidth( )) / 2;
+		Pos.Y += lYPos;
+
+		for ( unsigned int i = 0; i < CommandsToDraw.Size( ); i++ )
+		{
+			const ULONG ulContentWidth = CommandsToDraw[i]->GetContentWidth( ulTeam );
+
+			// [AK] Skip commands whose widths are zero.
+			if ( ulContentWidth == 0 )
+				continue;
+
+			const LONG lYOffset = ( ulHeight - CommandsToDraw[i]->GetContentHeight( ulTeam )) / 2;
+			CommandsToDraw[i]->Draw( ulDisplayPlayer, ulTeam, Pos.Y + lYOffset, fCombinedAlpha, Pos.X );
+
+			// [AK] Shift the x-offset.
+			Pos.X += ulContentWidth;
+		}
+	}
+
+	//*************************************************************************
+	//
+	// [AK] Gets the total width of all commands that will be drawn.
+	//
+	//*************************************************************************
+
+	virtual ULONG GetContentWidth( const ULONG ulTeam ) const
+	{
+		return GetTotalFromList( ulTeam, ulRightPadding, &ElementBaseCommand::GetContentWidth );
+	}
+
+	//*************************************************************************
+	//
+	// [AK] Gets the largest height required by all commands that will be drawn.
+	//
+	//*************************************************************************
+
+	virtual ULONG GetContentHeight( const ULONG ulTeam ) const
+	{
+		return GetMaxFromList( ulTeam, ulBottomPadding, &ElementBaseCommand::GetContentHeight );
+	}
 };
 
 //*****************************************************************************
@@ -660,7 +829,7 @@ public:
 	//
 	//*************************************************************************
 
-	virtual void Draw( const ULONG ulDisplayPlayer, const ULONG ulTeam, const LONG lYPos, const float fAlpha ) const
+	virtual void Draw( const ULONG ulDisplayPlayer, const ULONG ulTeam, const LONG lYPos, const float fAlpha, const LONG lXOffsetBonus ) const
 	{
 		const PreprocessedString *pString = RetrieveString( ulTeam );
 		const EColorRange TextColorToUse = bUsingTeamColor ? static_cast<EColorRange>( TEAM_GetTextColor( ulTeam )) : Color;
@@ -677,7 +846,7 @@ public:
 
 		for ( unsigned int i = 0; pString->pLines[i].Width >= 0; i++ )
 		{
-			TVector2<LONG> Pos = GetDrawingPosition( pString->pLines[i].Width, pString->ulTotalHeight );
+			TVector2<LONG> Pos = GetDrawingPosition( pString->pLines[i].Width, pString->ulTotalHeight, lXOffsetBonus );
 
 			if ( i > 0 )
 				Pos.Y += ( pFont->GetHeight( ) + ulGapSize ) * i;
@@ -691,6 +860,24 @@ public:
 				DTA_Alpha, combinedAlpha,
 				TAG_DONE );
 		}
+	}
+
+	//*************************************************************************
+	//
+	// [AK] Gets the largest width of a preprocessed string.
+	//
+	//*************************************************************************
+
+	virtual ULONG GetContentWidth( const ULONG ulTeam ) const
+	{
+		PreprocessedString *pString = RetrieveString( ulTeam );
+		ULONG ulWidth = pString != NULL ? pString->ulMaxWidth : 0;
+
+		// [AK] Include the right padding only when the width isn't zero.
+		if ( ulWidth > 0 )
+			ulWidth += ulRightPadding;
+
+		return ulWidth;
 	}
 
 	//*************************************************************************
@@ -767,6 +954,7 @@ protected:
 	struct PreprocessedString
 	{
 		FBrokenLines *pLines;
+		ULONG ulMaxWidth;
 		ULONG ulTotalHeight;
 	};
 
@@ -1093,6 +1281,7 @@ protected:
 		// If the string is aligned to the center, then the x-offset must be doubled.
 		const ULONG ulMaxWidth = pParentMargin->GetWidth( ) - ( HorizontalAlignment == HORIZALIGN_CENTER ? 2 : 1 ) * abs( lXOffset );
 		String.pLines = V_BreakLines( pFont, ulMaxWidth, text.GetChars( ));
+		String.ulMaxWidth = 0;
 		String.ulTotalHeight = 0;
 
 		// [AK] Determine the total height of the string.
@@ -1101,6 +1290,7 @@ protected:
 			if ( i > 0 )
 				String.ulTotalHeight += ulGapSize;
 
+			String.ulMaxWidth = MAX<ULONG>( String.ulMaxWidth, String.pLines[i].Width );
 			String.ulTotalHeight += pFont->GetHeight( );
 		}
 
@@ -1167,10 +1357,10 @@ public:
 	//
 	//*************************************************************************
 
-	virtual void Draw( const ULONG ulDisplayPlayer, const ULONG ulTeam, const LONG lYPos, const float fAlpha ) const
+	virtual void Draw( const ULONG ulDisplayPlayer, const ULONG ulTeam, const LONG lYPos, const float fAlpha, const LONG lXOffsetBonus ) const
 	{
 		const ULONG ulWidthToUse = MIN( ulWidth, pParentMargin->GetWidth( ));
-		const TVector2<LONG> Pos = GetDrawingPosition( ulWidthToUse, ulHeight );
+		const TVector2<LONG> Pos = GetDrawingPosition( ulWidthToUse, ulHeight, lXOffsetBonus );
 		const PalEntry ColorToDraw = ( ValueType == DRAWCOLOR_TEAMCOLOR ) ? TEAM_GetColor( ulTeam ) : Color;
 
 		int clipLeft = Pos.X;
@@ -1187,10 +1377,11 @@ public:
 
 	//*************************************************************************
 	//
-	// [AK] Returns the height of the color box.
+	// [AK] Returns the width/height of the color box.
 	//
 	//*************************************************************************
 
+	virtual ULONG GetContentWidth( const ULONG ulTeam ) const { return MIN( ulWidth + ulRightPadding, pParentMargin->GetWidth( )); }
 	virtual ULONG GetContentHeight( const ULONG ulTeam ) const { return ulHeight + ulBottomPadding; }
 
 protected:
@@ -1279,7 +1470,7 @@ public:
 	//
 	//*************************************************************************
 
-	virtual void Draw( const ULONG ulDisplayPlayer, const ULONG ulTeam, const LONG lYPos, const float fAlpha ) const
+	virtual void Draw( const ULONG ulDisplayPlayer, const ULONG ulTeam, const LONG lYPos, const float fAlpha, const LONG lXOffsetBonus ) const
 	{
 		FTexture *pTextureToDraw = RetrieveTexture( ulTeam );
 
@@ -1287,7 +1478,7 @@ public:
 		if ( pTextureToDraw == NULL )
 			return;
 
-		const TVector2<LONG> Pos = GetDrawingPosition( pTextureToDraw->GetScaledWidth( ), pTextureToDraw->GetScaledHeight( ));
+		const TVector2<LONG> Pos = GetDrawingPosition( pTextureToDraw->GetScaledWidth( ), pTextureToDraw->GetScaledHeight( ), lXOffsetBonus );
 
 		int clipLeft = ( HUD_GetWidth( ) - pParentMargin->GetWidth( )) / 2;
 		int clipWidth = pParentMargin->GetWidth( );
@@ -1306,6 +1497,18 @@ public:
 			DTA_ClipBottom, clipTop + clipHeight,
 			DTA_Alpha, FLOAT2FIXED( fAlpha * fTranslucency ),
 			TAG_DONE );
+	}
+
+	//*************************************************************************
+	//
+	// [AK] Gets the width of a texture (for a team).
+	//
+	//*************************************************************************
+
+	virtual ULONG GetContentWidth( const ULONG ulTeam ) const
+	{
+		FTexture *pTexture = RetrieveTexture( ulTeam );
+		return pTexture != NULL ? pTexture->GetScaledWidth( ) + ulRightPadding : 0;
 	}
 
 	//*************************************************************************
@@ -1440,9 +1643,9 @@ public:
 	//
 	//*************************************************************************
 
-	virtual void Draw( const ULONG ulDisplayPlayer, const ULONG ulTeam, const LONG lYPos, const float fAlpha ) const
+	virtual void Draw( const ULONG ulDisplayPlayer, const ULONG ulTeam, const LONG lYPos, const float fAlpha, const LONG lXOffsetBonus ) const
 	{
-		Blocks[bResult].Draw( ulDisplayPlayer, ulTeam, lYPos, fAlpha );
+		Blocks[bResult].Draw( ulDisplayPlayer, ulTeam, lYPos, fAlpha, lXOffsetBonus );
 	}
 
 protected:
@@ -1911,6 +2114,10 @@ void ScoreMargin::CommandBlock::ParseCommands( FScanner &sc, ScoreMargin *pMargi
 				pNewCommand = new MultiLineBlock( pMargin, pParentCommand );
 				break;
 
+			case MARGINCMD_ROWBLOCK:
+				pNewCommand = new RowBlock( pMargin, pParentCommand );
+				break;
+
 			case MARGINCMD_DRAWSTRING:
 				pNewCommand = new DrawString( pMargin, pParentCommand );
 				break;
@@ -1998,35 +2205,10 @@ void ScoreMargin::CommandBlock::Refresh( const ULONG ulDisplayPlayer )
 //
 //*****************************************************************************
 
-void ScoreMargin::CommandBlock::Draw( const ULONG ulDisplayPlayer, const ULONG ulTeam, const LONG lYPos, const float fAlpha ) const
+void ScoreMargin::CommandBlock::Draw( const ULONG ulDisplayPlayer, const ULONG ulTeam, const LONG lYPos, const float fAlpha, const LONG lXOffsetBonus ) const
 {
 	for ( unsigned int i = 0; i < Commands.Size( ); i++ )
-		Commands[i]->Draw( ulDisplayPlayer, ulTeam, lYPos, fAlpha );
-}
-
-//*****************************************************************************
-//
-// [AK] ElementBaseCommand::ElementBaseCommand
-//
-// Initializes an ElementBaseCommand object.
-//
-//*****************************************************************************
-
-ElementBaseCommand::ElementBaseCommand( ScoreMargin *pMargin, BaseCommand *pParentCommand, COMMAND_e Type ) : BaseCommand( pMargin, pParentCommand ),
-	Command( Type ),
-	HorizontalAlignment( HORIZALIGN_LEFT ),
-	VerticalAlignment( VERTALIGN_TOP ),
-	lXOffset( 0 ),
-	lYOffset( 0 ),
-	ulBottomPadding( 0 ),
-	fTranslucency( 1.0f )
-{
-	if (( pParentCommand != NULL ) && ( pParentCommand->IsMultiLineBlock( )))
-	{
-		ElementBaseCommand *pOther = static_cast<ElementBaseCommand *>( pParentCommand );
-		HorizontalAlignment = pOther->HorizontalAlignment;
-		lXOffset = pOther->lXOffset;
-	}
+		Commands[i]->Draw( ulDisplayPlayer, ulTeam, lYPos, fAlpha, lXOffsetBonus );
 }
 
 //*************************************************************************
@@ -2039,9 +2221,9 @@ ElementBaseCommand::ElementBaseCommand( ScoreMargin *pMargin, BaseCommand *pPare
 
 void ElementBaseCommand::Refresh( const ULONG ulDisplayPlayer )
 {
-	// [AK] Only do this if the command isn't nested inside a MultiLineBlock command.
+	// [AK] Only do this if the command isn't nested inside a MultiLineBlock or RowBlock command.
 	// Otherwise, add this command to the latter's draw list.
-	if (( pParentCommand == NULL ) || ( pParentCommand->IsMultiLineBlock( ) == false ))
+	if (( pParentCommand == NULL ) || ( pParentCommand->IsBlockElement( ) == false ))
 	{
 		if ( pParentMargin->GetType( ) == MARGINTYPE_TEAM )
 		{
@@ -2055,7 +2237,7 @@ void ElementBaseCommand::Refresh( const ULONG ulDisplayPlayer )
 	}
 	else
 	{
-		static_cast<MultiLineBlock *>( pParentCommand )->AddToDrawList( this );
+		static_cast<BlockBaseCommand *>( pParentCommand )->AddToDrawList( this );
 	}
 }
 

@@ -359,6 +359,8 @@ BEGIN_ENUM( MARGINCMD_e )
 {
 	// Starts a block of lines that consist of strings, colors, or textures.
 	ENUM_ELEMENT( MARGINCMD_MULTILINEBLOCK ),
+	// Starts a row that consists of strings, colors, or textures.
+	ENUM_ELEMENT( MARGINCMD_ROWBLOCK ),
 	// Draws text somewhere in the boundary.
 	ENUM_ELEMENT( MARGINCMD_DRAWSTRING ),
 	// Draws a color somewhere in the boundary.
