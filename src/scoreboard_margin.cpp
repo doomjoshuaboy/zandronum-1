@@ -1359,12 +1359,14 @@ public:
 
 	virtual void Draw( const ULONG ulDisplayPlayer, const ULONG ulTeam, const LONG lYPos, const float fAlpha, const LONG lXOffsetBonus ) const
 	{
-		const ULONG ulWidthToUse = MIN( ulWidth, pParentMargin->GetWidth( ));
+		const ULONG ulWidthToUse = MIN( ulWidth, pParentMargin->GetWidth( ) - abs( lXOffset + lXOffsetBonus ));
 		const TVector2<LONG> Pos = GetDrawingPosition( ulWidthToUse, ulHeight, lXOffsetBonus );
 		const PalEntry ColorToDraw = ( ValueType == DRAWCOLOR_TEAMCOLOR ) ? TEAM_GetColor( ulTeam ) : Color;
+		const LONG lMarginLeftXPos = ( HUD_GetWidth( ) - pParentMargin->GetWidth( )) / 2;
 
-		int clipLeft = Pos.X;
-		int clipWidth = ulWidthToUse;
+		// [AK] The color box can't be drawn past the left or right sides of the margin.
+		int clipLeft = MAX<int>( Pos.X, lMarginLeftXPos );
+		int clipWidth = MIN<int>( ulWidthToUse, lMarginLeftXPos + pParentMargin->GetWidth( ) - clipLeft );
 		int clipTop = Pos.Y + lYPos;
 		int clipHeight = ulHeight;
 
