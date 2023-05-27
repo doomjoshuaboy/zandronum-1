@@ -3548,114 +3548,93 @@ void SCOREBOARD_ShouldRefreshBeforeRendering( void )
 
 //*****************************************************************************
 //
+// [AK] scoreboard_GetScoreLeft
+//
+// Helper function for SCOREBOARD_GetLeftToLimit that checks which team (in
+// team-based game modes) or player has the highest score, then returns the
+// difference between it and the desired game limit.
+//
+//*****************************************************************************
+
+template <typename Type>
+LONG scoreboard_GetScoreLeft( FIntCVar &LimitCVar, LONG ( *pTeamGetterFunc )( void ), Type player_t::*pScoreCount )
+{
+	LONG lHighestScore;
+
+	if ( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSONTEAMS )
+	{
+		lHighestScore = pTeamGetterFunc( );
+	}
+	else
+	{
+		lHighestScore = INT_MIN;
+
+		for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+		{
+			if (( playeringame[ulIdx] ) && ( players[ulIdx].bSpectating == false ) && ( static_cast<LONG>( players[ulIdx].*pScoreCount ) > lHighestScore ))
+				lHighestScore = players[ulIdx].*pScoreCount;
+		}
+	}
+
+	return LimitCVar - lHighestScore;
+}
+
+//*****************************************************************************
+//
+// SCOREBOARD_GetLeftToLimit
+//
+// Gets how much score is left to any game limits (e.g. frags, points, or wins).
+//
+//*****************************************************************************
+
 LONG SCOREBOARD_GetLeftToLimit( void )
 {
-	ULONG	ulIdx;
-
 	// If we're not in a level, then clearly there's no need for this.
 	if ( gamestate != GS_LEVEL )
-		return ( 0 );
+		return 0;
 
 	// KILL-based mode. [BB] This works indepently of any players in game.
-	if ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSEARNKILLS )
+	if ( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSEARNKILLS )
 	{
 		if ( invasion )
-			return (LONG) INVASION_GetNumMonstersLeft( );
-		else if ( dmflags2 & DF2_KILL_MONSTERS )
+			return static_cast<LONG>( INVASION_GetNumMonstersLeft( ));
+
+		if ( dmflags2 & DF2_KILL_MONSTERS )
 		{
 			if ( level.total_monsters > 0 )
 				return ( 100 * ( level.total_monsters - level.killed_monsters ) / level.total_monsters );
 			else
 				return 0;
 		}
-		else
-			return ( level.total_monsters - level.killed_monsters );
+
+		return level.total_monsters - level.killed_monsters;
 	}
 
 	// [BB] In a team game with only empty teams or if there are no players at all, just return the appropriate limit.
-	if ( ( ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS )
-	     && ( TEAM_TeamsWithPlayersOn() == 0 ) )
-		 || ( SERVER_CalcNumNonSpectatingPlayers( MAXPLAYERS ) == 0 ) )
+	if ((( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSONTEAMS ) && ( TEAM_TeamsWithPlayersOn( ) == 0 )) || ( SERVER_CalcNumNonSpectatingPlayers( MAXPLAYERS ) == 0 ))
 	{
-		if ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSEARNWINS )
+		if ( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSEARNWINS )
 			return winlimit;
-		else if ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSEARNPOINTS )
+		else if ( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSEARNPOINTS )
 			return pointlimit;
-		else if ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSEARNFRAGS )
+		else if ( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSEARNFRAGS )
 			return fraglimit;
 		else
 			return 0;
 	}
 
 	// FRAG-based mode.
-	if ( fraglimit && GAMEMODE_GetCurrentFlags() & GMF_PLAYERSEARNFRAGS )
-	{
-		LONG	lHighestFragcount;
-				
-		if ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS )
-			lHighestFragcount = TEAM_GetHighestFragCount( );		
-		else
-		{
-			lHighestFragcount = INT_MIN;
-			for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-			{
-				if ( playeringame[ulIdx] && !players[ulIdx].bSpectating && players[ulIdx].fragcount > lHighestFragcount )
-					lHighestFragcount = players[ulIdx].fragcount;
-			}
-		}
-
-		return ( fraglimit - lHighestFragcount );
-	}
-
+	if ( fraglimit && GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSEARNFRAGS )
+		return scoreboard_GetScoreLeft( fraglimit, TEAM_GetHighestFragCount, &player_t::fragcount );
 	// POINT-based mode.
-	else if ( pointlimit && GAMEMODE_GetCurrentFlags() & GMF_PLAYERSEARNPOINTS )
-	{
-		if ( teamgame || teampossession )
-			return ( pointlimit - TEAM_GetHighestPointCount( ));
-		else // Must be possession mode.
-		{
-			LONG lHighestPointCount = INT_MIN;
-			for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-			{
-				if ( playeringame[ulIdx] && !players[ulIdx].bSpectating && players[ulIdx].lPointCount > lHighestPointCount )
-					lHighestPointCount = players[ulIdx].lPointCount;
-			}
-
-			return pointlimit - (ULONG) lHighestPointCount;
-		}
-	}
-
-	// WIN-based mode (LMS).
-	else if ( winlimit && GAMEMODE_GetCurrentFlags() & GMF_PLAYERSEARNWINS )
-	{
-		bool	bFoundPlayer = false;
-		LONG	lHighestWincount = 0;
-
-		if ( teamlms )
-			lHighestWincount = TEAM_GetHighestWinCount( );
-		else
-		{
-			for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-			{
-				if ( playeringame[ulIdx] == false || players[ulIdx].bSpectating )
-					continue;
-
-				if ( bFoundPlayer == false )
-				{
-					lHighestWincount = players[ulIdx].ulWins;
-					bFoundPlayer = true;
-					continue;
-				}
-				else if ( players[ulIdx].ulWins > (ULONG)lHighestWincount )
-					lHighestWincount = players[ulIdx].ulWins;
-			}
-		}
-
-		return ( winlimit - lHighestWincount );
-	}
+	else if ( pointlimit && GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSEARNPOINTS )
+		return scoreboard_GetScoreLeft( pointlimit, TEAM_GetHighestPointCount, &player_t::lPointCount );
+	// WIN-based mode.
+	else if ( winlimit && GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSEARNWINS )
+		return scoreboard_GetScoreLeft( winlimit, TEAM_GetHighestWinCount, &player_t::ulWins );
 
 	// None of the above.
-	return ( -1 );
+	return -1;
 }
 
 //*****************************************************************************
