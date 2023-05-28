@@ -1445,7 +1445,7 @@ PlayerValue DataScoreColumn::GetValue( const ULONG ulPlayer ) const
 				break;
 
 			case COLUMNTYPE_LIVES:
-				Result.SetValue<int>( players[ulPlayer].ulLivesLeft + 1 );
+				Result.SetValue<int>( players[ulPlayer].bSpectating ? 0 : players[ulPlayer].ulLivesLeft + 1 );
 				break;
 
 			case COLUMNTYPE_HANDICAP:
