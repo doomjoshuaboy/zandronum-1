@@ -62,9 +62,6 @@
 //*****************************************************************************
 //	DEFINES
 
-// Maximum number of columns.
-#define MAX_COLUMNS			8
-
 //*****************************************************************************
 //
 // [AK] Column templates, either data or composite.
@@ -99,33 +96,7 @@ enum MARGINTYPE_e
 };
 
 //*****************************************************************************
-enum
-{
-	COLUMN_EMPTY,
-	COLUMN_NAME,
-	COLUMN_TIME,
-	COLUMN_PING,
-	COLUMN_FRAGS,
-	COLUMN_POINTS,
-	COLUMN_WINS,
-	COLUMN_KILLS,
-	COLUMN_DEATHS,
-	COLUMN_ASSISTS,
-	COLUMN_SECRETS,
-
-	NUM_COLUMN_TYPES
-};
-
-//*****************************************************************************
-enum
-{
-	ST_FRAGCOUNT,
-	ST_POINTCOUNT,
-	ST_KILLCOUNT,
-	ST_WINCOUNT,
-
-	NUM_SORT_TYPES
-};
+//	CLASSES
 
 //*****************************************************************************
 //
@@ -572,6 +543,7 @@ private:
 	ScoreMargin TeamHeader;
 	ScoreMargin SpectatorHeader;
 	ScoreMargin Footer;
+	LONG lLastRefreshTick;
 
 	void AddColumnToList( FScanner &sc, const bool bAddToRankOrder );
 	void RemoveColumnFromList( FScanner &sc, const bool bRemoveFromRankOrder );
@@ -588,8 +560,6 @@ ScoreColumn		*SCOREBOARD_GetColumn( FName Name, const bool bMustBeUsable );
 bool			SCOREBOARD_ShouldDrawBoard( void );
 void			SCOREBOARD_Reset( void );
 void			SCOREBOARD_Render( ULONG ulDisplayPlayer );
-void			SCOREBOARD_Refresh( void );
-void			SCOREBOARD_ShouldRefreshBeforeRendering( void );
 void			SCOREBOARD_BuildLimitStrings( std::list<FString> &lines, bool bAcceptColors );
 LONG			SCOREBOARD_GetLeftToLimit( void );
 level_info_t	*SCOREBOARD_GetNextLevel( void );

@@ -89,9 +89,6 @@ enum
 
 	// [AK] The CVar is gameplay-related and can be configured in the GAMEMODE lump.
 	CVAR_GAMEPLAYSETTING = 4194304,
-
-	// [AK] Setting this CVar also refreshes the scoreboard.
-	CVAR_REFRESHSCOREBOARD = 8388608,
 };
 
 union UCVarValue
@@ -158,9 +155,6 @@ public:
 	virtual bool IsFlagCVar() { return false; }
 	virtual bool IsMaskCVar() { return false; }
 	bool IsServerCVar();
-
-	// [AK] Adds or removes the CVAR_REFRESHSCOREBOARD flag.
-	void SetRefreshScoreboardBit( bool bEnable );
 
 protected:
 	FBaseCVar () {}

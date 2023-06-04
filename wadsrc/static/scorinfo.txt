@@ -1,0 +1,383 @@
+//*****************************************************************************
+//
+// COLUMN BLOCKS
+//
+//*****************************************************************************
+
+Column "Name"
+{
+	AddFlag DONTSHOWHEADER
+	AddFlag ALWAYSUSESHORTESTWIDTH
+
+	Size = 2
+}
+
+Column "Index"
+{
+	AddFlag ALWAYSUSESHORTESTWIDTH
+
+	DisplayName = "#"
+}
+
+Column "Time"
+{
+	AddFlag ALWAYSUSESHORTESTWIDTH
+
+	Alignment = Right
+	Size = 18
+}
+
+Column "Ping"
+{
+	AddFlag ONLINEONLY
+	AddFlag ALWAYSUSESHORTESTWIDTH
+
+	Alignment = Right
+	Size = 18
+}
+
+Column "Frags"
+{
+	AddFlag NOSPECTATORS
+	AddFlag ALWAYSUSESHORTESTWIDTH
+
+	Alignment = Right
+	GameType = Deathmatch, TeamGame
+	ShortName = "Frgs"
+	Size = 18
+}
+
+Column "Points"
+{
+	AddFlag NOSPECTATORS
+	AddFlag ALWAYSUSESHORTESTWIDTH
+
+	Alignment = Right
+	EarnType = Points
+	GameType = Deathmatch, TeamGame
+	ShortName = "Pts"
+	Size = 18
+}
+
+Column "Wins"
+{
+	AddFlag NOSPECTATORS
+	AddFlag ALWAYSUSESHORTESTWIDTH
+
+	Alignment = Right
+	EarnType = Wins
+	GameType = Deathmatch, TeamGame
+	Size = 18
+}
+
+
+Column "Kills"
+{
+	AddFlag NOSPECTATORS
+	AddFlag ALWAYSUSESHORTESTWIDTH
+	AddFlag CVARMUSTBEZERO
+
+	Alignment = Right
+	CVar = sv_awarddamageinsteadkills
+	EarnType = Kills
+	Size = 18
+}
+
+Column "Deaths"
+{
+	AddFlag REVERSEORDER
+	AddFlag NOSPECTATORS
+	AddFlag ALWAYSUSESHORTESTWIDTH
+
+	Alignment = Right
+	ShortName = "Dths"
+	Size = 18
+}
+
+Column "Secrets"
+{
+	AddFlag NOSPECTATORS
+	AddFlag ALWAYSUSESHORTESTWIDTH
+
+	Alignment = Right
+	GameType = Cooperative
+	ShortName = "Scrts"
+	Size = 18
+}
+
+Column "Lives"
+{
+	AddFlag NOSPECTATORS
+	AddFlag REQUIRESLIVES
+	AddFlag ALWAYSUSESHORTESTWIDTH
+
+	Alignment = Right
+	Size = 18
+}
+
+Column "Damage"
+{
+	AddFlag NOSPECTATORS
+	AddFlag ALWAYSUSESHORTESTWIDTH
+
+	Alignment = Right
+	CVar = sv_awarddamageinsteadkills
+	EarnType = Kills
+	Size = 18
+}
+
+Column "Handicap"
+{
+	AddFlag DONTSHOWHEADER
+	AddFlag ALWAYSUSESHORTESTWIDTH
+
+	Prefix = "("
+	Suffix = ")"
+	Size = 2
+}
+
+Column "JoinQueue"
+{
+	AddFlag DONTSHOWHEADER
+	AddFlag ALWAYSUSESHORTESTWIDTH
+
+	Suffix = ". "
+}
+
+Column "Vote"
+{
+	AddFlag NOINTERMISSION
+	AddFlag DONTSHOWHEADER
+	AddFlag ALWAYSUSESHORTESTWIDTH
+	AddFlag DISABLEIFEMPTY
+
+	Alignment = Right
+	Prefix = "("
+	Suffix = ")"
+}
+
+Column "PlayerColor"
+{
+	AddFlag FORBIDTEAMS
+	AddFlag DONTSHOWHEADER
+
+	Alignment = Center
+	ClipRectWidth = 9
+	ClipRectHeight = 9
+	Size = 11
+}
+
+Column "StatusIcon"
+{
+	AddFlag DONTSHOWHEADER
+
+	Alignment = Center
+	ClipRectHeight = 9
+	Size = 15
+}
+
+Column "ReadyToGoIcon"
+{
+	AddFlag INTERMISSIONONLY
+	AddFlag DONTSHOWHEADER
+
+	Alignment = Center
+	ClipRectHeight = 9
+	Size = 11
+}
+
+Column "ArtifactIcon"
+{
+	AddFlag DONTSHOWHEADER
+	AddFlag ALWAYSUSESHORTESTWIDTH
+
+	Size = 2
+}
+
+Column "BotSkillIcon"
+{
+	AddFlag DONTSHOWHEADER
+	AddFlag ALWAYSUSESHORTESTWIDTH
+
+	Alignment = Left
+	ClipRectHeight = 9
+	Size = 2
+}
+
+Column "CountryFlag"
+{
+	AddFlag ONLINEONLY
+	AddFlag DONTSHOWHEADER
+	AddFlag ALWAYSUSESHORTESTWIDTH
+
+	Alignment = Center
+	Size = 2
+}
+
+CompositeColumn "Player"
+{
+	Alignment = Left
+	Size = 200
+	Columns = "JoinQueue", "Name", "Handicap", "BotSkillIcon", "ArtifactIcon"
+}
+
+//*****************************************************************************
+//
+// SCOREBOARD BLOCK
+//
+//*****************************************************************************
+
+Scoreboard
+{
+	MainHeader
+	{
+		MultiLineBlock( horizontalalign = center )
+		{
+			DrawString( value = "Rankings", font = "BigFont", textcolor = "Red", bottompadding = 6 )
+
+			// [AK] Draw the name of the server if we're in an online game.
+			IfOnlineGame( true )
+			{
+				DrawString( value = cvar( sv_hostname ), textcolor = "Grey", bottompadding = 1 )
+			}
+
+			// [AK] Draw the name of the current game mode and level.
+			DrawString( value = gamemode + " - " + levellump + ": " + levelname, textcolor = "Gold", bottompadding = 1 )
+
+			// Draw the time, frags, points, or kills we have left until the level ends.
+			DrawString( value = limitstrings, textcolor = "Grey", bottompadding = 1 )
+
+			// Draw the team scores and their relation (tied, red leads, etc).
+			IfPlayersOnTeams( true )
+			{
+				IfEarnType( Frags, Points, Wins )
+				{
+					DrawString( value = pointstring, textcolor = "Grey", bottompadding = 1 )
+				}
+				// Draw my rank and my frags, points, etc. Don't draw it if we're in the intermission.
+				Else
+				{
+					IfIntermission( false )
+					{
+						IfShouldShowRank( true )
+						{
+							DrawString( value = placestring, textcolor = "Grey", bottompadding = 1 )
+						}
+					}
+				}
+			}
+			// Draw my rank and my frags, points, etc. Don't draw it if we're in the intermission.
+			Else
+			{
+				IfIntermission( false )
+				{
+					IfShouldShowRank( true )
+					{
+						DrawString( value = placestring, textcolor = "Grey", bottompadding = 1 )
+					}
+				}
+			}
+
+			// [JS] Intermission countdown display.
+			IfIntermission( true )
+			{
+				IfOnlineGame( true )
+				{
+					IfCVar( cl_intermissiontimer == true )
+					{
+						DrawString( value = "Entering " + nextlevellump + ": " + nextlevelname + " in " + intermissiontimeleft + " second(s)", textcolor = "Green" )
+					}
+				}
+			}
+		}
+	}
+
+	TeamHeader
+	{
+		MultiLineBlock( verticalalign = center )
+		{
+			RowBlock( )
+			{
+				DrawTexture( value = teamlogo, rightpadding = 2 )
+
+				MultiLineBlock( )
+				{
+					DrawString( value = teamname, font = "BigFont", textcolor = teamtextcolor, bottompadding = 1 )
+
+					IfPlayersHaveLives( false )
+					{
+						DrawString( value = "Total Players: " + teamplayercount, textcolor = teamtextcolor, bottompadding = 1 )
+					}
+					Else
+					{
+						DrawString( value = "Players Alive: " + teamliveplayercount + "/" + teamplayercount, textcolor = teamtextcolor, bottompadding = 1 )
+					}
+				}
+			}
+
+			// [AK] Use a width of INT_MAX to ensure this color box stretches across the entire margin.
+			DrawColor( value = teamcolor, width = 2147483648, height = 1, bottompadding = 2 )
+		}
+
+		MultiLineBlock( horizontalalign = right, verticalalign = center, bottompadding = 4 )
+		{
+			IfEarnType( Frags, Points, Wins )
+			{
+				IfEarnType( Frags )
+				{
+					DrawString( value = "Frags: " + teamfragcount, font = "BigFont", textcolor = teamtextcolor )
+				}
+				Else
+				{
+					IfEarnType( Points )
+					{
+						DrawString( value = "Points: " + teampointcount, font = "BigFont", textcolor = teamtextcolor, bottompadding = 1 )
+					}
+					Else
+					{
+						DrawString( value = "Wins: " + teamwincount, font = "BigFont", textcolor = teamtextcolor, bottompadding = 1 )
+					}
+
+					DrawString( value = "Frags: " + teamfragcount, textcolor = teamtextcolor )
+				}
+			}
+		}
+	}
+
+	SpectatorHeader
+	{
+		MultiLineBlock( verticalalign = center )
+		{
+			DrawString( value = "Spectators", font = "BigFont", textcolor = "Grey", bottompadding = 1 )
+			DrawString( value = "Total Players: " + spectatorcount, textcolor = "Grey", bottompadding = 1 )
+
+			// [AK] Use a width of INT_MAX to ensure this color box stretches across the entire margin.
+			DrawColor( value = "DD DD DD", width = 2147483648, height = 1, bottompadding = 2 )
+		}
+	}
+
+	HeaderFont = "SmallFont"
+	RowFont = "SmallFont"
+	HeaderColor = "Grey"
+	RowColor = "Grey"
+	LocalRowColor = "Green"
+	LocalRowDemoColor = "Gold"
+	BackgroundColor = "00 00 00"
+	BackgroundAmount = 0.5
+	BackgroundBorderSize = 4
+	LightRowBackgroundColor = "40 40 40"
+	DarkRowBackgroundColor = "20 20 20"
+	LocalRowBackgroundColor = "80 80 80"
+	RowBackgroundAmount = 0.65
+	DeadPlayerTextAlpha = 0.35
+	DeadPlayerRowBackgroundAmount = 0
+	GapBetweenHeaderAndRows = 2
+	GapBetweenColumns = 2
+	GapBetweenRows = 2
+	HeaderHeight = -2
+	RowHeight = -2
+	ColumnOrder = "Index", "ReadyToGoIcon", "StatusIcon", "PlayerColor", "CountryFlag", "Player", "Vote", "Wins", "Points", "Frags", "Kills", "Damage", "Lives", "Secrets", "Deaths", "Time", "Ping"
+	RankOrder = "Wins", "Points", "Frags", "Kills", "Damage", "Lives", "Secrets", "Deaths"
+
+	AddFlag UseHeaderColorForBorders
+}

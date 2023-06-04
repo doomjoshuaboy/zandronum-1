@@ -1031,10 +1031,6 @@ void G_DoCompleted (void)
 	// [BB] If we're server, update the scoreboard on the server console.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCONSOLE_UpdateScoreboard( );
-
-
-	// [AK] Refresh the scoreboard at the start of the intermission.
-	SCOREBOARD_ShouldRefreshBeforeRendering( );
 }
 
 //==========================================================================

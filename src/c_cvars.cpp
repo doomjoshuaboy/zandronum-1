@@ -343,16 +343,8 @@ void FBaseCVar::SetGenericRep (UCVarValue value, ECVarType type)
 	}
 
 	// [TP] Inform RCON clients about server setting changes
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-	{
-		if ( Flags & ( CVAR_SENSITIVESERVERSETTING | CVAR_SERVERINFO ))
-			SERVERCOMMANDS_SyncCVarToAdmins( *this );
-	}
-	// [AK] Refresh the scoreboard if setting this CVar requires it.
-	else if ( Flags & CVAR_REFRESHSCOREBOARD )
-	{
-		SCOREBOARD_ShouldRefreshBeforeRendering( );
-	}
+	if (( NETWORK_GetState() == NETSTATE_SERVER ) && ( Flags & ( CVAR_SENSITIVESERVERSETTING | CVAR_SERVERINFO )))
+		SERVERCOMMANDS_SyncCVarToAdmins( *this );
 }
 
 bool FBaseCVar::ToBool (UCVarValue value, ECVarType type)
@@ -809,15 +801,6 @@ bool FBaseCVar::IsServerCVar()
 		return static_cast<FMaskCVar*>( this )->GetValueVar()->IsServerCVar();
 
 	return !!( Flags & ( CVAR_SERVERINFO | CVAR_SENSITIVESERVERSETTING ));
-}
-
-// [AK]
-void FBaseCVar::SetRefreshScoreboardBit( bool bEnable )
-{
-	if ( bEnable )
-		Flags |= CVAR_REFRESHSCOREBOARD;
-	else
-		Flags &= ~CVAR_REFRESHSCOREBOARD;
 }
 
 //

@@ -777,27 +777,6 @@ public:
 
 	//*************************************************************************
 	//
-	// [AK] If this command used any "cvar" special values, then this will
-	// remove the CVAR_REFRESHSCOREBOARD flag any CVars that were used.
-	//
-	//*************************************************************************
-
-	~DrawString( void )
-	{
-		for ( unsigned int i = 0; i < StringChunks.Size( ); i++ )
-		{
-			if ( StringChunks[i].first == DRAWSTRING_CVAR )
-			{
-				FBaseCVar *pCVar = FindCVar( StringChunks[i].second.GetChars( ), NULL );
-
-				if ( pCVar != NULL )
-					pCVar->SetRefreshScoreboardBit( false );
-			}
-		}
-	}
-
-	//*************************************************************************
-	//
 	// [AK] Creates the text that will be drawn on the margin beforehand.
 	//
 	//*************************************************************************
@@ -1023,8 +1002,6 @@ protected:
 							sc.ScriptError( "'%s' is not a CVar.", CVarName.GetChars( ));
 
 						sc.MustGetToken( ')' );
-
-						pCVar->SetRefreshScoreboardBit( true );
 						StringChunks.Push( { SpecialValue, CVarName } );
 					}
 					else
@@ -1927,15 +1904,12 @@ public:
 
 	//*************************************************************************
 	//
-	// [AK] Removes the CVAR_REFRESHSCOREBOARD flag from the CVar, and if the
-	// CVar is a string, deletes the string to be compared from memory.
+	// [AK] If the cVar is a string, delete the to-be-compared value from memory.
 	//
 	//*************************************************************************
 
 	~IfCVarFlowControl( void )
 	{
-		pCVar->SetRefreshScoreboardBit( false );
-
 		if (( pCVar != NULL ) && ( pCVar->GetRealType( ) == CVAR_String ) && ( Val.String != NULL ))
 		{
 			delete[] Val.String;
@@ -1956,8 +1930,6 @@ public:
 
 		if ( pCVar == NULL )
 			sc.ScriptError( "'%s' is not a CVar.", sc.String );
-
-		pCVar->SetRefreshScoreboardBit( true );
 
 		// [AK] Check which operator to use.
 		if ( sc.CheckToken( TK_Eq ))
