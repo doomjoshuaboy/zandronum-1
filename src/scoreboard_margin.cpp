@@ -833,7 +833,9 @@ public:
 	{
 		const PreprocessedString *pString = RetrieveString( ulTeam );
 		const EColorRange TextColorToUse = bUsingTeamColor ? static_cast<EColorRange>( TEAM_GetTextColor( ulTeam )) : Color;
+		const HORIZALIGN_e AlignmentToUse = GetHorizontalAlignment( );
 		const fixed_t combinedAlpha = FLOAT2FIXED( fAlpha * fTranslucency );
+		TVector2<LONG> Pos = GetDrawingPosition( pString->ulMaxWidth, pString->ulTotalHeight, lXOffsetBonus );
 
 		int clipLeft = ( HUD_GetWidth( ) - pParentMargin->GetWidth( )) / 2;
 		int clipWidth = pParentMargin->GetWidth( );
@@ -846,12 +848,17 @@ public:
 
 		for ( unsigned int i = 0; pString->pLines[i].Width >= 0; i++ )
 		{
-			TVector2<LONG> Pos = GetDrawingPosition( pString->pLines[i].Width, pString->ulTotalHeight, lXOffsetBonus );
+			LONG lActualXPos = Pos.X;
 
 			if ( i > 0 )
-				Pos.Y += ( pFont->GetHeight( ) + ulGapSize ) * i;
+				Pos.Y += pFont->GetHeight( ) + ulGapSize;
 
-			screen->DrawText( pFont, TextColorToUse, Pos.X, Pos.Y + lYPos, pString->pLines[i].Text.GetChars( ),
+			if ( AlignmentToUse == HORIZALIGN_CENTER )
+				lActualXPos += ( pString->ulMaxWidth - pString->pLines[i].Width ) / 2;
+			else if ( AlignmentToUse == HORIZALIGN_RIGHT )
+				lActualXPos += pString->ulMaxWidth - pString->pLines[i].Width;
+
+			screen->DrawText( pFont, TextColorToUse, lActualXPos, Pos.Y + lYPos, pString->pLines[i].Text.GetChars( ),
 				DTA_UseVirtualScreen, g_bScale,
 				DTA_ClipLeft, clipLeft,
 				DTA_ClipRight, clipLeft + clipWidth,
