@@ -809,6 +809,7 @@ OptionMenu "HUDOptions"
 	Title "HUD Options"
 	Submenu "Alternative HUD",			"AltHudOptions"
 	Submenu "Message Options", 			"MessageOptions"
+	Submenu "Scoreboard Options", 			"ScoreboardOptions" // [AK]
 	StaticText " "
 	Option "Default Crosshair",			"crosshair", "Crosshairs"
 	Option "Force default crosshair",	"crosshairforce", "OnOff"
@@ -1206,9 +1207,25 @@ OptionMenu MessageOptions
 //
 //-------------------------------------------------------------------------------------------
 
+// [AK]
+OptionValue ZA_CountryCodeFormat
+{
+	0, "Alpha-2"
+	1, "Alpha-3"
+}
+
 OptionMenu ScoreboardOptions
 {
 	Title "SCOREBOARD OPTIONS"
+
+	// [AK] Zandronum has its own options for the scoreboard.
+	Option "Colorize pings",		"cl_colorizepings", "YesNo"
+	Option "Use short column names",	"cl_useshortcolumnnames", "YesNo"
+	Option "Show intermission timer",	"cl_intermissiontimer", "YesNo"
+	Option "Country code format",		"cl_usealpha3countrycode", "ZA_CountryCodeFormat"
+	Slider "Translucency",			"cl_scoreboardalpha", 0, 1, 0.05
+
+	/* 
 	StaticText "Cooperative Options", 1
 	StaticText " "
 	Option "Enable Scoreboard",		"sb_cooperative_enable", "YesNo"
@@ -1229,6 +1246,7 @@ OptionMenu ScoreboardOptions
 	StaticText " "
 	Option "Enable Scoreboard",		"sb_teamdeathmatch_enable", "YesNo"
 	Option "Header Color",			"sb_teamdeathmatch_headingcolor", "TextColors"
+	*/
 }
 
 /*=======================================
