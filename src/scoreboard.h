@@ -2,7 +2,8 @@
 //
 // Skulltag Source
 // Copyright (C) 2002 Brad Carney
-// Copyright (C) 2007-2012 Skulltag Development Team
+// Copyright (C) 2021-2023 Adam Kaminski
+// Copyright (C) 2007-2023 Skulltag/Zandronum Development Team
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -556,13 +557,12 @@ private:
 //	PROTOTYPES
 
 void			SCOREBOARD_Construct( void );
-ScoreColumn		*SCOREBOARD_GetColumn( FName Name, const bool bMustBeUsable );
-bool			SCOREBOARD_ShouldDrawBoard( void );
 void			SCOREBOARD_Reset( void );
 void			SCOREBOARD_Render( ULONG ulDisplayPlayer );
+bool			SCOREBOARD_ShouldDrawBoard( void );
 void			SCOREBOARD_BuildLimitStrings( std::list<FString> &lines, bool bAcceptColors );
+ScoreColumn		*SCOREBOARD_GetColumn( FName Name, const bool bMustBeUsable );
 LONG			SCOREBOARD_GetLeftToLimit( void );
-level_info_t	*SCOREBOARD_GetNextLevel( void );
 void			SCOREBOARD_SetNextLevel( const char *pszMapName );
 
 #endif // __SCOREBOARD_H__

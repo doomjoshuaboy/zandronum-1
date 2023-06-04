@@ -1,8 +1,8 @@
 //-----------------------------------------------------------------------------
 //
 // Zandronum Source
-// Copyright (C) 2021-2022 Adam Kaminski
-// Copyright (C) 2021-2022 Zandronum Development Team
+// Copyright (C) 2021-2023 Adam Kaminski
+// Copyright (C) 2021-2023 Zandronum Development Team
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without

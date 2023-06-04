@@ -2,7 +2,8 @@
 //
 // Skulltag Source
 // Copyright (C) 2002 Brad Carney
-// Copyright (C) 2007-2012 Skulltag Development Team
+// Copyright (C) 2021-2023 Adam Kaminski
+// Copyright (C) 2007-2023 Skulltag/Zandronum Development Team
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -47,36 +48,19 @@
 //
 //-----------------------------------------------------------------------------
 
-#include <set>
-#include "a_pickups.h"
 #include "c_dispatch.h"
 #include "callvote.h"
 #include "chat.h"
 #include "cl_demo.h"
 #include "cooperative.h"
 #include "deathmatch.h"
-#include "duel.h"
-#include "doomtype.h"
-#include "d_player.h"
-#include "gamemode.h"
 #include "gi.h"
-#include "invasion.h"
 #include "joinqueue.h"
-#include "lastmanstanding.h"
-#include "network.h"
-#include "sbar.h"
 #include "scoreboard.h"
-#include "st_stuff.h"
 #include "team.h"
-#include "templates.h"
-#include "v_text.h"
 #include "v_video.h"
-#include "w_wad.h"
-#include "c_bind.h"	// [RC] To tell user what key to press to vote.
 #include "st_hud.h"
-#include "wi_stuff.h"
 #include "c_console.h"
-#include "g_game.h"
 #include "d_netinf.h"
 #include "v_palette.h"
 #include "r_data/r_translate.h"
@@ -94,9 +78,6 @@ static	TMap<FName, ScoreColumn *>	g_Columns;
 
 // [AK] The main scoreboard object.
 static	Scoreboard	g_Scoreboard;
-
-// [AK] The level we are entering, to be shown on the intermission screen.
-static	level_info_t *g_pNextLevel;
 
 //*****************************************************************************
 //	PROTOTYPES
@@ -3373,46 +3354,6 @@ void SCOREBOARD_Construct( void )
 
 //*****************************************************************************
 //
-// [AK] SCOREBOARD_GetColumn
-//
-// Returns a pointer to a column by searching for its name.
-//
-//*****************************************************************************
-
-ScoreColumn *SCOREBOARD_GetColumn( FName Name, const bool bMustBeUsable )
-{
-	ScoreColumn **pColumn = g_Columns.CheckKey( Name );
-
-	if (( pColumn != NULL ) && ( *pColumn != NULL ))
-		return (( bMustBeUsable == false ) || (( *pColumn )->IsUsableInCurrentGame( ))) ? *pColumn : NULL;
-
-	return NULL;
-}
-
-//*****************************************************************************
-//
-// SCOREBOARD_ShouldDrawBoard
-//
-// Checks if the user wants to see the scoreboard and is allowed to.
-//
-//*****************************************************************************
-
-bool SCOREBOARD_ShouldDrawBoard( void )
-{
-	// [AK] If the user isn't pressing their scoreboard key then return false.
-	if ( Button_ShowScores.bDown == false )
-		return false;
-
-	// [AK] We generally don't want to draw the scoreboard in singleplayer games unless we're
-	// watching a demo. However, we still want to draw it in deathmatch, teamgame, or invasion.
-	if (( NETWORK_GetState( ) == NETSTATE_SINGLE ) && ( CLIENTDEMO_IsPlaying( ) == false ) && (( deathmatch || teamgame || invasion ) == false ))
-		return false;
-
-	return true;
-}
-
-//*****************************************************************************
-//
 // [AK] SCOREBOARD_Reset
 //
 // This should only be executed at the start of a new game. It checks if any
@@ -3440,6 +3381,12 @@ void SCOREBOARD_Reset( void )
 
 //*****************************************************************************
 //
+// SCOREBOARD_Render
+//
+// Draws the scoreboard on the screen.
+//
+//*****************************************************************************
+
 void SCOREBOARD_Render( ULONG ulDisplayPlayer )
 {
 	// Make sure the display player is valid.
@@ -3451,323 +3398,42 @@ void SCOREBOARD_Render( ULONG ulDisplayPlayer )
 
 //*****************************************************************************
 //
-// [AK] scoreboard_GetScoreLeft
+// SCOREBOARD_ShouldDrawBoard
 //
-// Helper function for SCOREBOARD_GetLeftToLimit that checks which team (in
-// team-based game modes) or player has the highest score, then returns the
-// difference between it and the desired game limit.
+// Checks if the user wants to see the scoreboard and is allowed to.
 //
 //*****************************************************************************
 
-template <typename Type>
-LONG scoreboard_GetScoreLeft( FIntCVar &LimitCVar, LONG ( *pTeamGetterFunc )( void ), Type player_t::*pScoreCount )
+bool SCOREBOARD_ShouldDrawBoard( void )
 {
-	LONG lHighestScore;
+	// [AK] If the user isn't pressing their scoreboard key then return false.
+	if ( Button_ShowScores.bDown == false )
+		return false;
 
-	if ( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSONTEAMS )
-	{
-		lHighestScore = pTeamGetterFunc( );
-	}
-	else
-	{
-		lHighestScore = INT_MIN;
+	// [AK] We generally don't want to draw the scoreboard in singleplayer games unless we're
+	// watching a demo. However, we still want to draw it in deathmatch, teamgame, or invasion.
+	if (( NETWORK_GetState( ) == NETSTATE_SINGLE ) && ( CLIENTDEMO_IsPlaying( ) == false ) && (( deathmatch || teamgame || invasion ) == false ))
+		return false;
 
-		for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-		{
-			if (( playeringame[ulIdx] ) && ( players[ulIdx].bSpectating == false ) && ( static_cast<LONG>( players[ulIdx].*pScoreCount ) > lHighestScore ))
-				lHighestScore = players[ulIdx].*pScoreCount;
-		}
-	}
-
-	return LimitCVar - lHighestScore;
+	return true;
 }
 
 //*****************************************************************************
 //
-// SCOREBOARD_GetLeftToLimit
+// [AK] SCOREBOARD_GetColumn
 //
-// Gets how much score is left to any game limits (e.g. frags, points, or wins).
+// Returns a pointer to a column by searching for its name.
 //
 //*****************************************************************************
 
-LONG SCOREBOARD_GetLeftToLimit( void )
+ScoreColumn *SCOREBOARD_GetColumn( FName Name, const bool bMustBeUsable )
 {
-	// If we're not in a level, then clearly there's no need for this.
-	if ( gamestate != GS_LEVEL )
-		return 0;
+	ScoreColumn **pColumn = g_Columns.CheckKey( Name );
 
-	// KILL-based mode. [BB] This works indepently of any players in game.
-	if ( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSEARNKILLS )
-	{
-		if ( invasion )
-			return static_cast<LONG>( INVASION_GetNumMonstersLeft( ));
+	if (( pColumn != NULL ) && ( *pColumn != NULL ))
+		return (( bMustBeUsable == false ) || (( *pColumn )->IsUsableInCurrentGame( ))) ? *pColumn : NULL;
 
-		if ( dmflags2 & DF2_KILL_MONSTERS )
-		{
-			if ( level.total_monsters > 0 )
-				return ( 100 * ( level.total_monsters - level.killed_monsters ) / level.total_monsters );
-			else
-				return 0;
-		}
-
-		return level.total_monsters - level.killed_monsters;
-	}
-
-	// [BB] In a team game with only empty teams or if there are no players at all, just return the appropriate limit.
-	if ((( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSONTEAMS ) && ( TEAM_TeamsWithPlayersOn( ) == 0 )) || ( SERVER_CalcNumNonSpectatingPlayers( MAXPLAYERS ) == 0 ))
-	{
-		if ( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSEARNWINS )
-			return winlimit;
-		else if ( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSEARNPOINTS )
-			return pointlimit;
-		else if ( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSEARNFRAGS )
-			return fraglimit;
-		else
-			return 0;
-	}
-
-	// FRAG-based mode.
-	if ( fraglimit && GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSEARNFRAGS )
-		return scoreboard_GetScoreLeft( fraglimit, TEAM_GetHighestFragCount, &player_t::fragcount );
-	// POINT-based mode.
-	else if ( pointlimit && GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSEARNPOINTS )
-		return scoreboard_GetScoreLeft( pointlimit, TEAM_GetHighestPointCount, &player_t::lPointCount );
-	// WIN-based mode.
-	else if ( winlimit && GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSEARNWINS )
-		return scoreboard_GetScoreLeft( winlimit, TEAM_GetHighestWinCount, &player_t::ulWins );
-
-	// None of the above.
-	return -1;
-}
-
-//*****************************************************************************
-//
-level_info_t *SCOREBOARD_GetNextLevel( void )
-{
-	return g_pNextLevel;
-}
-
-//*****************************************************************************
-//
-void SCOREBOARD_SetNextLevel( const char *pszMapName )
-{
-	g_pNextLevel = ( pszMapName != NULL ) ? FindLevelInfo( pszMapName ) : NULL;
-}
-
-//*****************************************************************************
-// [AK] Checks if there's already a limit string on the list, removes it from the list, then
-// prepends it to the string we passed into the function.
-//
-void scoreboard_TryToPrependLimit( std::list<FString> &lines, FString &limit )
-{
-	// [AK] This shouldn't be done on the server console.
-	if (( NETWORK_GetState( ) != NETSTATE_SERVER ) && ( lines.empty( ) == false ))
-	{
-		FString prevLimitString = lines.back( );
-		lines.pop_back( );
-
-		prevLimitString += TEXTCOLOR_DARKGRAY " - " TEXTCOLOR_NORMAL;
-		limit.Insert( 0, prevLimitString );
-	}
-}
-
-//*****************************************************************************
-// [RC] Helper method for SCOREBOARD_BuildLimitStrings. Creates a "x things remaining" message.
-// [AK] Added the bWantToPrepend parameter.
-//
-void scoreboard_AddSingleLimit( std::list<FString> &lines, bool condition, int remaining, const char *pszUnitName, bool bWantToPrepend = false )
-{
-	if ( condition && remaining > 0 )
-	{
-		FString limitString;
-		limitString.Format( "%d %s%s left", static_cast<int>( remaining ), pszUnitName, remaining == 1 ? "" : "s" );
-
-		// [AK] Try to make this string appear on the same line as a previous string if we want to.
-		if ( bWantToPrepend )
-			scoreboard_TryToPrependLimit( lines, limitString );
-
-		lines.push_back( limitString );
-	}
-}
-
-//*****************************************************************************
-// [AK] Creates the time limit message to be shown on the scoreboard or server console.
-//
-void scoreboard_AddTimeLimit( std::list<FString> &lines )
-{
-	FString TimeLeftString;
-	GAMEMODE_GetTimeLeftString( TimeLeftString );
-
-	// [AK] Also print "round" when there's more than one duel match to be played.
-	FString limitString = (( duel && duellimit > 1 ) || ( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSEARNWINS )) ? "Round" : "Level";
-	limitString.AppendFormat( " ends in %s", TimeLeftString.GetChars( ));
-
-	// [AK] Try to put the time limit string on the same line as a previous string.
-	scoreboard_TryToPrependLimit( lines, limitString );
-	lines.push_back( limitString );
-}
-
-//*****************************************************************************
-//
-// [RC] Builds the series of "x frags left / 3rd match between the two / 15:10 remain" strings. Used here and in serverconsole.cpp
-//
-void SCOREBOARD_BuildLimitStrings( std::list<FString> &lines, bool bAcceptColors )
-{
-	if ( gamestate != GS_LEVEL )
-		return;
-
-	ULONG ulFlags = GAMEMODE_GetCurrentFlags( );
-	LONG lRemaining = SCOREBOARD_GetLeftToLimit( );
-	const bool bTimeLimitActive = GAMEMODE_IsTimelimitActive( );
-	bool bTimeLimitAdded = false;
-	FString text;
-
-	// Build the fraglimit string.
-	scoreboard_AddSingleLimit( lines, fraglimit && ( ulFlags & GMF_PLAYERSEARNFRAGS ), lRemaining, "frag" );
-
-	// Build the duellimit and "wins" string.
-	if ( duel && duellimit )
-	{
-		ULONG ulWinner = MAXPLAYERS;
-		LONG lHighestFrags = LONG_MIN;
-		const bool bInResults = GAMEMODE_IsGameInResultSequence( );
-		bool bDraw = true;
-
-		// [AK] If there's a fraglimit and a duellimit string, the timelimit string should be put in-between them
-		// on the scoreboard to organize the info better (frags left on the left, duels left on the right).
-		if (( bTimeLimitActive ) && ( lines.empty( ) == false ) && ( NETWORK_GetState( ) != NETSTATE_SERVER ))
-		{
-			scoreboard_AddTimeLimit( lines );
-			bTimeLimitAdded = true;
-		}
-
-		// [TL] The number of duels left is the maximum number of duels less the number of duels fought.
-		// [AK] We already confirmed we're using duel limits, so we can now add this string unconditionally.
-		scoreboard_AddSingleLimit( lines, true, duellimit - DUEL_GetNumDuels( ), "duel", true );
-
-		// [AK] If we haven't added the timelimit string yet, make it appear next to the duellimit string.
-		if (( bTimeLimitActive ) && ( bTimeLimitAdded == false ) && ( NETWORK_GetState( ) != NETSTATE_SERVER ))
-		{
-			scoreboard_AddTimeLimit( lines );
-			bTimeLimitAdded = true;
-		}
-
-		for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-		{
-			if (( playeringame[ulIdx] ) && ( players[ulIdx].ulWins > 0 ))
-			{
-				// [AK] In case both duelers have at least one win during the results sequence the,
-				// champion should be the one with the higher frag count.
-				if ( bInResults )
-				{
-					if ( players[ulIdx].fragcount > lHighestFrags )
-					{
-						ulWinner = ulIdx;
-						lHighestFrags = players[ulIdx].fragcount;
-					}
-				}
-				else
-				{
-					ulWinner = ulIdx;
-					break;
-				}
-			}
-		}
-
-		if ( ulWinner == MAXPLAYERS )
-		{
-			if ( GAME_CountActivePlayers( ) == 2 )
-				text = "First match between the two";
-			else
-				bDraw = false;
-		}
-		else
-		{
-			text.Format( "Champion is %s", players[ulWinner].userinfo.GetName( ));
-			text.AppendFormat( " with %d win%s", static_cast<unsigned int>( players[ulWinner].ulWins ), players[ulWinner].ulWins == 1 ? "" : "s" );
-		}
-
-		if ( bDraw )
-		{
-			if ( !bAcceptColors )
-				V_RemoveColorCodes( text );
-
-			lines.push_back( text );
-		}
-	}
-
-	// Build the pointlimit, winlimit, and/or wavelimit strings.
-	scoreboard_AddSingleLimit( lines, pointlimit && ( ulFlags & GMF_PLAYERSEARNPOINTS ), lRemaining, "point" );
-	scoreboard_AddSingleLimit( lines, winlimit && ( ulFlags & GMF_PLAYERSEARNWINS ), lRemaining, "win" );
-	scoreboard_AddSingleLimit( lines, invasion && wavelimit, wavelimit - INVASION_GetCurrentWave( ), "wave" );
-
-	// [AK] Build the coop strings.
-	if ( ulFlags & GMF_COOPERATIVE )
-	{
-		ULONG ulNumLimits = 0;
-
-		// Render the number of monsters left in coop.
-		// [AK] Unless we're playing invasion, only do this when there are actually monsters on the level.
-		if (( ulFlags & GMF_PLAYERSEARNKILLS ) && (( invasion ) || ( level.total_monsters > 0 )))
-		{
-			if (( invasion ) || (( dmflags2 & DF2_KILL_MONSTERS ) == false ))
-				text.Format( "%d monster%s left", static_cast<int>( lRemaining ), lRemaining == 1 ? "" : "s" );
-			else
-				text.Format( "%d%% monsters left", static_cast<int>( lRemaining ));
-
-			// [AK] Render the number of monsters left on the same line as the number of waves left in invasion.
-			if ( invasion && wavelimit )			
-				scoreboard_TryToPrependLimit( lines, text );
-
-			lines.push_back( text );
-			ulNumLimits++;
-		}
-
-		// [AK] If there's monsters and secrets on the current level, the timelimit string should be put in-between
-		// them on the scoreboard to organize the info better (monsters left on the left, secrets left on the right).
-		if (( bTimeLimitActive ) && ( lines.empty( ) == false ) && ( NETWORK_GetState( ) != NETSTATE_SERVER ))
-		{
-			scoreboard_AddTimeLimit( lines );
-			bTimeLimitAdded = true;
-			ulNumLimits++;
- 		}
-
-		// [AK] Render the number of secrets left.
-		if ( level.total_secrets > 0 )
-		{
-			lRemaining = level.total_secrets - level.found_secrets;
-			text.Format( "%d secret%s left", static_cast<int>( lRemaining ), lRemaining == 1 ? "" : "s" );
-			scoreboard_TryToPrependLimit( lines, text );
-			lines.push_back( text );
-			ulNumLimits++;
-		}
-
-		// [AK] If we haven't added the timelimit string yet, make it appear next to the "secrets left" string.
-		if (( bTimeLimitActive ) && ( bTimeLimitAdded == false ) && ( NETWORK_GetState( ) != NETSTATE_SERVER ))
-		{
-			scoreboard_AddTimeLimit( lines );
-			bTimeLimitAdded = true;
-			ulNumLimits++;
- 		}
-
-		// [WS] Show the damage factor.
-		if ( sv_coop_damagefactor != 1.0f )
-		{
-			text.Format( "Damage factor is %.2f", static_cast<float>( sv_coop_damagefactor ));
-
-			// [AK] If there aren't too many limits already, try to make the damage factor appear on the same
-			// line as a previous string.
-			if ( ulNumLimits == 1 )
-				scoreboard_TryToPrependLimit( lines, text );
-
-			lines.push_back( text );
-		}
-	}
-
-	// Render the timelimit string. - [BB] if the gamemode uses it.
-	// [AK] Don't add this if we've already done so.
-	if (( bTimeLimitActive ) && ( bTimeLimitAdded == false ))
-		scoreboard_AddTimeLimit( lines );
+	return NULL;
 }
 
 //*****************************************************************************
