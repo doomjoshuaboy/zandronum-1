@@ -3029,7 +3029,7 @@ void Scoreboard::DrawRow( const ULONG ulPlayer, const ULONG ulDisplayPlayer, LON
 {
 	const bool bIsDisplayPlayer = ( ulPlayer == ulDisplayPlayer );
 	const bool bIsTrueSpectator = PLAYER_IsTrueSpectator( &players[ulPlayer] );
-	const bool bPlayerIsDead = (( players[ulPlayer].playerstate == PST_DEAD ) || ( players[ulPlayer].bDeadSpectator ));
+	const bool bPlayerIsDead = (( gamestate == GS_LEVEL ) && (( players[ulPlayer].playerstate == PST_DEAD ) || ( players[ulPlayer].bDeadSpectator )));
 	ULONG ulColor = RowColor;
 
 	// [AK] Change the text color to red if we're carrying a terminator sphere.
