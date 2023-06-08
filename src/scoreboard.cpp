@@ -3028,7 +3028,6 @@ void Scoreboard::Render( const ULONG ulDisplayPlayer, const float fAlpha )
 void Scoreboard::DrawRow( const ULONG ulPlayer, const ULONG ulDisplayPlayer, LONG &lYPos, const float fAlpha, bool &bUseLightBackground ) const
 {
 	const bool bIsDisplayPlayer = ( ulPlayer == ulDisplayPlayer );
-	const bool bIsTrueSpectator = PLAYER_IsTrueSpectator( &players[ulPlayer] );
 	const bool bPlayerIsDead = (( gamestate == GS_LEVEL ) && (( players[ulPlayer].playerstate == PST_DEAD ) || ( players[ulPlayer].bDeadSpectator )));
 	ULONG ulColor = RowColor;
 
