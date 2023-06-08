@@ -257,7 +257,7 @@ BEGIN_ENUM( COLUMNCMD_e )
 	ENUM_ELEMENT( COLUMNCMD_EARNTYPE ),
 	// The CVar (integer or boolean) that decides if this column is active (if non-zero) or disabled.
 	ENUM_ELEMENT( COLUMNCMD_CVAR ),
-	// Limits how many digits (integer), decimals (float), or characters (boolean or string) are shown.
+	// Limits how many decimals (float) or characters (boolean and string) are shown.
 	ENUM_ELEMENT( COLUMNCMD_MAXLENGTH ),
 	// A string of text placed in front of the value (for text-based columns).
 	ENUM_ELEMENT( COLUMNCMD_PREFIX ),
@@ -361,11 +361,11 @@ BEGIN_ENUM( MARGINCMD_e )
 	ENUM_ELEMENT( MARGINCMD_MULTILINEBLOCK ),
 	// Starts a row that consists of strings, colors, or textures.
 	ENUM_ELEMENT( MARGINCMD_ROWBLOCK ),
-	// Draws text somewhere in the boundary.
+	// Draws text somewhere in the margin.
 	ENUM_ELEMENT( MARGINCMD_DRAWSTRING ),
-	// Draws a color somewhere in the boundary.
+	// Draws a color somewhere in the margin.
 	ENUM_ELEMENT( MARGINCMD_DRAWCOLOR ),
-	// Draws a graphic or image somewhere in the boundary.
+	// Draws a graphic or image somewhere in the margin.
 	ENUM_ELEMENT( MARGINCMD_DRAWTEXTURE ),
 	// Executes a block if the current game is a network game.
 	ENUM_ELEMENT( MARGINCMD_IFONLINEGAME ),
