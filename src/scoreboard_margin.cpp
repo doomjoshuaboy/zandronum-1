@@ -719,7 +719,7 @@ protected:
 	using SpecialValue = std::pair<EnumType, MARGINTYPE_e>;
 
 	template <typename EnumType>
-	using SpecialValueList = std::map<FName, SpecialValue<EnumType>, std::less<FName>, std::allocator<std::pair<FName, SpecialValue<EnumType>>>>;
+	using SpecialValueList = std::map<FName, SpecialValue<EnumType>, std::less<FName>, std::allocator<std::pair<const FName, SpecialValue<EnumType>>>>;
 
 	//*************************************************************************
 	//
@@ -1352,7 +1352,7 @@ public:
 	{
 		const ULONG ulWidthToUse = MIN( ulWidth, pParentMargin->GetWidth( ) - abs( lXOffset + lXOffsetBonus ));
 		const TVector2<LONG> Pos = GetDrawingPosition( ulWidthToUse, ulHeight, lXOffsetBonus );
-		const PalEntry ColorToDraw = ( ValueType == DRAWCOLOR_TEAMCOLOR ) ? TEAM_GetColor( ulTeam ) : Color;
+		const PalEntry ColorToDraw = ( ValueType == DRAWCOLOR_TEAMCOLOR ) ? PalEntry( TEAM_GetColor( ulTeam )) : Color;
 		const LONG lMarginLeftXPos = ( HUD_GetWidth( ) - pParentMargin->GetWidth( )) / 2;
 
 		// [AK] The color box can't be drawn past the left or right sides of the margin.

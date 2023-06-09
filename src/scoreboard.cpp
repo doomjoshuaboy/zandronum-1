@@ -48,6 +48,7 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <algorithm>
 #include "c_dispatch.h"
 #include "callvote.h"
 #include "chat.h"
@@ -117,23 +118,23 @@ CUSTOM_CVAR( Float, cl_scoreboardalpha, 1.0f, CVAR_ARCHIVE )
 //*****************************************************************************
 //	PLAYER VALUE TRAITS
 
-const DATATYPE_e PlayerValue::Trait<int>::DataType = DATATYPE_INT;
-const int PlayerValue::Trait<int>::Zero = 0;
+template <> const DATATYPE_e PlayerValue::Trait<int>::DataType = DATATYPE_INT;
+template <> const int PlayerValue::Trait<int>::Zero = 0;
 
-const DATATYPE_e PlayerValue::Trait<bool>::DataType = DATATYPE_BOOL;
-const bool PlayerValue::Trait<bool>::Zero = false;
+template <> const DATATYPE_e PlayerValue::Trait<bool>::DataType = DATATYPE_BOOL;
+template <> const bool PlayerValue::Trait<bool>::Zero = false;
 
-const DATATYPE_e PlayerValue::Trait<float>::DataType = DATATYPE_FLOAT;
-const float PlayerValue::Trait<float>::Zero = 0.0f;
+template <> const DATATYPE_e PlayerValue::Trait<float>::DataType = DATATYPE_FLOAT;
+template <> const float PlayerValue::Trait<float>::Zero = 0.0f;
 
-const DATATYPE_e PlayerValue::Trait<const char *>::DataType = DATATYPE_STRING;
-const char *const PlayerValue::Trait<const char *>::Zero = NULL;
+template <> const DATATYPE_e PlayerValue::Trait<const char *>::DataType = DATATYPE_STRING;
+template <> const char *const PlayerValue::Trait<const char *>::Zero = NULL;
 
-const DATATYPE_e PlayerValue::Trait<PalEntry>::DataType = DATATYPE_COLOR;
-const PalEntry PlayerValue::Trait<PalEntry>::Zero = 0;
+template <> const DATATYPE_e PlayerValue::Trait<PalEntry>::DataType = DATATYPE_COLOR;
+template <> const PalEntry PlayerValue::Trait<PalEntry>::Zero = 0;
 
-const DATATYPE_e PlayerValue::Trait<FTexture *>::DataType = DATATYPE_TEXTURE;
-FTexture *const PlayerValue::Trait<FTexture *>::Zero = 0;
+template <> const DATATYPE_e PlayerValue::Trait<FTexture *>::DataType = DATATYPE_TEXTURE;
+template <> FTexture *const PlayerValue::Trait<FTexture *>::Zero = 0;
 
 //*****************************************************************************
 //	FUNCTIONS
