@@ -2659,6 +2659,7 @@ bool Scoreboard::PlayerComparator::operator( )( const int &arg1, const int &arg2
 
 			case DATATYPE_FLOAT:
 				result = static_cast<int>( Value1.GetValue<float>( ) - Value2.GetValue<float>( ));
+				break;
 
 			case DATATYPE_STRING:
 			{
