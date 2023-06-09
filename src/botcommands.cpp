@@ -826,7 +826,7 @@ void botcmd_ValidatePlayerID( const LONG lPlayerID, const char *pszFunctionName 
 //
 void botcmd_ValidateItemNetID( const LONG lNetID, const char *pszFunctionName )
 {
-	botcmd_CheckIfInputIsValid( lNetID, g_ActorNetIDList.getMaxID( ), pszFunctionName, "Illegal item index" );
+	botcmd_CheckIfInputIsValid( lNetID, IDList<AActor>::MAX_NETID, pszFunctionName, "Illegal item index" );
 }
 
 //*****************************************************************************
@@ -932,11 +932,11 @@ int botcmd_LookForItemType( CSkullBot *pBot, const char *FunctionName )
 	while (( BOTCMD_IgnoreItem( pBot, lIdx, bVisibilityCheck )) ||
 		( g_ActorNetIDList.findPointerByID ( lIdx )->GetClass( )->IsDescendantOf( RUNTIME_CLASS( T )) == false ))
 	{
-		if ( ++lIdx == static_cast<LONG>( g_ActorNetIDList.getMaxID( )))
+		if ( ++lIdx == IDList<AActor>::MAX_NETID )
 			break;
 	}
 
-	if ( lIdx == static_cast<LONG>( g_ActorNetIDList.getMaxID( )))
+	if ( lIdx == IDList<AActor>::MAX_NETID )
 		return g_iReturnInt = -1;
 	else
 		return g_iReturnInt = lIdx;
@@ -981,11 +981,11 @@ int botcmd_LookForItemWithFlag( CSkullBot *pBot, const int Flag, const char *Fun
 	while (( BOTCMD_IgnoreItem( pBot, lIdx, bVisibilityCheck )) ||
 		(( g_ActorNetIDList.findPointerByID ( lIdx )->STFlags & Flag ) == false ))
 	{
-		if ( ++lIdx == static_cast<LONG>( g_ActorNetIDList.getMaxID( )))
+		if ( ++lIdx == IDList<AActor>::MAX_NETID )
 			break;
 	}
 
-	if ( lIdx == static_cast<LONG>( g_ActorNetIDList.getMaxID( )))
+	if ( lIdx == IDList<AActor>::MAX_NETID )
 		return -1;
 	else
 		return lIdx;
