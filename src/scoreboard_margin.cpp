@@ -318,6 +318,7 @@ protected:
 
 			default:
 				sc.ScriptError( "Couldn't process parameter '%s'.", ParameterName.GetChars( ));
+				break;
 		}
 
 		// [AK] Don't offset to the left when aligned to the left, or to the right when aligned to the right.
@@ -1089,6 +1090,7 @@ protected:
 
 			default:
 				DrawBaseCommand::ParseParameter( sc, ParameterName, Parameter );
+				break;
 		}
 	}
 
@@ -1431,6 +1433,7 @@ protected:
 
 			default:
 				DrawBaseCommand::ParseParameter( sc, ParameterName, Parameter );
+				break;
 		}
 	}
 
@@ -1998,6 +2001,7 @@ public:
 
 			default:
 				sc.ScriptError( "CVar '%s' uses an invalid data type.", pCVar->GetName( ));
+				break;
 		}
 
 		FlowControlBaseCommand::Parse( sc );

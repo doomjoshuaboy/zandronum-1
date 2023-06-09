@@ -715,6 +715,7 @@ void ScoreColumn::ParseCommand( FScanner &sc, const COLUMNCMD_e Command, const F
 
 		default:
 			sc.ScriptError( "Couldn't process column command '%s' for column '%s'.", CommandName.GetChars( ), GetInternalName( ));
+			break;
 	}
 }
 
@@ -2450,6 +2451,7 @@ void Scoreboard::Parse( FScanner &sc )
 
 				default:
 					sc.ScriptError( "Couldn't process scoreboard command '%s'.", CommandName.GetChars( ));
+					break;
 			}
 		}
 	}
