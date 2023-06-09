@@ -39,8 +39,6 @@
 #include "s_sound.h"
 #include "memarena.h"
 #include "g_level.h"
-// [AK] New #includes.
-#include "networkshared.h"
 
 struct subsector_t;
 //
@@ -1344,14 +1342,89 @@ void PrintMiscActorInfo(AActor * query);
 
 #define S_FREETARGMOBJ	1
 
-//*****************************************************************************
+//==========================================================================
 //
-// [AK] ActorNetIDList
+// NetIDList
 //
-// A template specialization of NetIDList specifically for AActor.
+// Manages IDs to reference a certain type of objects over the network.
+// Since it still mimics the old Actor ID mechanism, 0 is never assigned as
+// ID.
 //
-//*****************************************************************************
+// @author Benjamin Berkels
+//
+//==========================================================================
 
+// [AK] Added a trait template struct to identify and count objects used by NetIDList.
+template <typename Type>
+struct NetIDTrait
+{
+	// The name of the object.
+	static const char *pszName;
+
+	// Supposed to count all defined "objects" (with network IDs) when an error is thrown
+	// because there's no more free network IDs.
+	static void count( );
+};
+
+template <typename Type, int NumSlots>
+class NetIDList
+{
+private:
+	// List of all possible network ID's for an object. Slot is true if it available for use.
+	typedef struct
+	{
+		// Is this node occupied, or free to be used by a new object?
+		bool	bFree;
+
+		// If this node is occupied, this is the object occupying it.
+		Type	*pObject;
+
+	} IDNODE_t;
+
+	IDNODE_t _entries[NumSlots];
+	ULONG _firstFreeID;
+
+	inline bool isIndexValid ( const LONG lNetID ) const
+	{
+		return ( lNetID >= 0 ) && ( lNetID < NumSlots );
+	}
+public:
+	void clear ( );
+
+	NetIDList ( )
+	{
+		clear ( );
+	}
+
+	void useID ( const LONG lNetID, Type *pObject );
+
+	void freeID ( const LONG lNetID )
+	{
+		if ( isIndexValid ( lNetID ) )
+		{
+			_entries[lNetID].bFree = true;
+			_entries[lNetID].pObject = NULL;
+		}
+	}
+
+	ULONG getNewID ( );
+
+	// [AK] Returns the number of possible network IDs.
+	ULONG getMaxID ( ) const { return NumSlots; }
+
+	Type* findPointerByID ( const LONG lNetID ) const
+	{
+		if ( isIndexValid ( lNetID ) == false )
+			return ( NULL );
+
+		if (( _entries[lNetID].bFree == false ) && ( _entries[lNetID].pObject ))
+			return ( _entries[lNetID].pObject );
+
+		return ( NULL );
+	}
+};
+
+// [AK] Template specialization of NetIDList, specifically for AActor.
 class ActorNetIDList : public NetIDList<AActor, SHRT_MAX + 1>
 {
 public:

@@ -51,6 +51,7 @@
 #ifndef __SCOREBOARD_H__
 #define __SCOREBOARD_H__
 
+#include <list>
 #include <set>
 #include "gamemode.h"
 #include "teaminfo.h"
