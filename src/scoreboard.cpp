@@ -116,60 +116,40 @@ CUSTOM_CVAR( Float, cl_scoreboardalpha, 1.0f, CVAR_ARCHIVE )
 }
 
 //*****************************************************************************
-//	PLAYER VALUE TRAITS
+//	PLAYER VALUE SPECIALIZATIONS
 
+// Int data type.
+template <> int PlayerValue::RetrieveValue( void ) const { return Int; }
 template <> const DATATYPE_e PlayerValue::Trait<int>::DataType = DATATYPE_INT;
 template <> const int PlayerValue::Trait<int>::Zero = 0;
 
+// Bool data type.
+template <> bool PlayerValue::RetrieveValue( void ) const { return Bool; }
 template <> const DATATYPE_e PlayerValue::Trait<bool>::DataType = DATATYPE_BOOL;
 template <> const bool PlayerValue::Trait<bool>::Zero = false;
 
+// Float data type.
+template <> float PlayerValue::RetrieveValue( void ) const { return Float; }
 template <> const DATATYPE_e PlayerValue::Trait<float>::DataType = DATATYPE_FLOAT;
 template <> const float PlayerValue::Trait<float>::Zero = 0.0f;
 
+// String data type.
+template <> const char *PlayerValue::RetrieveValue( void ) const { return String; }
 template <> const DATATYPE_e PlayerValue::Trait<const char *>::DataType = DATATYPE_STRING;
 template <> const char *const PlayerValue::Trait<const char *>::Zero = NULL;
 
+// Color data type.
+template <> PalEntry PlayerValue::RetrieveValue( void ) const { return Int; }
 template <> const DATATYPE_e PlayerValue::Trait<PalEntry>::DataType = DATATYPE_COLOR;
 template <> const PalEntry PlayerValue::Trait<PalEntry>::Zero = 0;
 
+// Texture data type.
+template <> FTexture *PlayerValue::RetrieveValue( void ) const { return Texture; }
 template <> const DATATYPE_e PlayerValue::Trait<FTexture *>::DataType = DATATYPE_TEXTURE;
 template <> FTexture *const PlayerValue::Trait<FTexture *>::Zero = 0;
 
 //*****************************************************************************
 //	FUNCTIONS
-
-//*****************************************************************************
-//
-// [AK] PlayerValue::GetValue
-//
-// Gets the value that is currently being held. If the input data type doesn't
-// match what is currently used, then the "zero" value of that data type is
-// returned instead.
-//
-//*****************************************************************************
-
-template <typename Type> Type PlayerValue::GetValue( void ) const
-{
-	return ( DataType == Trait<Type>::DataType ) ? RetrieveValue<Type>( ) : Trait<Type>::Zero;
-}
-
-//*****************************************************************************
-//
-// [AK] PlayerValue::SetValue
-//
-// Changes the value, and possibly the data type, that's stored.
-//
-//*****************************************************************************
-
-template <typename Type> void PlayerValue::SetValue( Type NewValue )
-{
-	if ( DataType == DATATYPE_STRING )
-		DeleteString( );
-
-	DataType = Trait<Type>::DataType;
-	ModifyValue( NewValue );
-}
 
 //*****************************************************************************
 //

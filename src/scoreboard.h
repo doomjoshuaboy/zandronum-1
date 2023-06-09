@@ -123,8 +123,23 @@ public:
 	~PlayerValue( void ) { DeleteString( ); }
 
 	inline DATATYPE_e GetDataType( void ) const { return DataType; }
-	template <typename Type> Type GetValue( void ) const;
-	template <typename Type> void SetValue( Type NewValue );
+
+	// [AK] Gets the value that is currently being held.
+	template <typename Type> Type GetValue( void ) const
+	{
+		return ( DataType == Trait<Type>::DataType ) ? RetrieveValue<Type>( ) : Trait<Type>::Zero;
+	}
+
+	// [AK] Changes the value, and possibly the data type, that's stored.
+	template <typename Type> void SetValue( Type NewValue )
+	{
+		if ( DataType == DATATYPE_STRING )
+			DeleteString( );
+
+		DataType = Trait<Type>::DataType;
+		ModifyValue( NewValue );
+	}
+
 	FString ToString( void ) const;
 	void FromString( const char *pszString, const DATATYPE_e NewDataType );
 
@@ -137,28 +152,11 @@ private:
 	void TransferValue( const PlayerValue &Other );
 	void DeleteString( void );
 
-	// Int data type.
-	template <> int RetrieveValue( void ) const { return Int; }
 	void ModifyValue( int NewValue ) { Int = NewValue; }
-
-	// Bool data type.
-	template <> bool RetrieveValue( void ) const { return Bool; }
 	void ModifyValue( bool NewValue ) { Bool = NewValue; }
-
-	// Float data type.
-	template <> float RetrieveValue( void ) const { return Float; }
 	void ModifyValue( float NewValue ) { Float = NewValue; }
-
-	// String data type.
-	template <> const char *RetrieveValue( void ) const { return String; }
 	void ModifyValue( const char *NewValue ) { String = ncopystring( NewValue ); }
-
-	// Color data type.
-	template <> PalEntry RetrieveValue( void ) const { return Int; }
 	void ModifyValue( PalEntry NewValue ) { Int = NewValue; }
-
-	// Texture data type.
-	template <> FTexture *RetrieveValue( void ) const { return Texture; }
 	void ModifyValue( FTexture *NewValue ) { Texture = NewValue; }
 
 	DATATYPE_e DataType;
