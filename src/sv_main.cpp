@@ -1558,8 +1558,8 @@ void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 	// This must be done after the client received the full update.
 	if ( gameinfo.CustomPlayerData.CountUsed( ) > 0 )
 	{
-		TMap<FName, CustomPlayerData>::Iterator it( gameinfo.CustomPlayerData );
-		TMap<FName, CustomPlayerData>::Pair *pair;
+		TMap<FName, PlayerData>::Iterator it( gameinfo.CustomPlayerData );
+		TMap<FName, PlayerData>::Pair *pair;
 
 		while ( it.NextPair( pair ))
 		{

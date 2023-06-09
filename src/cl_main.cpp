@@ -9255,7 +9255,7 @@ void ServerCommands::SyncMapRotation::Execute()
 
 //*****************************************************************************
 //
-static CustomPlayerData *client_GetCustomPlayerData( const char *pszFunctionName, const int index )
+static PlayerData *client_GetCustomPlayerData( const char *pszFunctionName, const int index )
 {
 	if ( pszFunctionName == NULL )
 		I_Error( "client_GetCustomPlayerData: a function name is missing!" );
@@ -9267,8 +9267,8 @@ static CustomPlayerData *client_GetCustomPlayerData( const char *pszFunctionName
 		return NULL;
 	}
 
-	TMap<FName, CustomPlayerData>::Iterator it( gameinfo.CustomPlayerData );
-	TMap<FName, CustomPlayerData>::Pair *pair;
+	TMap<FName, PlayerData>::Iterator it( gameinfo.CustomPlayerData );
+	TMap<FName, PlayerData>::Pair *pair;
 
 	while ( it.NextPair( pair ))
 	{
@@ -9285,7 +9285,7 @@ static CustomPlayerData *client_GetCustomPlayerData( const char *pszFunctionName
 //
 void ServerCommands::SetCustomPlayerValue::Execute()
 {
-	CustomPlayerData *pData = client_GetCustomPlayerData( "SetCustomPlayerValue", index );
+	PlayerData *pData = client_GetCustomPlayerData( "SetCustomPlayerValue", index );
 
 	if ( pData != NULL )
 	{
@@ -9300,7 +9300,7 @@ void ServerCommands::SetCustomPlayerValue::Execute()
 //
 void ServerCommands::ResetCustomPlayerValue::Execute( )
 {
-	CustomPlayerData *pData = client_GetCustomPlayerData( "ResetCustomPlayerValue", index );
+	PlayerData *pData = client_GetCustomPlayerData( "ResetCustomPlayerValue", index );
 
 	if ( pData != NULL )
 		pData->ResetToDefault( player, false );

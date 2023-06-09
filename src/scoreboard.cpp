@@ -359,13 +359,13 @@ void PlayerValue::DeleteString( void )
 
 //*****************************************************************************
 //
-// [AK] CustomPlayerData::CustomPlayerData
+// [AK] PlayerData::PlayerData
 //
 // Initializes the data type and default value that will be used.
 //
 //*****************************************************************************
 
-CustomPlayerData::CustomPlayerData( FScanner &sc, BYTE NewIndex ) : Index( NewIndex )
+PlayerData::PlayerData( FScanner &sc, BYTE NewIndex ) : Index( NewIndex )
 {
 	// [AK] Grab the data type first.
 	sc.MustGetToken( TK_StringConst );
@@ -423,27 +423,27 @@ CustomPlayerData::CustomPlayerData( FScanner &sc, BYTE NewIndex ) : Index( NewIn
 
 //*****************************************************************************
 //
-// [AK] CustomPlayerData::GetValue
+// [AK] PlayerData::GetValue
 //
 // Returns the value associated with a player, or the default value if the
 // given player index is invalid.
 //
 //*****************************************************************************
 
-PlayerValue CustomPlayerData::GetValue( const ULONG ulPlayer ) const
+PlayerValue PlayerData::GetValue( const ULONG ulPlayer ) const
 {
 	return PLAYER_IsValidPlayer( ulPlayer ) ? Val[ulPlayer] : GetDefaultValue( );
 }
 
 //*****************************************************************************
 //
-// [AK] CustomPlayerData::GetDefaultValue
+// [AK] PlayerData::GetDefaultValue
 //
 // Returns the default value.
 //
 //*****************************************************************************
 
-PlayerValue CustomPlayerData::GetDefaultValue( void ) const
+PlayerValue PlayerData::GetDefaultValue( void ) const
 {
 	PlayerValue DefaultVal;
 	DefaultVal.FromString( DefaultValString.GetChars( ), DataType );
@@ -453,13 +453,13 @@ PlayerValue CustomPlayerData::GetDefaultValue( void ) const
 
 //*****************************************************************************
 //
-// [AK] CustomPlayerData::SetValue
+// [AK] PlayerData::SetValue
 //
 // Changes the value of a player.
 //
 //*****************************************************************************
 
-void CustomPlayerData::SetValue( const ULONG ulPlayer, const PlayerValue &Value )
+void PlayerData::SetValue( const ULONG ulPlayer, const PlayerValue &Value )
 {
 	// [AK] Stop here if the player's invalid, or the new value is equal to the old one.
 	if (( PLAYER_IsValidPlayer( ulPlayer ) == false ) || ( GetValue( ulPlayer ) == Value ))
@@ -467,7 +467,7 @@ void CustomPlayerData::SetValue( const ULONG ulPlayer, const PlayerValue &Value 
 
 	// [AK] Only set the value if the data types match. Otherwise, throw a fatal error.
 	if ( DataType != Value.GetDataType( ))
-		I_Error( "CustomPlayerData::SetValue: data type doesn't match." );
+		I_Error( "PlayerData::SetValue: data type doesn't match." );
 
 	Val[ulPlayer] = Value;
 
@@ -478,13 +478,13 @@ void CustomPlayerData::SetValue( const ULONG ulPlayer, const PlayerValue &Value 
 
 //*****************************************************************************
 //
-// [AK] CustomPlayerData::ResetToDefault
+// [AK] PlayerData::ResetToDefault
 //
 // Resets the value of a single player, or all players, to the default value.
 //
 //*****************************************************************************
 
-void CustomPlayerData::ResetToDefault( const ULONG ulPlayer, const bool bInformClients )
+void PlayerData::ResetToDefault( const ULONG ulPlayer, const bool bInformClients )
 {
 	const PlayerValue DefaultVal = GetDefaultValue( );
 
@@ -1151,7 +1151,7 @@ DATATYPE_e DataScoreColumn::GetDataType( void ) const
 
 		case COLUMNTYPE_CUSTOM:
 		{
-			CustomPlayerData *pData = gameinfo.CustomPlayerData.CheckKey( InternalName );
+			PlayerData *pData = gameinfo.CustomPlayerData.CheckKey( InternalName );
 
 			if ( pData == NULL )
 				I_Error( "DataScoreColumn::GetDataType: custom column '%s' has no data.", GetInternalName( ));
@@ -1485,7 +1485,7 @@ PlayerValue DataScoreColumn::GetValue( const ULONG ulPlayer ) const
 
 			case COLUMNTYPE_CUSTOM:
 			{
-				CustomPlayerData *pData = gameinfo.CustomPlayerData.CheckKey( InternalName );
+				PlayerData *pData = gameinfo.CustomPlayerData.CheckKey( InternalName );
 
 				if ( pData == NULL )
 					I_Error( "DataScoreColumn::GetValue: custom column '%s' has no data.", GetInternalName( ));

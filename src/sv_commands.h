@@ -437,7 +437,7 @@ void	SERVERCOMMANDS_SyncMapRotation( ULONG ulPlayerExtra = MAXPLAYERS, ServerCom
 void	SERVERCOMMANDS_AddToMapRotation( const char *pszMapName, int position, ULONG ulMinPlayers, ULONG ulMaxPlayers, ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
 void	SERVERCOMMANDS_DelFromMapRotation( const char *pszMapName, bool bClear = false, ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
 void	SERVERCOMMANDS_ResetMapRotation( ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
-void	SERVERCOMMANDS_SetCustomPlayerValue( CustomPlayerData &Data, ULONG ulPlayer, ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
-void	SERVERCOMMANDS_ResetCustomPlayerValue( CustomPlayerData &Data, ULONG ulPlayer, ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
+void	SERVERCOMMANDS_SetCustomPlayerValue( PlayerData &Data, ULONG ulPlayer, ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
+void	SERVERCOMMANDS_ResetCustomPlayerValue( PlayerData &Data, ULONG ulPlayer, ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
 
 #endif	// __SV_COMMANDS_H__

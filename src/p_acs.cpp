@@ -7877,7 +7877,7 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 
 		case ACSF_SetCustomPlayerValue:
 			{
-				CustomPlayerData *pData = gameinfo.CustomPlayerData.CheckKey( FBehavior::StaticLookupString( args[0] ));
+				PlayerData *pData = gameinfo.CustomPlayerData.CheckKey( FBehavior::StaticLookupString( args[0] ));
 
 				// [AK] Make sure that the column and player are both valid.
 				if (( pData != NULL ) && ( PLAYER_IsValidPlayer( args[1] )))
@@ -7923,7 +7923,7 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 
 		case ACSF_GetCustomPlayerValue:
 			{
-				CustomPlayerData *pData = gameinfo.CustomPlayerData.CheckKey( FBehavior::StaticLookupString( args[0] ));
+				PlayerData *pData = gameinfo.CustomPlayerData.CheckKey( FBehavior::StaticLookupString( args[0] ));
 
 				// [AK] Make sure that the column and player are both valid.
 				if (( pData != NULL ) && ( PLAYER_IsValidPlayer( args[1] )))
@@ -7960,7 +7960,7 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 
 		case ACSF_ResetCustomDataToDefault:
 			{
-				CustomPlayerData *pData = gameinfo.CustomPlayerData.CheckKey( FBehavior::StaticLookupString( args[0] ));
+				PlayerData *pData = gameinfo.CustomPlayerData.CheckKey( FBehavior::StaticLookupString( args[0] ));
 				const ULONG ulPlayer = args[1] < 0 ? MAXPLAYERS : args[1];
 
 				// [AK] Make sure that the column and player are both valid (unless we're resetting for all players).

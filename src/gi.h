@@ -153,7 +153,7 @@ struct gameinfo_t
 	bool bForceDamageEventScripts;
 
 	// [AK] A list of all custom data for players, particularly used by custom columns.
-	TMap<FName, CustomPlayerData> CustomPlayerData;
+	TMap<FName, PlayerData> CustomPlayerData;
 
 	const char *GetFinalePage(unsigned int num) const;
 };

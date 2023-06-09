@@ -172,16 +172,16 @@ private:
 
 //*****************************************************************************
 //
-// [AK] CustomPlayerData
+// [AK] PlayerData
 //
 // An array of values for each player, used by custom columns to store data.
 //
 //*****************************************************************************
 
-class CustomPlayerData
+class PlayerData
 {
 public:
-	CustomPlayerData( FScanner &sc, BYTE NewIndex );
+	PlayerData( FScanner &sc, BYTE NewIndex );
 
 	DATATYPE_e GetDataType( void ) const { return DataType; }
 	PlayerValue GetValue( const ULONG ulPlayer ) const;

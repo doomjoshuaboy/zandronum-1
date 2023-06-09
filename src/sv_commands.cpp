@@ -5139,7 +5139,7 @@ void SERVERCOMMANDS_ResetMapRotation( ULONG ulPlayerExtra, ServerCommandFlags fl
 
 //*****************************************************************************
 // [AK]
-void SERVERCOMMANDS_SetCustomPlayerValue( CustomPlayerData &Data, ULONG ulPlayer, ULONG ulPlayerExtra, ServerCommandFlags flags )
+void SERVERCOMMANDS_SetCustomPlayerValue( PlayerData &Data, ULONG ulPlayer, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
@@ -5153,7 +5153,7 @@ void SERVERCOMMANDS_SetCustomPlayerValue( CustomPlayerData &Data, ULONG ulPlayer
 
 //*****************************************************************************
 // [AK]
-void SERVERCOMMANDS_ResetCustomPlayerValue( CustomPlayerData &Data, ULONG ulPlayer, ULONG ulPlayerExtra, ServerCommandFlags flags )
+void SERVERCOMMANDS_ResetCustomPlayerValue( PlayerData &Data, ULONG ulPlayer, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if (( ulPlayer != MAXPLAYERS ) && ( PLAYER_IsValidPlayer( ulPlayer ) == false ))
 		return;

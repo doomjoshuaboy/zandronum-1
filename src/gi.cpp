@@ -312,7 +312,7 @@ void FMapInfoParser::ParseGameInfo()
 					sc.ScriptError( "Custom data '%s' is already defined.", Name.GetChars( ));
 
 				sc.MustGetToken( ',' );
-				gameinfo.CustomPlayerData.Insert( Name, CustomPlayerData( sc, gameinfo.CustomPlayerData.CountUsed( )));
+				gameinfo.CustomPlayerData.Insert( Name, PlayerData( sc, gameinfo.CustomPlayerData.CountUsed( )));
 			}
 			else
 			{

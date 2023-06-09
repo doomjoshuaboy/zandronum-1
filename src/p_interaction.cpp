@@ -3654,8 +3654,8 @@ void PLAYER_ResetCustomValues( const ULONG ulPlayer )
 	if ( gameinfo.CustomPlayerData.CountUsed( ) == 0 )
 		return;
 
-	TMapIterator<FName, CustomPlayerData> it( gameinfo.CustomPlayerData );
-	TMap<FName, CustomPlayerData>::Pair *pair;
+	TMapIterator<FName, PlayerData> it( gameinfo.CustomPlayerData );
+	TMap<FName, PlayerData>::Pair *pair;
 
 	while ( it.NextPair( pair ))
 		pair->Value.ResetToDefault( ulPlayer, false );
