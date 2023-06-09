@@ -144,7 +144,6 @@ public:
 	void FromString( const char *pszString, const DATATYPE_e NewDataType );
 
 	void operator= ( const PlayerValue &Other ) { TransferValue( Other ); }
-
 	bool operator== ( const PlayerValue &Other ) const;
 
 private:
