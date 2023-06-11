@@ -16,6 +16,7 @@
 ---
 
 *+	- Added the new AUTHINFO lump, allowing modders to define their own list of lumps to be authenticated. [Kaminsky]
+*+	- Revamped the scoreboard, and added the new SCORINFO lump that allows full customization of the scoreboard. [Kaminsky]
 +	- Added CVars: "con_interpolate" and "con_speed" which interpolates and controls how fast the console moves. Based on featues from ZCC. [Kaminsky]
 +	- Added ACS functions: "GetCurrentMapPosition", "GetEventResult", "GetActorSectorLocation", and "ChangeTeamScore". [Kaminsky]
 +	- Added an optional parameter to the ACS function GetChatMessage to let color codes to stay in chat messages. [Kaminsky]
