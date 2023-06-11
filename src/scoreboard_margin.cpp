@@ -1920,21 +1920,6 @@ public:
 
 	//*************************************************************************
 	//
-	// [AK] If the cVar is a string, delete the to-be-compared value from memory.
-	//
-	//*************************************************************************
-
-	~IfCVarFlowControl( void )
-	{
-		if (( pCVar != NULL ) && ( pCVar->GetRealType( ) == CVAR_String ) && ( Val.String != NULL ))
-		{
-			delete[] Val.String;
-			Val.String = NULL;
-		}
-	}
-
-	//*************************************************************************
-	//
 	// [AK] Gets the CVar, the operator, and the value to compare with.
 	//
 	//*************************************************************************
@@ -1969,7 +1954,7 @@ public:
 		{
 			case CVAR_Int:
 				sc.MustGetNumber( );
-				Val.Float = static_cast<float>( sc.Number );
+				Val.SetValue<float>( static_cast<float>( sc.Number ));
 				break;
 
 			case CVAR_Bool:
@@ -1991,18 +1976,18 @@ public:
 					bValue = !!sc.Number;
 				}
 
-				Val.Float = static_cast<float>( bValue );
+				Val.SetValue<float>( static_cast<float>( bValue ));
 				break;
 			}
 
 			case CVAR_Float:
 				sc.MustGetFloat( );
-				Val.Float = static_cast<float>( sc.Float );
+				Val.SetValue<float>( static_cast<float>( sc.Float ));
 				break;
 
 			case CVAR_String:
 				sc.MustGetToken( TK_StringConst );
-				Val.String = ncopystring( sc.String );
+				Val.SetValue<const char *>( sc.String );
 				break;
 
 			default:
@@ -2036,9 +2021,9 @@ protected:
 
 		// [AK] For all non-string CVars, the values are saved as floats.
 		if ( pCVar->GetRealType( ) == CVAR_String )
-			fResult = static_cast<float>( strcmp( pCVar->GetGenericRep( CVAR_String ).String, Val.String ));
+			fResult = static_cast<float>( strcmp( pCVar->GetGenericRep( CVAR_String ).String, Val.GetValue<const char *>( )));
 		else
-			fResult = pCVar->GetGenericRep( CVAR_Float ).Float - Val.Float;
+			fResult = pCVar->GetGenericRep( CVAR_Float ).Float - Val.GetValue<float>( );
 
 		switch ( Operator )
 		{
@@ -2066,7 +2051,7 @@ protected:
 	}
 
 	FBaseCVar *pCVar;
-	UCVarValue Val;
+	PlayerValue Val;
 	OPERATOR_TYPE_e Operator;
 };
 
