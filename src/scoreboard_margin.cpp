@@ -167,14 +167,14 @@ class ElementBaseCommand : public ScoreMargin::BaseCommand
 {
 public:
 	ElementBaseCommand( ScoreMargin *pMargin, BaseCommand *pParentCommand, COMMAND_e Type ) : BaseCommand( pMargin, pParentCommand ),
-		Command( Type ),
 		HorizontalAlignment( HORIZALIGN_LEFT ),
 		VerticalAlignment( VERTALIGN_TOP ),
 		lXOffset( 0 ),
 		lYOffset( 0 ),
 		ulBottomPadding( 0 ),
 		ulRightPadding( 0 ),
-		fTranslucency( 1.0f ) { }
+		fTranslucency( 1.0f ),
+		Command( Type ) { }
 
 	//*************************************************************************
 	//
@@ -1220,15 +1220,15 @@ protected:
 					}
 
 					case DRAWSTRING_INTERMISSIONTIMELEFT:
-						text.AppendFormat( "%d", ( gamestate == GS_INTERMISSION ) ? WI_GetStopWatch( ) / TICRATE + 1 : 0 );
+						text.AppendFormat( "%ld", ( gamestate == GS_INTERMISSION ) ? WI_GetStopWatch( ) / TICRATE + 1 : 0 );
 						break;
 
 					case DRAWSTRING_TOTALPLAYERS:
-						text.AppendFormat( "%d", SERVER_CountPlayers( true ));
+						text.AppendFormat( "%lu", SERVER_CountPlayers( true ));
 						break;
 
 					case DRAWSTRING_PLAYERSINGAME:
-						text.AppendFormat( "%d", HUD_GetNumPlayers( ));
+						text.AppendFormat( "%lu", HUD_GetNumPlayers( ));
 						break;
 
 					case DRAWSTRING_TEAMNAME:
@@ -1236,31 +1236,34 @@ protected:
 						break;
 
 					case DRAWSTRING_TEAMPLAYERCOUNT:
-						text.AppendFormat( "%d", TEAM_CountPlayers( ulTeam ));
+						text.AppendFormat( "%lu", TEAM_CountPlayers( ulTeam ));
 						break;
 
 					case DRAWSTRING_TEAMLIVEPLAYERCOUNT:
-						text.AppendFormat( "%d", TEAM_CountLivingAndRespawnablePlayers( ulTeam ));
+						text.AppendFormat( "%lu", TEAM_CountLivingAndRespawnablePlayers( ulTeam ));
 						break;
 
 					case DRAWSTRING_TEAMFRAGCOUNT:
-						text.AppendFormat( "%d", TEAM_GetFragCount( ulTeam ));
+						text.AppendFormat( "%ld", TEAM_GetFragCount( ulTeam ));
 						break;
 
 					case DRAWSTRING_TEAMPOINTCOUNT:
-						text.AppendFormat( "%d", TEAM_GetPointCount( ulTeam ));
+						text.AppendFormat( "%ld", TEAM_GetPointCount( ulTeam ));
 						break;
 
 					case DRAWSTRING_TEAMWINCOUNT:
-						text.AppendFormat( "%d", TEAM_GetWinCount( ulTeam ));
+						text.AppendFormat( "%ld", TEAM_GetWinCount( ulTeam ));
 						break;
 
 					case DRAWSTRING_TEAMDEATHCOUNT:
-						text.AppendFormat( "%d", TEAM_GetDeathCount( ulTeam ));
+						text.AppendFormat( "%ld", TEAM_GetDeathCount( ulTeam ));
 						break;
 
 					case DRAWSTRING_SPECTATORCOUNT:
-						text.AppendFormat( "%d", HUD_GetNumSpectators( ));
+						text.AppendFormat( "%lu", HUD_GetNumSpectators( ));
+						break;
+
+					default:
 						break;
 				}
 			}
@@ -1311,7 +1314,7 @@ protected:
 		{
 			// [AK] If this team has no string, then something went wrong.
 			if ( ulTeam >= PreprocessedStrings.Size( ))
-				I_Error( "DrawString::RetrieveString: there is no string to retrieve for team %d.", ulTeam );
+				I_Error( "DrawString::RetrieveString: there is no string to retrieve for team %lu.", ulTeam );
 
 			return &PreprocessedStrings[ulTeam];
 		}
@@ -1768,6 +1771,9 @@ protected:
 			case MARGINCMD_IFSHOULDSHOWRANK:
 				bValue = HUD_ShouldDrawRank( ulDisplayPlayer );
 				break;
+
+			default:
+				break;
 		}
 
 		return ( bValue == bMustBeTrue );
@@ -2142,11 +2148,11 @@ void ScoreMargin::CommandBlock::ParseCommands( FScanner &sc, ScoreMargin *pMargi
 			case MARGINCMD_IFCVAR:
 				pNewCommand = new IfCVarFlowControl( pMargin, pParentCommand );
 				break;
-		}
 
-		// [AK] If the command wasn't created, then something went wrong.
-		if ( pNewCommand == NULL )
-			sc.ScriptError( "Couldn't create margin command '%s'.", sc.String );
+			default:
+				sc.ScriptError( "Couldn't create margin command '%s'.", sc.String );
+				break;
+		}
 
 		// [AK] A command's arguments must always be prepended by a '('.
 		sc.MustGetToken( '(' );
@@ -2301,12 +2307,12 @@ void ScoreMargin::Render( const ULONG ulDisplayPlayer, const ULONG ulTeam, LONG 
 		if ( ulTeam == NO_TEAM )
 			I_Error( "ScoreMargin::Render: '%s' can't be drawn for no team.", GetName( ));
 		else if ( ulTeam >= teams.Size( ))
-			I_Error( "ScoreMargin::Render: '%s' can't be drawn for an invalid team (%d).", GetName( ), ulTeam );
+			I_Error( "ScoreMargin::Render: '%s' can't be drawn for an invalid team (%lu).", GetName( ), ulTeam );
 	}
 	// [AK] Otherwise, if this is a non-team header, then we can't draw for any specific team!
 	else if ( ulTeam != NO_TEAM )
 	{
-		I_Error( "ScoreMargin::Render: '%s' must not be drawn for any specific team (%d).", GetName( ), ulTeam );
+		I_Error( "ScoreMargin::Render: '%s' must not be drawn for any specific team (%lu).", GetName( ), ulTeam );
 	}
 
 	// [AK] If there's no commands, or the width or height are zero, then we can't draw anything.

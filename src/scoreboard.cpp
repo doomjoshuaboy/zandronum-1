@@ -229,7 +229,7 @@ FString PlayerValue::ToString( void ) const
 			break;
 
 		case DATATYPE_COLOR:
-			Result.Format( "%d", RetrieveValue<PalEntry>( ));
+			Result.Format( "%d", static_cast<int>( RetrieveValue<PalEntry>( )));
 			break;
 
 		case DATATYPE_TEXTURE:
@@ -241,6 +241,9 @@ FString PlayerValue::ToString( void ) const
 
 			break;
 		}
+
+		default:
+			break;
 	}
 
 	return Result;
@@ -256,7 +259,7 @@ FString PlayerValue::ToString( void ) const
 
 void PlayerValue::FromString( const char *pszString, const DATATYPE_e NewDataType )
 {
-	if (( pszString == NULL ) || ( NewDataType <= DATATYPE_UNKNOWN ) || ( NewDataType >= NUM_DATATYPES ))
+	if ( pszString == NULL )
 		return;
 
 	switch ( NewDataType )
@@ -289,6 +292,9 @@ void PlayerValue::FromString( const char *pszString, const DATATYPE_e NewDataTyp
 		case DATATYPE_TEXTURE:
 			SetValue<FTexture *>( TexMan.FindTexture( pszString ));
 			break;
+
+		default:
+			break;
 	}
 }
 
@@ -306,6 +312,10 @@ bool PlayerValue::operator== ( const PlayerValue &Other ) const
 	{
 		switch ( DataType )
 		{
+			// [AK] Both objects having no values are technically "equal".
+			case DATATYPE_UNKNOWN:
+				return true;
+
 			case DATATYPE_INT:
 				return ( RetrieveValue<int>( ) == Other.RetrieveValue<int>( ));
 
@@ -334,6 +344,9 @@ bool PlayerValue::operator== ( const PlayerValue &Other ) const
 
 			case DATATYPE_TEXTURE:
 				return ( RetrieveValue<FTexture *>( ) == Other.RetrieveValue<FTexture *>( ));
+
+			default:
+				return false;
 		}
 	}
 
@@ -418,6 +431,9 @@ PlayerData::PlayerData( FScanner &sc, BYTE NewIndex ) : Index( NewIndex )
 
 			break;
 		}
+
+		default:
+			break;
 	}
 }
 
@@ -1196,7 +1212,7 @@ FString DataScoreColumn::GetValueString( const PlayerValue &Value ) const
 		if ( ulMaxLength == 0 )
 			text.Format( "%f", Value.GetValue<float>( ));
 		else
-			text.Format( "%.*f", ulMaxLength, Value.GetValue<float>( ));
+			text.Format( "%.*f", static_cast<int>( ulMaxLength ), Value.GetValue<float>( ));
 	}
 	else if (( Value.GetDataType( ) == DATATYPE_BOOL ) || ( Value.GetDataType( ) == DATATYPE_STRING ))
 	{
@@ -1282,6 +1298,9 @@ ULONG DataScoreColumn::GetValueWidth( const PlayerValue &Value ) const
 				const ULONG ulTextureWidth = pTexture->GetScaledWidth( );
 				return ulClipRectWidth > 0 ? MIN( ulTextureWidth, ulClipRectWidth ) : ulTextureWidth;
 			}
+
+			default:
+				return 0;
 		}
 	}
 
@@ -1435,7 +1454,7 @@ PlayerValue DataScoreColumn::GetValue( const ULONG ulPlayer ) const
 				{
 					pCarrier = GAMEMODE_GetArtifactCarrier( );
 
-					if (( pCarrier != NULL ) && ( pCarrier - players == ulPlayer ))
+					if (( pCarrier != NULL ) && ( static_cast<ULONG>( pCarrier - players ) == ulPlayer ))
 					{
 						if ( oneflagctf )
 							Result.SetValue<FTexture *>( TexMan.FindTexture( "STFLA3" ));
@@ -1452,7 +1471,7 @@ PlayerValue DataScoreColumn::GetValue( const ULONG ulPlayer ) const
 					{
 						pCarrier = TEAM_GetCarrier( ulTeam );
 
-						if (( pCarrier != NULL ) && ( pCarrier - players == ulPlayer ))
+						if (( pCarrier != NULL ) && ( static_cast<ULONG>( pCarrier - players ) == ulPlayer ))
 						{
 							Result.SetValue<FTexture *>( TexMan.FindTexture( TEAM_GetSmallHUDIcon( ulTeam )));
 							break;
@@ -1494,6 +1513,9 @@ PlayerValue DataScoreColumn::GetValue( const ULONG ulPlayer ) const
 				Result = pData->GetValue( ulPlayer );
 				break;
 			}
+
+			default:
+				break;
 		}
 	}
 
@@ -1705,6 +1727,9 @@ void DataScoreColumn::DrawValue( const ULONG ulPlayer, const ULONG ulColor, cons
 		case DATATYPE_TEXTURE:
 			DrawTexture( Value.GetValue<FTexture *>( ), lYPos, ulHeight, fAlpha, ulClipRectWidth, ulClipRectHeight );
 			break;
+
+		default:
+			break;
 	}
 }
 
@@ -1729,8 +1754,11 @@ CountryFlagScoreColumn::CountryFlagScoreColumn( FScanner &sc, const char *pszNam
 	ulFlagHeight = pFlagIconSet->GetScaledHeight( ) / NUM_FLAGS_PER_SIDE;
 
 	// [AK] Make sure that all country flags have the same width and height. Otherwise, throw a fatal error.
-	if (( ulFlagWidth * NUM_FLAGS_PER_SIDE != pFlagIconSet->GetScaledWidth( )) || ( ulFlagHeight * NUM_FLAGS_PER_SIDE != pFlagIconSet->GetScaledHeight( )))
+	if (( ulFlagWidth * NUM_FLAGS_PER_SIDE != static_cast<ULONG>( pFlagIconSet->GetScaledWidth( ))) ||
+		( ulFlagHeight * NUM_FLAGS_PER_SIDE != static_cast<ULONG>( pFlagIconSet->GetScaledHeight( ))))
+	{
 		sc.ScriptError( "The texture 'CTRYFLAG' cannot be accepted. All country flag icons don't have the same width and height." );
+	}
 }
 
 //*****************************************************************************
@@ -2169,11 +2197,11 @@ Scoreboard::Scoreboard( void ) :
 	ulGapBetweenRows( 0 ),
 	lHeaderHeight( 0 ),
 	lRowHeight( 0 ),
-	lLastRefreshTick( 0 ),
 	MainHeader( MARGINTYPE_HEADER_OR_FOOTER, "MainHeader" ),
 	TeamHeader( MARGINTYPE_TEAM, "TeamHeader" ),
 	SpectatorHeader( MARGINTYPE_SPECTATOR, "SpectatorHeader" ),
-	Footer( MARGINTYPE_HEADER_OR_FOOTER, "Footer" ) { }
+	Footer( MARGINTYPE_HEADER_OR_FOOTER, "Footer" ),
+	lLastRefreshTick( 0 ) { }
 
 //*****************************************************************************
 //
