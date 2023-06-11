@@ -9,7 +9,7 @@ Column "Name"
 	AddFlag DONTSHOWHEADER
 	AddFlag ALWAYSUSESHORTESTWIDTH
 
-	Size = 2
+	Suffix = " "
 }
 
 Column "Index"
@@ -132,8 +132,7 @@ Column "Handicap"
 	AddFlag ALWAYSUSESHORTESTWIDTH
 
 	Prefix = "("
-	Suffix = ")"
-	Size = 2
+	Suffix = ") "
 }
 
 Column "JoinQueue"
@@ -147,24 +146,23 @@ Column "JoinQueue"
 Column "Vote"
 {
 	AddFlag NOINTERMISSION
-	AddFlag DONTSHOWHEADER
+	AddFlag ONLINEONLY
 	AddFlag ALWAYSUSESHORTESTWIDTH
 	AddFlag DISABLEIFEMPTY
 
 	Alignment = Right
-	Prefix = "("
-	Suffix = ")"
+	DisplayName = "Voted"
 }
 
 Column "PlayerColor"
 {
 	AddFlag FORBIDTEAMS
 	AddFlag DONTSHOWHEADER
+	AddFlag ALWAYSUSESHORTESTWIDTH
 
 	Alignment = Center
-	ClipRectWidth = 9
 	ClipRectHeight = 9
-	Size = 11
+	ClipRectWidth = 15
 }
 
 Column "StatusIcon"
@@ -173,7 +171,7 @@ Column "StatusIcon"
 
 	Alignment = Center
 	ClipRectHeight = 9
-	Size = 15
+	Size = 13
 }
 
 Column "ReadyToGoIcon"
@@ -183,7 +181,7 @@ Column "ReadyToGoIcon"
 
 	Alignment = Center
 	ClipRectHeight = 9
-	Size = 11
+	Size = 8
 }
 
 Column "ArtifactIcon"
@@ -191,7 +189,8 @@ Column "ArtifactIcon"
 	AddFlag DONTSHOWHEADER
 	AddFlag ALWAYSUSESHORTESTWIDTH
 
-	Size = 2
+	ClipRectHeight = 9
+	Size = 4
 }
 
 Column "BotSkillIcon"
@@ -201,7 +200,7 @@ Column "BotSkillIcon"
 
 	Alignment = Left
 	ClipRectHeight = 9
-	Size = 2
+	Size = 4
 }
 
 Column "CountryFlag"
@@ -211,7 +210,6 @@ Column "CountryFlag"
 	AddFlag ALWAYSUSESHORTESTWIDTH
 
 	Alignment = Center
-	Size = 2
 }
 
 CompositeColumn "Player"
