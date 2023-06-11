@@ -398,6 +398,8 @@ public:
 	{
 	public:
 		BaseCommand( ScoreMargin *pMargin, BaseCommand *pParentCommand );
+		virtual ~BaseCommand( void ) { }
+
 		BaseCommand *GetParentCommand( void ) const { return pParentCommand; }
 
 		virtual void Parse( FScanner &sc ) = 0;
