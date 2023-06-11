@@ -276,6 +276,7 @@ CVAR( Int, sv_colorstripmethod, 0, CVAR_ARCHIVE )
 CVAR( Bool, sv_minimizetosystray, true, CVAR_ARCHIVE )
 CVAR( Int, sv_queryignoretime, 10, CVAR_ARCHIVE )
 CVAR( Bool, sv_markchatlines, false, CVAR_ARCHIVE )
+CVAR( Int, sv_distinguishteamchatlines, 0, CVAR_ARCHIVE )
 CVAR( Flag, sv_nokill, dmflags2, DF2_NOSUICIDE )
 CVAR( Bool, sv_pure, true, CVAR_SERVERINFO | CVAR_LATCH )
 CVAR( Int, sv_maxclientsperip, 2, CVAR_ARCHIVE | CVAR_SERVERINFO )
@@ -1222,45 +1223,73 @@ void SERVER_SendChatMessage( ULONG ulPlayer, ULONG ulMode, const char *pszString
 			return;
 	}
 
+	FString message;
+
 	// [BB] This is to make the lines readily identifiable, necessary
 	// for MiX-MaN's IRC server control tool for example.
-	if( sv_markchatlines )
-		Printf( "CHAT " );
+	if ( sv_markchatlines )
+		message = "CHAT ";
+
+	// [AK] Distinguish team chat messages from normal chat messages if we want to.
+	if (( sv_distinguishteamchatlines > 0 ) && ( ulMode == CHATMODE_TEAM ))
+	{
+		if ( PLAYER_IsTrueSpectator( &players[ulPlayer] ))
+		{
+			message += "<SPEC> ";
+		}
+		else if ( players[ulPlayer].bOnTeam )
+		{
+			// [AK] If sv_distinguishteamchatlines is set to 1, then show the team's name.
+			// If it's greater than 1, then show the team's number instead.
+			if ( sv_distinguishteamchatlines == 1 )
+			{
+				FString teamName = TEAM_GetName( players[ulPlayer].Team );
+				teamName.ToUpper( );
+
+				message.AppendFormat( "<%s> ", teamName.GetChars( ));
+			}
+			else
+			{
+				message.AppendFormat( "<TEAM #%d> ", players[ulPlayer].Team + 1 );
+			}
+		}
+	}
+
 	// Print this message in the server's local window.
 	if ( strnicmp( "/me", pszString, 3 ) == 0 )
 	{
-		FString message;
 		pszString += 3;
 
 		if ( ulMode == CHATMODE_PRIVATE_SEND )
 		{
 			if ( ulPlayer == MAXPLAYERS )
-				message.Format( "<To %s> ", players[ulReceiver].userinfo.GetName() );
+				message.AppendFormat( "<To %s> ", players[ulReceiver].userinfo.GetName() );
 			else
-				message.Format( "<From %s> ", players[ulPlayer].userinfo.GetName() );
+				message.AppendFormat( "<From %s> ", players[ulPlayer].userinfo.GetName() );
 		}
 
 		// [AK] Don't print the same message twice for the current RCON client.
 		CONSOLE_ShouldPrintToRCONPlayer( false );
 		message.AppendFormat( "* %s%s", ulPlayer != MAXPLAYERS ? players[ulPlayer].userinfo.GetName() : "<Server>", pszString );
-		Printf( "%s\n", message.GetChars() );
 	}
 	else
 	{
 		if ( ulMode == CHATMODE_PRIVATE_SEND )
 		{
 			if ( ulPlayer == MAXPLAYERS )
-				Printf( "<To %s>: %s\n", players[ulReceiver].userinfo.GetName(), pszString );
+				message.AppendFormat( "<To %s>: %s", players[ulReceiver].userinfo.GetName(), pszString );
 			else
-				Printf( "<From %s>: %s\n", players[ulPlayer].userinfo.GetName(), pszString );
+				message.AppendFormat( "<From %s>: %s", players[ulPlayer].userinfo.GetName(), pszString );
 		}
 		else
 		{
 			// [AK] Don't print the same message twice for the current RCON client.
 			CONSOLE_ShouldPrintToRCONPlayer( false );
-			Printf( "%s: %s\n", ulPlayer != MAXPLAYERS ? players[ulPlayer].userinfo.GetName() : "<Server>", pszString );
+			message.AppendFormat( "%s: %s", ulPlayer != MAXPLAYERS ? players[ulPlayer].userinfo.GetName() : "<Server>", pszString );
 		}
 	}
+
+	Printf( "%s\n", message.GetChars() );
 }
 
 //*****************************************************************************
@@ -1735,6 +1764,7 @@ void SERVER_DetermineConnectionType( BYTESTREAM_s *pByteStream )
 	ULONG	ulTime;
 	LONG	lCommand;
 	ULONG   ulFlags2 = 0; // [SB] extended flags
+	bool    bSendSegmentedResponse = false;
 
 	// If either this IP is in our flood protection queue, or the queue is full (DOS), ignore the request.
 	if ( g_floodProtectionIPQueue.isFull( ) || g_floodProtectionIPQueue.addressInQueue( NETWORK_GetFromAddress( )))
@@ -1779,6 +1809,7 @@ void SERVER_DetermineConnectionType( BYTESTREAM_s *pByteStream )
 			return;
 		// Launcher is querying this server.
 		case LAUNCHER_SERVER_CHALLENGE:
+		case LAUNCHER_SERVER_SEGMENTED_CHALLENGE: // [SB]
 
 			// Read in three more bytes, because it was a long that was sent to us.
 			pByteStream->ReadByte();
@@ -1791,15 +1822,34 @@ void SERVER_DetermineConnectionType( BYTESTREAM_s *pByteStream )
 			// Read in the time the launcher sent us.
 			ulTime = pByteStream->ReadLong();
 
-			// [SB] read extended flags
-			if ( ulFlags & SQF_EXTENDED_INFO )
-				ulFlags2 = pByteStream->ReadLong();
+			if ( lCommand == LAUNCHER_SERVER_SEGMENTED_CHALLENGE )
+			{
+				bSendSegmentedResponse = true;
+
+				// [SB] Read the extended flags, if any were sent.
+				if ( ulFlags & SQF_EXTENDED_INFO )
+					ulFlags2 = pByteStream->ReadLong();
+			}
+			else
+			{
+				// [SB] read extended flags
+				if ( ulFlags & SQF_EXTENDED_INFO )
+					ulFlags2 = pByteStream->ReadLong();
+
+				// [SB] Check if the launcher wants a segmented response.
+				if ( pByteStream->pbStream + 1 <= pByteStream->pbStreamEnd )
+					bSendSegmentedResponse = pByteStream->ReadByte() == 1;
+			}
 
 			// Received launcher query!
 			if ( sv_showlauncherqueries )
-				Printf( "Launcher challenge from: %s\n", NETWORK_GetFromAddress().ToString() );
+				Printf( "Launcher challenge%s%s from: %s\n",
+					lCommand == LAUNCHER_SERVER_CHALLENGE ? " (old)" : "",
+					bSendSegmentedResponse ? " (segmented)" : "",
+					NETWORK_GetFromAddress().ToString() 
+				);
 
-			SERVER_MASTER_SendServerInfo( NETWORK_GetFromAddress( ), ulFlags, ulTime, ulFlags2, false );
+			SERVER_MASTER_SendServerInfo( NETWORK_GetFromAddress( ), ulTime, ulFlags, ulFlags2, bSendSegmentedResponse, false );
 			return;
 		// [RC] Master server is sending us the holy banlist.
 		case MASTER_SERVER_BANLIST:
@@ -3012,7 +3062,7 @@ void SERVER_AdjustPlayersReactiontime( const ULONG ulPlayer )
 //
 void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo )
 {
-	ULONG	ulIdx;
+	const CLIENTSTATE_e OldState = g_aClients[ulClient].State;
 
 	if ( bBroadcast )
 	{
@@ -3108,11 +3158,9 @@ void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo )
 	playeringame[ulClient] = false;
 
 	// Run the disconnect scripts now that the player is leaving.
-	if (( players[ulClient].bSpectating == false ) ||
-		( players[ulClient].bDeadSpectator ))
-	{
+	// [AK] Only do this if the client is already spawned.
+	if (( OldState >= CLS_SPAWNED_BUT_NEEDS_AUTHENTICATION ) && (( players[ulClient].bSpectating == false ) || ( players[ulClient].bDeadSpectator )))
 		PLAYER_LeavesGame( ulClient );
-	}
 
 	// Redo the scoreboard.
 	SERVERCONSOLE_ReListPlayers( );
@@ -3132,7 +3180,7 @@ void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo )
 	PLAYER_ResetPlayerData( &players[ulClient] );
 
 	// If this player was the enemy of another bot, tell the bot.
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
 		if (( playeringame[ulIdx] == false ) || ( players[ulIdx].pSkullBot == NULL ))
 			continue;
@@ -4484,26 +4532,27 @@ void SERVER_FlagsetChanged( FIntCVar& flagset, int maxflags )
 		if ((( value ^ oldValue ) & bit ) == 0 )
 			continue;
 
-		// [AK] Print the name of the CVar and its new value while we still can.
-		if ( ++flagsChanged <= maxflags )
+		for ( FBaseCVar* cvar = CVars; cvar; cvar = cvar->GetNext( ))
 		{
-			for ( FBaseCVar* cvar = CVars; cvar; cvar = cvar->GetNext( ) )
+			// [AK] Make sure that this CVar is a flag.
+			if ( cvar->IsFlagCVar( ) == false )
+				continue;
+
+			FFlagCVar* flagCVar = static_cast<FFlagCVar*>( cvar );
+
+			// [AK] Check if this CVar belongs to the flagset and matches the corresponding bit.
+			if (( flagCVar->GetValueVar( ) == &flagset ) && ( flagCVar->GetBitVal( ) == bit ))
 			{
-				// [AK] Make sure that this CVar is a flag.
-				if ( cvar->IsFlagCVar( ) == false )
-					continue;
-
-				FFlagCVar* flagCVar = static_cast<FFlagCVar*>( cvar );
-
-				// [AK] Check if this CVar belongs to the flagset and matches the corresponding bit.
-				if (( flagCVar->GetValueVar( ) == &flagset ) && ( flagCVar->GetBitVal( ) == bit ))
+				// [AK] Print the name of the CVar and its new value while we still can.
+				if ( ++flagsChanged <= maxflags )
 				{
 					if ( flagsChanged > 1 )
 						result += ", ";
 
 					result.AppendFormat( "%s %s", flagCVar->GetName( ), ( value & bit ) ? "ON" : "OFF" );
-					break;
 				}
+
+				break;
 			}
 		}
 	}

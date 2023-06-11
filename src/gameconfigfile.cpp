@@ -553,6 +553,9 @@ void FGameConfigFile::ArchiveGameData (const char *gamename)
 		SetSection (section, true);
 		ClearCurrentSection ();
 		C_ArchiveCVars (this, CVAR_MOD|CVAR_ARCHIVE|CVAR_AUTO|CVAR_USERINFO);
+
+		// [AK] We must also archive any local CVars defined in CVARINFO.
+		C_ArchiveCVars (this, CVAR_MOD|CVAR_ARCHIVE|CVAR_AUTO);
 	}
 
 	strncpy (subsection, "ConsoleVariables", sublen);

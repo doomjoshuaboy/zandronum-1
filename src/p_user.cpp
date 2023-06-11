@@ -3806,6 +3806,7 @@ void P_PlayerThink (player_t *player)
 	if (player->bSpectating)
 	{
 		P_SetPsprite( player, ps_weapon, NULL );
+		P_SetPsprite( player, ps_flash, NULL );
 		return;
 	}
 

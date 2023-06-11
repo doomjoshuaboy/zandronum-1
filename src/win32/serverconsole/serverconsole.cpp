@@ -497,6 +497,14 @@ BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WP
 					arguments.AppendFormat( "-iwad %s ", NETWORK_GetIWAD( ) );
 					arguments.AppendFormat( "-connect %s ", g_LocalAddress.ToString() );
 
+					// [AK] If we're forcing a connect password, include it as a parameter.
+					if (( sv_forcepassword ) && ( strlen( sv_password ) > 0 ))
+						arguments.AppendFormat( "+cl_password %s ", sv_password.GetGenericRep( CVAR_String ).String );
+
+					// [AK] If we're forcing a join password, include it as a parameter.
+					if (( sv_forcejoinpassword ) && ( strlen( sv_joinpassword ) > 0 ))
+						arguments.AppendFormat( "+cl_joinpassword %s ", sv_joinpassword.GetGenericRep( CVAR_String ).String );
+
 					// Run it!
 					ShellExecute( hDlg, "open", Args->GetArg( 0 ), arguments.GetChars( ), NULL, SW_SHOW );
 				}

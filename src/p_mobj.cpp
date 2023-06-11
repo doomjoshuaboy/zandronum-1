@@ -5416,41 +5416,47 @@ APlayerPawn *P_SpawnPlayer (FPlayerStart *mthing, int playernum, int flags)
 	// [BB] We may not filter coop inventory if the player changed the player class.
 	// Thus we need to keep track of the old class.
 	const BYTE oldPlayerClass = p->CurrentPlayerClass;
+	const bool bAllowChangingClass = (( p->userinfo.GetPlayerClassNum( ) != p->CurrentPlayerClass ) && ( p->playerstate != PST_LIVE ));
 
 	// [BB] The (p->userinfo.GetPlayerClassNum() != p->CurrentPlayerClass) check allows the player to change its class when respawning.
 	// We have to make sure though that the class is not changed when traveling from one map to the next, because a travelling
 	// player gets its inventory from the last map (which of course belongs to the previous class) after being spawned completely.
-	if (p->cls == NULL || ( (p->userinfo.GetPlayerClassNum() != p->CurrentPlayerClass) && ( p->playerstate != PST_LIVE ) ) )
+	if (p->cls == NULL || bAllowChangingClass)
 	{
-		// [GRB] Pick a class from player class list
-		if (PlayerClasses.Size () > 1)
+		// [AK] Only change the player's current class when they're not alive.
+		if ( bAllowChangingClass )
 		{
-			int type;
-
-			// [BC] Cooperative is !deathmatch && !teamgame.
-			// [BB] The server host always picks the multiplayer class choice.
-			if ( ((!deathmatch && !teamgame) || ( NETWORK_GetState( ) == NETSTATE_SINGLE )) && !( NETWORK_GetState( ) == NETSTATE_SERVER ) )
+			// [GRB] Pick a class from player class list
+			if (PlayerClasses.Size () > 1)
 			{
-				type = SinglePlayerClass[playernum];
+				int type;
+
+				// [BC] Cooperative is !deathmatch && !teamgame.
+				// [BB] The server host always picks the multiplayer class choice.
+				if ( ((!deathmatch && !teamgame) || ( NETWORK_GetState( ) == NETSTATE_SINGLE )) && !( NETWORK_GetState( ) == NETSTATE_SERVER ) )
+				{
+					type = SinglePlayerClass[playernum];
+				}
+				else
+				{
+					type = p->userinfo.GetPlayerClassNum();
+					if (type < 0)
+					{
+						// [BB] If the player is on a team, only a class valid for this team may be selected.
+						if ( p->bOnTeam )
+							type = TEAM_SelectRandomValidPlayerClass( p->Team );
+						else
+							type = pr_multiclasschoice() % PlayerClasses.Size ();
+					}
+				}
+				p->CurrentPlayerClass = type;
 			}
 			else
 			{
-				type = p->userinfo.GetPlayerClassNum();
-				if (type < 0)
-				{
-					// [BB] If the player is on a team, only a class valid for this team may be selected.
-					if ( p->bOnTeam )
-						type = TEAM_SelectRandomValidPlayerClass( p->Team );
-					else
-						type = pr_multiclasschoice() % PlayerClasses.Size ();
-				}
+				p->CurrentPlayerClass = 0;
 			}
-			p->CurrentPlayerClass = type;
 		}
-		else
-		{
-			p->CurrentPlayerClass = 0;
-		}
+
 		p->cls = PlayerClasses[p->CurrentPlayerClass].Type;
 	}
 

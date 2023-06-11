@@ -519,7 +519,8 @@ CUSTOM_CVAR (Int, dmflags2, 0, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK | CVAR_GAMEPL
 		if (self & DF2_DISALLOW_SPYING)
 		{
 			// The player isn't looking through its own eyes, so make it.
-			if (p->camera != p->mo)
+			// [AK] Allow spectators to keep spying on other actors.
+			if ((p->camera != p->mo) && p->bSpectating == false)
 			{
 				p->camera = p->mo;
 

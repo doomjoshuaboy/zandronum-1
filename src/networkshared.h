@@ -133,6 +133,9 @@ enum
 
 	// [BB] Server is acknowledging the receipt of a ban list.
 	SERVER_MASTER_BANLIST_RECEIPT,
+
+	// [SB] Server is sending a segmented info packet to the launcher.
+	SERVER_LAUNCHER_SEGMENTED_CHALLENGE,
 };
 
 // [BB] Protocol version of the master server, currently only used in conjunction with LAUNCHER_MASTER_CHALLENGE.
@@ -140,6 +143,9 @@ enum
 
 // Launcher is querying the server, or master server.
 #define	LAUNCHER_SERVER_CHALLENGE	199
+
+// [SB] Launcher wants a segmented query.
+#define	LAUNCHER_SERVER_SEGMENTED_CHALLENGE	200
 
 enum
 {

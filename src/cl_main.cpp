@@ -3973,7 +3973,7 @@ void ServerCommands::KillPlayer::Execute()
 */
 
 	// [AK] If we died and can respawn, show how long we must wait before we can respawn.
-	if (( CLIENTDEMO_IsPlaying( ) == false ) && ( player - players == consoleplayer ))
+	if (( CLIENTDEMO_IsPlaying( ) == false ) && (( zacompatflags & ZACOMPATF_INSTANTRESPAWN ) == false ) && ( player - players == consoleplayer ))
 	{
 		bool bNoMoreLivesLeft = ( GAMEMODE_AreLivesLimited( ) && GAMEMODE_IsGameInProgress( ) && ( player->ulLivesLeft == 0 ));
 		float fRespawnDelayTime = 1.0f;
@@ -9462,6 +9462,10 @@ CCMD( rcon )
 	char		szString[1024];
 	char		szAppend[256];
 
+	// [AK] This function may not be used by ConsoleCommand.
+	if ( ACS_IsCalledFromConsoleCommand( ))
+		return;
+
 	if ( g_ConnectionState != CTS_ACTIVE )
 		return;
 
@@ -9514,6 +9518,10 @@ CCMD( rcon )
 //
 CCMD( send_password )
 {
+	// [AK] This function may not be used by ConsoleCommand.
+	if ( ACS_IsCalledFromConsoleCommand( ))
+		return;
+
 	if ( argv.argc( ) <= 1 )
 	{
 		Printf( "Usage: send_password <password>\n" );
@@ -9528,6 +9536,10 @@ CCMD( send_password )
 //
 CCMD( rcon_logout )
 {
+	// [AK] This function may not be used by ConsoleCommand.
+	if ( ACS_IsCalledFromConsoleCommand( ))
+		return;
+
 	if ( g_ConnectionState == CTS_ACTIVE )
 		CLIENTCOMMANDS_ChangeRCONStatus( false, NULL );
 }

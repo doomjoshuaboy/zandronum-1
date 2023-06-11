@@ -3479,6 +3479,10 @@ bool PLAYER_CanRespawnWhereDied( player_t *pPlayer )
 			return false;
 	}
 
+	// [AK] Also handle extended sector damage types.
+	if ( mo->Sector->special & DAMAGE_MASK )
+		return false;
+
 	// [AK] Don't respawn the player in an instant death sector. Taken directly from P_PlayerSpawn.
 	if (( mo->Sector->Flags & SECF_NORESPAWN ) || (( mo->Sector->special & 255 ) == Damage_InstantDeath ))
 		return false;

@@ -731,34 +731,22 @@ WORD TEAM_GetReturnScriptOffset( ULONG ulTeamIdx )
 //
 void TEAM_DoWinSequence( ULONG ulTeamIdx )
 {
-	char				szString[32];
-	DHUDMessageFadeOut	*pMsg;
+	FString message;
+	EColorRange color;
 
 	// Display "%s WINS!" HUD message.
-	if ( ulTeamIdx < teams.Size( ) )
-		sprintf( szString, "\\c%s%s WINS!", TEAM_GetTextColorName( ulTeamIdx ), TEAM_GetName( ulTeamIdx ) );
-	else
-		sprintf( szString, "DRAW GAME!\n" );
-
-	V_ColorizeString( szString );
-
-	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+	if ( ulTeamIdx < teams.Size( ))
 	{
-		pMsg = new DHUDMessageFadeOut( BigFont, szString,
-			160.4f,
-			75.0f,
-			320,
-			200,
-			CR_UNTRANSLATED,
-			3.0f,
-			2.0f );
-
-		StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
+		message.AppendFormat( "%s WINS!", TEAM_GetName( ulTeamIdx ));
+		color = static_cast<EColorRange>( TEAM_GetTextColor( ulTeamIdx ));
 	}
 	else
 	{
-		SERVERCOMMANDS_PrintHUDMessage( szString, 160.4f, 75.0f, 320, 200, HUDMESSAGETYPE_FADEOUT, CR_RED, 3.0f, 0.0f, 0.25f, "BigFont", MAKE_ID( 'C', 'N', 'T', 'R' ) );
+		message = "DRAW GAME!";
+		color = CR_RED;
 	}
+
+	HUD_DrawStandardMessage( message.GetChars( ), color, false, 3.0f, 2.0f, true );
 }
 
 //*****************************************************************************
@@ -766,8 +754,6 @@ void TEAM_DoWinSequence( ULONG ulTeamIdx )
 void TEAM_TimeExpired( void )
 {
 	LONG				lWinner = 0;
-	DHUDMessageFadeOut	*pMsg;
-	char				szString[64];
 	ULONG				lHighestScore;
 	ULONG				ulLeadingTeamsCount = 0;
 
@@ -804,33 +790,11 @@ void TEAM_TimeExpired( void )
 			lWinner = teams.Size( );
 
 		// If there was a tie, then go into sudden death!
-		if ( sv_suddendeath && ( (ULONG)lWinner == teams.Size( ) ) )
+		if (( sv_suddendeath ) && ( static_cast<ULONG>( lWinner ) == teams.Size( )))
 		{
 			// Only print the message the instant we reach sudden death.
-			if ( level.time == (int)( timelimit * TICRATE * 60 ))
-			{
-				sprintf( szString, "\\cdSUDDEN DEATH!" );
-				V_ColorizeString( szString );
-
-				if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-				{
-					// Display the HUD message.
-					pMsg = new DHUDMessageFadeOut( BigFont, szString,
-						160.4f,
-						75.0f,
-						320,
-						200,
-						CR_UNTRANSLATED,
-						3.0f,
-						2.0f );
-
-					StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
-				}
-				else
-				{
-					SERVERCOMMANDS_PrintHUDMessage( szString, 160.4f, 75.0f, 320, 200, HUDMESSAGETYPE_FADEOUT, CR_RED, 3.0f, 0.0f, 2.0f, "BigFont", MAKE_ID( 'C', 'N', 'T', 'R' ) );
-				}
-			}
+			if ( level.time == static_cast<int>( timelimit * TICRATE * 60 ))
+				HUD_DrawStandardMessage( "SUDDEN DEATH!", CR_GREEN, false, 3.0f, 2.0f, true );
 
 			return;
 		}
@@ -1977,14 +1941,18 @@ CCMD( team )
 	if ( !( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS ) )
 		return;
 
+	// The server can't do this!
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		return;
+
 	// If the played inputted a team they'd like to join (such as, "team red"), handle that
 	// with the changeteam command.
 	if ( argv.argc( ) > 1 )
 	{
-		char	szCommand[64];
+		FString command;
 
-		sprintf( szCommand, "changeteam \"%s\"", argv[1] );
-		AddCommandString( szCommand );
+		command.Format( "changeteam \"%s\"", argv[1] );
+		C_DoCommand( command.GetChars( ));
 	}
 	// If they didn't, just display which team they're on.
 	else
