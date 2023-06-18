@@ -119,6 +119,7 @@
 !	- The "maplist" CCMD now also prints "current" or "used" alongside green or red text for map entries that are currently being played or used. This change is particularly useful for consoles or logfiles that strip color codes and couldn't show the colored text. [Kaminsky]
 !	- Zandronum is now marked as DPI-aware on Windows, which prevents issues caused by the operating system automatically upscaling the game window on high-DPI displays. [DrinkyBird]
 !	- The output of the dumptrafficmeasure CCMD is now sorted by the bandwidth used in ascending order. This can be changed to descending order by specifying "desc" as the first parameter. [DrinkyBird]
+!	- The "logo" property in TEAMINFO, as well as a PlayerPawn's "ScoreIcon", are now usable and appear on the scoreboard. [Kaminsky]
 
 
 3.1
