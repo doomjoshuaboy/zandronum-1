@@ -2745,8 +2745,6 @@ void WI_initVariables (wbstartstruct_t *wbstartstruct)
 
 void WI_Start (wbstartstruct_t *wbstartstruct)
 {
-	ULONG	ulIdx;
-
 	// [CK] If the player wants to screenshot intermissions, do so.
 	// 1 = always, 2 = only online.
 	bTakeIntermissionScreenshot = ( wi_autoscreenshot == 1 && CLIENTDEMO_IsPlaying( ) == false ) || ( NETWORK_GetState( ) == NETSTATE_CLIENT && wi_autoscreenshot == 2 );
@@ -2772,10 +2770,13 @@ void WI_Start (wbstartstruct_t *wbstartstruct)
 	BOTSPAWN_ClearTable( );
 
 	// [BC] Tell the bots that we're now at intermission.
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	// [AK] Also mark all bots as "ready to go".
+	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
-		if ( playeringame[ulIdx] == false )
+		if (( playeringame[ulIdx] == false ) || ( players[ulIdx].bIsBot == false ))
 			continue;
+
+		players[ulIdx].bReadyToGoOn = true;
 
 		if ( players[ulIdx].pSkullBot )
 			players[ulIdx].pSkullBot->PostEvent( BOTEVENT_INTERMISSION );
