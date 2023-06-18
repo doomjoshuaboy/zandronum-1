@@ -126,11 +126,13 @@ Column "Damage"
 
 Column "Handicap"
 {
-	AddFlag DONTSHOWHEADER
+	AddFlag NOSPECTATORS
 	AddFlag ALWAYSUSESHORTESTWIDTH
+	AddFlag DISABLEIFEMPTY
 
-	Prefix = "("
-	Suffix = ")"
+	Alignment = Right
+	ShortName = "H'Cap"
+	Size = 16
 }
 
 Column "JoinQueue"
@@ -158,7 +160,6 @@ Column "PlayerColor"
 	AddFlag DONTSHOWHEADER
 	AddFlag ALWAYSUSESHORTESTWIDTH
 
-	Alignment = Center
 	ClipRectHeight = 9
 	ClipRectWidth = 15
 }
@@ -184,18 +185,22 @@ Column "ReadyToGoIcon"
 
 Column "ArtifactIcon"
 {
+	AddFlag NOINTERMISSION
 	AddFlag DONTSHOWHEADER
-	AddFlag ALWAYSUSESHORTESTWIDTH
 
+	Alignment = Center
 	ClipRectHeight = 9
+	GameMode = Terminator, Possession, TeamPossession, CTF, OneFlagCTF, Skulltag
+	Size = 13
 }
 
 Column "BotSkillIcon"
 {
 	AddFlag DONTSHOWHEADER
 	AddFlag ALWAYSUSESHORTESTWIDTH
+	AddFlag DISABLEIFEMPTY
 
-	Alignment = Left
+	Alignment = Center
 	ClipRectHeight = 9
 }
 
@@ -210,7 +215,7 @@ Column "CountryFlag"
 
 CompositeColumn "Player"
 {
-	Columns = "JoinQueue", "Name", "Handicap", "BotSkillIcon", "ArtifactIcon"
+	Columns = "PlayerColor", "JoinQueue", "Name"
 	GapBetweenColumns = 4
 	Size = 200
 }
@@ -371,7 +376,7 @@ Scoreboard
 	ColumnPadding = 1
 	HeaderHeight = -2
 	RowHeight = -2
-	ColumnOrder = "Index", "ReadyToGoIcon", "StatusIcon", "PlayerColor", "CountryFlag", "Player", "Vote", "Wins", "Points", "Frags", "Kills", "Damage", "Lives", "Secrets", "Deaths", "Time", "Ping"
+	ColumnOrder = "BotSkillIcon", "Index", "ReadyToGoIcon", "StatusIcon", "ArtifactIcon", "CountryFlag", "Player", "Vote", "Handicap", "Wins", "Points", "Frags", "Kills", "Damage", "Lives", "Secrets", "Deaths", "Time", "Ping"
 	RankOrder = "Wins", "Points", "Frags", "Kills", "Damage", "Lives", "Secrets", "Deaths"
 
 	AddFlag UseHeaderColorForBorders
