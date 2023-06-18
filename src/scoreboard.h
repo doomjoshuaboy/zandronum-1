@@ -361,7 +361,7 @@ private:
 class CompositeScoreColumn : public ScoreColumn
 {
 public:
-	CompositeScoreColumn( const char *pszName ) : ScoreColumn( pszName ) { }
+	CompositeScoreColumn( const char *pszName ) : ScoreColumn( pszName ), ulGapBetweenSubColumns( 0 ) { }
 
 	virtual COLUMNTEMPLATE_e GetTemplate( void ) const { return COLUMNTEMPLATE_COMPOSITE; }
 	virtual void ParseCommand( FScanner &sc, const COLUMNCMD_e Command, const FString CommandName );
@@ -375,6 +375,7 @@ protected:
 	void ClearSubColumns( void );
 
 	TArray<DataScoreColumn *> SubColumns;
+	ULONG ulGapBetweenSubColumns;
 
 private:
 	ULONG GetRowWidth( const ULONG ulPlayer ) const;

@@ -8,8 +8,6 @@ Column "Name"
 {
 	AddFlag DONTSHOWHEADER
 	AddFlag ALWAYSUSESHORTESTWIDTH
-
-	Suffix = " "
 }
 
 Column "Index"
@@ -132,7 +130,7 @@ Column "Handicap"
 	AddFlag ALWAYSUSESHORTESTWIDTH
 
 	Prefix = "("
-	Suffix = ") "
+	Suffix = ")"
 }
 
 Column "JoinQueue"
@@ -140,7 +138,7 @@ Column "JoinQueue"
 	AddFlag DONTSHOWHEADER
 	AddFlag ALWAYSUSESHORTESTWIDTH
 
-	Suffix = ". "
+	Suffix = "."
 }
 
 Column "Vote"
@@ -190,7 +188,6 @@ Column "ArtifactIcon"
 	AddFlag ALWAYSUSESHORTESTWIDTH
 
 	ClipRectHeight = 9
-	Size = 4
 }
 
 Column "BotSkillIcon"
@@ -200,7 +197,6 @@ Column "BotSkillIcon"
 
 	Alignment = Left
 	ClipRectHeight = 9
-	Size = 4
 }
 
 Column "CountryFlag"
@@ -214,9 +210,9 @@ Column "CountryFlag"
 
 CompositeColumn "Player"
 {
-	Alignment = Left
-	Size = 200
 	Columns = "JoinQueue", "Name", "Handicap", "BotSkillIcon", "ArtifactIcon"
+	GapBetweenColumns = 4
+	Size = 200
 }
 
 //*****************************************************************************

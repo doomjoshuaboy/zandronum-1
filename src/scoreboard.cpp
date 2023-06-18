@@ -1860,6 +1860,13 @@ void CompositeScoreColumn::ParseCommand( FScanner &sc, const COLUMNCMD_e Command
 {
 	switch ( Command )
 	{
+		case COLUMNCMD_GAPBETWEENCOLUMNS:
+		{
+			sc.MustGetNumber( );
+			ulGapBetweenSubColumns = MAX( sc.Number, 0 );
+			break;
+		}
+
 		case COLUMNCMD_COLUMNS:
 		case COLUMNCMD_ADDTOCOLUMNS:
 		{
@@ -2063,7 +2070,7 @@ void CompositeScoreColumn::DrawValue( const ULONG ulPlayer, const ULONG ulColor,
 			SubColumns[i]->ulWidth = ulValueWidth;
 			SubColumns[i]->DrawValue( ulPlayer, ulColor, lYPos, ulHeight, fAlpha );
 
-			lXPos += GetSubColumnWidth( i, ulValueWidth );
+			lXPos += GetSubColumnWidth( i, ulValueWidth ) + ulGapBetweenSubColumns;
 			SubColumns[i]->lRelX = SubColumns[i]->ulWidth = 0;
 		}
 	}
@@ -2133,7 +2140,13 @@ ULONG CompositeScoreColumn::GetRowWidth( const ULONG ulPlayer ) const
 		PlayerValue Value = SubColumns[i]->GetValue( ulPlayer );
 
 		if ( Value.GetDataType( ) != DATATYPE_UNKNOWN )
+		{
+			// [AK] Include the gap between sub-columns if the width is already non-zero.
+			if ( ulRowWidth > 0 )
+				ulRowWidth += ulGapBetweenSubColumns;
+
 			ulRowWidth += GetSubColumnWidth( i, SubColumns[i]->GetValueWidth( Value ));
+		}
 	}
 
 	return ulRowWidth;

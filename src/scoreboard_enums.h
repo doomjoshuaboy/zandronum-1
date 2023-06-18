@@ -271,6 +271,8 @@ BEGIN_ENUM( COLUMNCMD_e )
 	ENUM_ELEMENT( COLUMNCMD_TRUETEXT ),
 	// What gets drawn when a row's value is 0 (boolean columns only).
 	ENUM_ELEMENT( COLUMNCMD_FALSETEXT ),
+	// The spacing between sub-columns in a composite column, in pixels (composite columns only).
+	ENUM_ELEMENT( COLUMNCMD_GAPBETWEENCOLUMNS ),
 	// What sub-columns are inside the composite column and their order (composite columns only).
 	ENUM_ELEMENT( COLUMNCMD_COLUMNS ),
 	// Adds column(s) to the end of the composite column's sub-column list (composite columns only).
