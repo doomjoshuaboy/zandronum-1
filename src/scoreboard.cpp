@@ -2057,7 +2057,7 @@ void CompositeScoreColumn::DrawValue( const ULONG ulPlayer, const ULONG ulColor,
 
 		Value = SubColumns[i]->GetValue( ulPlayer );
 
-		if ( Value.GetDataType( ) != DATATYPE_UNKNOWN )
+		if (( Value.GetDataType( ) != DATATYPE_UNKNOWN ) || (( SubColumns[i]->GetFlags( ) & COLUMNFLAG_DISABLEIFEMPTY ) == false ))
 		{
 			const ULONG ulValueWidth = SubColumns[i]->GetValueWidth( Value );
 
@@ -2066,12 +2066,16 @@ void CompositeScoreColumn::DrawValue( const ULONG ulPlayer, const ULONG ulColor,
 			// (i.e. Scoreboard::DrawString and Scoreboard::DrawTexture use these members to
 			// form the clipping rectangle's boundaries). What we'll do is temporarily set the
 			// members to what they need to be now, draw the value, then set them back to zero.
-			SubColumns[i]->lRelX = lXPos;
-			SubColumns[i]->ulWidth = ulValueWidth;
-			SubColumns[i]->DrawValue( ulPlayer, ulColor, lYPos, ulHeight, fAlpha );
+			if ( Value.GetDataType( ) != DATATYPE_UNKNOWN )
+			{
+				SubColumns[i]->lRelX = lXPos;
+				SubColumns[i]->ulWidth = ulValueWidth;
+				SubColumns[i]->DrawValue( ulPlayer, ulColor, lYPos, ulHeight, fAlpha );
+
+				SubColumns[i]->lRelX = SubColumns[i]->ulWidth = 0;
+			}
 
 			lXPos += GetSubColumnWidth( i, ulValueWidth ) + ulGapBetweenSubColumns;
-			SubColumns[i]->lRelX = SubColumns[i]->ulWidth = 0;
 		}
 	}
 }
@@ -2139,7 +2143,7 @@ ULONG CompositeScoreColumn::GetRowWidth( const ULONG ulPlayer ) const
 
 		PlayerValue Value = SubColumns[i]->GetValue( ulPlayer );
 
-		if ( Value.GetDataType( ) != DATATYPE_UNKNOWN )
+		if (( Value.GetDataType( ) != DATATYPE_UNKNOWN ) || (( SubColumns[i]->GetFlags( ) & COLUMNFLAG_DISABLEIFEMPTY ) == false ))
 		{
 			// [AK] Include the gap between sub-columns if the width is already non-zero.
 			if ( ulRowWidth > 0 )

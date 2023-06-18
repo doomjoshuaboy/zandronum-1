@@ -140,6 +140,7 @@ Column "JoinQueue"
 {
 	AddFlag DONTSHOWHEADER
 	AddFlag ALWAYSUSESHORTESTWIDTH
+	AddFlag DISABLEIFEMPTY
 
 	Suffix = "."
 }
