@@ -121,6 +121,7 @@ Column "Damage"
 	Alignment = Right
 	CVar = sv_awarddamageinsteadkills
 	EarnType = Kills
+	ShortName = "Dmg"
 	Size = 16
 }
 
@@ -152,6 +153,7 @@ Column "Vote"
 
 	Alignment = Right
 	DisplayName = "Voted"
+	ShortName = "Vote"
 }
 
 Column "PlayerColor"
