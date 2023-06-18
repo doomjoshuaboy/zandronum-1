@@ -24,7 +24,7 @@ Column "Time"
 	AddFlag ALWAYSUSESHORTESTWIDTH
 
 	Alignment = Right
-	Size = 18
+	Size = 16
 }
 
 Column "Ping"
@@ -33,7 +33,7 @@ Column "Ping"
 	AddFlag ALWAYSUSESHORTESTWIDTH
 
 	Alignment = Right
-	Size = 18
+	Size = 16
 }
 
 Column "Frags"
@@ -44,7 +44,7 @@ Column "Frags"
 	Alignment = Right
 	GameType = Deathmatch, TeamGame
 	ShortName = "Frgs"
-	Size = 18
+	Size = 16
 }
 
 Column "Points"
@@ -56,7 +56,7 @@ Column "Points"
 	EarnType = Points
 	GameType = Deathmatch, TeamGame
 	ShortName = "Pts"
-	Size = 18
+	Size = 16
 }
 
 Column "Wins"
@@ -67,7 +67,7 @@ Column "Wins"
 	Alignment = Right
 	EarnType = Wins
 	GameType = Deathmatch, TeamGame
-	Size = 18
+	Size = 16
 }
 
 
@@ -80,7 +80,7 @@ Column "Kills"
 	Alignment = Right
 	CVar = sv_awarddamageinsteadkills
 	EarnType = Kills
-	Size = 18
+	Size = 16
 }
 
 Column "Deaths"
@@ -91,7 +91,7 @@ Column "Deaths"
 
 	Alignment = Right
 	ShortName = "Dths"
-	Size = 18
+	Size = 16
 }
 
 Column "Secrets"
@@ -102,7 +102,7 @@ Column "Secrets"
 	Alignment = Right
 	GameType = Cooperative
 	ShortName = "Scrts"
-	Size = 18
+	Size = 16
 }
 
 Column "Lives"
@@ -112,7 +112,7 @@ Column "Lives"
 	AddFlag ALWAYSUSESHORTESTWIDTH
 
 	Alignment = Right
-	Size = 18
+	Size = 16
 }
 
 Column "Damage"
@@ -123,7 +123,7 @@ Column "Damage"
 	Alignment = Right
 	CVar = sv_awarddamageinsteadkills
 	EarnType = Kills
-	Size = 18
+	Size = 16
 }
 
 Column "Handicap"
@@ -372,6 +372,7 @@ Scoreboard
 	GapBetweenHeaderAndRows = 2
 	GapBetweenColumns = 2
 	GapBetweenRows = 2
+	ColumnPadding = 1
 	HeaderHeight = -2
 	RowHeight = -2
 	ColumnOrder = "Index", "ReadyToGoIcon", "StatusIcon", "PlayerColor", "CountryFlag", "Player", "Vote", "Wins", "Points", "Frags", "Kills", "Damage", "Lives", "Secrets", "Deaths", "Time", "Ping"

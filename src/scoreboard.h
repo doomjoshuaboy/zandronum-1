@@ -514,6 +514,7 @@ struct Scoreboard
 	ULONG ulGapBetweenHeaderAndRows;
 	ULONG ulGapBetweenColumns;
 	ULONG ulGapBetweenRows;
+	ULONG ulColumnPadding;
 	LONG lHeaderHeight;
 	LONG lRowHeight;
 

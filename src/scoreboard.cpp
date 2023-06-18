@@ -2195,6 +2195,7 @@ Scoreboard::Scoreboard( void ) :
 	ulGapBetweenHeaderAndRows( 0 ),
 	ulGapBetweenColumns( 0 ),
 	ulGapBetweenRows( 0 ),
+	ulColumnPadding( 0 ),
 	lHeaderHeight( 0 ),
 	lRowHeight( 0 ),
 	MainHeader( MARGINTYPE_HEADER_OR_FOOTER, "MainHeader" ),
@@ -2393,6 +2394,7 @@ void Scoreboard::Parse( FScanner &sc )
 				case SCOREBOARDCMD_GAPBETWEENHEADERANDROWS:
 				case SCOREBOARDCMD_GAPBETWEENCOLUMNS:
 				case SCOREBOARDCMD_GAPBETWEENROWS:
+				case SCOREBOARDCMD_COLUMNPADDING:
 				{
 					sc.MustGetNumber( );
 					const ULONG ulCappedValue = MAX( sc.Number, 0 );
@@ -2403,8 +2405,10 @@ void Scoreboard::Parse( FScanner &sc )
 						ulGapBetweenHeaderAndRows = ulCappedValue;
 					else if ( Command == SCOREBOARDCMD_GAPBETWEENCOLUMNS )
 						ulGapBetweenColumns = ulCappedValue;
-					else
+					else if ( Command == SCOREBOARDCMD_GAPBETWEENROWS )
 						ulGapBetweenRows = ulCappedValue;
+					else
+						ulColumnPadding = ulCappedValue;
 
 					break;
 				}
@@ -2784,7 +2788,7 @@ void Scoreboard::UpdateWidth( void )
 	if ( ulWidth == 0 )
 		return;
 
-	const ULONG ulExtraSpace = ( ulNumActiveColumns - 1 ) * ulGapBetweenColumns + 2 * ulBackgroundBorderSize;
+	const ULONG ulExtraSpace = ( ulNumActiveColumns - 1 ) * ulGapBetweenColumns + ( 2 * ulColumnPadding ) * ulNumActiveColumns + 2 * ulBackgroundBorderSize;
 
 	// [AK] Add the gaps between each of the active columns and the background border size to the total width.
 	ulWidth += ulExtraSpace;
@@ -2826,7 +2830,7 @@ void Scoreboard::UpdateWidth( void )
 
 	lRelX = ( HUD_GetWidth( ) - static_cast<LONG>( ulWidth )) / 2;
 
-	LONG lCurXPos = lRelX + ulBackgroundBorderSize;
+	LONG lCurXPos = lRelX + ulBackgroundBorderSize + ulColumnPadding;
 
 	// [AK] We got the width of the scoreboard. Now update the positions of all the columns.
 	// Do this here because we already know how many columns are active in this function.
@@ -2839,7 +2843,7 @@ void Scoreboard::UpdateWidth( void )
 		lCurXPos += ColumnOrder[i]->GetWidth( );
 
 		if ( --ulNumActiveColumns > 0 )
-			lCurXPos += ulGapBetweenColumns;
+			lCurXPos += ulGapBetweenColumns + 2 * ulColumnPadding;
 	}
 }
 
@@ -3214,7 +3218,7 @@ void Scoreboard::DrawRowBackground( const PalEntry color, const int y, const flo
 			if ( ColumnOrder[i]->IsDisabled( ))
 				continue;
 
-			DrawRowBackground( color, ColumnOrder[i]->GetRelX( ), y, ColumnOrder[i]->GetWidth( ), height, fAlpha );
+			DrawRowBackground( color, ColumnOrder[i]->GetRelX( ) - ulColumnPadding, y, ColumnOrder[i]->GetWidth( ) + 2 * ulColumnPadding, height, fAlpha );
 		}
 	}
 	else

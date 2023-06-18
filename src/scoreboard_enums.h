@@ -330,6 +330,8 @@ BEGIN_ENUM( SCOREBOARDCMD_e )
 	ENUM_ELEMENT( SCOREBOARDCMD_GAPBETWEENCOLUMNS ),
 	// The spacing between the player rows, in pixels.
 	ENUM_ELEMENT( SCOREBOARDCMD_GAPBETWEENROWS ),
+	// How much extra padding, in pixels, to leave on both sides of a column (not part of the gap between them).
+	ENUM_ELEMENT( SCOREBOARDCMD_COLUMNPADDING ),
 	// The height of the column headers.
 	ENUM_ELEMENT( SCOREBOARDCMD_HEADERHEIGHT ),
 	// The height of each player row.
