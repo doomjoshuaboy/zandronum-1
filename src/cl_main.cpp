@@ -9277,7 +9277,7 @@ static PlayerData *client_GetCustomPlayerData( const char *pszFunctionName, cons
 	}
 
 	// [AK] If we reached here, then something went wrong. Print a warning message.
-	CLIENT_PrintWarning( "ServerCommands::%s::Execute: Couldn't find custom data with index %d.\n", index );
+	CLIENT_PrintWarning( "ServerCommands::%s::Execute: Couldn't find custom data with index %d.\n", pszFunctionName, index );
 	return NULL;
 }
 
