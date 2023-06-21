@@ -357,8 +357,7 @@ Scoreboard
 	{
 		MultiLineBlock( verticalalign = center )
 		{
-			DrawString( value = "Spectators", font = "BigFont", textcolor = "Grey", bottompadding = 1 )
-			DrawString( value = "Total Players: " + spectatorcount, textcolor = "Grey", bottompadding = 1 )
+			DrawString( value = "Spectators (" + spectatorcount + ")", textcolor = "Grey", bottompadding = 1 )
 
 			// [AK] Use a width of INT_MAX to ensure this color box stretches across the entire margin.
 			DrawColor( value = "DD DD DD", width = 2147483648, height = 1, bottompadding = 2 )
