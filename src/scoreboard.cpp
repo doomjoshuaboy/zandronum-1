@@ -1440,8 +1440,9 @@ PlayerValue DataScoreColumn::GetValue( const ULONG ulPlayer ) const
 				break;
 
 			case COLUMNTYPE_PLAYERICON:
-				if ( players[ulPlayer].mo != NULL )
+				if (( players[ulPlayer].mo != NULL ) && ( players[ulPlayer].mo->ScoreIcon.GetIndex( ) != 0 ))
 					Result.SetValue<FTexture *>( TexMan[players[ulPlayer].mo->ScoreIcon] );
+
 				break;
 
 			case COLUMNTYPE_ARTIFACTICON:
