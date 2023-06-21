@@ -1160,7 +1160,7 @@ DATATYPE_e DataScoreColumn::GetDataType( void ) const
 
 		case COLUMNTYPE_STATUSICON:
 		case COLUMNTYPE_READYTOGOICON:
-		case COLUMNTYPE_SCOREICON:
+		case COLUMNTYPE_PLAYERICON:
 		case COLUMNTYPE_ARTIFACTICON:
 		case COLUMNTYPE_BOTSKILLICON:
 		case COLUMNTYPE_COUNTRYFLAG:
@@ -1439,7 +1439,7 @@ PlayerValue DataScoreColumn::GetValue( const ULONG ulPlayer ) const
 					Result.SetValue<FTexture *>( TexMan.FindTexture( "RDYTOGO" ));
 				break;
 
-			case COLUMNTYPE_SCOREICON:
+			case COLUMNTYPE_PLAYERICON:
 				if ( players[ulPlayer].mo != NULL )
 					Result.SetValue<FTexture *>( TexMan[players[ulPlayer].mo->ScoreIcon] );
 				break;

@@ -184,6 +184,16 @@ Column "ReadyToGoIcon"
 	Size = 8
 }
 
+Column "PlayerIcon"
+{
+	AddFlag DONTSHOWHEADER
+	AddFlag ALWAYSUSESHORTESTWIDTH
+	AddFlag DISABLEIFEMPTY
+
+	Alignment = Center
+	ClipRectHeight = 9
+}
+
 Column "ArtifactIcon"
 {
 	AddFlag NOINTERMISSION
@@ -385,7 +395,7 @@ Scoreboard
 	ColumnPadding = 1
 	HeaderHeight = -2
 	RowHeight = -2
-	ColumnOrder = "BotSkillIcon", "Index", "ReadyToGoAndStatusIcons", "ArtifactIcon", "CountryFlag", "Player", "Vote", "Handicap", "Wins", "Points", "Frags", "Kills", "Damage", "Lives", "Secrets", "Deaths", "Time", "Ping"
+	ColumnOrder = "BotSkillIcon", "Index", "ReadyToGoAndStatusIcons", "ArtifactIcon", "PlayerIcon", "CountryFlag", "Player", "Vote", "Handicap", "Wins", "Points", "Frags", "Kills", "Damage", "Lives", "Secrets", "Deaths", "Time", "Ping"
 	RankOrder = "Wins", "Points", "Frags", "Kills", "Damage", "Lives", "Secrets", "Deaths"
 
 	AddFlag UseHeaderColorForBorders

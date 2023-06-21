@@ -153,7 +153,7 @@ BEGIN_ENUM( COLUMNTYPE_e )
 	// Whether or not a player is ready to go on the intermission screen.
 	ENUM_ELEMENT( COLUMNTYPE_READYTOGOICON ),
 	// The ScoreIcon of the player's class.
-	ENUM_ELEMENT( COLUMNTYPE_SCOREICON ),
+	ENUM_ELEMENT( COLUMNTYPE_PLAYERICON ),
 	// When a player is carrying a gamemode-related item (e.g. another team's item).
 	ENUM_ELEMENT( COLUMNTYPE_ARTIFACTICON ),
 	// The skill level of a bot.
