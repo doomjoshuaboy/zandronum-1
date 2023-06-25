@@ -3327,7 +3327,7 @@ void SCOREBOARD_Construct( void )
 						if ( bMustCreateNewColumn )
 						{
 							// [AK] Don't allow native types (e.g. "frags") to be used as names for composite columns.
-							if ( ColumnType != -1 )
+							if ( ColumnType != COLUMNTYPE_UNKNOWN )
 								sc.ScriptError( "You can't use '%s' as a name for a composite column.", ColumnName.GetChars( ));
 
 							pColumn = new CompositeScoreColumn( ColumnName );
@@ -3340,13 +3340,9 @@ void SCOREBOARD_Construct( void )
 					{
 						if ( bMustCreateNewColumn )
 						{
-							// [AK] Don't allow data columns to have an "unknown" name.
-							if ( ColumnType == COLUMNTYPE_UNKNOWN )
-								sc.ScriptError( "You can't use 'unknown' as a name for a data column." );
-
 							// [AK] If the column isn't using a native type for a name, then it's a custom column.
 							// This also implies that "custom" is a valid name for custom columns.
-							if ( ColumnType == -1 )
+							if ( ColumnType == COLUMNTYPE_UNKNOWN )
 								ColumnType = COLUMNTYPE_CUSTOM;
 
 							if ( ColumnType == COLUMNTYPE_COUNTRYFLAG )

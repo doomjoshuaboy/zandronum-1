@@ -115,7 +115,7 @@ END_ENUM( DATATYPE_e )
 //
 BEGIN_ENUM( COLUMNTYPE_e )
 {
-	ENUM_ELEMENT( COLUMNTYPE_UNKNOWN ),
+	ENUM_ELEMENT2( COLUMNTYPE_UNKNOWN, -1 ),
 	// The name this player is using.
 	ENUM_ELEMENT( COLUMNTYPE_NAME ),
 	// The player's index number.
