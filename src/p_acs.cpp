@@ -7915,6 +7915,9 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 							else
 								Val.SetValue<FTexture *>( TexMan.FindTexture( pszValue ));
 						}
+
+						default:
+							return 0;
 					}
 
 					pData->SetValue( args[1], Val );
@@ -7955,6 +7958,9 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 							FTexture *pTexture = Val.GetValue<FTexture *>( );
 							return GlobalACSStrings.AddString( pTexture != NULL ? pTexture->Name : "" );
 						}
+
+						default:
+							return 0;
 					}
 				}
 

@@ -666,7 +666,7 @@ bool CHAT_Input( event_t *pEvent )
 						else if ( tempPlayer > MAXPLAYERS )
 							tempPlayer = 0;
 
-						if ( tempPlayer == g_ulChatPlayer )
+						if ( static_cast<ULONG>( tempPlayer ) == g_ulChatPlayer )
 							break;
 					}
 					while ( chat_IsPlayerValidReceiver( tempPlayer ) == false );

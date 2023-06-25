@@ -249,7 +249,7 @@ void FBaseCVar::SetGenericRep (UCVarValue value, ECVarType type)
 				// Also print the names of all affected locked flags.
 				for ( unsigned int i = 0; i < 32; i++ )
 				{
-					int bit = ( 1 << i );
+					unsigned int bit = ( 1 << i );
 
 					if ( changedBits & bit )
 					{

@@ -824,7 +824,7 @@ void GAMEMODE_RespawnDeadSpectators( BYTE Playerstate )
 
 	// [BB] Dead spectators were allowed to use chasecam, but are not necessarily allowed to use it
 	// when alive again. Re-applying dmflags2 takes care of this.
-	dmflags2 = dmflags2;
+	dmflags2 = dmflags2.GetGenericRep( CVAR_Int ).Int;
 }
 
 void GAMEMODE_RespawnDeadSpectatorsAndPopQueue( BYTE Playerstate )

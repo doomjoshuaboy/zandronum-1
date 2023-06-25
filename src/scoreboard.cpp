@@ -2204,7 +2204,7 @@ Scoreboard::Scoreboard( void ) :
 	BorderColors{ CR_UNTRANSLATED },
 	BackgroundColor( 0 ),
 	RowBackgroundColors{ 0 },
-	TeamRowBackgroundColors{ 0 },
+	TeamRowBackgroundColors{ { 0 } },
 	fBackgroundAmount( 0.0f ),
 	fRowBackgroundAmount( 0.0f ),
 	fDeadRowBackgroundAmount( 0.0f ),

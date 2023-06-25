@@ -2599,7 +2599,7 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 			SERVERCOMMANDS_SetPlayerCheats(  ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
 
 		// [Dusk] Hexen armor values
-			SERVERCOMMANDS_SyncHexenArmorSlots( ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
+		SERVERCOMMANDS_SyncHexenArmorSlots( ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
 
 		// [WS] Update the player's properties if they changed.
 		SERVER_UpdateActorProperties( players[ulIdx].mo, ulClient );
@@ -7313,7 +7313,7 @@ static bool server_CallVote( BYTESTREAM_s *pByteStream )
 		// and the parameter from each other.
 		if ( ulVoteCmd == VOTECMD_FLAG )
 		{
-			sprintf( szCommand, Parameters.Left( Parameters.IndexOf( ' ' )).GetChars( ));
+			sprintf( szCommand, "%s", Parameters.Left( Parameters.IndexOf( ' ' )).GetChars( ));
 			Parameters = Parameters.Right( Parameters.Len() - ( strlen( szCommand ) + 1 ));
 		}
 

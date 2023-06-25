@@ -144,7 +144,7 @@ typedef enum
 //*****************************************************************************
 //	STRUCTURES
 
-typedef struct
+struct GAMEPLAYSETTING_s
 {
 	// [AK] A pointer to the CVar.
 	FBaseCVar *pCVar;
@@ -167,7 +167,7 @@ typedef struct
 
 	bool IsOutOfScope( void );
 
-} GAMEPLAYSETTING_s;
+};
 
 //*****************************************************************************
 typedef struct

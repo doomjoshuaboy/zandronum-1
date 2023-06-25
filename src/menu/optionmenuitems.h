@@ -1028,7 +1028,7 @@ public:
 		return GetCVarString();
 	}
 
-	int Draw ( FOptionMenuDescriptor*, int y, int indent, bool selected )
+	int Draw ( FOptionMenuDescriptor*, int y, int indent, bool selected ) override
 	{
 		bool grayed = ( Selectable() == false );
 		drawLabel( indent, y, selected ? OptionSettings.mFontColorSelection : OptionSettings.mFontColor, grayed );
@@ -1039,7 +1039,7 @@ public:
 		return indent;
 	}
 
-	bool GetString ( int i, char* s, int len )
+	bool GetString ( int i, char* s, int len ) override
 	{
 		if ( i == 0 )
 		{
@@ -1051,7 +1051,7 @@ public:
 		return false;
 	}
 
-	bool SetString ( int i, const char* s )
+	bool SetString ( int i, const char* s ) override
 	{
 		if ( i == 0 )
 		{
@@ -1073,7 +1073,7 @@ public:
 		return mCVar && mCVar->IsServerCVar();
 	}
 
-	bool Selectable()
+	bool Selectable() override
 	{
 		return ( mGrayCheck == NULL || mGrayCheck->GetGenericRep( CVAR_Bool ).Bool )
 			&& FOptionMenuItem::Selectable();

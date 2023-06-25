@@ -1147,7 +1147,7 @@ void G_FinishChangeSpy( ULONG ulPlayer )
 {
 	// [AK] If we're a spectator and want to teleport ourselves to the player we just
 	// spied on, do it when we switch back to our own view.
-	if (( cl_telespy ) && ( ulPlayer == consoleplayer ) && ( players[consoleplayer].bSpectating ))
+	if (( cl_telespy ) && ( static_cast<int>( ulPlayer ) == consoleplayer ) && ( players[consoleplayer].bSpectating ))
 	{
 		if (( players[consoleplayer].camera ) && ( players[consoleplayer].camera != players[consoleplayer].mo ))
 		{
@@ -2923,7 +2923,7 @@ ULONG GAME_CountTeamItem( void )
 	TThinkerIterator<TeamItem> iterator;
 	ULONG ulCounted = 0;
 
-	while ( pItem = iterator.Next( ))
+	while (( pItem = iterator.Next( )))
 		ulCounted++;
 
 	return ulCounted;

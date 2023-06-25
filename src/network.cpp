@@ -573,7 +573,7 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 		if ( NETWORK_GetState() == NETSTATE_SERVER )
 		{
 			message.AppendFormat( "Please resolve these issues before hosting again.\n" );
-			I_FatalError( message );
+			I_FatalError( "%s", message.GetChars() );
 		}
 
 		message.AppendFormat( "These issues must be resolved if you plan on hosting these files in online games.\n" );
