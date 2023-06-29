@@ -111,34 +111,14 @@ enum MARGINTYPE_e
 class PlayerValue
 {
 public:
-	template <typename Type> struct Trait
-	{
-		static const DATATYPE_e DataType;
-		static const Type Zero;
-	};
-
 	PlayerValue( void ) : DataType( DATATYPE_UNKNOWN ) { }
 	PlayerValue( const PlayerValue &Other ) : DataType( DATATYPE_UNKNOWN ) { TransferValue( Other ); }
 
 	~PlayerValue( void ) { DeleteString( ); }
 
 	inline DATATYPE_e GetDataType( void ) const { return DataType; }
-
-	// [AK] Gets the value that is currently being held.
-	template <typename Type> Type GetValue( void ) const
-	{
-		return ( DataType == Trait<Type>::DataType ) ? RetrieveValue<Type>( ) : Trait<Type>::Zero;
-	}
-
-	// [AK] Changes the value, and possibly the data type, that's stored.
-	template <typename Type> void SetValue( Type NewValue )
-	{
-		if ( DataType == DATATYPE_STRING )
-			DeleteString( );
-
-		DataType = Trait<Type>::DataType;
-		ModifyValue( NewValue );
-	}
+	template <typename Type> Type GetValue( void ) const;
+	template <typename Type> void SetValue( Type NewValue );
 
 	FString ToString( void ) const;
 	void FromString( const char *pszString, const DATATYPE_e NewDataType );
@@ -147,16 +127,17 @@ public:
 	bool operator== ( const PlayerValue &Other ) const;
 
 private:
+	template <typename Type> struct Trait
+	{
+		static const DATATYPE_e DataType;
+		static const Type Zero;
+	};
+
 	template <typename Type> Type RetrieveValue( void ) const;
+	template <typename Type> void ModifyValue( Type NewValue );
+
 	void TransferValue( const PlayerValue &Other );
 	void DeleteString( void );
-
-	void ModifyValue( int NewValue ) { Int = NewValue; }
-	void ModifyValue( bool NewValue ) { Bool = NewValue; }
-	void ModifyValue( float NewValue ) { Float = NewValue; }
-	void ModifyValue( const char *NewValue ) { String = ncopystring( NewValue ); }
-	void ModifyValue( PalEntry NewValue ) { Int = NewValue; }
-	void ModifyValue( FTexture *NewValue ) { Texture = NewValue; }
 
 	DATATYPE_e DataType;
 	union
