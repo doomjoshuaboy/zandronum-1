@@ -7130,6 +7130,10 @@ static bool server_AuthenticateLevel( BYTESTREAM_s *pByteStream )
 	// weapon changes again.
 	SERVERCOMMANDS_SetIgnoreWeaponSelect( g_lCurrentClient, false );
 
+	// [AK] Update this player's own lagging status (this doen't happen in the full update).
+	// This prevents the client from having a lagging icon over their head indefinitely after a level change.
+	SERVERCOMMANDS_SetPlayerStatus( g_lCurrentClient, PLAYERSTATUS_LAGGING, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
+
 	// Send a snapshot of the level.
 	SERVER_SendFullUpdate( g_lCurrentClient );
 
