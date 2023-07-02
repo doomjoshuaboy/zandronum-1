@@ -3274,8 +3274,15 @@ void PLAYER_ClearWeapon( player_t *pPlayer )
 bool PLAYER_IsUsingWeaponSkin( AActor *pActor )
 {
 	// [AK] Only players can use weapons.
-	if ( pActor && pActor->player )
-		return (( pActor->player->ReadyWeapon ) && ( pActor->player->ReadyWeapon->PreferredSkin != NAME_None ));
+	if (( pActor ) && ( pActor->player ) && ( pActor->player->ReadyWeapon ))
+	{
+		if ( pActor->player->ReadyWeapon->PreferredSkin != NAME_None )
+		{
+			// [AK] Check if the weapon's PreferredSkin actually exists.
+			const int skin = R_FindSkin( pActor->player->ReadyWeapon->PreferredSkin, pActor->player->CurrentPlayerClass );
+			return ( skin != pActor->player->CurrentPlayerClass );
+		}
+	}
 
 	return ( false );
 }
@@ -3288,14 +3295,30 @@ void PLAYER_ApplySkinScaleToBody( player_t *pPlayer, AActor *pBody, AWeapon *pWe
 	if (( pBody->state == NULL ) || ( pBody->state->sprite != pBody->SpawnState->sprite ))
 		return;
 
-	const bool bUsingWeaponSkin = (( pWeapon ) && ( pWeapon->PreferredSkin != NAME_None ));
-	const int skinidx = bUsingWeaponSkin ? R_FindSkin( pWeapon->PreferredSkin, pPlayer->CurrentPlayerClass ) : pPlayer->userinfo.GetSkin( );
+	bool bUsingWeaponSkin = false;
+	int skinIdx = 0;
+
+	// [AK] Check if the weapon's PreferredSkin actually exists.
+	if (( pWeapon ) && ( pWeapon->PreferredSkin != NAME_None ))
+	{
+		const int weaponSkin = R_FindSkin( pWeapon->PreferredSkin, pPlayer->CurrentPlayerClass );
+
+		if ( weaponSkin != pPlayer->CurrentPlayerClass )
+		{
+			skinIdx = weaponSkin;
+			bUsingWeaponSkin = true;
+		}
+	}
+
+	// [AK] If the player isn't using a weapon's skin, then use their personal skin instead.
+	if ( bUsingWeaponSkin == false )
+		skinIdx = pPlayer->userinfo.GetSkin( );
 
 	// [AK] PreferredSkin overrides NOSKIN.
-	if (( bUsingWeaponSkin ) || ( 0 != skinidx && ( pBody->flags4 & MF4_NOSKIN ) == false ))
+	if (( bUsingWeaponSkin ) || ( skinIdx != 0 && ( pBody->flags4 & MF4_NOSKIN ) == false ))
 	{
 		const AActor *const defaultActor = pBody->GetDefault( );
-		const FPlayerSkin &skin = skins[skinidx];
+		const FPlayerSkin &skin = skins[skinIdx];
 
 		pBody->scaleX = Scale( pBody->scaleX, skin.ScaleX, defaultActor->scaleX );
 		pBody->scaleY = Scale( pBody->scaleY, skin.ScaleY, defaultActor->scaleY );
