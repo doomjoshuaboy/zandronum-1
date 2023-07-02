@@ -1427,8 +1427,7 @@ void C_DrawConsole (bool hw2d)
 {
 	static int oldbottom = 0;
 	int lines, left, offset;
-	// [BC] String for drawing the version.
-	char	szString[64];
+
 	// [AK] Check if we should interpolate the console.
 	const bool bInterpolate = ((con_interpolate) && (ConsoleState == c_falling || ConsoleState == c_rising));
 
@@ -1492,15 +1491,18 @@ void C_DrawConsole (bool hw2d)
 
 		if (ConBottom >= 12)
 		{
+			// [AK] Use FString to create the version string.
+			FString versionString;
+
 			// [BC] In addition to drawing the program version, draw the ZDoom version as well.
 			// [RC] Also draw revision number, but break these up so it's legible.
-			sprintf( szString, "\\cIv%s (\\cD%s\\cI) \\ch%s", GetVersionString(), ZDOOMVERSIONSTR, GetGitTime() );
-			V_ColorizeString( szString );
+			versionString.Format( "v%s (" TEXTCOLOR_GREEN "%s" TEXTCOLOR_NORMAL ") ", GetVersionString( ), ZDOOMVERSIONSTR );
+			versionString.AppendFormat( TEXTCOLOR_BLUE "%s", GetGitTime( ));
 
 			screen->DrawText (ConFont, CR_ORANGE, SCREENWIDTH - 8 -
-				ConFont->StringWidth( szString ),
+				ConFont->StringWidth( versionString.GetChars( )),
 				ConBottom - ConFont->GetHeight( ) - 4,
-				szString, TAG_DONE );
+				versionString.GetChars( ), TAG_DONE );
 
 			if (TickerMax)
 			{
