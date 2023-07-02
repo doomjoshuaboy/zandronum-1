@@ -120,6 +120,7 @@
 !	- Zandronum is now marked as DPI-aware on Windows, which prevents issues caused by the operating system automatically upscaling the game window on high-DPI displays. [DrinkyBird]
 !	- The output of the dumptrafficmeasure CCMD is now sorted by the bandwidth used in ascending order. This can be changed to descending order by specifying "desc" as the first parameter. [DrinkyBird]
 !	- The "logo" property in TEAMINFO, as well as a PlayerPawn's "ScoreIcon", are now usable and appear on the scoreboard. [Kaminsky]
+!	- Clients are now informed the moment when they're (un)muted on the server, based on Janko Knezevic's patch. [Kaminsky]
 
 
 3.1

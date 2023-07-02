@@ -5641,6 +5641,59 @@ void SERVER_ResetClientExtrapolation( ULONG ulClient, bool bAfterBacktrace )
 
 //*****************************************************************************
 //
+void SERVER_PrintMutedMessageToPlayer( ULONG ulPlayer )
+{
+	// [AK] Make sure that this player is valid.
+	if ( SERVER_IsValidClient( ulPlayer ) == false )
+		return;
+
+	// [BB] Tell the player that (and for how long) he is muted.
+	// Except when the muting time is not limited.
+	FString message = "The server has muted you. Nobody can see your messages";
+	if ( players[ulPlayer].lIgnoreChatTicks != -1 )
+	{
+		// [EP] Print how many minutes and how many seconds are left.
+		LONG lMinutes = players[ulPlayer].lIgnoreChatTicks / ( TICRATE * MINUTE );
+		LONG lSeconds = ( players[ulPlayer].lIgnoreChatTicks / TICRATE ) % MINUTE;
+		if ( ( lMinutes > 0 ) && ( lSeconds > 0 ) )
+		{
+			message.AppendFormat( " for %d minute%s and %d second%s",
+						static_cast<int>(lMinutes),
+						lMinutes == 1 ? "" : "s",
+						static_cast<int>(lSeconds),
+						lSeconds == 1 ? "" : "s");
+		}
+		// [EP] If the time to wait is just some tics,
+		// tell the player that he can wait just a bit.
+		// There's no need to print the tics.
+		else if ( ( lMinutes == 0 ) && ( lSeconds == 0 ) )
+		{
+			message += " for less than a second";
+		}
+		else
+		{
+			if ( lMinutes > 0 )
+			{
+				message.AppendFormat( " for %d minute%s",
+						static_cast<int>(lMinutes),
+						lMinutes == 1 ? "" : "s");
+			}
+
+			if ( lSeconds > 0 )
+			{
+				message.AppendFormat( " for %d second%s",
+						static_cast<int>(lSeconds),
+						lSeconds == 1 ? "" : "s");
+			}
+		}
+	}
+	message += ".\n";
+
+	SERVER_PrintfPlayer( ulPlayer, "%s", message.GetChars() );
+}
+
+//*****************************************************************************
+//
 static bool server_Ignore( BYTESTREAM_s *pByteStream )
 {
 	ULONG	ulTargetIdx = pByteStream->ReadByte();
@@ -5825,49 +5878,7 @@ static bool server_Say( BYTESTREAM_s *pByteStream )
 	// [RC] Are this player's chats ignored?
 	if ( players[ulPlayer].bIgnoreChat )
 	{
-		// [BB] Tell the player that (and for how long) he is muted.
-		// Except when the muting time is not limited.
-		FString message = "The server has muted you. Nobody can see your messages";
-		if ( players[ulPlayer].lIgnoreChatTicks != -1 )
-		{
-			// [EP] Print how many minutes and how many seconds are left.
-			LONG lMinutes = players[ulPlayer].lIgnoreChatTicks / ( TICRATE * MINUTE );
-			LONG lSeconds = ( players[ulPlayer].lIgnoreChatTicks / TICRATE ) % MINUTE;
-			if ( ( lMinutes > 0 ) && ( lSeconds > 0 ) )
-			{
-				message.AppendFormat( " for %d minute%s and %d second%s",
-							static_cast<int>(lMinutes),
-							lMinutes == 1 ? "" : "s",
-							static_cast<int>(lSeconds),
-							lSeconds == 1 ? "" : "s");
-			}
-			// [EP] If the time to wait is just some tics,
-			// tell the player that he can wait just a bit.
-			// There's no need to print the tics.
-			else if ( ( lMinutes == 0 ) && ( lSeconds == 0 ) )
-			{
-				message += " for less than a second";
-			}
-			else
-			{
-				if ( lMinutes > 0 )
-				{
-					message.AppendFormat( " for %d minute%s",
-							static_cast<int>(lMinutes),
-							lMinutes == 1 ? "" : "s");
-				}
-
-				if ( lSeconds > 0 )
-				{
-					message.AppendFormat( " for %d second%s",
-							static_cast<int>(lSeconds),
-							lSeconds == 1 ? "" : "s");
-				}
-			}
-		}
-		message += ".\n";
-
-		SERVER_PrintfPlayer( ulPlayer, "%s", message.GetChars() );
+		SERVER_PrintMutedMessageToPlayer( ulPlayer );
 		return ( false );
 	}
 

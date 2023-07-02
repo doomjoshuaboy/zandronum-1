@@ -549,6 +549,10 @@ void CHAT_Tick( void )
 			// [BB] The player is unignored indefinitely. If we wouldn't do this,
 			// bIgnoreChat would be set to false every tic once lIgnoreChatTicks reaches 0.
 			players[i].lIgnoreChatTicks = -1;
+
+			// [JK] Tell the client that they're no longer muted on the server.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVER_PrintfPlayer( i, "You are no longer muted on the server.\n" );
 		}
 	}
 
@@ -1739,6 +1743,9 @@ void chat_IgnorePlayer( FCommandLine &argv, const ULONG ulPlayer )
 		// Notify the server so that others using this IP are also ignored.
 		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
 			CLIENTCOMMANDS_Ignore( ulPlayer, true, lTicks );
+		// [JK] Tell the client that they've been muted on the server.
+		else if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVER_PrintMutedMessageToPlayer( ulPlayer );
 	}
 }
 
@@ -1800,6 +1807,9 @@ void chat_UnignorePlayer( FCommandLine &argv, const ULONG ulPlayer )
 		// Notify the server so that others using this IP are also ignored.
 		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
 			CLIENTCOMMANDS_Ignore( ulPlayer, false );
+		// [JK] Tell the client that they're no longer muted on the server.
+		else if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVER_PrintfPlayer( ulPlayer, "You are no longer muted on the server.\n" );
 	}
 }
 
