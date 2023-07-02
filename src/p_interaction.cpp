@@ -3291,10 +3291,6 @@ bool PLAYER_IsUsingWeaponSkin( AActor *pActor )
 //
 void PLAYER_ApplySkinScaleToBody( player_t *pPlayer, AActor *pBody, AWeapon *pWeapon )
 {
-	// [AK] Don't apply a skin's scale to the body if it's not supposed to be visible.
-	if (( pBody->state == NULL ) || ( pBody->state->sprite != pBody->SpawnState->sprite ))
-		return;
-
 	bool bUsingWeaponSkin = false;
 	int skinIdx = 0;
 
@@ -3310,18 +3306,23 @@ void PLAYER_ApplySkinScaleToBody( player_t *pPlayer, AActor *pBody, AWeapon *pWe
 		}
 	}
 
-	// [AK] If the player isn't using a weapon's skin, then use their personal skin instead.
+	// [AK] If the player isn't using a PreferredSkin, then use their personal skin instead.
 	if ( bUsingWeaponSkin == false )
 		skinIdx = pPlayer->userinfo.GetSkin( );
 
 	// [AK] PreferredSkin overrides NOSKIN.
 	if (( bUsingWeaponSkin ) || ( skinIdx != 0 && ( pBody->flags4 & MF4_NOSKIN ) == false ))
 	{
-		const AActor *const defaultActor = pBody->GetDefault( );
 		const FPlayerSkin &skin = skins[skinIdx];
 
-		pBody->scaleX = Scale( pBody->scaleX, skin.ScaleX, defaultActor->scaleX );
-		pBody->scaleY = Scale( pBody->scaleY, skin.ScaleY, defaultActor->scaleY );
+		// [AK] Don't apply a skin's scale to the body if it's not supposed to be visible.
+		if ( skin.sprite == pBody->sprite )
+		{
+			const AActor *const defaultActor = pBody->GetDefault( );
+
+			pBody->scaleX = Scale( pBody->scaleX, skin.ScaleX, defaultActor->scaleX );
+			pBody->scaleY = Scale( pBody->scaleY, skin.ScaleY, defaultActor->scaleY );
+		}
 	}
 }
 
