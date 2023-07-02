@@ -1729,12 +1729,17 @@ void chat_IgnorePlayer( FCommandLine &argv, const ULONG ulPlayer )
 		Printf( "You're already ignoring %s.\n", players[ulPlayer].userinfo.GetName() );
 	else
 	{
+		FString message;
+
 		players[ulPlayer].bIgnoreChat = true;
 		players[ulPlayer].lIgnoreChatTicks = lTicks;
-		Printf( "%s will now be ignored", players[ulPlayer].userinfo.GetName() );
+
+		message.Format( "%s will now be ignored", players[ulPlayer].userinfo.GetName( ));
+
 		if ( lTicks > 0 )
-			Printf( ", for %d minutes", static_cast<int>(lArgv2));
-		Printf( ".\n" );
+			message.AppendFormat( ", for %d minutes", static_cast<int>( lArgv2 ));
+
+		Printf( "%s.\n", message.GetChars( ));
 
 		// Add a helpful note about bots.
 		if ( players[ulPlayer].bIsBot )
