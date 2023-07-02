@@ -5653,38 +5653,27 @@ void SERVER_PrintMutedMessageToPlayer( ULONG ulPlayer )
 	if ( players[ulPlayer].lIgnoreChatTicks != -1 )
 	{
 		// [EP] Print how many minutes and how many seconds are left.
-		LONG lMinutes = players[ulPlayer].lIgnoreChatTicks / ( TICRATE * MINUTE );
-		LONG lSeconds = ( players[ulPlayer].lIgnoreChatTicks / TICRATE ) % MINUTE;
-		if ( ( lMinutes > 0 ) && ( lSeconds > 0 ) )
+		int iMinutes = static_cast<int>( players[ulPlayer].lIgnoreChatTicks / ( TICRATE * MINUTE ));
+		int iSeconds = static_cast<int>(( players[ulPlayer].lIgnoreChatTicks / TICRATE ) % MINUTE );
+
+		if (( iMinutes > 0 ) && ( iSeconds > 0 ))
 		{
-			message.AppendFormat( " for %d minute%s and %d second%s",
-						static_cast<int>(lMinutes),
-						lMinutes == 1 ? "" : "s",
-						static_cast<int>(lSeconds),
-						lSeconds == 1 ? "" : "s");
+			message.AppendFormat( " for %d minute%s and %d second%s", iMinutes, iMinutes == 1 ? "" : "s", iSeconds, iSeconds == 1 ? "" : "s" );
 		}
 		// [EP] If the time to wait is just some tics,
 		// tell the player that he can wait just a bit.
 		// There's no need to print the tics.
-		else if ( ( lMinutes == 0 ) && ( lSeconds == 0 ) )
+		else if (( iMinutes == 0 ) && ( iSeconds == 0 ))
 		{
 			message += " for less than a second";
 		}
 		else
 		{
-			if ( lMinutes > 0 )
-			{
-				message.AppendFormat( " for %d minute%s",
-						static_cast<int>(lMinutes),
-						lMinutes == 1 ? "" : "s");
-			}
+			if ( iMinutes > 0 )
+				message.AppendFormat( " for %d minute%s", iMinutes, iMinutes == 1 ? "" : "s" );
 
-			if ( lSeconds > 0 )
-			{
-				message.AppendFormat( " for %d second%s",
-						static_cast<int>(lSeconds),
-						lSeconds == 1 ? "" : "s");
-			}
+			if ( iSeconds > 0 )
+				message.AppendFormat( " for %d second%s", iSeconds, iSeconds == 1 ? "" : "s" );
 		}
 	}
 	message += ".\n";
