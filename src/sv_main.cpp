@@ -2119,6 +2119,10 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 	g_aClients[lClient].recentMoveCMDs.clear();
 	g_aClients[lClient].recentSelectCMDs.clear();
 
+	// [AK] Clear whatever reason the previous client had for being muted.
+	if ( g_aClients[lClient].MutedReason.Len( ) > 0 )
+		g_aClients[lClient].MutedReason = "";
+
 	// [AK] Reset the client's tic buffer.
 	SERVER_ResetClientTicBuffer( lClient );
 
@@ -5676,9 +5680,14 @@ void SERVER_PrintMutedMessageToPlayer( ULONG ulPlayer )
 				message.AppendFormat( " for %d second%s", iSeconds, iSeconds == 1 ? "" : "s" );
 		}
 	}
-	message += ".\n";
 
-	SERVER_PrintfPlayer( ulPlayer, "%s", message.GetChars() );
+	message += '.';
+
+	// [JK] If a reason is provided, print it.
+	if ( g_aClients[ulPlayer].MutedReason.Len( ) > 0 )
+		message.AppendFormat( " Reason: %s", g_aClients[ulPlayer].MutedReason.GetChars( ));
+
+	SERVER_PrintfPlayer( ulPlayer, "%s\n", message.GetChars( ));
 }
 
 //*****************************************************************************

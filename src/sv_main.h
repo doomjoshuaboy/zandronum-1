@@ -520,6 +520,9 @@ struct CLIENT_s
 	WORD			ScreenWidth;
 	WORD			ScreenHeight;
 
+	// [AK] The reason why the client has been muted on the server, if one is provided.
+	FString			MutedReason;
+
 	FString GetAccountName() const;
 };
 

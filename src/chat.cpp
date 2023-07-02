@@ -208,6 +208,7 @@ FStringCVar	*g_ChatMacros[10] =
 void	chat_SendMessage( ULONG ulMode, const char *pszString );
 void	chat_GetIgnoredPlayers( FString &Destination ); // [RC]
 void	chat_DoSubstitution( FString &Input ); // [CW]
+void	chat_UnmutePlayer( ULONG ulPlayer ); // [AK]
 bool	chat_IsPlayerValidReceiver( ULONG ulPlayer ); // [AK]
 
 //*****************************************************************************
@@ -544,16 +545,7 @@ void CHAT_Tick( void )
 
 		// Is it time to un-ignore him?
 		if ( players[i].lIgnoreChatTicks == 0 )
-		{
-			players[i].bIgnoreChat = false;
-			// [BB] The player is unignored indefinitely. If we wouldn't do this,
-			// bIgnoreChat would be set to false every tic once lIgnoreChatTicks reaches 0.
-			players[i].lIgnoreChatTicks = -1;
-
-			// [JK] Tell the client that they're no longer muted on the server.
-			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVER_PrintfPlayer( i, "You are no longer muted on the server.\n" );
-		}
+			chat_UnmutePlayer( i );
 	}
 
 	// [AK] Reset the chat cursor's ticker if it goes too high.
@@ -1346,6 +1338,28 @@ void chat_DoSubstitution( FString &Input )
 }
 
 //*****************************************************************************
+//
+// [AK] Helper function to unmute a player.
+//
+void chat_UnmutePlayer( ULONG ulPlayer )
+{
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
+		return;
+
+	players[ulPlayer].bIgnoreChat = false;
+	// [BB] The player is unignored indefinitely. If we wouldn't do this,
+	// bIgnoreChat would be set to false every tic once lIgnoreChatTicks reaches 0.
+	players[ulPlayer].lIgnoreChatTicks = -1;
+
+	// [JK] Tell the client that they're no longer muted on the server.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
+		SERVER_GetClient( ulPlayer )->MutedReason = "";
+		SERVER_PrintfPlayer( ulPlayer, "You are no longer muted on the server.\n" );
+	}
+}
+
+//*****************************************************************************
 //	CONSOLE COMMANDS/VARIABLES
 
 CCMD( say )
@@ -1709,14 +1723,23 @@ void chat_IgnorePlayer( FCommandLine &argv, const ULONG ulPlayer )
 		if ( PlayersIgnored.Len( ))
 			Printf( TEXTCOLOR_RED "Ignored players: " TEXTCOLOR_NORMAL "%s\nUse \"unignore\" or \"unignore_idx\" to undo.\n", PlayersIgnored.GetChars() );
 		else
-			Printf( "Ignores a certain player's chat messages.\nUsage: ignore <name> [duration, in minutes]\n" );
+		{
+			FString message = "Ignores a certain player's chat messages.\nUsage: ignore <name> [duration, in minutes]";
+
+			// [JK] Only the server can specify a reason.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				message += " [reason]";
+
+			Printf( "%s\n", message.GetChars( ));
+		}
 
 		return;
 	}
 	
 	LONG	lTicks = -1;
 	const LONG lArgv2 = ( argv.argc( ) >= 3 ) ? atoi( argv[2] ) : -1;
-	
+	const char *pszReason = ( argv.argc( ) >= 4 ) ? argv[3] : NULL;
+
 	// Did the user specify a set duration?
 	if ( ( lArgv2 > 0 ) && ( lArgv2 < LONG_MAX / ( TICRATE * MINUTE )))
 		lTicks = lArgv2 * TICRATE * MINUTE;
@@ -1747,10 +1770,15 @@ void chat_IgnorePlayer( FCommandLine &argv, const ULONG ulPlayer )
 
 		// Notify the server so that others using this IP are also ignored.
 		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		{
 			CLIENTCOMMANDS_Ignore( ulPlayer, true, lTicks );
+		}
 		// [JK] Tell the client that they've been muted on the server.
 		else if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		{
+			SERVER_GetClient( ulPlayer )->MutedReason = pszReason;
 			SERVER_PrintMutedMessageToPlayer( ulPlayer );
+		}
 	}
 }
 
@@ -1805,16 +1833,12 @@ void chat_UnignorePlayer( FCommandLine &argv, const ULONG ulPlayer )
 		Printf( "You're not ignoring %s.\n", players[ulPlayer].userinfo.GetName() );
 	else 
 	{
-		players[ulPlayer].bIgnoreChat = false;
-		players[ulPlayer].lIgnoreChatTicks = -1;
+		chat_UnmutePlayer( ulPlayer );
 		Printf( "%s will no longer be ignored.\n", players[ulPlayer].userinfo.GetName() );
 
 		// Notify the server so that others using this IP are also ignored.
 		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
 			CLIENTCOMMANDS_Ignore( ulPlayer, false );
-		// [JK] Tell the client that they're no longer muted on the server.
-		else if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVER_PrintfPlayer( ulPlayer, "You are no longer muted on the server.\n" );
 	}
 }
 
