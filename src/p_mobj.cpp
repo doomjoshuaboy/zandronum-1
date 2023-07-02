@@ -551,7 +551,8 @@ bool AActor::SetState (FState *newstate, bool nofunction)
 			{ // okay to change sprite
 				// [AK] Check if the player is using a weapon with its own preferred skin, which overrides NOSKIN.
 				const bool bUsingWeaponSkin = PLAYER_IsUsingWeaponSkin( this );
-				if ((!(flags4 & MF4_NOSKIN) || bUsingWeaponSkin) && newsprite == SpawnState->sprite)
+				// [AK] Don't change to the skin's sprite if the new sprite is TNT1A0.
+				if ((!(flags4 & MF4_NOSKIN) || bUsingWeaponSkin) && newsprite == SpawnState->sprite && newsprite != SPR_TNT1)
 				{ // [RH] If the new sprite is the same as the original sprite, and
 				// this actor is attached to a player, use the player's skin's
 				// sprite. If a player is not attached, do not change the sprite
