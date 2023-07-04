@@ -1228,7 +1228,7 @@ int P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage,
 
 		// [TP] If we're the server, tell clients to flash this stealth monster
 		if ( NETWORK_GetState() == NETSTATE_SERVER )
-			SERVERCOMMANDS_FlashStealthMonster( target );
+			SERVERCOMMANDS_FlashStealthMonster( target, target->visdir );
 	}
 	// [BB] The clients may not do this.
 	if ( (target->flags & MF_SKULLFLY)

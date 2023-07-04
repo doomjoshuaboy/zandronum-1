@@ -49,6 +49,14 @@
 //-----------------------------------------------------------------------------
 
 #include "networkheaders.h"
+
+// [AK] Including "networkheaders.h" in Windows also includes <wingdi.h> which
+// already defines OPAQUE. We need this constant for SVC2_FLASHSTEALTHMONSTER,
+// so we must undefine it here.
+#if defined( _WIN32 ) && defined( OPAQUE )
+#undef OPAQUE
+#endif // _WIN32 && OPAQUE
+
 #include "a_action.h"
 #include "a_sharedglobal.h"
 #include "a_doomglobal.h"
@@ -2211,11 +2219,12 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 			case SVC2_FLASHSTEALTHMONSTER:
 				{
 					AActor* mobj = CLIENT_FindThingByNetID( pByteStream->ReadShort());
+					SBYTE direction = pByteStream->ReadByte();
 
 					if ( mobj && ( mobj->flags & MF_STEALTH ))
 					{
 						mobj->alpha = OPAQUE;
-						mobj->visdir = -1;
+						mobj->visdir = direction;
 					}
 				}
 				break;

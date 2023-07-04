@@ -4011,13 +4011,14 @@ void SERVERCOMMANDS_UpdateThingScaleNotAtDefault( AActor* pActor, ULONG ulPlayer
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_FlashStealthMonster( AActor* pActor, ULONG ulPlayerExtra, ServerCommandFlags flags )
+void SERVERCOMMANDS_FlashStealthMonster( AActor* pActor, SBYTE direction, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( EnsureActorHasNetID( pActor ) == false )
 		return;
 
 	NetCommand command ( SVC2_FLASHSTEALTHMONSTER );
 	command.addShort( pActor->NetID );
+	command.addByte( direction );
 	command.sendCommandToClients();
 }
 
