@@ -1182,7 +1182,10 @@ OptionMenu MessageOptions
 	Option "Color in messages",			"con_colorinmessages", "ZA_ColorInMessages" // [TP]
 	// [AK] Added textfields for the chat prefix/suffix.
 	StaticText " "
+	SafeCommand "Clear chat prefix",		"cl_chatprefix \"\""
 	TextField "Chat prefix",			"cl_chatprefix"
+	StaticText " "
+	SafeCommand "Clear chat suffix",		"cl_chatsuffix \"\""
 	TextField "Chat suffix",			"cl_chatsuffix"
 
 	StaticText " "
