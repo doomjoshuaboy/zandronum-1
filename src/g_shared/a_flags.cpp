@@ -431,6 +431,10 @@ bool AFlag::HandlePickup( AInventory *pItem )
 	if (( this->GetClass( ) != TEAM_GetItem( Owner->player->Team )) &&
 		( pItem->GetClass( ) == TEAM_GetItem( Owner->player->Team )))
 	{
+		//[NS] Do not allow scoring when the round is over.
+		if ( GAMEMODE_IsGameInProgress() == false )
+			return ( Super::HandlePickup( pItem ));
+
 		// Don't award a point if we're touching a dropped version of our flag.
 		if ( static_cast<AFlag *>( pItem )->AllowFlagPickup( Owner ) == RETURN_FLAG )
 			return ( Super::HandlePickup( pItem )); 
