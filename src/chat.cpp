@@ -921,10 +921,27 @@ void CHAT_SerializeMessages( FArchive &arc )
 
 //*****************************************************************************
 //
-void CHAT_StripASCIIControlCharacters( FString &ChatString )
+// [AK] Returns true if the string didn't only contain crap, or false if it did.
+//
+bool CHAT_CleanChatString( FString &ChatString )
 {
 	static const char strips[] = { 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,29,30,31,127,0 };
+
+	// [BB] Remove any kind of trailing crap.
+	// [AK] Temporarily uncolorize the chat string so that V_RemoveTrailingCrapFromFString removes trailing color codes.
+	V_UnColorizeString( ChatString );
+	V_RemoveTrailingCrapFromFString( ChatString );
+
+	// [K6] Idk why is this part processed as FString, but let me join in on the fun and possibly strip ascii control characters.
+	// ...except 28 which is TEXTCOLOR_ESCAPE.
 	ChatString.StripChars( strips );
+
+	// [BB] If the chat string is empty now, it only contained crap.
+	if ( ChatString.IsEmpty( ))
+		return false;
+
+	V_ColorizeString( ChatString );
+	return true;
 }
 
 //*****************************************************************************
@@ -1055,19 +1072,10 @@ void CHAT_PrintChatString( ULONG ulPlayer, ULONG ulMode, const char *pszString )
 	if ( con_colorinmessages == 2)
 		V_RemoveColorCodes( ChatString );
 
-	// [BB] Remove any kind of trailing crap.
-	// [AK] Temporarily uncolorize the chat string so that V_RemoveTrailingCrapFromFString removes trailing color codes.
-	V_UnColorizeString ( ChatString );
-	V_RemoveTrailingCrapFromFString ( ChatString );
-
-	// [AK] Also remove any unwanted ASCII control characters (except TEXTCOLOR_ESCAPE).
-	CHAT_StripASCIIControlCharacters ( ChatString );
-
 	// [BB] If the chat string is empty now, it only contained crap and is ignored.
-	if ( ChatString.IsEmpty() )
+	if ( CHAT_CleanChatString( ChatString ) == false )
 		return;
 
-	V_ColorizeString ( ChatString );
 	OutString += ChatString;
 
 	// [AK] Only save chat messages for non-private chat messages.
@@ -1076,14 +1084,10 @@ void CHAT_PrintChatString( ULONG ulPlayer, ULONG ulMode, const char *pszString )
 		// [AK] Remove any color codes that may still be in the original string.
 		V_RemoveColorCodes( ChatString );
 
-		// [AK] Remove any kind of trailing crap in the copy string and then save it. We shouldn't
-		// have to check if it's empty because we already did so in the original string. The only
-		// difference is that the copy is guaranteed to still have its color codes.
-		V_UnColorizeString( ChatStringToSave );
-		V_RemoveTrailingCrapFromFString( ChatStringToSave );
-		CHAT_StripASCIIControlCharacters( ChatStringToSave );
-
-		V_ColorizeString( ChatStringToSave );
+		// [AK] We shouldn't have to check if the copy string is empty (i.e. CHAT_CleanChatString
+		// returned false) because we already did so in the original string. The only difference
+		// is that the copy is guaranteed still have its color codes.
+		CHAT_CleanChatString( ChatStringToSave );
 		g_SavedChatMessages[ulPlayer].put( ChatStringToSave );
 
 		// [AK] Trigger an event script indicating that a chat message was received.
