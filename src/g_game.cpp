@@ -3334,6 +3334,10 @@ void P_LoadBehavior( MapData *pMap );
 
 void GAME_ResetScripts ( )
 {
+	// [AK] Reset all world and global ACS variables if ZACOMPATF_RESET_GLOBALVARS_ON_MAPRESET is on.
+	if ( zacompatflags & ZACOMPATF_RESET_GLOBALVARS_ON_MAPRESET )
+		P_ClearACSVars( true );
+
 	// Unload the ACS scripts so we can reload them.
 	FBehavior::StaticUnloadModules( );
 	if ( DACSThinker::ActiveThinker != NULL )
@@ -3463,10 +3467,6 @@ void GAME_ResetMap( bool bRunEnterScripts )
 				for ( int i = 0; i < 5; ++i )
 					pActor->args[i] = pActor->SavedArgs[i];
 		}
-
-		// [AK] Reset the world and global ACS variables on the clients if ZACOMPATF_RESET_GLOBALVARS_ON_MAPRESET is on.
-		if ( zacompatflags & ZACOMPATF_RESET_GLOBALVARS_ON_MAPRESET )
-			P_ClearACSVars( true );
 
 		// [BB] Clients may be running CLIENTSIDE scripts, so we also need to reset ACS scripts on the clients.
 		GAME_ResetScripts ( );
@@ -4238,10 +4238,6 @@ void GAME_ResetMap( bool bRunEnterScripts )
 	// If we're the server, tell clients to delete all their ceiling/floor movers.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCOMMANDS_DestroyAllSectorMovers( );
-
-	// [AK] Reset all world and global ACS variables if ZACOMPATF_RESET_GLOBALVARS_ON_MAPRESET is on.
-	if ( zacompatflags & ZACOMPATF_RESET_GLOBALVARS_ON_MAPRESET )
-		P_ClearACSVars( true );
 
 	// [BB] Reset all ACS scripts.
 	GAME_ResetScripts ( );
