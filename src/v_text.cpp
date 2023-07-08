@@ -343,75 +343,19 @@ void V_ColorizeString( char *pszString )
 	}
 
 	char *p = pszString, c;
-	int i;
 
 	while ( (c = *p++) )
 	{
-		// If we don't encounter a slash, keep parsing.
-		if (c != '\\')
-			*pszString++ = c;
+		// [AK] If we encounter a "\c", put the escaped code in the string.
+		if (( c == '\\' ) && ( *p == 'c' ))
+		{
+			*pszString++ = TEXTCOLOR_ESCAPE;
+			p++;
+		}
+		// Otherwise, keep parsing.
 		else
 		{
-			switch (*p)
-			{
-				case 'c':
-					*pszString++ = TEXTCOLOR_ESCAPE;
-					break;
-				case 'n':
-					*pszString++ = '\n';
-					break;
-				case 't':
-					*pszString++ = '\t';
-					break;
-				case 'r':
-					*pszString++ = '\r';
-					break;
-//				case '\n':
-//					break;
-				case 'x':
-				case 'X':
-					c = 0;
-					for (i = 0; i < 2; i++)
-					{
-						p++;
-						if (*p >= '0' && *p <= '9')
-							c = (c << 4) + *p-'0';
-						else if (*p >= 'a' && *p <= 'f')
-							c = (c << 4) + 10 + *p-'a';
-						else if (*p >= 'A' && *p <= 'F')
-							c = (c << 4) + 10 + *p-'A';
-						else
-						{
-							p--;
-							break;
-						}
-					}
-					*pszString++ = c;
-					break;
-				case '0':
-				case '1':
-				case '2':
-				case '3':
-				case '4':
-				case '5':
-				case '6':
-				case '7':
-					c = 0;
-					for (i = 0; i < 3; i++) {
-						c <<= 3;
-						if (*p >= '0' && *p <= '7')
-							c += *p-'0';
-						else
-							break;
-						p++;
-					}
-					*pszString++ = c;
-					break;
-				default:
-					*pszString++ = *p;
-					break;
-			}
-			p++;
+			*pszString++ = c;
 		}
 	}
 	*pszString = 0;
@@ -422,13 +366,7 @@ void V_ColorizeString( char *pszString )
 // are not needed anymore using this.
 void V_ColorizeString( FString &String )
 {
-	const int length = (int) String.Len();
-	char *tempCharArray = new char[length+1];
-	strncpy( tempCharArray, String.GetChars(), length );
-	tempCharArray[length] = 0;
-	V_ColorizeString( tempCharArray );
-	String = tempCharArray;
-	delete[] tempCharArray;
+	String.Substitute( "\\c", TEXTCOLOR_ESCAPE );
 }
 
 //*****************************************************************************

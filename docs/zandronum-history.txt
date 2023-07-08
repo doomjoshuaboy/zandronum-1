@@ -101,6 +101,7 @@
 -	- Fixed: local CVars defined in CVARINFO were never saved in the user's config file. [Kaminsky]
 -	- Fixed: players didn't drop important items like flags, skulls, etc. when they respawned using SetPlayerClass. [Kaminsky]
 -	- Fixed: stealth monsters didn't reveal themselves in online games when they took damage or died. [Kaminsky]
+-	- Fixed: backslashes were not being included in chat messages correctly. [Kaminsky]
 !	- The result value of GAMEEVENT_MEDALS event scripts can now be used to determine whether or not the player receives the medal. [Kaminsky]
 !	- GAMEMODE flags are now validated after all GAMEMODE lumps have been parsed instead of after each one. The internal game mode name (e.g. "TeamLMS") is now printed with the error message instead of the actual name. [Kaminsky]
 !	- Added an extra check to ensure that game modes have a (short) name. [Kaminsky]
