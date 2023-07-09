@@ -163,7 +163,7 @@ Column "PlayerColor"
 	AddFlag DONTSHOWHEADER
 	AddFlag ALWAYSUSESHORTESTWIDTH
 
-	ClipRectHeight = 9
+	ClipRectHeight = -2
 	ClipRectWidth = 15
 }
 
@@ -171,7 +171,7 @@ Column "StatusIcon"
 {
 	AddFlag DONTSHOWHEADER
 
-	ClipRectHeight = 9
+	ClipRectHeight = -2
 	Size = 13
 }
 
@@ -180,7 +180,7 @@ Column "ReadyToGoIcon"
 	AddFlag INTERMISSIONONLY
 	AddFlag DONTSHOWHEADER
 
-	ClipRectHeight = 9
+	ClipRectHeight = -2
 	Size = 8
 }
 
@@ -192,7 +192,7 @@ Column "PlayerIcon"
 	AddFlag DISABLEIFEMPTY
 
 	Alignment = Center
-	ClipRectHeight = 9
+	ClipRectHeight = -2
 }
 
 Column "ArtifactIcon"
@@ -201,7 +201,7 @@ Column "ArtifactIcon"
 	AddFlag DONTSHOWHEADER
 
 	Alignment = Center
-	ClipRectHeight = 9
+	ClipRectHeight = -2
 	GameMode = Terminator, Possession, TeamPossession, CTF, OneFlagCTF, Skulltag
 	Size = 13
 }
@@ -213,7 +213,7 @@ Column "BotSkillIcon"
 	AddFlag DISABLEIFEMPTY
 
 	Alignment = Center
-	ClipRectHeight = 9
+	ClipRectHeight = -2
 }
 
 Column "CountryFlag"

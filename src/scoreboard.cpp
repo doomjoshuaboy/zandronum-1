@@ -1140,10 +1140,23 @@ void ScoreColumn::FixClipRectSize( const int clipWidth, const int clipHeight, co
 	else
 		fixedWidth = clipWidth;
 
-	if (( clipHeight <= 0 ) || ( static_cast<ULONG>( clipHeight ) > ulHeight ))
+	// [AK] If the input clip height is negative, subtract it from ulHeight.
+	if ( clipHeight < 0 )
+	{
+		fixedHeight = ulHeight + clipHeight;
+
+		// [AK] If the fixed height is less than zero, just set it to ulHeight.
+		if ( fixedHeight <= 0 )
+			fixedHeight = ulHeight;
+	}
+	else if (( clipHeight == 0 ) || ( static_cast<ULONG>( clipHeight ) > ulHeight ))
+	{
 		fixedHeight = ulHeight;
+	}
 	else
+	{
 		fixedHeight = clipHeight;
+	}
 }
 
 //*****************************************************************************
@@ -1335,11 +1348,11 @@ ULONG DataScoreColumn::GetValueWidth( const PlayerValue &Value ) const
 				// [AK] If this column must always use the shortest possible width, then return the
 				// clipping rectangle's width, whether it's zero or not.
 				if ( ulFlags & COLUMNFLAG_ALWAYSUSESHORTESTWIDTH )
-					return ulClipRectWidth;
+					return lClipRectWidth;
 
 				// [AK] If the clipping rectangle's width is non-zero, return whichever is smaller:
 				// the column's size (the default width here) or the clipping rectangle's width.
-				return ulClipRectWidth > 0 ? MIN( ulSizing, ulClipRectWidth ) : ulSizing;
+				return lClipRectWidth > 0 ? MIN<ULONG>( ulSizing, lClipRectWidth ) : ulSizing;
 			}
 
 			case DATATYPE_TEXTURE:
@@ -1350,7 +1363,7 @@ ULONG DataScoreColumn::GetValueWidth( const PlayerValue &Value ) const
 					return 0;
 
 				const ULONG ulTextureWidth = pTexture->GetScaledWidth( );
-				return ulClipRectWidth > 0 ? MIN( ulTextureWidth, ulClipRectWidth ) : ulTextureWidth;
+				return lClipRectWidth > 0 ? MIN<ULONG>( ulTextureWidth, lClipRectWidth ) : ulTextureWidth;
 			}
 
 			default:
@@ -1654,9 +1667,9 @@ void DataScoreColumn::ParseCommand( FScanner &sc, const COLUMNCMD_e Command, con
 			sc.MustGetNumber( );
 
 			if ( Command == COLUMNCMD_CLIPRECTWIDTH )
-				ulClipRectWidth = MAX( sc.Number, 0 );
+				lClipRectWidth = MAX( sc.Number, 0 );
 			else
-				ulClipRectHeight = MAX( sc.Number, 0 );
+				lClipRectHeight = sc.Number;
 
 			break;
 		}
@@ -1776,11 +1789,11 @@ void DataScoreColumn::DrawValue( const ULONG ulPlayer, const ULONG ulColor, cons
 			break;
 
 		case DATATYPE_COLOR:
-			DrawColor( Value.GetValue<PalEntry>( ), lYPos, ulHeight, fAlpha, ulClipRectWidth, ulClipRectHeight );
+			DrawColor( Value.GetValue<PalEntry>( ), lYPos, ulHeight, fAlpha, lClipRectWidth, lClipRectHeight );
 			break;
 
 		case DATATYPE_TEXTURE:
-			DrawTexture( Value.GetValue<FTexture *>( ), lYPos, ulHeight, fAlpha, ulClipRectWidth, ulClipRectHeight );
+			DrawTexture( Value.GetValue<FTexture *>( ), lYPos, ulHeight, fAlpha, lClipRectWidth, lClipRectHeight );
 			break;
 
 		default:

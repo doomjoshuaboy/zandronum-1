@@ -273,8 +273,8 @@ public:
 		ScoreColumn( pszName ),
 		NativeType( Type ),
 		ulMaxLength( 0 ),
-		ulClipRectWidth( 0 ),
-		ulClipRectHeight( 0 ),
+		lClipRectWidth( 0 ),
+		lClipRectHeight( 0 ),
 		pCompositeColumn( NULL ) { }
 
 	CompositeScoreColumn *GetCompositeColumn( void ) const { return pCompositeColumn; }
@@ -298,8 +298,8 @@ protected:
 	FString TrueText;
 	FString FalseText;
 	ULONG ulMaxLength;
-	ULONG ulClipRectWidth;
-	ULONG ulClipRectHeight;
+	LONG lClipRectWidth;
+	LONG lClipRectHeight;
 
 	// [AK] The composite column that this column belongs to, if there is one.
 	CompositeScoreColumn *pCompositeColumn;
