@@ -186,6 +186,7 @@ Column "ReadyToGoIcon"
 
 Column "PlayerIcon"
 {
+	AddFlag NOSPECTATORS
 	AddFlag DONTSHOWHEADER
 	AddFlag ALWAYSUSESHORTESTWIDTH
 	AddFlag DISABLEIFEMPTY
