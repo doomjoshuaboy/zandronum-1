@@ -5375,6 +5375,12 @@ enum EACSFunctions
 	ACSF_SetCustomPlayerValue,
 	ACSF_GetCustomPlayerValue,
 	ACSF_ResetCustomDataToDefault,
+	ACSF_LumpOpen,
+	ACSF_LumpReadChar,
+	ACSF_LumpReadShort,
+	ACSF_LumpReadInt,
+	ACSF_LumpReadString,
+	ACSF_LumpSize,
 
 	// ZDaemon
 	ACSF_GetTeamScore = 19620,	// (int team)
@@ -7980,6 +7986,88 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 				}
 
 				return 0;
+			}
+
+		case ACSF_LumpOpen:
+			{
+				const char *name = FBehavior::StaticLookupString( args[0] );
+
+				if ( ( argCount > 1 ) && ( args[1] >= 0 ) )
+				{
+					int startLump = args[1] + 1;
+					return Wads.FindLump( name, &startLump );
+				}
+
+				return Wads.CheckNumForName( name );
+			}
+
+		case ACSF_LumpReadChar:
+		case ACSF_LumpReadShort:
+		case ACSF_LumpReadInt:
+			{
+				int size;
+				int32_t buf = 0;
+				FWadLump lump = Wads.OpenLumpNum( args[0] );
+				lump.Seek( args[1], SEEK_SET );
+
+				switch ( funcIndex )
+				{
+					case ACSF_LumpReadChar:
+						size = sizeof( int8_t );
+						break;
+
+					case ACSF_LumpReadShort:
+						size = sizeof( int16_t );
+						break;
+
+					case ACSF_LumpReadInt:
+						size = sizeof( int32_t );
+						break;
+
+					default:
+						I_Error( "Invalid lump reading function in ACS VM." );
+						break;
+				}
+
+				lump.Read( &buf, size );
+
+				if ( ( argCount < 3 ) || ( args[2] == 0 ) )
+				{
+					if ( size == sizeof( int8_t ) )
+						return static_cast<int8_t>( buf );
+
+					if ( size == sizeof( int16_t ) )
+						return static_cast<int16_t>( buf );
+				}
+
+				return buf;
+			}
+
+		case ACSF_LumpReadString:
+			{
+				auto len = Wads.LumpLength( args[0] ) - args[1];
+				if ( len <= 0 )
+					return GlobalACSStrings.AddString( "" );
+
+				// [TDRR] Null terminate just in case.
+				char *buf = new char[len + 1];
+				FWadLump lump = Wads.OpenLumpNum( args[0] );
+				lump.Seek( args[1], SEEK_SET );
+
+				lump.Read( buf, len );
+				buf[len] = '\0';
+
+				// [TDRR] Don't trim the string to the first null terminator here,
+				// since that happens after it's converted to an FString in AddString.
+				int strIndex = GlobalACSStrings.AddString( buf );
+				delete[] buf;
+
+				return strIndex;
+			}
+
+		case ACSF_LumpSize:
+			{
+				return Wads.LumpLength(args[0]);
 			}
 
 		case ACSF_GetActorFloorTexture:
