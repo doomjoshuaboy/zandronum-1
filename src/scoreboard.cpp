@@ -1021,7 +1021,7 @@ void ScoreColumn::DrawString( const char *pszString, FFont *pFont, const ULONG u
 	int clipTop = lYPos;
 	int clipHeight = ulHeight;
 
-	LONG lNewYPos = lYPos + ( clipHeight - ulLargestCharHeight ) / 2;
+	LONG lNewYPos = lYPos + ( clipHeight - static_cast<LONG>( ulLargestCharHeight )) / 2;
 
 	// [AK] We must take into account the virtual screen's size when setting up the clipping rectangle.
 	// Nothing should be drawn outside of this rectangle (i.e. the column's boundaries).
@@ -1054,7 +1054,7 @@ void ScoreColumn::DrawColor( const PalEntry color, const LONG lYPos, const ULONG
 	FixClipRectSize( clipWidth, clipHeight, ulHeight, clipWidthToUse, clipHeightToUse );
 
 	int clipLeft = GetAlignmentPosition( clipWidthToUse );
-	int clipTop = lYPos + ( ulHeight - clipHeightToUse ) / 2;
+	int clipTop = lYPos + ( static_cast<LONG>( ulHeight ) - clipHeightToUse ) / 2;
 
 	// [AK] We must take into account the virtual screen's size.
 	if ( g_bScale )
@@ -1086,7 +1086,7 @@ void ScoreColumn::DrawTexture( FTexture *pTexture, const LONG lYPos, const ULONG
 	int clipLeft = GetAlignmentPosition( clipWidthToUse );
 	int clipTop = lYPos + ( ulHeight - clipHeightToUse ) / 2;
 
-	LONG lNewYPos = lYPos + ( ulHeight - pTexture->GetScaledHeight( )) / 2;
+	LONG lNewYPos = lYPos + ( static_cast<LONG>( ulHeight ) - pTexture->GetScaledHeight( )) / 2;
 
 	// [AK] We must take into account the virtual screen's size.
 	if ( g_bScale )
