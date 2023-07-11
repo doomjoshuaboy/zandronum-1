@@ -5677,7 +5677,7 @@ void ServerCommands::PrintMOTD::Execute()
 	// [BB] Some cleaning of the string since we can't trust the server.
 	V_RemoveTrailingCrapFromFString ( g_MOTD );
 	// [AK] Add pretty colors/formatting!
-	V_ColorizeString( g_MOTD );
+	g_MOTD = strbin1( g_MOTD.GetChars( ));
 }
 
 //*****************************************************************************
