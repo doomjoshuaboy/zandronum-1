@@ -7920,6 +7920,8 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 								Val.SetValue<const char *>( pszValue );
 							else
 								Val.SetValue<FTexture *>( TexMan.FindTexture( pszValue ));
+
+							break;
 						}
 
 						default:
