@@ -128,6 +128,7 @@
 !	- The "logo" property in TEAMINFO, as well as a PlayerPawn's "ScoreIcon", are now usable and appear on the scoreboard. [Kaminsky]
 !	- Clients are now informed the moment when they're (un)muted on the server, based on Janko Knezevic's patch. [Kaminsky]
 !	- Showing the player's skin sprite is now prevented if their class's current sprite is TNT1A0 (and its original sprite is also TNT1A0). [Kaminsky]
+!	- HudMessages that are scaled to the virtual screen now respect con_scaletext_usescreenratio. [Kaminsky]
 
 
 3.1
