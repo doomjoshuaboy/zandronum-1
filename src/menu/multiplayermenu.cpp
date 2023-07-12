@@ -454,12 +454,19 @@ public:
 		bool letterBox;
 		int numModes = 0;
 		int textsizescalar = 0;
+		bool bFoundExactMatch = false;
 
 		Video->StartModeIterator( 8, true );
 		while ( Video->NextMode( &width, &height, &letterBox ))
 		{
-			if (( width <= con_virtualwidth ) && ( height <= con_virtualheight ))
+			// [AK] Don't change the slider if we already found a mode that matches the virtual screen's size.
+			if (( bFoundExactMatch == false ) && ( width <= con_virtualwidth ) && ( height <= con_virtualheight ))
+			{
+				if (( width == con_virtualwidth ) && ( height == con_virtualheight ))
+					bFoundExactMatch = true;
+
 				textsizescalar = numModes;
+			}
 
 			numModes++;
 		}
