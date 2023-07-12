@@ -2661,7 +2661,15 @@ unsigned int C_GetMessageLevel()
 //
 void C_UpdateVirtualScreen()
 {
-	g_bScale = ( con_scaletext ) && ( con_virtualwidth > 0 ) && ( con_virtualheight > 0 );
+	g_bScale = false;
+
+	// [AK] Only enable scaling if the virtual screen's size is different from the native screen's.
+	if (( con_scaletext ) && ( con_virtualwidth > 0 ) && ( con_virtualheight > 0 ))
+	{
+		if (( con_virtualwidth != SCREENWIDTH ) || ( con_virtualheight != SCREENHEIGHT ))
+			g_bScale = true;
+	}
+
 	g_ulTextHeight = SmallFont ? SmallFont->GetHeight( ) + 1 : 0;
 
 	if ( g_bScale )
