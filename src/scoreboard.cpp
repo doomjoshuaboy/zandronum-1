@@ -2990,8 +2990,7 @@ void Scoreboard::UpdateHeight( const ULONG ulDisplayPlayer )
 	// [AK] Do the same for any true spectators.
 	if ( ulNumSpectators > 0 )
 	{
-		if ( ulNumActivePlayers > 0 )
-			ulHeight += lRowHeight;
+		ulHeight += lRowHeight;
 
 		// [AK] Refresh and add the height of the spectator header too, if allowed.
 		if (( ulFlags & SCOREBOARDFLAG_DONTSHOWTEAMHEADERS ) == false )
@@ -3091,13 +3090,11 @@ void Scoreboard::Render( const ULONG ulDisplayPlayer, const float fAlpha )
 	{
 		const ULONG ulTotalPlayers = ulNumActivePlayers + ulNumTrueSpectators;
 
-		// [AK] If there are any active players, leave a gap between them and the true
-		// spectators, and make the row background light.
+		lYPos += lRowHeight;
+
+		// [AK] If there are any active players, make the row background light.
 		if ( ulNumActivePlayers > 0 )
-		{
-			lYPos += lRowHeight;
 			bUseLightBackground = true;
-		}
 
 		// [AK] Draw the header for spectators, if allowed.
 		if (( ulFlags & SCOREBOARDFLAG_DONTSHOWTEAMHEADERS ) == false )
