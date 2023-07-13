@@ -1117,8 +1117,24 @@ bool ScoreColumn::CanDrawForPlayer( const ULONG ulPlayer ) const
 		return false;
 
 	// [AK] Don't draw for true spectators if they're meant to be excluded.
-	if (( ulFlags & COLUMNFLAG_NOSPECTATORS ) && ( PLAYER_IsTrueSpectator( &players[ulPlayer] )))
+	if ( PLAYER_IsTrueSpectator( &players[ulPlayer] ))
+	{
+		if ( ulFlags & COLUMNFLAG_NOSPECTATORS )
+			return false;
+	}
+	// [AK] ...or for active players if they're meant to be excluded too.
+	else if ( ulFlags & COLUMNFLAG_SPECTATORSONLY )
+	{
 		return false;
+	}
+
+	// [AK] Don't draw for enemies of ours. Let's be conservative and also return
+	// false when the local player's body is invalid (which shouldn't happen).
+	if ( ulFlags & COLUMNFLAG_NOENEMIES )
+	{
+		if (( players[consoleplayer].mo == NULL ) || ( players[consoleplayer].mo->IsTeammate( players[ulPlayer].mo ) == false ))
+			return false;
+	}
 
 	return true;
 }
@@ -2107,7 +2123,6 @@ void CompositeScoreColumn::DrawValue( const ULONG ulPlayer, const ULONG ulColor,
 	if ( CanDrawForPlayer( ulPlayer ) == false )
 		return;
 
-	const bool bIsTrueSpectator = PLAYER_IsTrueSpectator( &players[ulPlayer] );
 	const ULONG ulRowWidth = GetRowWidth( ulPlayer );
 
 	// [AK] If this row's width is zero, then there's nothing to draw, so stop here.
@@ -2120,7 +2135,7 @@ void CompositeScoreColumn::DrawValue( const ULONG ulPlayer, const ULONG ulColor,
 	// [AK] Draw the contents of the sub-columns!
 	for ( unsigned int i = 0; i < SubColumns.Size( ); i++ )
 	{
-		if (( SubColumns[i]->IsDisabled( )) || (( SubColumns[i]->GetFlags( ) & COLUMNFLAG_NOSPECTATORS ) && ( bIsTrueSpectator )))
+		if ( SubColumns[i]->CanDrawForPlayer( ulPlayer ) == false )
 			continue;
 
 		Value = SubColumns[i]->GetValue( ulPlayer );
@@ -2200,13 +2215,12 @@ ULONG CompositeScoreColumn::GetRowWidth( const ULONG ulPlayer ) const
 	if (( pScoreboard == NULL ) || ( PLAYER_IsValidPlayer( ulPlayer ) == false ))
 		return 0;
 
-	const bool bIsTrueSpectator = PLAYER_IsTrueSpectator( &players[ulPlayer] );
 	ULONG ulRowWidth = 0;
 
 	for ( unsigned int i = 0; i < SubColumns.Size( ); i++ )
 	{
-		// [AK] Ignore sub-columns that are disabled or cannot be shown for true spectators.
-		if (( SubColumns[i]->IsDisabled( )) || (( SubColumns[i]->GetFlags( ) & COLUMNFLAG_NOSPECTATORS ) && ( bIsTrueSpectator )))
+		// [AK] Ignore sub-columns that can't draw anything for this player.
+		if ( SubColumns[i]->CanDrawForPlayer( ulPlayer ) == false )
 			continue;
 
 		PlayerValue Value = SubColumns[i]->GetValue( ulPlayer );

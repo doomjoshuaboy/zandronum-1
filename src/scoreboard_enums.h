@@ -181,32 +181,36 @@ BEGIN_ENUM( COLUMNFLAG_e )
 	ENUM_ELEMENT2( COLUMNFLAG_INTERMISSIONONLY, 0x02 ),
 	// This column won't appear on the intermission screen.
 	ENUM_ELEMENT2( COLUMNFLAG_NOINTERMISSION, 0x04 ),
+	// Only draw the contents of this column for true spectators.
+	ENUM_ELEMENT2( COLUMNFLAG_SPECTATORSONLY, 0x08 ),
 	// Don't draw the contents of this column for true spectators.
-	ENUM_ELEMENT2( COLUMNFLAG_NOSPECTATORS, 0x08 ),
+	ENUM_ELEMENT2( COLUMNFLAG_NOSPECTATORS, 0x10 ),
+	// Don't draw the contents of this column for any enemies.
+	ENUM_ELEMENT2( COLUMNFLAG_NOENEMIES, 0x20 ),
 	// This column only appears in offline games.
-	ENUM_ELEMENT2( COLUMNFLAG_OFFLINEONLY, 0x10 ),
+	ENUM_ELEMENT2( COLUMNFLAG_OFFLINEONLY, 0x40 ),
 	// This column only appears in online games.
-	ENUM_ELEMENT2( COLUMNFLAG_ONLINEONLY, 0x20 ),
+	ENUM_ELEMENT2( COLUMNFLAG_ONLINEONLY, 0x80 ),
 	// This column is only active in game modes that support teams.
-	ENUM_ELEMENT2( COLUMNFLAG_REQUIRESTEAMS, 0x40 ),
+	ENUM_ELEMENT2( COLUMNFLAG_REQUIRESTEAMS, 0x100 ),
 	// This column is disabled in game modes that support teams.
-	ENUM_ELEMENT2( COLUMNFLAG_FORBIDTEAMS, 0x80 ),
+	ENUM_ELEMENT2( COLUMNFLAG_FORBIDTEAMS, 0x200 ),
 	// This column is only active in game modes where players have lives.
-	ENUM_ELEMENT2( COLUMNFLAG_REQUIRESLIVES, 0x100 ),
+	ENUM_ELEMENT2( COLUMNFLAG_REQUIRESLIVES, 0x400 ),
 	// This column is disabled in game modes that use lives.
-	ENUM_ELEMENT2( COLUMNFLAG_FORBIDLIVES, 0x200 ),
+	ENUM_ELEMENT2( COLUMNFLAG_FORBIDLIVES, 0x800 ),
 	// This column is only active in game modes where a team's item is used.
-	ENUM_ELEMENT2( COLUMNFLAG_REQUIRESTEAMITEMS, 0x400 ),
+	ENUM_ELEMENT2( COLUMNFLAG_REQUIRESTEAMITEMS, 0x1000 ),
 	// This column is disabled in game modes that use team items.
-	ENUM_ELEMENT2( COLUMNFLAG_FORBIDTEAMITEMS, 0x800 ),
+	ENUM_ELEMENT2( COLUMNFLAG_FORBIDTEAMITEMS, 0x2000 ),
 	// Prevents this column's header from being shown.
-	ENUM_ELEMENT2( COLUMNFLAG_DONTSHOWHEADER, 0x1000 ),
+	ENUM_ELEMENT2( COLUMNFLAG_DONTSHOWHEADER, 0x4000 ),
 	// The column's width is always set to whatever's the shortest possible width.
-	ENUM_ELEMENT2( COLUMNFLAG_ALWAYSUSESHORTESTWIDTH, 0x2000 ),
+	ENUM_ELEMENT2( COLUMNFLAG_ALWAYSUSESHORTESTWIDTH, 0x8000 ),
 	// The column's CVar must be zero for the column to stay active.
-	ENUM_ELEMENT2( COLUMNFLAG_CVARMUSTBEZERO, 0x4000 ),
+	ENUM_ELEMENT2( COLUMNFLAG_CVARMUSTBEZERO, 0x10000 ),
 	// If the column's empty (i.e. no contents inside it), then it's disabled.
-	ENUM_ELEMENT2( COLUMNFLAG_DISABLEIFEMPTY, 0x8000 ),
+	ENUM_ELEMENT2( COLUMNFLAG_DISABLEIFEMPTY, 0x20000 ),
 }
 END_ENUM( COLUMNFLAG_e )
 
