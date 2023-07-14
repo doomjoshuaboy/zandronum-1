@@ -591,6 +591,7 @@ ScoreColumn::ScoreColumn( const char *pszName ) :
 	ulFlags( 0 ),
 	ulSizing( 0 ),
 	ulShortestWidth( 0 ),
+	ulShortestHeight( 0 ),
 	ulWidth( 0 ),
 	lRelX( 0 ),
 	bUsableInCurrentGame( false ),
@@ -922,13 +923,13 @@ void ScoreColumn::Refresh( void )
 
 //*****************************************************************************
 //
-// [AK] ScoreColumn::UpdateWidth
+// [AK] ScoreColumn::Update
 //
 // Determines what the width of the column should be right now.
 //
 //*****************************************************************************
 
-void ScoreColumn::UpdateWidth( void )
+void ScoreColumn::Update( void )
 {
 	// [AK] Don't do anything if this column isn't part of a scoreboard.
 	if ( pScoreboard == NULL )
@@ -1337,13 +1338,13 @@ FString DataScoreColumn::GetValueString( const PlayerValue &Value ) const
 
 //*****************************************************************************
 //
-// [AK] DataScoreColumn::GetValueWidth
+// [AK] DataScoreColumn::GetValueWidthOrHeight
 //
-// Gets the width of a value.
+// Gets the width or height of a value.
 //
 //*****************************************************************************
 
-ULONG DataScoreColumn::GetValueWidth( const PlayerValue &Value ) const
+ULONG DataScoreColumn::GetValueWidthOrHeight( const PlayerValue &Value, const bool bGetHeight ) const
 {
 	// [AK] Make sure that the column is part of a scoreboard.
 	if ( pScoreboard != NULL )
@@ -1358,11 +1359,14 @@ ULONG DataScoreColumn::GetValueWidth( const PlayerValue &Value ) const
 				if ( pScoreboard->pRowFont == NULL )
 					return 0;
 
-				return pScoreboard->pRowFont->StringWidth( GetValueString( Value ).GetChars( ));
+				return bGetHeight ? pScoreboard->pRowFont->GetHeight( ) : pScoreboard->pRowFont->StringWidth( GetValueString( Value ).GetChars( ));
 			}
 
 			case DATATYPE_COLOR:
 			{
+				if ( bGetHeight )
+					return lClipRectHeight > 0 ? MIN<ULONG>( pScoreboard->ulRowHeightToUse, lClipRectHeight ) : pScoreboard->ulRowHeightToUse;
+
 				// [AK] If this column must always use the shortest possible width, then return the
 				// clipping rectangle's width, whether it's zero or not.
 				if ( ulFlags & COLUMNFLAG_ALWAYSUSESHORTESTWIDTH )
@@ -1376,12 +1380,24 @@ ULONG DataScoreColumn::GetValueWidth( const PlayerValue &Value ) const
 			case DATATYPE_TEXTURE:
 			{
 				FTexture *pTexture = Value.GetValue<FTexture *>( );
+				ULONG ulTextureSize = 0;
+				LONG lClipRectSize = 0;
 
 				if ( pTexture == NULL )
 					return 0;
 
-				const ULONG ulTextureWidth = pTexture->GetScaledWidth( );
-				return lClipRectWidth > 0 ? MIN<ULONG>( ulTextureWidth, lClipRectWidth ) : ulTextureWidth;
+				if ( bGetHeight )
+				{
+					ulTextureSize = pTexture->GetScaledHeight( );
+					lClipRectSize = lClipRectHeight;
+				}
+				else
+				{
+					ulTextureSize = pTexture->GetScaledWidth( );
+					lClipRectSize = lClipRectWidth;
+				}
+
+				return lClipRectSize > 0 ? MIN<ULONG>( ulTextureSize, lClipRectSize ) : ulTextureSize;
 			}
 
 			default:
@@ -1733,19 +1749,20 @@ void DataScoreColumn::ParseCommand( FScanner &sc, const COLUMNCMD_e Command, con
 
 //*****************************************************************************
 //
-// [AK] DataScoreColumn::UpdateWidth
+// [AK] DataScoreColumn::Update
 //
-// Gets the smallest width that will fit the contents in all player rows.
+// Gets the smallest width and height that fits the contents in all player rows.
 //
 //*****************************************************************************
 
-void DataScoreColumn::UpdateWidth( void )
+void DataScoreColumn::Update( void )
 {
 	// [AK] Don't update the width of a column that isn't part of a scoreboard.
 	if ( pScoreboard == NULL )
 		return;
 
 	ulShortestWidth = 0;
+	ulShortestHeight = 0;
 
 	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
@@ -1753,11 +1770,13 @@ void DataScoreColumn::UpdateWidth( void )
 			continue;
 
 		PlayerValue Value = GetValue( ulIdx );
-		ulShortestWidth = MAX( ulShortestWidth, GetValueWidth( Value ));
+
+		ulShortestWidth = MAX( ulShortestWidth, GetValueWidthOrHeight( Value, false ));
+		ulShortestHeight = MAX( ulShortestHeight, GetValueWidthOrHeight( Value, true ));
 	}
 
 	// [AK] Call the superclass's function to finish updating the width.
-	ScoreColumn::UpdateWidth( );
+	ScoreColumn::Update( );
 }
 
 //*****************************************************************************
@@ -1861,23 +1880,23 @@ CountryFlagScoreColumn::CountryFlagScoreColumn( FScanner &sc, const char *pszNam
 
 //*****************************************************************************
 //
-// [AK] CountryFlagScoreColumn::GetValueWidth
+// [AK] CountryFlagScoreColumn::GetValueWidthOrHeight
 //
-// This should always return the width of a mini flag icon, assuming that the
-// passed value is a texture set to "CTRYFLAG".
+// This should always return the width or height of a mini flag icon, assuming
+// that the passed value is a texture set to "CTRYFLAG".
 //
 //*****************************************************************************
 
-ULONG CountryFlagScoreColumn::GetValueWidth( const PlayerValue &Value ) const
+ULONG CountryFlagScoreColumn::GetValueWidthOrHeight( const PlayerValue &Value, const bool bGetHeight ) const
 {
 	// [AK] Always return zero if this column isn't part of a scoreboard.
 	if ( pScoreboard != NULL )
 	{
 		if (( Value.GetDataType( ) == DATATYPE_TEXTURE ) && ( Value.GetValue<FTexture *>( ) == pFlagIconSet ))
-			return ulFlagWidth;
+			return bGetHeight ? ulFlagHeight : ulFlagWidth;
 
 		// [AK] If we somehow end up here, throw a fatal error.
-		I_Error( "CountryFlagScoreColumn::GetValueWidth: tried to get the width of a value that isn't 'CTRYFLAG'!" );
+		I_Error( "CountryFlagScoreColumn::GetValueWidth: tried to get the %s of a value that isn't 'CTRYFLAG'!", bGetHeight ? "height" : "width" );
 	}
 
 	return 0;
@@ -2095,31 +2114,33 @@ void CompositeScoreColumn::Refresh( void )
 
 //*****************************************************************************
 //
-// [AK] CompositeScoreColumn::UpdateWidth
+// [AK] CompositeScoreColumn::Update
 //
-// Gets the smallest width that can fit the contents of all active sub-columns
-// in all player rows.
+// Gets the smallest width and height that can fit the contents of all active
+// sub-columns in all player rows.
 //
 //*****************************************************************************
 
-void CompositeScoreColumn::UpdateWidth( void )
+void CompositeScoreColumn::Update( void )
 {
 	// [AK] Don't update the width of a column that isn't part of a scoreboard.
 	if ( pScoreboard == NULL )
 		return;
 
 	ulShortestWidth = 0;
+	ulShortestHeight = 0;
 
 	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
 		if ( CanDrawForPlayer( ulIdx ) == false )
 			continue;
 
-		ulShortestWidth = MAX( ulShortestWidth, GetRowWidth( ulIdx ));
+		ulShortestWidth = MAX( ulShortestWidth, GetRowWidthOrHeight( ulIdx, false ));
+		ulShortestHeight = MAX( ulShortestHeight, GetRowWidthOrHeight( ulIdx, true ));
 	}
 
 	// [AK] Call the superclass's function to finish updating the width.
-	ScoreColumn::UpdateWidth( );
+	ScoreColumn::Update( );
 }
 
 //*****************************************************************************
@@ -2137,7 +2158,7 @@ void CompositeScoreColumn::DrawValue( const ULONG ulPlayer, const ULONG ulColor,
 	if ( CanDrawForPlayer( ulPlayer ) == false )
 		return;
 
-	const ULONG ulRowWidth = GetRowWidth( ulPlayer );
+	const ULONG ulRowWidth = GetRowWidthOrHeight( ulPlayer, false );
 
 	// [AK] If this row's width is zero, then there's nothing to draw, so stop here.
 	if ( ulRowWidth == 0 )
@@ -2156,7 +2177,7 @@ void CompositeScoreColumn::DrawValue( const ULONG ulPlayer, const ULONG ulColor,
 
 		if (( Value.GetDataType( ) != DATATYPE_UNKNOWN ) || (( SubColumns[i]->GetFlags( ) & COLUMNFLAG_DISABLEIFEMPTY ) == false ))
 		{
-			const ULONG ulValueWidth = SubColumns[i]->GetValueWidth( Value );
+			const ULONG ulValueWidth = SubColumns[i]->GetValueWidthOrHeight( Value, false );
 
 			// [AK] We didn't update the sub-column's x-position or width since they're part of
 			// a composite column, but we need to make sure that the contents appear properly.
@@ -2218,18 +2239,18 @@ void CompositeScoreColumn::ClearSubColumns( void )
 
 //*****************************************************************************
 //
-// [AK] CompositeScoreColumn::GetRowWidth
+// [AK] CompositeScoreColumn::GetRowWidthOrHeight
 //
-// Gets the width of an entire row for a particular player.
+// Gets the width or height of an entire row for a particular player.
 //
 //*****************************************************************************
 
-ULONG CompositeScoreColumn::GetRowWidth( const ULONG ulPlayer ) const
+ULONG CompositeScoreColumn::GetRowWidthOrHeight( const ULONG ulPlayer, const bool bGetHeight ) const
 {
 	if (( pScoreboard == NULL ) || ( PLAYER_IsValidPlayer( ulPlayer ) == false ))
 		return 0;
 
-	ULONG ulRowWidth = 0;
+	ULONG ulResult = 0;
 
 	for ( unsigned int i = 0; i < SubColumns.Size( ); i++ )
 	{
@@ -2241,15 +2262,22 @@ ULONG CompositeScoreColumn::GetRowWidth( const ULONG ulPlayer ) const
 
 		if (( Value.GetDataType( ) != DATATYPE_UNKNOWN ) || (( SubColumns[i]->GetFlags( ) & COLUMNFLAG_DISABLEIFEMPTY ) == false ))
 		{
-			// [AK] Include the gap between sub-columns if the width is already non-zero.
-			if ( ulRowWidth > 0 )
-				ulRowWidth += ulGapBetweenSubColumns;
+			if ( bGetHeight == false )
+			{
+				// [AK] Include the gap between sub-columns if the width is already non-zero.
+				if ( ulResult > 0 )
+					ulResult += ulGapBetweenSubColumns;
 
-			ulRowWidth += GetSubColumnWidth( i, SubColumns[i]->GetValueWidth( Value ));
+				ulResult += GetSubColumnWidth( i, SubColumns[i]->GetValueWidthOrHeight( Value, false ));
+			}
+			else
+			{
+				ulResult = MAX<ULONG>( ulResult, SubColumns[i]->GetValueWidthOrHeight( Value, true ));
+			}
 		}
 	}
 
-	return ulRowWidth;
+	return ulResult;
 }
 
 //*****************************************************************************
@@ -2257,8 +2285,8 @@ ULONG CompositeScoreColumn::GetRowWidth( const ULONG ulPlayer ) const
 // [AK] CompositeScoreColumn::GetSubColumnWidth
 //
 // Gets the width of a sub-column. This requires that the width of the value be
-// determined first (using DataScoreColumn::GetValueWidth) and passed into this
-// function to work.
+// determined first (using DataScoreColumn::GetValueWidthOrHeight) and passed
+// into this function to work.
 //
 //*****************************************************************************
 
@@ -2311,6 +2339,7 @@ Scoreboard::Scoreboard( void ) :
 	ulColumnPadding( 0 ),
 	lHeaderHeight( 0 ),
 	lRowHeight( 0 ),
+	ulRowHeightToUse( 0 ),
 	MainHeader( MARGINTYPE_HEADER_OR_FOOTER, "MainHeader" ),
 	TeamHeader( MARGINTYPE_TEAM, "TeamHeader" ),
 	SpectatorHeader( MARGINTYPE_SPECTATOR, "SpectatorHeader" ),
@@ -2844,6 +2873,8 @@ bool Scoreboard::PlayerComparator::operator( )( const int &arg1, const int &arg2
 
 void Scoreboard::Refresh( const ULONG ulDisplayPlayer )
 {
+	ulRowHeightToUse = lRowHeight;
+
 	// [AK] Refresh all of the scoreboard's columns, then update the widths of any active columns.
 	for ( unsigned int i = 0; i < ColumnOrder.Size( ); i++ )
 	{
@@ -2852,7 +2883,11 @@ void Scoreboard::Refresh( const ULONG ulDisplayPlayer )
 		if ( ColumnOrder[i]->IsDisabled( ))
 			continue;
 
-		ColumnOrder[i]->UpdateWidth( );
+		ColumnOrder[i]->Update( );
+
+		// [AK] Increase the row height to fit the column's contents, if necessary.
+		if (( ulFlags & SCOREBOARDFLAG_DONTSTRETCHROWHEIGHT ) == false )
+			ulRowHeightToUse = MAX<ULONG>( ulRowHeightToUse, ColumnOrder[i]->ulShortestHeight );
 	}
 
 	UpdateWidth( );
@@ -2970,7 +3005,7 @@ void Scoreboard::UpdateWidth( void )
 
 void Scoreboard::UpdateHeight( const ULONG ulDisplayPlayer )
 {
-	const ULONG ulRowYOffset = lRowHeight + ulGapBetweenRows;
+	const ULONG ulRowYOffset = ulRowHeightToUse + ulGapBetweenRows;
 	const ULONG ulNumActivePlayers = HUD_GetNumPlayers( );
 	const ULONG ulNumSpectators = HUD_GetNumSpectators( );
 	const ULONG ulWidthWithoutBorder = ulWidth - 2 * ulBackgroundBorderSize;
@@ -3010,7 +3045,7 @@ void Scoreboard::UpdateHeight( const ULONG ulDisplayPlayer )
 					ulHeight += TeamHeader.GetHeight( ) * ulNumTeamsWithPlayers;
 				}
 
-				ulHeight += lRowHeight * ( ulNumTeamsWithPlayers - 1 );
+				ulHeight += ulRowHeightToUse * ( ulNumTeamsWithPlayers - 1 );
 			}
 		}
 	}
@@ -3018,7 +3053,7 @@ void Scoreboard::UpdateHeight( const ULONG ulDisplayPlayer )
 	// [AK] Do the same for any true spectators.
 	if ( ulNumSpectators > 0 )
 	{
-		ulHeight += lRowHeight;
+		ulHeight += ulRowHeightToUse;
 
 		// [AK] Refresh and add the height of the spectator header too, if allowed.
 		if (( ulFlags & SCOREBOARDFLAG_DONTSHOWTEAMHEADERS ) == false )
@@ -3101,7 +3136,7 @@ void Scoreboard::Render( const ULONG ulDisplayPlayer, const float fAlpha )
 		{
 			if ( ulIdx > 0 )
 			{
-				lYPos += lRowHeight;
+				lYPos += ulRowHeightToUse;
 				bUseLightBackground = true;
 			}
 
@@ -3118,7 +3153,7 @@ void Scoreboard::Render( const ULONG ulDisplayPlayer, const float fAlpha )
 	{
 		const ULONG ulTotalPlayers = ulNumActivePlayers + ulNumTrueSpectators;
 
-		lYPos += lRowHeight;
+		lYPos += ulRowHeightToUse;
 
 		// [AK] If there are any active players, make the row background light.
 		if ( ulNumActivePlayers > 0 )
@@ -3206,10 +3241,10 @@ void Scoreboard::DrawRow( const ULONG ulPlayer, const ULONG ulDisplayPlayer, LON
 	if ( fTextAlpha > 0.0f )
 	{
 		for ( unsigned int i = 0; i < ColumnOrder.Size( ); i++ )
-			ColumnOrder[i]->DrawValue( ulPlayer, ulColor, lYPos, lRowHeight, fTextAlpha );
+			ColumnOrder[i]->DrawValue( ulPlayer, ulColor, lYPos, ulRowHeightToUse, fTextAlpha );
 	}
 
-	lYPos += lRowHeight + ulGapBetweenRows;
+	lYPos += ulRowHeightToUse + ulGapBetweenRows;
 	bUseLightBackground = !bUseLightBackground;
 }
 
@@ -3319,7 +3354,7 @@ void Scoreboard::DrawRowBackground( const PalEntry color, const int y, const flo
 	if (( fAlpha <= 0.0f ) || ( fRowBackgroundAmount <= 0.0f ))
 		return;
 
-	const int height = lRowHeight;
+	const int height = ulRowHeightToUse;
 
 	// [AK] If gaps must be shown in the row's background, then only draw the background where
 	// the active columns are. Otherwise, draw a single background across the scoreboard.

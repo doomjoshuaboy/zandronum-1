@@ -222,7 +222,7 @@ public:
 	virtual void ParseCommand( FScanner &sc, const COLUMNCMD_e Command, const FString CommandName );
 	virtual void CheckIfUsable( void );
 	virtual void Refresh( void );
-	virtual void UpdateWidth( void );
+	virtual void Update( void );
 	virtual void DrawValue( const ULONG ulPlayer, const ULONG ulColor, const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const = 0;
 
 protected:
@@ -239,6 +239,7 @@ protected:
 	std::set<GAMEMODE_e> GameModeList;
 	ULONG ulSizing;
 	ULONG ulShortestWidth;
+	ULONG ulShortestHeight;
 	ULONG ulWidth;
 	LONG lRelX;
 	bool bUsableInCurrentGame;
@@ -284,11 +285,11 @@ public:
 
 	virtual COLUMNTEMPLATE_e GetTemplate( void ) const { return COLUMNTEMPLATE_DATA; }
 	virtual DATATYPE_e GetDataType( void ) const;
-	virtual ULONG GetValueWidth( const PlayerValue &Value ) const;
+	virtual ULONG GetValueWidthOrHeight( const PlayerValue &Value, const bool bGetHeight ) const;
 	virtual PlayerValue GetValue( const ULONG ulPlayer ) const;
 	virtual void Parse( FScanner &sc );
 	virtual void ParseCommand( FScanner &sc, const COLUMNCMD_e Command, const FString CommandName );
-	virtual void UpdateWidth( void );
+	virtual void Update( void );
 	virtual void DrawValue( const ULONG ulPlayer, const ULONG ulColor, const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const;
 
 protected:
@@ -317,7 +318,7 @@ class CountryFlagScoreColumn : public DataScoreColumn
 public:
 	CountryFlagScoreColumn( FScanner &sc, const char *pszName );
 
-	virtual ULONG GetValueWidth( const PlayerValue &Value ) const;
+	virtual ULONG GetValueWidthOrHeight( const PlayerValue &Value, const bool bGetHeight ) const;
 	virtual PlayerValue GetValue( const ULONG ulPlayer ) const;
 	virtual void DrawValue( const ULONG ulPlayer, const ULONG ulColor, const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const;
 
@@ -348,7 +349,7 @@ public:
 	virtual void ParseCommand( FScanner &sc, const COLUMNCMD_e Command, const FString CommandName );
 	virtual void CheckIfUsable( void );
 	virtual void Refresh( void );
-	virtual void UpdateWidth( void );
+	virtual void Update( void );
 	virtual void DrawValue( const ULONG ulPlayer, const ULONG ulColor, const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const;
 
 protected:
@@ -359,7 +360,7 @@ protected:
 	ULONG ulGapBetweenSubColumns;
 
 private:
-	ULONG GetRowWidth( const ULONG ulPlayer ) const;
+	ULONG GetRowWidthOrHeight( const ULONG ulPlayer, const bool bGetHeight ) const;
 	ULONG GetSubColumnWidth( const ULONG ulSubColumn, const ULONG ulValueWidth ) const;
 };
 
@@ -499,6 +500,7 @@ struct Scoreboard
 	ULONG ulColumnPadding;
 	LONG lHeaderHeight;
 	LONG lRowHeight;
+	ULONG ulRowHeightToUse;
 
 	Scoreboard( void );
 
