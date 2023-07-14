@@ -1523,10 +1523,22 @@ PlayerValue DataScoreColumn::GetValue( const ULONG ulPlayer ) const
 				break;
 
 			case COLUMNTYPE_PLAYERICON:
-				if (( players[ulPlayer].mo != NULL ) && ( players[ulPlayer].mo->ScoreIcon.GetIndex( ) != 0 ))
-					Result.SetValue<FTexture *>( TexMan[players[ulPlayer].mo->ScoreIcon] );
+			{
+				APlayerPawn *pBody = players[ulPlayer].mo;
+
+				if ( pBody != NULL )
+				{
+					// [AK] If this player's current body derives from APlayerChunk due to A_SkullPop,
+					// then try to use the ScoreIcon of their original body.
+					if (( pBody->IsKindOf( RUNTIME_CLASS( APlayerChunk ))) && ( pBody->target != NULL ))
+						pBody = barrier_cast<APlayerPawn *>( pBody->target );
+
+					if ( pBody->ScoreIcon.GetIndex( ) != 0 )
+						Result.SetValue<FTexture *>( TexMan[pBody->ScoreIcon] );
+				}
 
 				break;
+			}
 
 			case COLUMNTYPE_ARTIFACTICON:
 			{
