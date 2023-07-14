@@ -392,6 +392,9 @@ public:
 		// [AK] By default, a margin command isn't a block (i.e. multi-line or row) element.
 		virtual bool IsBlockElement( void ) const { return false; }
 
+		// [AK] By default, a margin command also isn't a flow control command.
+		virtual bool IsFlowControl( void ) const { return false; }
+
 	protected:
 		ScoreMargin *const pParentMargin;
 		BaseCommand *const pParentCommand;
@@ -403,7 +406,8 @@ public:
 	public:
 		~CommandBlock( void ) { Clear( ); }
 
-		void ParseCommands( FScanner &sc, ScoreMargin *pMargin, BaseCommand *pParentCommand );
+		void ParseBlock( FScanner &sc, ScoreMargin *pMargin, BaseCommand *pParentCommand );
+		void ParseCommand( FScanner &sc, ScoreMargin *pMargin, BaseCommand *pParentCommand, const bool bOnlyFlowControl );
 		void Clear( void );
 		void Refresh( const ULONG ulDisplayPlayer );
 		void Draw( const ULONG ulDisplayPlayer, const ULONG ulTeam, const LONG lYPos, const float fAlpha, const LONG lXOffsetBonus = 0 ) const;

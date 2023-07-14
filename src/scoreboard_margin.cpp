@@ -459,7 +459,7 @@ public:
 	virtual void Parse( FScanner &sc )
 	{
 		ElementBaseCommand::Parse( sc );
-		Block.ParseCommands( sc, pParentMargin, this );
+		Block.ParseBlock( sc, pParentMargin, this );
 	}
 
 	//*************************************************************************
@@ -1621,7 +1621,19 @@ public:
 		ParseBlock( sc, true );
 
 		if ( sc.CheckToken( TK_Else ))
-			ParseBlock( sc, false );
+		{
+			// [AK] If there's no '{', then immediately parse another flow control command.
+			if ( sc.CheckToken( '{' ) == false )
+			{
+				Blocks[false].ParseCommand( sc, pParentMargin, pParentCommand, true );
+			}
+			else
+			{
+				// [AK] Unget the '{' here because ParseBlock will try parsing another one.
+				sc.UnGet( );
+				ParseBlock( sc, false );
+			}
+		}
 	}
 
 	//*************************************************************************
@@ -1649,6 +1661,14 @@ public:
 		Blocks[bResult].Draw( ulDisplayPlayer, ulTeam, lYPos, fAlpha, lXOffsetBonus );
 	}
 
+	//*************************************************************************
+	//
+	// [AK] This is a flow control command, so always return true.
+	//
+	//*************************************************************************
+
+	virtual bool IsFlowControl( void ) const { return true; }
+
 protected:
 	virtual bool EvaluateCondition( const ULONG ulDisplayPlayer ) = 0;
 
@@ -1662,7 +1682,7 @@ private:
 
 	void ParseBlock( FScanner &sc, const bool bWhichBlock )
 	{
-		Blocks[bWhichBlock].ParseCommands( sc, pParentMargin, pParentCommand );
+		Blocks[bWhichBlock].ParseBlock( sc, pParentMargin, pParentCommand );
 
 		// [AK] There needs to be at least one command inside the block.
 		if ( Blocks[bWhichBlock].HasCommands( ) == false )
@@ -2077,76 +2097,91 @@ ScoreMargin::BaseCommand::BaseCommand( ScoreMargin *pMargin, BaseCommand *pParen
 
 //*****************************************************************************
 //
-// [AK] ScoreMargin::CommandBlock::ParseCommand
+// [AK] ScoreMargin::CommandBlock::ParseBlock
 //
-// A "factory" function that's starts a block and creates new margin commands.
+// Starts a new block and parses margin commands.
 //
 //*****************************************************************************
 
-void ScoreMargin::CommandBlock::ParseCommands( FScanner &sc, ScoreMargin *pMargin, BaseCommand *pParentCommand )
+void ScoreMargin::CommandBlock::ParseBlock( FScanner &sc, ScoreMargin *pMargin, BaseCommand *pParentCommand )
 {
 	Commands.Clear( );
 	sc.MustGetToken( '{' );
 
 	while ( sc.CheckToken( '}' ) == false )
+		ParseCommand( sc, pMargin, pParentCommand, false );
+}
+
+//*****************************************************************************
+//
+// [AK] ScoreMargin::CommandBlock::ParseCommand
+//
+// A "factory" function that creates new margin commands.
+//
+//*****************************************************************************
+
+void ScoreMargin::CommandBlock::ParseCommand( FScanner &sc, ScoreMargin *pMargin, BaseCommand *pParentCommand, const bool bOnlyFlowControl )
+{
+	const MARGINCMD_e Command = static_cast<MARGINCMD_e>( sc.MustGetEnumName( "margin command", "MARGINCMD_", GetValueMARGINCMD_e ));
+	BaseCommand *pNewCommand = NULL;
+
+	switch ( Command )
 	{
-		const MARGINCMD_e Command = static_cast<MARGINCMD_e>( sc.MustGetEnumName( "margin command", "MARGINCMD_", GetValueMARGINCMD_e ));
-		BaseCommand *pNewCommand = NULL;
+		case MARGINCMD_MULTILINEBLOCK:
+			pNewCommand = new MultiLineBlock( pMargin, pParentCommand );
+			break;
 
-		switch ( Command )
-		{
-			case MARGINCMD_MULTILINEBLOCK:
-				pNewCommand = new MultiLineBlock( pMargin, pParentCommand );
-				break;
+		case MARGINCMD_ROWBLOCK:
+			pNewCommand = new RowBlock( pMargin, pParentCommand );
+			break;
 
-			case MARGINCMD_ROWBLOCK:
-				pNewCommand = new RowBlock( pMargin, pParentCommand );
-				break;
+		case MARGINCMD_DRAWSTRING:
+			pNewCommand = new DrawString( pMargin, pParentCommand );
+			break;
 
-			case MARGINCMD_DRAWSTRING:
-				pNewCommand = new DrawString( pMargin, pParentCommand );
-				break;
+		case MARGINCMD_DRAWCOLOR:
+			pNewCommand = new DrawColor( pMargin, pParentCommand );
+			break;
 
-			case MARGINCMD_DRAWCOLOR:
-				pNewCommand = new DrawColor( pMargin, pParentCommand );
-				break;
+		case MARGINCMD_DRAWTEXTURE:
+			pNewCommand = new DrawTexture( pMargin, pParentCommand );
+			break;
 
-			case MARGINCMD_DRAWTEXTURE:
-				pNewCommand = new DrawTexture( pMargin, pParentCommand );
-				break;
+		case MARGINCMD_IFONLINEGAME:
+		case MARGINCMD_IFINTERMISSION:
+		case MARGINCMD_IFPLAYERSONTEAMS:
+		case MARGINCMD_IFPLAYERSHAVELIVES:
+		case MARGINCMD_IFSHOULDSHOWRANK:
+			pNewCommand = new TrueOrFalseFlowControl( pMargin, pParentCommand, Command );
+			break;
 
-			case MARGINCMD_IFONLINEGAME:
-			case MARGINCMD_IFINTERMISSION:
-			case MARGINCMD_IFPLAYERSONTEAMS:
-			case MARGINCMD_IFPLAYERSHAVELIVES:
-			case MARGINCMD_IFSHOULDSHOWRANK:
-				pNewCommand = new TrueOrFalseFlowControl( pMargin, pParentCommand, Command );
-				break;
+		case MARGINCMD_IFGAMEMODE:
+			pNewCommand = new IfGameModeFlowControl( pMargin, pParentCommand );
+			break;
 
-			case MARGINCMD_IFGAMEMODE:
-				pNewCommand = new IfGameModeFlowControl( pMargin, pParentCommand );
-				break;
+		case MARGINCMD_IFGAMETYPE:
+		case MARGINCMD_IFEARNTYPE:
+			pNewCommand = new IfGameOrEarnTypeFlowControl( pMargin, pParentCommand, Command == MARGINCMD_IFGAMETYPE );
+			break;
 
-			case MARGINCMD_IFGAMETYPE:
-			case MARGINCMD_IFEARNTYPE:
-				pNewCommand = new IfGameOrEarnTypeFlowControl( pMargin, pParentCommand, Command == MARGINCMD_IFGAMETYPE );
-				break;
+		case MARGINCMD_IFCVAR:
+			pNewCommand = new IfCVarFlowControl( pMargin, pParentCommand );
+			break;
 
-			case MARGINCMD_IFCVAR:
-				pNewCommand = new IfCVarFlowControl( pMargin, pParentCommand );
-				break;
-
-			default:
-				sc.ScriptError( "Couldn't create margin command '%s'.", sc.String );
-				break;
-		}
-
-		// [AK] A command's arguments must always be prepended by a '('.
-		sc.MustGetToken( '(' );
-		pNewCommand->Parse( sc );
-
-		Commands.Push( pNewCommand );
+		default:
+			sc.ScriptError( "Couldn't create margin command '%s'.", sc.String );
+			break;
 	}
+
+	// [AK] Throw an error if we only accept flow control commands, and the new command isn't.
+	if (( bOnlyFlowControl ) && ( pNewCommand->IsFlowControl( ) == false ))
+		sc.ScriptError( "Margin command '%s' isn't a flow control command.", sc.String );
+
+	// [AK] A command's arguments must always be prepended by a '('.
+	sc.MustGetToken( '(' );
+	pNewCommand->Parse( sc );
+
+	Commands.Push( pNewCommand );
 }
 
 //*****************************************************************************
@@ -2251,7 +2286,7 @@ ScoreMargin::ScoreMargin( MARGINTYPE_e MarginType, const char *pszName ) :
 
 void ScoreMargin::Parse( FScanner &sc )
 {
-	Block.ParseCommands( sc, this, NULL );
+	Block.ParseBlock( sc, this, NULL );
 }
 
 //*****************************************************************************
