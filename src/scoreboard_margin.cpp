@@ -1494,6 +1494,8 @@ public:
 			DTA_ClipRight, clipLeft + clipWidth,
 			DTA_ClipTop, clipTop,
 			DTA_ClipBottom, clipTop + clipHeight,
+			DTA_LeftOffset, 0,
+			DTA_TopOffset, 0,
 			DTA_Alpha, FLOAT2FIXED( fAlpha * fTranslucency ),
 			TAG_DONE );
 	}

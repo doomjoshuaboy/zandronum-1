@@ -1098,6 +1098,8 @@ void ScoreColumn::DrawTexture( FTexture *pTexture, const LONG lYPos, const ULONG
 		DTA_ClipRight, clipLeft + clipWidthToUse,
 		DTA_ClipTop, clipTop,
 		DTA_ClipBottom, clipTop + clipHeightToUse,
+		DTA_LeftOffset, 0,
+		DTA_TopOffset, 0,
 		DTA_Alpha, FLOAT2FIXED( fAlpha ),
 		TAG_DONE );
 }
@@ -3247,6 +3249,8 @@ void Scoreboard::DrawBorder( const EColorRange Color, LONG &lYPos, const float f
 				DTA_ClipRight, x + width,
 				DTA_ClipTop, y,
 				DTA_ClipBottom, y + height,
+				DTA_LeftOffset, 0,
+				DTA_TopOffset, 0,
 				DTA_Alpha, FLOAT2FIXED( fAlpha ),
 				TAG_DONE );
 
