@@ -637,6 +637,23 @@ LONG ScoreColumn::GetAlignmentPosition( ULONG ulContentWidth ) const
 //
 //*****************************************************************************
 
+void scoreboard_EnsureBothFlagsArentEnabled( FScanner &sc, const ScoreColumn *pColumn, const COLUMNFLAG_e Flag1, const COLUMNFLAG_e Flag2 )
+{
+	if (( pColumn == NULL ) || ( Flag1 == Flag2 ))
+		return;
+
+	if (( pColumn->GetFlags( ) & Flag1 ) && ( pColumn->GetFlags( ) & Flag2 ))
+	{
+		const int prefixLen = strlen( "COLUMNFLAG_" );
+		const char *pszFlagName1 = GetStringCOLUMNFLAG_e( Flag1 ) + prefixLen;
+		const char *pszFlagName2 = GetStringCOLUMNFLAG_e( Flag2 ) + prefixLen;
+
+		sc.ScriptError( "Column '%s' can't have both the %s and %s flags enabled at the same time.", pColumn->GetInternalName( ), pszFlagName1, pszFlagName2 );
+	}
+}
+
+//*****************************************************************************
+//
 void ScoreColumn::Parse( FScanner &sc )
 {
 	sc.MustGetToken( '{' );
@@ -668,8 +685,11 @@ void ScoreColumn::Parse( FScanner &sc )
 		sc.ScriptError( "Column '%s' needs a size that's greater than zero.", GetInternalName( ));
 
 	// [AK] Columns can't be offline-only and online-only at the same, that doesn't make sense.
-	if (( ulFlags & COLUMNFLAG_OFFLINEONLY ) && ( ulFlags & COLUMNFLAG_ONLINEONLY ))
-		sc.ScriptError( "Column '%s' can't have both the OFFLINEONLY and ONLINEONLY flags enabled at the same time.", GetInternalName( ));
+	scoreboard_EnsureBothFlagsArentEnabled( sc, this, COLUMNFLAG_OFFLINEONLY, COLUMNFLAG_ONLINEONLY );
+	// [AK] ...or have both the INTERMISSIONONLY and NOINTERMISSION flags enabled.
+	scoreboard_EnsureBothFlagsArentEnabled( sc, this, COLUMNFLAG_INTERMISSIONONLY, COLUMNFLAG_NOINTERMISSION );
+	// [AK] ...or have both the SPECTATORSONLY and NOSPECTATORS flags enabled.
+	scoreboard_EnsureBothFlagsArentEnabled( sc, this, COLUMNFLAG_SPECTATORSONLY, COLUMNFLAG_NOSPECTATORS );
 
 	// [AK] If the short name is longer than the display name, throw a fatal error.
 	if ( DisplayName.Len( ) < ShortName.Len( ))
