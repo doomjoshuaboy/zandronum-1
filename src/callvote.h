@@ -94,6 +94,21 @@ typedef enum
 
 } VOTESTATE_e;
 
+struct VOTETYPE_s
+{
+	enum class parametertype_e
+	{
+		NONE,
+		INT,
+		STRING,
+	};
+	FString name;
+	FString scriptName;
+	FString forbidCvarName;
+	parametertype_e parameterType = parametertype_e::NONE;
+};
+
+
 //*****************************************************************************
 //	STRUCTURES
 
@@ -123,6 +138,7 @@ typedef struct
 //	PROTOTYPES
 
 void			CALLVOTE_Construct( void );
+void			CALLVOTE_ReadVoteInfo( void );
 void			CALLVOTE_Tick( void );
 void			CALLVOTE_Render( void );
 void			CALLVOTE_RenderClassic( void );
@@ -146,6 +162,7 @@ ULONG			*CALLVOTE_GetPlayersWhoVotedYes( void );
 ULONG			*CALLVOTE_GetPlayersWhoVotedNo( void );
 bool			CALLVOTE_ShouldShowVoteScreen( void );
 ULONG			CALLVOTE_GetPlayerVoteChoice( ULONG ulPlayer );
+const VOTETYPE_s *CALLVOTE_GetCustomVoteTypeDefinition( ULONG ulVoteType );
 
 //*****************************************************************************
 //	EXTERNAL CONSOLE VARIABLES

@@ -2910,6 +2910,9 @@ void D_DoomMain (void)
 
 		V_InitFontColors ();
 
+		// [TP] Parse VOTEINFO lumps
+		CALLVOTE_ReadVoteInfo( );
+
 		// [RH] Moved these up here so that we can do most of our
 		//		startup output in a fullscreen console.
 

@@ -59,6 +59,7 @@
 #include "callvote.h"
 #include "doomstat.h"
 #include "network.h"
+#include "p_acs.h"
 #include "templates.h"
 #include "sbar.h"
 #include "sv_commands.h"
@@ -72,11 +73,14 @@
 #include "st_hud.h"
 #include <list>
 
+static TArray<VOTETYPE_s> g_VoteTypeDefinitions;
+
 //*****************************************************************************
 //	VARIABLES
 
 static	VOTESTATE_e				g_VoteState;
 static	FString					g_VoteCommand;
+static	FString					g_VoteParameters;
 static	FString					g_VoteMessage;
 static	FString					g_VoteReason;
 static	ULONG					g_ulVoteCaller;
@@ -111,6 +115,114 @@ void CALLVOTE_Construct( void )
 {
 	// Calling this function initialized everything.
 	CALLVOTE_ClearVote( );
+}
+
+//*****************************************************************************
+//
+// [TP] Read VOTEINFO lumps and parse vote type definitions
+//
+void CALLVOTE_ReadVoteInfo( void )
+{
+	// [TP] Read custom vote definitions
+	int lump, lastlump = 0;
+	while ( ( lump = Wads.FindLump( "VOTEINFO", &lastlump ) ) != -1 )
+	{
+		FScanner sc ( lump );
+		sc.SetCMode( true );
+
+		while (sc.GetToken())
+		{
+			VOTETYPE_s newVoteType;
+			if ( sc.Compare( "votetype" ) == false )
+			{
+				sc.ScriptError( "Expected \"votetype\", got \"%s\"", sc.String );
+			}
+			sc.MustGetToken( TK_Identifier );
+			newVoteType.name = sc.String;
+			if ( callvote_GetVoteType( newVoteType.name ) != NUM_VOTECMDS )
+			{
+				sc.ScriptError( "Vote type \"%s\" already exists", newVoteType.name.GetChars() );
+			}
+			sc.MustGetToken( '{' );
+			while ( sc.CheckToken( '}' ) == false )
+			{
+				sc.MustGetAnyToken();
+				if ( sc.TokenType == TK_Action )
+				{
+					sc.MustGetToken( '=' );
+					sc.MustGetToken( TK_Identifier );
+					if ( sc.Compare( "CallACS" ) == false )
+					{
+						sc.ScriptError( "Action must be CallACS" );
+					}
+					sc.MustGetToken( '(' );
+					sc.MustGetToken( TK_StringConst );
+					newVoteType.scriptName = sc.String;
+					sc.MustGetToken( ')' );
+					sc.MustGetToken( ';' );
+				}
+				else if ( ( sc.TokenType == TK_Identifier ) && sc.Compare( "ForbidCVar" ) )
+				{
+					sc.MustGetToken( '=' );
+					sc.MustGetToken( TK_Identifier );
+					FBaseCVar* const cvar = FindCVar( sc.String, nullptr );
+					if ( cvar == nullptr )
+					{
+						sc.ScriptError( "CVar not found: \"%s\".\n"
+							"If you want this to be a new CVar, please put the following into a CVARINFO lump:\n"
+							"server bool %s = false;", sc.String, sc.String );
+					}
+					newVoteType.forbidCvarName = sc.String;
+					sc.MustGetToken( ';' );
+				}
+				else if ( ( sc.TokenType == TK_Identifier ) && sc.Compare( "Arg" ) )
+				{
+					sc.MustGetToken( '=' );
+					sc.MustGetAnyToken();
+					if ( sc.TokenType == TK_Int )
+					{
+						newVoteType.parameterType = VOTETYPE_s::parametertype_e::INT;
+					}
+					else if ( sc.TokenType == TK_Identifier && sc.Compare( "Str" ) )
+					{
+						newVoteType.parameterType = VOTETYPE_s::parametertype_e::STRING;
+					}
+					else
+					{
+						sc.ScriptError( "Unknown vote parameter type \"%s\"", sc.String );
+					}
+					sc.MustGetToken(';');
+				}
+				else
+				{
+					sc.ScriptError( "Unknown key \"%s\" in \"%s\"", sc.String, newVoteType.name.GetChars() );
+				}
+			}
+			if ( newVoteType.scriptName.IsEmpty() )
+			{
+				sc.ScriptError( "Vote type \"%s\" does not have ScriptName", newVoteType.name.GetChars() );
+			}
+			g_VoteTypeDefinitions.Push( newVoteType );
+		}
+	}
+}
+
+//*****************************************************************************
+//
+// [TP] If ulVoteType is a custom vote type, returns the definition of
+// that vote type, a null pointer otherwise.
+//
+const VOTETYPE_s* CALLVOTE_GetCustomVoteTypeDefinition( ULONG ulVoteType )
+{
+	const ULONG index = ulVoteType - NUM_VOTECMDS - 1;
+	if ( ( index >= 0 ) && ( index < g_VoteTypeDefinitions.Size() ) )
+	{
+		return &g_VoteTypeDefinitions[index];
+	}
+	else
+	{
+		return nullptr;
+	}
 }
 
 //*****************************************************************************
@@ -170,22 +282,44 @@ void CALLVOTE_Tick( void )
 				if (( g_bVotePassed ) && ( !g_bVoteCancelled ) &&
 					( NETWORK_InClientMode() == false ))
 				{
-					// [BB, RC] If the vote is a kick vote, we have to rewrite g_VoteCommand to both use the stored IP, and temporarily ban it.
-					// [Dusk] Write the kick reason into the ban reason, [BB] but only if it's not empty.
-					// [BB] "forcespec" votes need a similar handling.
-					if ( ( strncmp( g_VoteCommand, "kick", 4 ) == 0 ) || ( strncmp( g_VoteCommand, "forcespec", 9 ) == 0 ) )
+					// [TP] Custom votes call scripts instead
+					const VOTETYPE_s* pVoteType = CALLVOTE_GetCustomVoteTypeDefinition( g_PreviousVotes.back().ulVoteType );
+					if ( pVoteType != nullptr )
 					{
-						if ( strncmp( g_VoteCommand, "kick", 4 ) == 0 )
-							g_VoteCommand.Format( "addban %s 10min \"Vote kick", g_KickVoteVictimAddress.ToString() );
-						else
-							g_VoteCommand.Format( "forcespec_idx %d \"Vote forcespec", static_cast<int>(SERVER_FindClientByAddress ( g_KickVoteVictimAddress )) );
-						g_VoteCommand.AppendFormat( ", %u to %u", static_cast<unsigned int>(g_ulNumYesVotes), static_cast<unsigned int>(g_ulNumNoVotes) );
-						if ( g_VoteReason.IsNotEmpty() )
-							g_VoteCommand.AppendFormat ( " (%s)", g_VoteReason.GetChars( ) );
-						g_VoteCommand += ".\"";
+						int arg;
+						switch ( pVoteType->parameterType )
+						{
+						case VOTETYPE_s::parametertype_e::NONE:
+							arg = 0;
+							break;
+						case VOTETYPE_s::parametertype_e::INT:
+							arg = atoi( g_VoteParameters );
+							break;
+						case VOTETYPE_s::parametertype_e::STRING:
+							arg = ACS_PushAndReturnDynamicString( g_VoteParameters );
+							break;
+						}
+						P_StartScript( nullptr, nullptr, -FName( pVoteType->scriptName ), level.mapname, &arg, 1, ACS_ALWAYS );
 					}
+					else
+					{
+						// [BB, RC] If the vote is a kick vote, we have to rewrite g_VoteCommand to both use the stored IP, and temporarily ban it.
+						// [Dusk] Write the kick reason into the ban reason, [BB] but only if it's not empty.
+						// [BB] "forcespec" votes need a similar handling.
+						if ( ( strncmp( g_VoteCommand, "kick", 4 ) == 0 ) || ( strncmp( g_VoteCommand, "forcespec", 9 ) == 0 ) )
+						{
+							if ( strncmp( g_VoteCommand, "kick", 4 ) == 0 )
+								g_VoteCommand.Format( "addban %s 10min \"Vote kick", g_KickVoteVictimAddress.ToString() );
+							else
+								g_VoteCommand.Format( "forcespec_idx %d \"Vote forcespec", static_cast<int>(SERVER_FindClientByAddress ( g_KickVoteVictimAddress )) );
+							g_VoteCommand.AppendFormat( ", %u to %u", static_cast<unsigned int>(g_ulNumYesVotes), static_cast<unsigned int>(g_ulNumNoVotes) );
+							if ( g_VoteReason.IsNotEmpty() )
+								g_VoteCommand.AppendFormat ( " (%s)", g_VoteReason.GetChars( ) );
+							g_VoteCommand += ".\"";
+						}
 
-					AddCommandString( (char *)g_VoteCommand.GetChars( ));
+						AddCommandString( (char *)g_VoteCommand.GetChars( ));
+					}
 				}
 				// Reset the module.
 				CALLVOTE_ClearVote( );
@@ -362,6 +496,7 @@ void CALLVOTE_BeginVote( FString Command, FString Parameters, FString Reason, UL
 
 	g_ulVoteCaller = ulPlayer;
 	g_VoteReason = Reason.Left(25);
+	g_VoteParameters = Parameters; // [TP] Store the parameters separately for custom votes
 
 	// Create the record of the vote for flood prevention.
 	{
@@ -1108,9 +1243,28 @@ static bool callvote_CheckValidity( FString &Command, FString &Parameters )
 		}
 	    break;
 
-	default:
+	case NUM_VOTECMDS:
 
 		return ( false );
+
+	default:
+		{
+			const VOTETYPE_s* pVoteType = CALLVOTE_GetCustomVoteTypeDefinition( ulVoteCmd );
+			if ( pVoteType != nullptr )
+			{
+				switch ( pVoteType->parameterType )
+				{
+				case VOTETYPE_s::parametertype_e::NONE:
+				case VOTETYPE_s::parametertype_e::STRING:
+					return ( true );
+
+				case VOTETYPE_s::parametertype_e::INT:
+					if ( ( parameterInt == 0 ) && ( ( Parameters.GetChars()[0] != '0' ) || ( Parameters.Len() != 1 ) ) )
+						return ( false );
+					return ( true );
+				}
+			}
+		}
 	}
 
 	// Passed all checks!
@@ -1121,6 +1275,13 @@ static bool callvote_CheckValidity( FString &Command, FString &Parameters )
 //
 static ULONG callvote_GetVoteType( const char *pszCommand )
 {
+	for ( ULONG i = 0; i < g_VoteTypeDefinitions.Size(); ++i )
+	{
+		if ( g_VoteTypeDefinitions[i].name.CompareNoCase( pszCommand ) == 0 )
+		{
+			return NUM_VOTECMDS + 1 + i;
+		}
+	}
 	if ( stricmp( "kick", pszCommand ) == 0 )
 		return VOTECMD_KICK;
 	else if ( stricmp( "forcespec", pszCommand ) == 0 )
@@ -1147,7 +1308,6 @@ static ULONG callvote_GetVoteType( const char *pszCommand )
 		return VOTECMD_RESETMAP;
 	else if ( callvote_IsFlagValid( pszCommand ))
 		return VOTECMD_FLAG;
-
 	return NUM_VOTECMDS;
 }
 
@@ -1170,7 +1330,15 @@ static bool callvote_VoteRequiresParameter( const ULONG ulVoteType )
 			return ( false );
 
 		default:
-			return ( true );
+			if ( ulVoteType > NUM_VOTECMDS )
+			{
+				const VOTETYPE_s* pVoteType = &g_VoteTypeDefinitions[ulVoteType - NUM_VOTECMDS - 1];
+				return pVoteType->parameterType != VOTETYPE_s::parametertype_e::NONE;
+			}
+			else
+			{
+				return ( true );
+			}
 	}
 }
 

@@ -7304,7 +7304,26 @@ static bool server_CallVote( BYTESTREAM_s *pByteStream )
 		break;
 	default:
 
-		return ( false );
+		{
+			const VOTETYPE_s* pVoteType = CALLVOTE_GetCustomVoteTypeDefinition( ulVoteCmd );
+			if ( pVoteType == nullptr )
+			{
+				return ( false );
+			}
+			else if ( pVoteType->forbidCvarName.IsEmpty() )
+			{
+				bVoteAllowed = true;
+			}
+			else
+			{
+				FBaseCVar* cvar = FindCVar( pVoteType->forbidCvarName, nullptr );
+				bVoteAllowed = cvar && ( cvar->GetGenericRep( CVAR_Bool ).Bool == false );
+			}
+			// [TP] Put the name of the vote type into the command for the vote module to work with this
+			// (we won't actually execute it as a command but run the script instead if and when the vote
+			// does pass)
+			snprintf( szCommand, sizeof szCommand, "%s", pVoteType->name.GetChars() );
+		}
 	}
 
 	// Begin the vote, if that type is allowed.
