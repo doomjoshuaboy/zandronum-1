@@ -207,10 +207,8 @@ BEGIN_ENUM( COLUMNFLAG_e )
 	ENUM_ELEMENT2( COLUMNFLAG_DONTSHOWHEADER, 0x4000 ),
 	// The column's width is always set to whatever's the shortest possible width.
 	ENUM_ELEMENT2( COLUMNFLAG_ALWAYSUSESHORTESTWIDTH, 0x8000 ),
-	// The column's CVar must be zero for the column to stay active.
-	ENUM_ELEMENT2( COLUMNFLAG_CVARMUSTBEZERO, 0x10000 ),
 	// If the column's empty (i.e. no contents inside it), then it's disabled.
-	ENUM_ELEMENT2( COLUMNFLAG_DISABLEIFEMPTY, 0x20000 ),
+	ENUM_ELEMENT2( COLUMNFLAG_DISABLEIFEMPTY, 0x10000 ),
 }
 END_ENUM( COLUMNFLAG_e )
 

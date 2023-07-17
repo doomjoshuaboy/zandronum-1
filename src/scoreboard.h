@@ -234,6 +234,8 @@ protected:
 	FString ShortName;
 	HORIZALIGN_e Alignment;
 	FBaseCVar *pCVar;
+	LONG lMinCVarValue;
+	LONG lMaxCVarValue;
 	ULONG ulFlags;
 	ULONG ulGameAndEarnTypeFlags;
 	std::set<GAMEMODE_e> GameModeList;

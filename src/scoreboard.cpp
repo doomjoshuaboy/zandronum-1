@@ -588,6 +588,8 @@ ScoreColumn::ScoreColumn( const char *pszName ) :
 	DisplayName( pszName ),
 	Alignment( HORIZALIGN_LEFT ),
 	pCVar( NULL ),
+	lMinCVarValue( 1 ),
+	lMaxCVarValue( 1 ),
 	ulFlags( 0 ),
 	ulSizing( 0 ),
 	ulShortestWidth( 0 ),
@@ -758,7 +760,7 @@ void ScoreColumn::ParseCommand( FScanner &sc, const COLUMNCMD_e Command, const F
 
 		case COLUMNCMD_CVAR:
 		{
-			sc.MustGetString( );
+			sc.MustGetToken( TK_Identifier );
 
 			// [AK] Specifying "none" for the CVar clears any CVar being used by the column.
 			// This also means that a CVar named "none" (if one actually existed) can never be used.
@@ -775,10 +777,43 @@ void ScoreColumn::ParseCommand( FScanner &sc, const COLUMNCMD_e Command, const F
 					sc.ScriptError( "'%s' is not a CVar.", sc.String );
 
 				// [AK] Throw an error if this CVar isn't a boolean, integer, or flag.
-				if (( pFoundCVar->GetRealType( ) != CVAR_Bool ) && ( pFoundCVar->IsFlagCVar( ) == false ))
-					sc.ScriptError( "'%s' is not a boolean or flag CVar.", sc.String );
+				if (( pFoundCVar->GetRealType( ) != CVAR_Bool ) && ( pFoundCVar->GetRealType( ) != CVAR_Int ) && ( pFoundCVar->IsFlagCVar( ) == false ))
+					sc.ScriptError( "'%s' is not a boolean, integer, or flag CVar.", sc.String );
 
 				pCVar = pFoundCVar;
+
+				// [AK] Try parsing a min and max value range that the CVar must be inside.
+				if ( sc.CheckToken( ',' ))
+				{
+					sc.MustGetToken( TK_IntConst );
+					lMinCVarValue = sc.Number;
+
+					// [AK] Only accept 0 or 1 as values for boolean and flag CVars.
+					if (( pFoundCVar->GetRealType( ) != CVAR_Int ) && ( lMinCVarValue != 0 ) && ( lMinCVarValue != 1 ))
+						sc.ScriptError( "'%s' is not an integer CVar. The value should be either 0 or 1.", pFoundCVar->GetName( ));
+
+					if ( sc.CheckToken( ',' ))
+					{
+						// [AK] Boolean and flag CVars need only one value, there shouldn't be two of them.
+						if ( pFoundCVar->GetRealType( ) != CVAR_Int )
+							sc.ScriptError( "'%s' is not an integer CVar. There should only be one value here.", pFoundCVar->GetName( ));
+
+						sc.MustGetToken( TK_IntConst );
+						lMaxCVarValue = sc.Number;
+					}
+					else
+					{
+						lMaxCVarValue = lMinCVarValue;
+					}
+				}
+				else
+				{
+					lMinCVarValue = lMaxCVarValue = 1;
+				}
+
+				// [AK] If the min value is greater than the max value, throw a fatal error.
+				if ( lMinCVarValue > lMaxCVarValue )
+					sc.ScriptError( "Column '%s' has a min CVar value that's greater than its max CVar value.", GetInternalName( ));
 			}
 
 			break;
@@ -891,17 +926,10 @@ void ScoreColumn::Refresh( void )
 	// active based on the CVar's value. If the conditions fail, stop here.
 	if ( pCVar != NULL )
 	{
-		const bool bValue = pCVar->GetGenericRep( CVAR_Bool ).Bool;
+		const LONG lValue = pCVar->GetGenericRep( CVAR_Int ).Int;
 
-		if ( ulFlags & COLUMNFLAG_CVARMUSTBEZERO )
-		{
-			if ( bValue != false )
-				return;
-		}
-		else if ( bValue == false )
-		{
+		if (( lMinCVarValue > lValue ) || ( lMaxCVarValue < lValue ))
 			return;
-		}
 	}
 
 	// [AK] Disable this column if it's supposed to be invisible on the intermission screen, or if it's

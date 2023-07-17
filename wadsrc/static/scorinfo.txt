@@ -73,10 +73,9 @@ Column "Kills"
 {
 	AddFlag NOSPECTATORS
 	AddFlag ALWAYSUSESHORTESTWIDTH
-	AddFlag CVARMUSTBEZERO
 
 	Alignment = Right
-	CVar = sv_awarddamageinsteadkills
+	CVar = sv_awarddamageinsteadkills, 0
 	EarnType = Kills
 	Size = 16
 }
@@ -110,6 +109,7 @@ Column "Lives"
 	AddFlag ALWAYSUSESHORTESTWIDTH
 
 	Alignment = Right
+	CVar = sv_maxlives, 2, 255
 	Size = 16
 }
 
@@ -119,7 +119,7 @@ Column "Damage"
 	AddFlag ALWAYSUSESHORTESTWIDTH
 
 	Alignment = Right
-	CVar = sv_awarddamageinsteadkills
+	CVar = sv_awarddamageinsteadkills, 1
 	EarnType = Kills
 	ShortName = "Dmg"
 	Size = 16
