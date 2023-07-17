@@ -120,8 +120,9 @@ Column "Damage"
 
 	Alignment = Right
 	CVar = sv_awarddamageinsteadkills, 1
+	DisplayName = "Points"
 	EarnType = Kills
-	ShortName = "Dmg"
+	ShortName = "Pts"
 	Size = 16
 }
 
