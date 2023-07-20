@@ -212,13 +212,13 @@ public:
 	bool IsUsableInCurrentGame( void ) const { return bUsableInCurrentGame; }
 	bool IsDisabled( void ) const { return bDisabled; }
 	bool ShouldUseShortName( void ) const { return bUseShortName; }
+	void Parse( FScanner &sc );
 	void DrawHeader( const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const;
 	void DrawString( const char *pszString, FFont *pFont, const ULONG ulColor, const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const;
 	void DrawColor( const PalEntry color, const LONG lYPos, const ULONG ulHeight, const float fAlpha, const int clipWidth, const int clipHeight ) const;
 	void DrawTexture( FTexture *pTexture, const LONG lYPos, const ULONG ulHeight, const float fAlpha, const int clipWidth, const int clipHeight ) const;
 
 	virtual COLUMNTEMPLATE_e GetTemplate( void ) const { return COLUMNTEMPLATE_UNKNOWN; }
-	virtual void Parse( FScanner &sc );
 	virtual void ParseCommand( FScanner &sc, const COLUMNCMD_e Command, const FString CommandName );
 	virtual void CheckIfUsable( void );
 	virtual void Refresh( void );
@@ -289,7 +289,6 @@ public:
 	virtual DATATYPE_e GetDataType( void ) const;
 	virtual ULONG GetValueWidthOrHeight( const PlayerValue &Value, const bool bGetHeight ) const;
 	virtual PlayerValue GetValue( const ULONG ulPlayer ) const;
-	virtual void Parse( FScanner &sc );
 	virtual void ParseCommand( FScanner &sc, const COLUMNCMD_e Command, const FString CommandName );
 	virtual void Update( void );
 	virtual void DrawValue( const ULONG ulPlayer, const ULONG ulColor, const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const;

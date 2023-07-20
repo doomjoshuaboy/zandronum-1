@@ -172,6 +172,7 @@ Column "StatusIcon"
 {
 	AddFlag DONTSHOWHEADER
 
+	Alignment = Center
 	ClipRectHeight = -2
 	Size = 13
 }
@@ -181,6 +182,7 @@ Column "ReadyToGoIcon"
 	AddFlag INTERMISSIONONLY
 	AddFlag DONTSHOWHEADER
 
+	Alignment = Center
 	ClipRectHeight = -2
 	Size = 8
 }

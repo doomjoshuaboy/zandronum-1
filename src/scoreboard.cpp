@@ -1686,30 +1686,6 @@ PlayerValue DataScoreColumn::GetValue( const ULONG ulPlayer ) const
 
 //*****************************************************************************
 //
-// [AK] DataScoreColumn::Parse
-//
-// After parsing a "column" or "customcolumn" block in SCORINFO, this checks if
-// the data column is inside a composite column, and if it is, ensures that the
-// DONTSHOWHEADER flag hasn't been disabled and it's still aligned to the left.
-//
-//*****************************************************************************
-
-void DataScoreColumn::Parse( FScanner &sc )
-{
-	ScoreColumn::Parse( sc );
-
-	if ( pCompositeColumn != NULL )
-	{
-		if (( ulFlags & COLUMNFLAG_DONTSHOWHEADER ) == false )
-			sc.ScriptError( "You can't remove the 'DONTSHOWHEADER' flag from column '%s' while it's inside a composite column.", GetInternalName( ));
-
-		if ( Alignment != HORIZALIGN_LEFT )
-			sc.ScriptError( "You can't change the alignment of column '%s' while it's inside a composite column.", GetInternalName( ));
-	}
-}
-
-//*****************************************************************************
-//
 // [AK] DataScoreColumn::ParseCommand
 //
 // Parses commands that are only used for data columns.
@@ -2052,14 +2028,6 @@ void CompositeScoreColumn::ParseCommand( FScanner &sc, const COLUMNCMD_e Command
 				if ( pDataColumn->GetScoreboard( ) != NULL )
 					sc.ScriptError( "You can't put column '%s' into composite column '%s' when it's already inside a scoreboard's column order.", sc.String, GetInternalName( ));
 
-				// [AK] All data columns require the DONTSHOWHEADER flag to be enabled to be inside a composite column.
-				if (( pDataColumn->GetFlags( ) & COLUMNFLAG_DONTSHOWHEADER ) == false )
-					sc.ScriptError( "Column '%s' must have 'DONTSHOWHEADER' enabled before it can be put inside a composite column.", sc.String );
-
-				// [AK] All data columns must be alignment to the left to be inside a composite column.
-				if ( pDataColumn->Alignment != HORIZALIGN_LEFT )
-					sc.ScriptError( "Column '%s' must be aligned to the left before it can be put inside a composite column.", sc.String );
-
 				if ( scoreboard_TryPushingColumnToList( sc, SubColumns, pDataColumn ))
 				{
 					pDataColumn->pCompositeColumn = this;
@@ -2226,6 +2194,7 @@ void CompositeScoreColumn::DrawValue( const ULONG ulPlayer, const ULONG ulColor,
 		if (( Value.GetDataType( ) != DATATYPE_UNKNOWN ) || (( SubColumns[i]->GetFlags( ) & COLUMNFLAG_DISABLEIFEMPTY ) == false ))
 		{
 			const ULONG ulValueWidth = SubColumns[i]->GetValueWidthOrHeight( Value, false );
+			const ULONG ulSubColumnWidth = GetSubColumnWidth( i, ulValueWidth );
 
 			// [AK] We didn't update the sub-column's x-position or width since they're part of
 			// a composite column, but we need to make sure that the contents appear properly.
@@ -2235,13 +2204,13 @@ void CompositeScoreColumn::DrawValue( const ULONG ulPlayer, const ULONG ulColor,
 			if ( Value.GetDataType( ) != DATATYPE_UNKNOWN )
 			{
 				SubColumns[i]->lRelX = lXPos;
-				SubColumns[i]->ulWidth = ulValueWidth;
+				SubColumns[i]->ulWidth = ulSubColumnWidth;
 				SubColumns[i]->DrawValue( ulPlayer, ulColor, lYPos, ulHeight, fAlpha );
 
 				SubColumns[i]->lRelX = SubColumns[i]->ulWidth = 0;
 			}
 
-			lXPos += GetSubColumnWidth( i, ulValueWidth ) + ulGapBetweenSubColumns;
+			lXPos += ulSubColumnWidth + ulGapBetweenSubColumns;
 		}
 	}
 }
