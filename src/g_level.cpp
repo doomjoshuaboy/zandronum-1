@@ -1226,7 +1226,12 @@ void G_DoLoadLevel (int position, bool autosave)
 
 			// [AK] Change the game mode if we need to.
 			if ( pInfo->GameMode != GAMEMODE_GetCurrentMode( ))
+			{
 				GAMEMODE_SetCurrentMode( pInfo->GameMode );
+
+				// [AK] Reset the scoreboard to update the usability of the columns.
+				SCOREBOARD_Reset( );
+			}
 
 			// Set buckshot/instagib.
 			Val.Bool = pInfo->bInstagib;
