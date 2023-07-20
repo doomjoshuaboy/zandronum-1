@@ -159,6 +159,7 @@ void SERVERCONSOLE_UpdateIP( NETADDRESS_s LocalAddress );
 //	VARIABLES
 
 static	TArray<NetworkPWAD>	g_PWADs;
+static	TArray<NetworkPWAD>	g_AuthenticatedWADs; // [SB] All authenticated WAD files, including IWAD and engine PK3
 static	FString		g_IWAD; // [RC/BB] Which IWAD are we using?
 
 FString g_lumpsAuthenticationChecksum;
@@ -607,9 +608,6 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 			cls->ActorNetworkIndex = 0;
 	}
 
-	// [RC/BB] Init the list of PWADs.
-	network_InitPWADList( );
-
 	// [BB] Initialize the GeoIP database.
 	if( NETWORK_GetState() == NETSTATE_SERVER )
 	{
@@ -652,6 +650,10 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 
 		delete mdata;
 	}
+
+	// [RC/BB] Init the list of PWADs.
+	// [SB] Moved this here so that WADs containing maps are correctly marked as authenticated.
+	network_InitPWADList( );
 
 	// Call NETWORK_Destruct() when Skulltag closes.
 	atterm( NETWORK_Destruct );
@@ -1160,6 +1162,13 @@ const TArray<NetworkPWAD>& NETWORK_GetPWADList( void )
 
 //*****************************************************************************
 //
+const TArray<NetworkPWAD>& NETWORK_GetAuthenticatedWADsList( void )
+{
+	return g_AuthenticatedWADs;
+}
+
+//*****************************************************************************
+//
 const char *NETWORK_GetIWAD( void )
 {
 	return g_IWAD.GetChars( );
@@ -1624,14 +1633,9 @@ static void network_InitPWADList( void )
 	// Collect all the PWADs into a list.
 	for ( ULONG ulIdx = 0; Wads.GetWadName( ulIdx ) != NULL; ulIdx++ )
 	{
-		// Skip the IWAD, zandronum.pk3, files that were automatically loaded from subdirectories (such as skin files), and WADs loaded automatically within pk3 files.
-		// [BB] The latter are marked as being loaded automatically.
-		if (( ulIdx == ulRealIWADIdx ) ||
-			( stricmp( Wads.GetWadName( ulIdx ), GAMENAMELOWERCASE ".pk3" ) == 0 ) ||
-			( Wads.GetLoadedAutomatically( ulIdx )) )
-		{
-			continue;
-		}
+		const bool bIsIwad = ( ulIdx == ulRealIWADIdx );
+		const bool bIsBaseWad = ( stricmp( Wads.GetWadName( ulIdx ), BASEWAD ) == 0 ); // [SB] Corrected to use BASEWAD instead of GAMENAMELOWERCASE ".pk3"
+
 		char MD5Sum[33];
 		MD5SumOfFile ( Wads.GetWadFullName( ulIdx ), MD5Sum );
 
@@ -1639,7 +1643,19 @@ static void network_InitPWADList( void )
 		pwad.name = Wads.GetWadName( ulIdx );
 		pwad.checksum = MD5Sum;
 		pwad.wadnum = ulIdx;
-		g_PWADs.Push( pwad );
+
+		// Skip the IWAD, zandronum.pk3, files that were automatically loaded from subdirectories (such as skin files), and WADs loaded automatically within pk3 files.
+		// [BB] The latter are marked as being loaded automatically.
+		if ( !bIsIwad && !bIsBaseWad && !Wads.GetLoadedAutomatically( ulIdx ) )
+		{
+			g_PWADs.Push( pwad );
+		}
+
+		// [SB] Only add files that contain protected lumps or levels, and skip nested WADs (their parents are marked as containing authenticated lumps.)
+		if ( Wads.WadContainsAuthenticatedLumps( ulIdx ) && Wads.GetParentWad( ulIdx ) == ulIdx )
+		{
+			g_AuthenticatedWADs.Push( pwad );
+		}
 	}
 }
 

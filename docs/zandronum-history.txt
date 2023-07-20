@@ -129,6 +129,7 @@
 !	- Clients are now informed the moment when they're (un)muted on the server, based on Janko Knezevic's patch. [Kaminsky]
 !	- Showing the player's skin sprite is now prevented if their class's current sprite is TNT1A0 (and its original sprite is also TNT1A0). [Kaminsky]
 !	- HudMessages that are scaled to the virtual screen now respect con_scaletext_usescreenratio. [Kaminsky]
+!	- Authentication errors now use all WADs containing authenticated lumps and maps instead of all PWADs, meaning zandronum.pk3, the IWAD, and auto-loaded PWADs can be identified in the error. [DrinkyBird]
 
 
 3.1

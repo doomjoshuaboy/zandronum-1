@@ -2414,10 +2414,11 @@ void SERVER_ClientError( ULONG ulClient, ULONG ulErrorCode )
 	case NETWORK_ERRORCODE_AUTHENTICATIONFAILED:
 	case NETWORK_ERRORCODE_PROTECTED_LUMP_AUTHENTICATIONFAILED:
 
-		g_aClients[ulClient].PacketBuffer.ByteStream.WriteByte( NETWORK_GetPWADList().Size() );
-		for ( unsigned int i = 0; i < NETWORK_GetPWADList().Size(); ++i )
+		// [SB] Send all authenticated WADs to the client for comparison.
+		g_aClients[ulClient].PacketBuffer.ByteStream.WriteByte( NETWORK_GetAuthenticatedWADsList().Size() );
+		for ( unsigned int i = 0; i < NETWORK_GetAuthenticatedWADsList().Size(); ++i )
 		{
-			const NetworkPWAD& pwad = NETWORK_GetPWADList()[i];
+			const NetworkPWAD& pwad = NETWORK_GetAuthenticatedWADsList()[i];
 			g_aClients[ulClient].PacketBuffer.ByteStream.WriteString( pwad.name );
 			g_aClients[ulClient].PacketBuffer.ByteStream.WriteString( pwad.checksum );
 		}

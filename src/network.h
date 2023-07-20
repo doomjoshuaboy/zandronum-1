@@ -324,6 +324,7 @@ struct NetworkPWAD
 };
 
 const TArray<NetworkPWAD>&	NETWORK_GetPWADList( void ); // [RC]
+const TArray<NetworkPWAD>&	NETWORK_GetAuthenticatedWADsList( void ); // [SB]
 const char		*NETWORK_GetIWAD( void );
 void			NETWORK_AddLumpForAuthentication( const LONG LumpNumber );
 void			NETWORK_GenerateLumpMD5Hash( const int LumpNum, FString &MD5Hash );

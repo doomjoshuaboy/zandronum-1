@@ -1519,7 +1519,7 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 					// missing, incompatible and unused client PWADs
 					TArray<Wad> missingPWADs;
 					TArray<WadDiff> incompatiblePWADs;
-					TArray<NetworkPWAD> unusedClientPWADs = *&NETWORK_GetPWADList( );
+					TArray<NetworkPWAD> unusedClientPWADs = *&NETWORK_GetAuthenticatedWADsList( );
 					for ( unsigned int serverI = 0; serverI < serverPWADs.Size( ); ++serverI )
 					{
 						bool found = false;
@@ -1544,23 +1544,23 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 							missingPWADs.Push ( serverPWADs[serverI] );
 					}
 
-					szErrorString.Format( "%s authentication failed.\nPlease make sure you are using the exact same WAD(s) as the server, and try again.", ( ulErrorCode == NETWORK_ERRORCODE_PROTECTED_LUMP_AUTHENTICATIONFAILED ) ? "Protected lump" : "Level" );
-					Printf( "The server reports %d PWAD(s), and you have %d\n", numServerPWADs, NETWORK_GetPWADList().Size() );
+					szErrorString.Format( "%s authentication failed.\nPlease make sure you are using the exact same file(s) as the server, and try again.", ( ulErrorCode == NETWORK_ERRORCODE_PROTECTED_LUMP_AUTHENTICATIONFAILED ) ? "Protected lump" : "Level" );
+					Printf( "The server reports %d file(s), and you have %d\n", numServerPWADs, NETWORK_GetAuthenticatedWADsList().Size() );
 					if ( incompatiblePWADs.Size( ) != 0 )
 					{
-						Printf( "Incompatible PWAD(s) (PWAD name - server | client):\n" );
+						Printf( "Incompatible file(s) (file name - server | client):\n" );
 						for ( unsigned int i = 0; i < incompatiblePWADs.Size( ); ++i )
 							Printf ( TEXTCOLOR_RED"%s - %s | %s\n", incompatiblePWADs[i].name.GetChars( ), incompatiblePWADs[i].checksum.GetChars( ), incompatiblePWADs[i].checksumClient.GetChars( ) );
 					}
 					if ( missingPWADs.Size( ) != 0 )
 					{
-						Printf( "Missing PWAD(s):\n" );
+						Printf( "Missing file(s):\n" );
 						for ( unsigned int i = 0; i < missingPWADs.Size( ); ++i )
 							Printf( TEXTCOLOR_RED"%s - %s\n", missingPWADs[i].name.GetChars( ), missingPWADs[i].checksum.GetChars( ) );
 					}
 					if ( unusedClientPWADs.Size( ) != 0 )
 					{
-						Printf( "Extra PWAD(s) not loaded by the server:\n" );
+						Printf( "Extra file(s) not loaded by the server:\n" );
 						for ( unsigned int i = 0; i < unusedClientPWADs.Size( ); ++i )
 							Printf( TEXTCOLOR_RED"%s - %s\n", unusedClientPWADs[i].name.GetChars( ), unusedClientPWADs[i].checksum.GetChars( ) );
 					}
