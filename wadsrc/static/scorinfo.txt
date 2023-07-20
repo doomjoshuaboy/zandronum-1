@@ -270,46 +270,20 @@ Scoreboard
 			DrawString( value = limitstrings, textcolor = "Grey", bottompadding = 1 )
 
 			// Draw the team scores and their relation (tied, red leads, etc).
-			IfPlayersOnTeams( true )
+			IfPlayersOnTeams( true ) && IfEarnType( Frags, Points, Wins )
 			{
-				IfEarnType( Frags, Points, Wins )
-				{
-					DrawString( value = pointstring, textcolor = "Grey", bottompadding = 1 )
-				}
-				// Draw my rank and my frags, points, etc. Don't draw it if we're in the intermission.
-				Else
-				{
-					IfIntermission( false )
-					{
-						IfShouldShowRank( true )
-						{
-							DrawString( value = placestring, textcolor = "Grey", bottompadding = 1 )
-						}
-					}
-				}
+				DrawString( value = pointstring, textcolor = "Grey", bottompadding = 1 )
 			}
 			// Draw my rank and my frags, points, etc. Don't draw it if we're in the intermission.
-			Else
+			Else IfIntermission( false ) && IfShouldShowRank( true )
 			{
-				IfIntermission( false )
-				{
-					IfShouldShowRank( true )
-					{
-						DrawString( value = placestring, textcolor = "Grey", bottompadding = 1 )
-					}
-				}
+				DrawString( value = placestring, textcolor = "Grey", bottompadding = 1 )
 			}
 
 			// [JS] Intermission countdown display.
-			IfIntermission( true )
+			IfIntermission( true ) && IfOnlineGame( true ) && IfCVar( cl_intermissiontimer == true )
 			{
-				IfOnlineGame( true )
-				{
-					IfCVar( cl_intermissiontimer == true )
-					{
-						DrawString( value = "Entering " + nextlevellump + ": " + nextlevelname + " in " + intermissiontimeleft + " second(s)", textcolor = "Green" )
-					}
-				}
+				DrawString( value = "Entering " + nextlevellump + ": " + nextlevelname + " in " + intermissiontimeleft + " second(s)", textcolor = "Green" )
 			}
 		}
 	}
