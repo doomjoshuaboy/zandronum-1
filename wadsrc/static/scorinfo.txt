@@ -365,6 +365,7 @@ Scoreboard
 	LightRowBackgroundColor = "40 40 40"
 	DarkRowBackgroundColor = "20 20 20"
 	LocalRowBackgroundColor = "80 80 80"
+	ContentAlpha = 1.0
 	RowBackgroundAmount = 0.65
 	DeadPlayerTextAlpha = 0.35
 	DeadPlayerRowBackgroundAmount = 0

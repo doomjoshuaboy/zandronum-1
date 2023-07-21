@@ -1023,7 +1023,7 @@ void ScoreColumn::Update( void )
 
 void ScoreColumn::DrawHeader( const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const
 {
-	if (( pScoreboard == NULL ) || ( bDisabled ) || ( ulFlags & COLUMNFLAG_DONTSHOWHEADER ))
+	if (( pScoreboard == NULL ) || ( bDisabled ) || ( ulFlags & COLUMNFLAG_DONTSHOWHEADER ) || ( fAlpha <= 0.0f ))
 		return;
 
 	DrawString( bUseShortName ? ShortName.GetChars( ) : DisplayName.GetChars( ), pScoreboard->pHeaderFont, pScoreboard->HeaderColor, lYPos, ulHeight, fAlpha );
@@ -2348,6 +2348,7 @@ Scoreboard::Scoreboard( void ) :
 	fBackgroundAmount( 0.0f ),
 	fRowBackgroundAmount( 0.0f ),
 	fDeadRowBackgroundAmount( 0.0f ),
+	fContentAlpha( 1.0f ),
 	fDeadTextAlpha( 0.0f ),
 	ulBackgroundBorderSize( 0 ),
 	ulGapBetweenHeaderAndRows( 0 ),
@@ -2496,6 +2497,7 @@ void Scoreboard::Parse( FScanner &sc )
 					break;
 				}
 
+				case SCOREBOARDCMD_CONTENTALPHA:
 				case SCOREBOARDCMD_DEADPLAYERTEXTALPHA:
 				case SCOREBOARDCMD_BACKGROUNDAMOUNT:
 				case SCOREBOARDCMD_ROWBACKGROUNDAMOUNT:
@@ -2504,7 +2506,9 @@ void Scoreboard::Parse( FScanner &sc )
 					sc.MustGetFloat( );
 					const float fClampedValue = clamp( static_cast<float>( sc.Float ), 0.0f, 1.0f );
 
-					if ( Command == SCOREBOARDCMD_DEADPLAYERTEXTALPHA )
+					if ( Command == SCOREBOARDCMD_CONTENTALPHA )
+						fContentAlpha = fClampedValue;
+					else if ( Command == SCOREBOARDCMD_DEADPLAYERTEXTALPHA )
 						fDeadTextAlpha = fClampedValue;
 					else if ( Command == SCOREBOARDCMD_BACKGROUNDAMOUNT )
 						fBackgroundAmount = fClampedValue;
@@ -3130,23 +3134,24 @@ void Scoreboard::Render( const ULONG ulDisplayPlayer, const float fAlpha )
 
 	const ULONG ulNumActivePlayers = HUD_GetNumPlayers( );
 	const ULONG ulNumTrueSpectators = HUD_GetNumSpectators( );
+	const float fCombinedAlpha = fContentAlpha * fAlpha;
 	LONG lYPos = lRelY + ulBackgroundBorderSize;
 	bool bUseLightBackground = true;
 
 	// [AK] Draw the main header first.
-	MainHeader.Render( ulDisplayPlayer, ScoreMargin::NO_TEAM, lYPos, fAlpha );
+	MainHeader.Render( ulDisplayPlayer, ScoreMargin::NO_TEAM, lYPos, fCombinedAlpha );
 
 	// [AK] Draw a border above the column headers.
-	DrawBorder( HeaderColor, lYPos, fAlpha, false );
+	DrawBorder( HeaderColor, lYPos, fCombinedAlpha, false );
 
 	// [AK] Draw all of the column headers.
 	for ( unsigned int i = 0; i < ColumnOrder.Size( ); i++ )
-		ColumnOrder[i]->DrawHeader( lYPos, lHeaderHeight, fAlpha );
+		ColumnOrder[i]->DrawHeader( lYPos, lHeaderHeight, fCombinedAlpha );
 
 	lYPos += lHeaderHeight;
 
 	// [AK] Draw another border below the headers.
-	DrawBorder( HeaderColor, lYPos, fAlpha, true );
+	DrawBorder( HeaderColor, lYPos, fCombinedAlpha, true );
 	lYPos += ulGapBetweenHeaderAndRows;
 
 	// [AK] Draw rows for all active players.
@@ -3167,7 +3172,7 @@ void Scoreboard::Render( const ULONG ulDisplayPlayer, const float fAlpha )
 
 			// [AK] Draw the header for this team, if allowed.
 			if (( ulFlags & SCOREBOARDFLAG_DONTSHOWTEAMHEADERS ) == false )
-				TeamHeader.Render( ulDisplayPlayer, ulTeam, lYPos, fAlpha );
+				TeamHeader.Render( ulDisplayPlayer, ulTeam, lYPos, fCombinedAlpha );
 		}
 
 		DrawRow( ulPlayer, ulDisplayPlayer, lYPos, fAlpha, bUseLightBackground );
@@ -3186,7 +3191,7 @@ void Scoreboard::Render( const ULONG ulDisplayPlayer, const float fAlpha )
 
 		// [AK] Draw the header for spectators, if allowed.
 		if (( ulFlags & SCOREBOARDFLAG_DONTSHOWTEAMHEADERS ) == false )
-			SpectatorHeader.Render( ulDisplayPlayer, ScoreMargin::NO_TEAM, lYPos, fAlpha );
+			SpectatorHeader.Render( ulDisplayPlayer, ScoreMargin::NO_TEAM, lYPos, fCombinedAlpha );
 
 		// [AK] The index of the first true spectator should be the same as the number of active
 		// players. The list is organized such that all active players come before any true spectators.
@@ -3197,10 +3202,10 @@ void Scoreboard::Render( const ULONG ulDisplayPlayer, const float fAlpha )
 	// [AK] Draw a border at the bottom of the scoreboard. We must subtract ulGapBetweenRows here (a bit hacky)
 	// because SCOREBOARD_s::DrawPlayerRow adds it every time a row is drawn. This isn't necessary for the last row.
 	lYPos += ulGapBetweenHeaderAndRows - ulGapBetweenRows;
-	DrawBorder( HeaderColor, lYPos, fAlpha, false );
+	DrawBorder( HeaderColor, lYPos, fCombinedAlpha, false );
 
 	// [AK] Finally, draw the footer.
-	Footer.Render( ulDisplayPlayer, ScoreMargin::NO_TEAM, lYPos, fAlpha );
+	Footer.Render( ulDisplayPlayer, ScoreMargin::NO_TEAM, lYPos, fCombinedAlpha );
 }
 
 //*****************************************************************************
@@ -3260,7 +3265,7 @@ void Scoreboard::DrawRow( const ULONG ulPlayer, const ULONG ulDisplayPlayer, LON
 			DrawRowBackground( RowBackgroundColors[RowBackground], lYPos, fBackgroundAlpha );
 	}
 
-	const float fTextAlpha = ( bPlayerIsDead ? fDeadTextAlpha : 1.0f ) * fAlpha;
+	const float fTextAlpha = ( bPlayerIsDead ? fDeadTextAlpha : fContentAlpha ) * fAlpha;
 
 	// Draw the data for each column, but only if the text alpha is non-zero.
 	if ( fTextAlpha > 0.0f )
@@ -3283,7 +3288,7 @@ void Scoreboard::DrawRow( const ULONG ulPlayer, const ULONG ulDisplayPlayer, LON
 
 void Scoreboard::DrawBorder( const EColorRange Color, LONG &lYPos, const float fAlpha, const bool bReverse ) const
 {
-	if ( ulFlags & SCOREBOARDFLAG_DONTDRAWBORDERS )
+	if (( ulFlags & SCOREBOARDFLAG_DONTDRAWBORDERS ) || ( fAlpha <= 0.0f ))
 		return;
 
 	int x = lRelX + ulBackgroundBorderSize;

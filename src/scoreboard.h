@@ -497,6 +497,7 @@ struct Scoreboard
 	float fBackgroundAmount;
 	float fRowBackgroundAmount;
 	float fDeadRowBackgroundAmount;
+	float fContentAlpha;
 	float fDeadTextAlpha;
 	ULONG ulBackgroundBorderSize;
 	ULONG ulGapBetweenHeaderAndRows;

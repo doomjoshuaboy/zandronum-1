@@ -308,6 +308,8 @@ BEGIN_ENUM( SCOREBOARDCMD_e )
 	ENUM_ELEMENT( SCOREBOARDCMD_LOCALROWCOLOR ),
 	// Similar to the local row color, but only while watching a demo.
 	ENUM_ELEMENT( SCOREBOARDCMD_LOCALROWDEMOCOLOR ),
+	// The opacity of the contents (e.g. header/row text, borders, and margins) on the scoreboard.
+	ENUM_ELEMENT( SCOREBOARDCMD_CONTENTALPHA ),
 	// The opacity of the row's text for dead players.
 	ENUM_ELEMENT( SCOREBOARDCMD_DEADPLAYERTEXTALPHA ),
 	// The texture to use to draw the borders, if USETEXTUREFORBORDERS is enabled.
