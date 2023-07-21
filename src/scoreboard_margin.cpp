@@ -1274,7 +1274,11 @@ protected:
 			}
 			else
 			{
-				text += StringChunks[i].second;
+				// [AK] If the string begins with a '$', look up the string in the LANGUAGE lumps.
+				if (( StringChunks[i].second.Len( ) > 1 ) && ( StringChunks[i].second[0] == '$' ))
+					text += GStrings( StringChunks[i].second.GetChars( ) + 1 );
+				else
+					text += StringChunks[i].second;
 			}
 		}
 
