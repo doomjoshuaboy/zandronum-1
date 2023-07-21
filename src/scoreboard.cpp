@@ -714,7 +714,7 @@ void ScoreColumn::ParseCommand( FScanner &sc, const COLUMNCMD_e Command, const F
 			sc.MustGetString( );
 
 			// [AK] If the name begins with a '$', look up the string in the LANGUAGE lump.
-			const char *pszString = sc.String[0] == '$' ? GStrings[sc.String] : sc.String;
+			const char *pszString = sc.String[0] == '$' ? GStrings( sc.String + 1 ) : sc.String;
 
 			if ( Command == COLUMNCMD_DISPLAYNAME )
 				DisplayName = pszString;
@@ -1754,7 +1754,7 @@ void DataScoreColumn::ParseCommand( FScanner &sc, const COLUMNCMD_e Command, con
 			sc.MustGetString( );
 
 			// [AK] If the name begins with a '$', look up the string in the LANGUAGE lump.
-			const char *pszString = sc.String[0] == '$' ? GStrings[sc.String] : sc.String;
+			const char *pszString = sc.String[0] == '$' ? GStrings( sc.String + 1 ) : sc.String;
 
 			if ( Command == COLUMNCMD_TRUETEXT )
 				TrueText = pszString;
