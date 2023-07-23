@@ -2826,7 +2826,15 @@ bool Scoreboard::PlayerComparator::operator( )( const int &arg1, const int &arg2
 	for ( unsigned int i = 0; i < pScoreboard->RankOrder.Size( ); i++ )
 	{
 		if ( pScoreboard->RankOrder[i]->IsDisabled( ))
-			continue;
+		{
+			// [AK] If this column's unusable, then we definitely can't use it to sort players.
+			if ( pScoreboard->RankOrder[i]->IsUsableInCurrentGame( ) == false )
+				continue;
+
+			// [AK] If the column doesn't have the SORTWHENDISABLED flag enabled, skip it.
+			if (( pScoreboard->RankOrder[i]->GetFlags( ) & COLUMNFLAG_SORTWHENDISABLED ) == false )
+				continue;
+		}
 
 		const PlayerValue Value1 = pScoreboard->RankOrder[i]->GetValue( arg1 );
 		const PlayerValue Value2 = pScoreboard->RankOrder[i]->GetValue( arg2 );

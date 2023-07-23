@@ -209,6 +209,8 @@ BEGIN_ENUM( COLUMNFLAG_e )
 	ENUM_ELEMENT2( COLUMNFLAG_ALWAYSUSESHORTESTWIDTH, 0x8000 ),
 	// If the column's empty (i.e. no contents inside it), then it's disabled.
 	ENUM_ELEMENT2( COLUMNFLAG_DISABLEIFEMPTY, 0x10000 ),
+	// Ensures that the column sorts players on the scoreboard even when it's disabled.
+	ENUM_ELEMENT2( COLUMNFLAG_SORTWHENDISABLED, 0x20000 ),
 }
 END_ENUM( COLUMNFLAG_e )
 
