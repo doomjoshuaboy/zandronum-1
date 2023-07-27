@@ -2827,6 +2827,15 @@ bool Scoreboard::PlayerComparator::operator( )( const int &arg1, const int &arg2
 			return ( result < 0 );
 	}
 
+	// [AK] Sort dead spectators underneath live players if we should.
+	if (( pScoreboard->ulFlags & SCOREBOARDFLAG_SEPARATEDEADSPECTATORS ) && ( players[arg1].bDeadSpectator != players[arg2].bDeadSpectator ))
+	{
+		if ( players[arg1].bDeadSpectator )
+			return false;
+		else
+			return true;
+	}
+
 	for ( unsigned int i = 0; i < pScoreboard->RankOrder.Size( ); i++ )
 	{
 		if ( pScoreboard->RankOrder[i]->IsDisabled( ))

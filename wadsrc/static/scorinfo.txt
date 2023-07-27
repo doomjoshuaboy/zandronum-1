@@ -379,4 +379,5 @@ Scoreboard
 	RankOrder = "Wins", "Points", "Frags", "Kills", "Damage", "Lives", "Secrets", "Deaths"
 
 	AddFlag UseHeaderColorForBorders
+	AddFlag SeparateDeadSpectators
 }
