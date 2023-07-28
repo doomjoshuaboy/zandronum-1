@@ -3106,11 +3106,6 @@ void Scoreboard::UpdateHeight( const ULONG ulDisplayPlayer )
 
 void Scoreboard::Render( const ULONG ulDisplayPlayer, const float fAlpha )
 {
-	int clipLeft = lRelX;
-	int clipTop = lRelY;
-	int clipWidth = ulWidth;
-	int clipHeight = ulHeight;
-
 	// [AK] If we need to update the scoreboard, do so before rendering it.
 	if ( lLastRefreshTick != gametic )
 	{
@@ -3121,6 +3116,11 @@ void Scoreboard::Render( const ULONG ulDisplayPlayer, const float fAlpha )
 	// [AK] We can't draw anything if the width, height, or opacity are zero or less.
 	if (( ulWidth == 0 ) || ( ulHeight == 0 ) || ( fAlpha <= 0.0f ))
 		return;
+
+	int clipLeft = lRelX;
+	int clipTop = lRelY;
+	int clipWidth = ulWidth;
+	int clipHeight = ulHeight;
 
 	// [AK] We must take into account the virtual screen's size.
 	if ( g_bScale )
