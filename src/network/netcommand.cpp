@@ -236,6 +236,27 @@ void NetCommand::addString ( const char *pszString )
 }
 
 //*****************************************************************************
+// [AK]
+//
+void NetCommand::addBuffer ( const void *pvBuffer, const unsigned int length )
+{
+	if (( pvBuffer == NULL ) || ( length == 0 ))
+	{
+		Printf( "NetCommand::AddBuffer: Invalid or zero-length buffer! Header: %s\n", getHeaderAsString() );
+		return;
+	}
+
+	if (( _buffer.ByteStream.pbStream + length ) > _buffer.ByteStream.pbStreamEnd )
+	{
+		Printf( "NetCommand::AddBuffer: Overflow! Header: %s\n", getHeaderAsString() );
+		return;
+	}
+
+	_buffer.ByteStream.WriteBuffer( pvBuffer, length );
+	_buffer.ulCurrentSize = _buffer.CalcSize();
+}
+
+//*****************************************************************************
 //
 void NetCommand::addName ( FName name )
 {
