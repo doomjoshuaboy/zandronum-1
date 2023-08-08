@@ -2861,12 +2861,7 @@ void PLAYER_SetStatus( player_t *pPlayer, ULONG ulType, bool bEnable, ULONG ulFl
 
 			// [AK] Tell the server we're beginning to or have stopped chatting.
 			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( ulFlags & PLAYERSTATUS_CLIENTSHOULDSENDUPDATE ))
-			{
-				if ( bEnable )
-					CLIENTCOMMANDS_StartChat( );
-				else
-					CLIENTCOMMANDS_EndChat( );
-			}
+				CLIENTCOMMANDS_SetStatus( ulType );
 
 			break;
 		}
@@ -2881,12 +2876,7 @@ void PLAYER_SetStatus( player_t *pPlayer, ULONG ulType, bool bEnable, ULONG ulFl
 
 			// [AK] Tell the server that we entered or exited the console.
 			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( ulFlags & PLAYERSTATUS_CLIENTSHOULDSENDUPDATE ))
-			{
-				if ( bEnable )
-					CLIENTCOMMANDS_EnterConsole( );
-				else
-					CLIENTCOMMANDS_ExitConsole( );
-			}
+				CLIENTCOMMANDS_SetStatus( ulType );
 
 			break;
 		}
@@ -2901,12 +2891,7 @@ void PLAYER_SetStatus( player_t *pPlayer, ULONG ulType, bool bEnable, ULONG ulFl
 
 			// [AK] Tell the server that we entered or exited the menu.
 			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( ulFlags & PLAYERSTATUS_CLIENTSHOULDSENDUPDATE ))
-			{
-				if ( bEnable )
-					CLIENTCOMMANDS_EnterMenu( );
-				else
-					CLIENTCOMMANDS_ExitMenu( );
-			}
+				CLIENTCOMMANDS_SetStatus( ulType );
 
 			break;
 		}

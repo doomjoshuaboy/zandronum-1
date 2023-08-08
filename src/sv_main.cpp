@@ -4838,38 +4838,27 @@ bool SERVER_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 		// Client has left the game.
 		SERVER_DisconnectClient( g_lCurrentClient, true, true );
 		break;
-	case CLC_STARTCHAT:
-	case CLC_ENDCHAT:
-	case CLC_ENTERCONSOLE:
-	case CLC_EXITCONSOLE:
-	case CLC_ENTERMENU:
-	case CLC_EXITMENU:
+	case CLC_SETSTATUS:
+		{
+			const PlayerStatusType type = static_cast<PlayerStatusType>( pByteStream->ReadShortByte( 7 ));
+			const bool bEnable = pByteStream->ReadBit( );
 
-		// [BB] If the client is flooding the server with commands, the client is
-		// kicked and we don't need to handle the command.
-		if ( server_CheckForClientMinorCommandFlood ( g_lCurrentClient ) == true )
-			return ( true );
+			// [BB] If the client is flooding the server with commands, the client is
+			// kicked and we don't need to handle the command.
+			if ( server_CheckForClientMinorCommandFlood ( g_lCurrentClient ) == true )
+				return ( true );
 
-		// Client is beginning to type.
-		if ( lCommand == CLC_STARTCHAT )
-			PLAYER_SetStatus( &players[g_lCurrentClient], PLAYERSTATUS_CHATTING, true, PLAYERSTATUS_SERVERSHOULDSKIPCLIENT );
-		// Client is done talking.
-		else if ( lCommand == CLC_ENDCHAT )
-			PLAYER_SetStatus( &players[g_lCurrentClient], PLAYERSTATUS_CHATTING, false, PLAYERSTATUS_SERVERSHOULDSKIPCLIENT );
-		// Player has entered the console - give him an icon.
-		else if ( lCommand == CLC_ENTERCONSOLE )
-			PLAYER_SetStatus( &players[g_lCurrentClient], PLAYERSTATUS_INCONSOLE, true, PLAYERSTATUS_SERVERSHOULDSKIPCLIENT );
-		// Player has left the console - remove his icon.
-		else if ( lCommand == CLC_EXITCONSOLE )
-			PLAYER_SetStatus( &players[g_lCurrentClient], PLAYERSTATUS_INCONSOLE, false, PLAYERSTATUS_SERVERSHOULDSKIPCLIENT );
-		// Player has entered the menu - give him an icon.
-		else if ( lCommand == CLC_ENTERMENU )
-			PLAYER_SetStatus( &players[g_lCurrentClient], PLAYERSTATUS_INMENU, true, PLAYERSTATUS_SERVERSHOULDSKIPCLIENT );
-		// Player has left the menu - remove his icon.
-		else if ( lCommand == CLC_EXITMENU )
-			PLAYER_SetStatus( &players[g_lCurrentClient], PLAYERSTATUS_INMENU, false, PLAYERSTATUS_SERVERSHOULDSKIPCLIENT );
+			// [AK] We can't always trust that the client sent the correct status type.
+			// Double check to make sure that it's valid, and kick them if it isn't.
+			if (( type != PLAYERSTATUS_CHATTING ) && ( type != PLAYERSTATUS_INCONSOLE ) && ( type != PLAYERSTATUS_INMENU ))
+			{
+				SERVER_KickPlayer( g_lCurrentClient, "Sent an invalid player status type." );
+				return ( true );
+			}
 
-		return false;
+			PLAYER_SetStatus( &players[g_lCurrentClient], type, bEnable, PLAYERSTATUS_SERVERSHOULDSKIPCLIENT );
+		}
+		break;
 	case CLC_IGNORE:
 
 		// Player whishes to ignore / unignore someone.
@@ -6120,7 +6109,7 @@ bool ClientMoveCommand::process( const ULONG ulClient ) const
 		}
 	}
 
-	// If CLC_ENDCHAT got missed, and the player is doing stuff, then obviously he is no longer chatting.
+	// If the player is doing stuff, then obviously he is no longer chatting.
 
 	// [RC] This actually isn't necessarily true. By using a joystick, a player can both move and chat.
 	// I'm not going to change it though, because since they can move, they shouldn't be protected by the llama medal. Also, it'd confuse people.

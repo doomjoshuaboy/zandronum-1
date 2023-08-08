@@ -257,44 +257,32 @@ void CLIENTCOMMANDS_UserInfo( const UserInfoChanges &cvars )
 
 //*****************************************************************************
 //
-void CLIENTCOMMANDS_StartChat( void )
+void CLIENTCOMMANDS_SetStatus( const ULONG ulType )
 {
-	CLIENT_GetLocalBuffer( )->ByteStream.WriteByte( CLC_STARTCHAT );
-}
+	bool bEnable = false;
 
-//*****************************************************************************
-//
-void CLIENTCOMMANDS_EndChat( void )
-{
-	CLIENT_GetLocalBuffer( )->ByteStream.WriteByte( CLC_ENDCHAT );
-}
+	// [AK] We should only be concerned with sending our chat, console, or menu status.
+	switch ( ulType )
+	{
+		case PLAYERSTATUS_CHATTING:
+			bEnable = players[consoleplayer].bChatting;
+			break;
 
-//*****************************************************************************
-//
-void CLIENTCOMMANDS_EnterConsole( void )
-{
-	CLIENT_GetLocalBuffer( )->ByteStream.WriteByte( CLC_ENTERCONSOLE );
-}
+		case PLAYERSTATUS_INCONSOLE:
+			bEnable = players[consoleplayer].bInConsole;
+			break;
 
-//*****************************************************************************
-//
-void CLIENTCOMMANDS_ExitConsole( void )
-{
-	CLIENT_GetLocalBuffer( )->ByteStream.WriteByte( CLC_EXITCONSOLE );
-}
+		case PLAYERSTATUS_INMENU:
+			bEnable = players[consoleplayer].bInMenu;
+			break;
 
-//*****************************************************************************
-//
-void CLIENTCOMMANDS_EnterMenu(void)
-{
-	CLIENT_GetLocalBuffer( )->ByteStream.WriteByte( CLC_ENTERMENU );
-}
+		default:
+			return;
+	}
 
-//*****************************************************************************
-//
-void CLIENTCOMMANDS_ExitMenu(void)
-{
-	CLIENT_GetLocalBuffer( )->ByteStream.WriteByte( CLC_EXITMENU );
+	CLIENT_GetLocalBuffer( )->ByteStream.WriteByte( CLC_SETSTATUS );
+	CLIENT_GetLocalBuffer( )->ByteStream.WriteShortByte( ulType, 7 );
+	CLIENT_GetLocalBuffer( )->ByteStream.WriteBit( bEnable );
 }
 
 //*****************************************************************************

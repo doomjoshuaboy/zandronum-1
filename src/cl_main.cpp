@@ -591,7 +591,7 @@ void CLIENT_Tick( void )
 		// [BB] This will cause the server to send another reliable packet.
 		// This way, we notice whether we are missing the latest packets
 		// from the server.
-		CLIENTCOMMANDS_EndChat();
+		CLIENTCOMMANDS_SetStatus( PLAYERSTATUS_CHATTING );
 
 		break;
 
