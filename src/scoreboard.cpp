@@ -2349,7 +2349,7 @@ Scoreboard::Scoreboard( void ) :
 	fRowBackgroundAmount( 0.0f ),
 	fDeadRowBackgroundAmount( 0.0f ),
 	fContentAlpha( 1.0f ),
-	fDeadTextAlpha( 0.0f ),
+	fDeadTextAlpha( 1.0f ),
 	ulBackgroundBorderSize( 0 ),
 	ulGapBetweenHeaderAndRows( 0 ),
 	ulGapBetweenColumns( 0 ),
