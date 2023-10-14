@@ -109,7 +109,6 @@
 #include "domination.h"
 #include "win32/g15/g15.h"
 #include "gl/dynlights/gl_dynlight.h"
-#include "unlagged.h"
 #include "p_3dmidtex.h"
 #include "a_lightning.h"
 #include "po_man.h"
@@ -1776,9 +1775,6 @@ void G_Ticker ()
 
 		}
 
-		// [BB] Tick the unlagged module.
-		UNLAGGED_Tick( );
-
 		// [BB] Don't call P_Ticker on the server if there are no players.
 		// This significantly reduces CPU usage on maps with many monsters
 		// (of course only as long as there are no connected clients).
@@ -2366,7 +2362,8 @@ static fixed_t PlayersRangeFromSpot (FPlayerStart *spot)
 
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
-		if (!playeringame[i] || !players[i].mo || players[i].health <= 0)
+		// [Proteh] Skip spectators from the range check too
+		if (!playeringame[i] || players[i].bSpectating || !players[i].mo || players[i].health <= 0)
 			continue;
 
 		distance = P_AproxDistance (players[i].mo->x - spot->x,
@@ -2389,7 +2386,8 @@ static fixed_t TeamLMSPlayersRangeFromSpot( ULONG ulPlayer, FPlayerStart *spot )
 	ulNumSpots = 0;
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
-		if (!playeringame[i] || !players[i].mo || players[i].health <= 0)
+		// [Proteh] Skip spectators too
+		if (!playeringame[i] || players[i].bSpectating || !players[i].mo || players[i].health <= 0)
 			continue;
 
 		// Ignore players on our team.
@@ -3853,6 +3851,18 @@ void GAME_ResetMap( bool bRunEnterScripts )
 		// If we're the server, tell clients to update their sky.
 		if (( bSendSkyUpdate ) && ( NETWORK_GetState( ) == NETSTATE_SERVER ))
 			SERVERCOMMANDS_SetMapSky( );
+
+		// [EP] Reset also the sky scroll speed if needed.
+		if ( level.skyspeed1 != pLevelInfo->skyspeed1 ) {
+			level.skyspeed1 = pLevelInfo->skyspeed1;
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetMapSkyScrollSpeed( /*isSky1 =*/ true );
+		}
+		if ( level.skyspeed2 != pLevelInfo->skyspeed2 ) {
+			level.skyspeed2 = pLevelInfo->skyspeed2;
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetMapSkyScrollSpeed( /*isSky1 =*/ false );
+		}
 	}
 
 	// Reset the number of monsters killed,  items picked up, and found secrets on the level.

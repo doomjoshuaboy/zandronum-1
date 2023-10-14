@@ -2855,6 +2855,12 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 		SERVERCOMMANDS_SetMapSky( ulClient, SVCF_ONLYTHISCLIENT );
 	}
 
+	// [EP] If the sky scroll speed is changed, let the client know about it.
+	if ( level.info && level.skyspeed1 != level.info->skyspeed1 )
+		SERVERCOMMANDS_SetMapSkyScrollSpeed( /*isSky1 =*/ true );
+	if ( level.info && level.skyspeed2 != level.info->skyspeed2 )
+		SERVERCOMMANDS_SetMapSkyScrollSpeed( /*isSky1 =*/ false );
+
 	// [BB]
 	SERVERCOMMANDS_SetDefaultSkybox( ulClient, SVCF_ONLYTHISCLIENT ); 
 
@@ -3787,7 +3793,7 @@ void SERVER_ForceToSpectate( ULONG ulPlayer, const char *pszReason )
 		return;
 	}
 
-	SERVER_Printf( PRINT_HIGH, "\\ci%s\\ci has been forced to spectate! Reason: %s\n",
+	SERVER_Printf( PRINT_HIGH, TEXTCOLOR_ORANGE "%s" TEXTCOLOR_ORANGE " has been forced to spectate! Reason: %s\n",
 		players[ulPlayer].userinfo.GetName(), pszReason );
 
 	// Make this player a spectator.
@@ -5117,6 +5123,27 @@ bool SERVER_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 			{
 				FBaseCVar *cvar = FindCVar( cvarName, NULL );
 
+				if ( cvar != NULL )
+				{
+					CONSOLE_SetRCONPlayer( g_lCurrentClient );
+					cvar->CmdSet( cvarValue );
+					CONSOLE_SetRCONPlayer( MAXPLAYERS );
+					Printf( "%s changes %s to \"%s\"\n", client.Address.ToString(),
+						cvar->GetName(), cvarValue.GetChars() );
+				}
+				else
+				{
+					SERVER_PrintfPlayer( g_lCurrentClient, "No such CVar: %s", cvarName.GetChars() );
+				}
+			}
+			else
+			{
+				// [TP] Trying to set a CVar while not an RCON admin is considered possible command flooding.
+				if ( server_CheckForClientCommandFlood( g_lCurrentClient ))
+					return true;
+			}
+		}
+		break;
 	default:
 
 		Printf( PRINT_HIGH, "SERVER_ParseCommands: Unknown client message: %d\n", static_cast<int> (lCommand) );
@@ -6652,12 +6679,12 @@ static bool server_ChangeTeam( BYTESTREAM_s *pByteStream )
 	// Player was on a team, so tell everyone that he's changing teams.
 	if ( bOnTeam )
 	{
-		SERVER_Printf( "%s \\c-defected to the \\c%c%s \\c-team.\n", players[g_lCurrentClient].userinfo.GetName(), V_GetColorChar( TEAM_GetTextColor( players[g_lCurrentClient].ulTeam )), TEAM_GetName( players[g_lCurrentClient].ulTeam ));
+		SERVER_Printf( "%s defected to the \034%s%s " TEXTCOLOR_NORMAL "team.\n", players[g_lCurrentClient].userinfo.GetName(), TEAM_GetTextColorName( players[g_lCurrentClient].Team ), TEAM_GetName( players[g_lCurrentClient].Team ));
 	}
 	// Otherwise, tell everyone he's joining a team.
 	else
 	{
-		SERVER_Printf( "%s \\c-joined the \\c%c%s \\c-team.\n", players[g_lCurrentClient].userinfo.GetName(), V_GetColorChar( TEAM_GetTextColor( players[g_lCurrentClient].ulTeam )), TEAM_GetName( players[g_lCurrentClient].ulTeam ));
+		SERVER_Printf( "%s joined the \034%s%s " TEXTCOLOR_NORMAL "team.\n", players[g_lCurrentClient].userinfo.GetName(), TEAM_GetTextColorName( players[g_lCurrentClient].Team ), TEAM_GetName( players[g_lCurrentClient].Team ));
 	}
 
 	if ( players[g_lCurrentClient].mo )

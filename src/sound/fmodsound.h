@@ -1,8 +1,9 @@
 #ifndef FMODSOUND_H
 #define FMODSOUND_H
 
-#ifndef NO_SOUND
 #include "i_sound.h"
+
+#ifndef NO_FMOD
 #include "fmod_wrap.h"
 
 class FMODSoundRenderer : public SoundRenderer
@@ -14,8 +15,8 @@ public:
 
 	void SetSfxVolume (float volume);
 	void SetMusicVolume (float volume);
-	SoundHandle LoadSound(BYTE *sfxdata, int length);
-	SoundHandle LoadSoundRaw(BYTE *sfxdata, int length, int frequency, int channels, int bits, int loopstart, int loopend = -1);
+	SoundHandle LoadSound(BYTE *sfxdata, int length, int def_loop_start, int def_loop_end);
+	SoundHandle LoadSoundRaw(BYTE *sfxdata, int length, int frequency, int channels, int bits, int loopstart, int loopend);
 	void UnloadSound (SoundHandle sfx);
 	unsigned int GetMSLength(SoundHandle sfx);
 	unsigned int GetSampleLength(SoundHandle sfx);
@@ -67,6 +68,8 @@ public:
 	short *DecodeSample(int outlen, const void *coded, int sizebytes, ECodecType type);
 
 	void DrawWaveDebug(int mode);
+	
+	virtual MIDIDevice* CreateMIDIDevice() const override;
 
 private:
 	DWORD ActiveFMODVersion;

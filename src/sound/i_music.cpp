@@ -115,7 +115,7 @@ float	saved_relative_volume = 1.0f;	// this could be used to implement an ACS Fa
 // Maximum volume of MOD/stream music.
 //==========================================================================
 
-CUSTOM_CVAR (Float, snd_musicvolume, 0.5f, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+CUSTOM_CVAR (Float, snd_musicvolume, 0.25f, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 {
 	if (self < 0.f)
 		self = 0.f;
@@ -223,7 +223,12 @@ void MusInfo::Start(bool loop, float rel_vol, int subsong)
 {
 	if (nomusic) return;
 
-	if (rel_vol > 0.f) saved_relative_volume = relative_volume = rel_vol;
+	if (rel_vol > 0.f)
+	{
+		float factor = relative_volume / saved_relative_volume;
+		saved_relative_volume = rel_vol;
+		relative_volume = saved_relative_volume * factor;
+	}
 	Stop ();
 	Play (loop, subsong);
 	m_NotStartedYet = false;
@@ -436,9 +441,9 @@ MusInfo *I_RegisterSong (const char *filename, BYTE *musiccache, int offset, int
 	}
 
 #ifndef _WIN32
-	// non-Windows platforms don't support MDEV_MMAPI so map to MDEV_FMOD
+	// non-Windows platforms don't support MDEV_MMAPI so map to MDEV_SNDSYS
 	if (device == MDEV_MMAPI)
-		device = MDEV_FMOD;
+		device = MDEV_SNDSYS;
 #endif
 
 	// Check for gzip compression. Some formats are expected to have players
@@ -487,9 +492,9 @@ retry_as_fmod:
 			delete info;
 			info = NULL;
 		}
-		if (info == NULL && devtype != MDEV_FMOD && snd_mididevice < 0)
+		if (info == NULL && devtype != MDEV_SNDSYS && snd_mididevice < 0)
 		{
-			devtype = MDEV_FMOD;
+			devtype = MDEV_SNDSYS;
 			goto retry_as_fmod;
 		}
 #ifdef _WIN32
@@ -764,7 +769,7 @@ ADD_STAT(music)
 //
 //==========================================================================
 
-UNSAFE_CCMD (writeopl)
+CCMD (writeopl)
 {
 	if (argv.argc() == 2)
 	{
@@ -802,7 +807,7 @@ UNSAFE_CCMD (writeopl)
 //
 //==========================================================================
 
-UNSAFE_CCMD (writewave)
+CCMD (writewave)
 {
 	if (argv.argc() >= 2 && argv.argc() <= 3)
 	{
@@ -840,7 +845,7 @@ UNSAFE_CCMD (writewave)
 //
 //==========================================================================
 
-UNSAFE_CCMD (writemidi)
+CCMD (writemidi)
 {
 	if (argv.argc() != 2)
 	{

@@ -42,4 +42,3 @@ private:
 #endif
 
 #endif /* SNDFILE_DECODER_H */
-

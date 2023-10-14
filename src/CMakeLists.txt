@@ -15,7 +15,7 @@ include( CheckLibraryExists )
 find_package( PythonInterp 3 REQUIRED )
 
 if( NOT APPLE )
-	option( NO_ASM "Disable assembly code" ON )
+	option( NO_ASM "Disable assembly code" OFF )
 else( NOT APPLE )
 	# At the moment asm code doesn't work with OS X, so disable by default
 	option( NO_ASM "Disable assembly code" ON )
@@ -53,8 +53,8 @@ endif( CMAKE_SIZEOF_VOID_P MATCHES "8" )
 # a system-wide version.
 
 # Construct version numbers for searching for the FMOD library on Linux.
-# [BB] Added "64" to support 4.44.64.
-set( MINOR_VERSIONS "64" "61" "50" "49" "48" "47" "46" "45" "44" "43" "42" "41"
+set( MINOR_VERSIONS "64" "63" "62" "61" "60" "59" "58" "57" "56" "55" "54" 
+	"53" "52" "51" "50" "49" "48" "47" "46" "45" "44" "43" "42" "41"
 	"40" "39" "38" "37" "36" "35" "34" "33" "32" "31" "30" "29" "28"
 	"27" "26" "25" "24" "23" "22" "21" "20" "21" "19" "18" "17" "16"
 	"15" "14" "13" "12" "11" "10" "09" "08" "07" "06" "05" "04" "03"
@@ -78,12 +78,7 @@ set( FMOD_DIR_VERSIONS ${FMOD_DIR_VERSIONS} "../fmod" )
 foreach( majver ${MAJOR_VERSIONS} )
 	foreach( minver ${MINOR_VERSIONS} )
 		set( FMOD_VERSIONS ${FMOD_VERSIONS} "fmodex${X64}-4.${majver}.${minver}" )
-		# FMOD Ex version 4.44 unified 32-bit and 64-bit linux packages into one.
-		if( NOT majver EQUAL "44" )
-			set( FMOD_DIR_VERSIONS ${FMOD_DIR_VERSIONS} "${CMAKE_HOME_DIRECTORY}/fmodapi4${majver}${minver}linux${X64}" )
-		else()
-			set( FMOD_DIR_VERSIONS ${FMOD_DIR_VERSIONS} "${CMAKE_HOME_DIRECTORY}/fmodapi4${majver}${minver}linux" )
-		endif()
+		set( FMOD_DIR_VERSIONS ${FMOD_DIR_VERSIONS} "${CMAKE_HOME_DIRECTORY}/fmodapi4${majver}${minver}linux${X64}" )
 	endforeach( minver ${MINOR_VERSIONS} )
 	foreach( dir ${FMOD_DIR_VERSIONS} )
 		set( FMOD_LOCAL_INC_DIRS ${FMOD_LOCAL_INC_DIRS} "${dir}/api/inc" )
@@ -113,6 +108,7 @@ if( WIN32 )
 		"E:/Software/Dev/FMOD/${WIN_TYPE}/api" 
 		# .. and this one for Graf Zahl
 		"D:/portable/FMOD SoundSystem 4.26/FMOD Programmers API WIN32/api"
+		"C:/Program Files (x86)/FMOD SoundSystem/FMOD Programmers API Windows/api"
 		)
 	set( FMOD_INC_PATH_SUFFIXES PATH_SUFFIXES inc )
 	set( FMOD_LIB_PATH_SUFFIXES PATH_SUFFIXES lib )
@@ -156,8 +152,6 @@ if( WIN32 )
 		message( FATAL_ERROR "Could not find DirectX 9 libraries" )
 	endif( NOT DX_LIBS_FOUND )
 
-
-
 	set( ZDOOM_LIBS
 		wsock32
 		winmm
@@ -182,11 +176,7 @@ else( WIN32 )
 		# [BL] We need to compile without ASM code for now.
 		# [AL] OpenGL on OS X is enabled by default
 		set( NO_ASM ON )
- 
- 		if( NOT NO_OPENAL )
- 			set( ZDOOM_LIBS ${ZDOOM_LIBS} "-framework OpenAL")
- 		endif( NOT NO_OPENAL )	
- 	else( APPLE )
+	else( APPLE )
 		option( NO_GTK "Disable GTK+ dialogs (Not applicable to Windows)" )
 		option( VALGRIND "Add special Valgrind sequences to self-modifying code" )
 		# [BB] Added SERVERONLY, NO_SOUND and NO_GL.
@@ -196,9 +186,11 @@ else( WIN32 )
 
 		# [BB] The server doesn't need sound, GTK or OpenGL.
 		if( SERVERONLY )
-			set( NO_SOUND ON )
 			set( NO_GTK ON )
 			set( NO_GL ON )
+			set( NO_SOUND ON )
+			set( NO_OPENAL ON )
+			set( NO_FMOD ON )
 			add_definitions ( -DSERVER_ONLY=1 )
 			set( ZDOOM_EXE_NAME ${ZDOOM_EXE_NAME}-server )
 		endif( SERVERONLY )
@@ -274,6 +266,7 @@ else( WIN32 )
 	endif( NO_GL )
 endif( WIN32 )
 
+if( NOT NO_SOUND )
 if( NOT NO_OPENAL )
 	find_package( OpenAL )
 	mark_as_advanced(CLEAR OPENAL_INCLUDE_DIR)
@@ -289,6 +282,7 @@ if( NOT NO_OPENAL )
 	else( NOT NO_OPENAL )
 		set( NO_OPENAL ON )
 endif( NOT NO_OPENAL )
+endif( NOT NO_SOUND )
 
 if( X64 )
 	set( NO_ASM ON )
@@ -369,23 +363,16 @@ if( NO_FMOD )
 endif( NO_FMOD )
 
 if( NO_OPENAL )
-	add_definitions( -DNO_OPENAL=1 )
+ 	add_definitions( -DNO_OPENAL=1 )
+elseif( WITH_GSTREAMER )
+ 	add_definitions( -DWITH_GSTREAMER=1 )
+endif( NO_OPENAL )
 
-	set(MPG123_FOUND NO)
-	set(SNDFILE_FOUND NO)
-else()
-	# Search for libSndFile
-
+if( NOT NO_SOUND )
 	find_package( SndFile )
-
-	# Search for libmpg123
-
 	find_package( MPG123 )
-endif()
-
-# Search for FluidSynth
-
-find_package( FluidSynth )
+	find_package( FluidSynth )
+endif( NOT NO_SOUND )
 
 # Search for NASM
 
@@ -709,24 +696,26 @@ include_directories( ${OPENSSL_INCLUDE_DIR} )
 set ( ZDOOM_LIBS ${ZDOOM_LIBS} ${OPENSSL_LIBRARIES} )
 if( WIN32 )
 	set ( ZDOOM_LIBS ${ZDOOM_LIBS} crypt32 )
-endif ( WIN32 )
+endif ( NOT WIN32 )
 
-if( SNDFILE_FOUND )
-    set( ZDOOM_LIBS ${ZDOOM_LIBS} "${SNDFILE_LIBRARIES}" )
-    include_directories( "${SNDFILE_INCLUDE_DIRS}" )
-endif( SNDFILE_FOUND )
-if( MPG123_FOUND )
-    set( ZDOOM_LIBS ${ZDOOM_LIBS} "${MPG123_LIBRARIES}" )
-    include_directories( "${MPG123_INCLUDE_DIR}" )
-endif( MPG123_FOUND )
-if( NOT DYN_FLUIDSYNTH)
-	if( FLUIDSYNTH_FOUND )
-		set( ZDOOM_LIBS ${ZDOOM_LIBS} "${FLUIDSYNTH_LIBRARIES}" )
-		include_directories( "${FLUIDSYNTH_INCLUDE_DIR}" )
-	endif( FLUIDSYNTH_FOUND )
-else( NOT DYN_FLUIDSYNTH )
-	set( ZDOOM_LIBS ${ZDOOM_LIBS} ${CMAKE_DL_LIBS} )
-endif( NOT DYN_FLUIDSYNTH )
+if( NOT NO_SOUND )
+	if( SNDFILE_FOUND )
+		set( ZDOOM_LIBS ${ZDOOM_LIBS} "${SNDFILE_LIBRARIES}" )
+		include_directories( "${SNDFILE_INCLUDE_DIRS}" )
+	endif()
+	if( MPG123_FOUND )
+		set( ZDOOM_LIBS ${ZDOOM_LIBS} "${MPG123_LIBRARIES}" )
+		include_directories( "${MPG123_INCLUDE_DIR}" )
+	endif()
+	if( NOT DYN_FLUIDSYNTH)
+		if( FLUIDSYNTH_FOUND )
+			set( ZDOOM_LIBS ${ZDOOM_LIBS} "${FLUIDSYNTH_LIBRARIES}" )
+			include_directories( "${FLUIDSYNTH_INCLUDE_DIR}" )
+		endif( FLUIDSYNTH_FOUND )
+	else( NOT DYN_FLUIDSYNTH )
+		set( ZDOOM_LIBS ${ZDOOM_LIBS} ${CMAKE_DL_LIBS} )
+	endif( NOT DYN_FLUIDSYNTH )
+endif( NOT NO_SOUND )
 
 # OpenGL on OS X: GLEW include directory
 
@@ -866,12 +855,21 @@ else( SSE_MATTERS )
 	set( X86_SOURCES )
 endif( SSE_MATTERS )
 
-if( SNDFILE_FOUND )
-    add_definitions( -DHAVE_SNDFILE )
-endif( SNDFILE_FOUND )
-if( MPG123_FOUND )
-    add_definitions( -DHAVE_MPG123 )
-endif( MPG123_FOUND )
+if ( NOT NO_SOUND )
+	if( SNDFILE_FOUND )
+		add_definitions( -DHAVE_SNDFILE )
+	endif( SNDFILE_FOUND )
+	if( MPG123_FOUND )
+		add_definitions( -DHAVE_MPG123 )
+	endif( MPG123_FOUND )
+	if( DYN_FLUIDSYNTH )
+		add_definitions( -DHAVE_FLUIDSYNTH -DDYN_FLUIDSYNTH )
+	elseif( FLUIDSYNTH_FOUND )
+		add_definitions( -DHAVE_FLUIDSYNTH )
+	endif( DYN_FLUIDSYNTH )
+endif( NOT NO_SOUND )
+
+
 if( DYN_FLUIDSYNTH )
 	add_definitions( -DHAVE_FLUIDSYNTH -DDYN_FLUIDSYNTH )
 elseif( FLUIDSYNTH_FOUND )
@@ -1399,9 +1397,11 @@ add_executable( zdoom WIN32
 	resourcefiles/resourcefile.cpp
 	sfmt/SFMT.cpp
 	sound/fmodsound.cpp
+	sound/oalsound.cpp
+	sound/mpg123_decoder.cpp
+	sound/sndfile_decoder.cpp
 	sound/i_music.cpp
 	sound/i_sound.cpp
-	sound/mpg123_decoder.cpp
 	sound/music_cd.cpp
 	sound/music_dumb.cpp
 	sound/music_gme.cpp
@@ -1415,12 +1415,11 @@ add_executable( zdoom WIN32
 	sound/music_mus_opl.cpp
 	sound/music_stream.cpp
 	sound/music_fluidsynth_mididevice.cpp
+	sound/music_audiotoolbox_mididevice.cpp
 	sound/music_softsynth_mididevice.cpp
 	sound/music_timidity_mididevice.cpp
 	sound/music_win_mididevice.cpp
 	sound/music_pseudo_mididevice.cpp
-	sound/oalsound.cpp
-	sound/sndfile_decoder.cpp
 	textures/animations.cpp
 	textures/anim_switches.cpp
 	textures/automaptexture.cpp

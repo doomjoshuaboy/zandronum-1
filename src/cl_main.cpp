@@ -126,13 +126,10 @@
 #include "decallib.h"
 #include "network/servercommands.h"
 #include "am_map.h"
-<<<<<<< HEAD
 #include "menu/menu.h"
 #include "v_text.h"
 #include "maprotation.h"
 #include "st_hud.h"
-=======
->>>>>>> 65fd01059 (Converted the command DoScroller to the protocol specification.)
 
 //*****************************************************************************
 //	MISC CRAP THAT SHOULDN'T BE HERE BUT HAS TO BE BECAUSE OF SLOPPY CODING
@@ -410,15 +407,12 @@ static	int					g_ServerGameticOffset;
 // [TP] Client's understanding of the account names of players.
 static FString				g_PlayerAccountNames[MAXPLAYERS];
 
-<<<<<<< HEAD
 // [TP] Do we have RCON access to the server?
 static	bool				g_HasRCONAccess = false;
 
 // [AK] We are in the process of gaining RCON access to the server.
 static  bool				g_GainingRCONAccess = false;
 
-=======
->>>>>>> 65fd01059 (Converted the command DoScroller to the protocol specification.)
 //*****************************************************************************
 //	FUNCTIONS
 
@@ -1207,7 +1201,6 @@ void CLIENT_CheckForMissingPackets( void )
 				if ( debugfile )
 					fprintf( debugfile, "Missing packet %d.\n", static_cast<int> (lIdx) );
 
-<<<<<<< HEAD
 				g_LocalBuffer.ByteStream.WriteLong( lIdx );
 				CLIENTSTATISTICS_AddToMissingPacketsRequested ( 1 );
 
@@ -1220,9 +1213,6 @@ void CLIENT_CheckForMissingPackets( void )
 					DHUDMessageFadeOut *pMsg = new DHUDMessageFadeOut( SmallFont, message, 1.5f, 0.9f, 0, 0, CR_GREEN, 2.f, 0.35f );
 					StatusBar->AttachMessage( pMsg, MAKE_ID( 'P', 'C', 'K', 'T' ));
 				}
-=======
-				NETWORK_WriteLong( &g_LocalBuffer.ByteStream, lIdx );
->>>>>>> 65fd01059 (Converted the command DoScroller to the protocol specification.)
 			}
 		}
 
@@ -2166,7 +2156,7 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 					// [TP] Only allow the server to set mod CVARs.
 					FBaseCVar* cvar = FindCVar( cvarName, NULL );
 
-					if (( cvar == NULL ) || (( cvar->GetFlags() & CVAR_MOD ) == 0 ))
+					if (( cvar == NULL ) || (( cvar->GetFlags() & ( CVAR_MOD | CVAR_SERVERINFO | CVAR_SENSITIVESERVERSETTING )) == 0 ))
 					{
 						CLIENT_PrintWarning( "SVC2_SETCVAR: The server attempted to set the value of "
 							"%s to \"%s\"\n", cvarName.GetChars(), cvarValue.GetChars() );
@@ -2265,7 +2255,6 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 				}
 				break;
 
-<<<<<<< HEAD
 			// [TP]
 			case SVC2_RCONACCESS:
 				if ( pByteStream->ReadByte() )
@@ -2340,8 +2329,6 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 				}
 				break;
 
-=======
->>>>>>> 65fd01059 (Converted the command DoScroller to the protocol specification.)
 			default:
 				sprintf( szString, "CLIENT_ParsePacket: Illegible server message: %d\nLast command: %d\n", static_cast<int> (lExtCommand), static_cast<int> (g_lLastCmd) );
 				CLIENT_QuitNetworkGame( szString );
@@ -2649,8 +2636,14 @@ AActor *CLIENT_SpawnThing( const PClass *pType, fixed_t X, fixed_t Y, fixed_t Z,
 	{
 		// [BB] Calling StaticSpawn with "levelThing == true" will prevent
 		// BeginPlay from being called on pActor, so we have to do this manually.
-		if ( levelThing )
+		// [EP] Don't forget to drop the DROPPED flag if it wasn't present. See the comment in AActor::LevelSpawned for the reason.
+		if ( levelThing ) {
 			pActor->BeginPlay ();
+			if (!(pActor->GetDefault()->flags & MF_DROPPED))
+			{
+				pActor->flags &= ~MF_DROPPED;
+			}
+		}
 
 		pActor->NetID = lNetID;
 		g_ActorNetIDList.useID ( lNetID, pActor );
@@ -2804,7 +2797,6 @@ bool CLIENT_CanClipMovement( AActor *pActor )
 }
 
 //*****************************************************************************
-<<<<<<< HEAD
 bool CLIENT_HasRCONAccess()
 {
 	return g_HasRCONAccess;
@@ -2812,13 +2804,6 @@ bool CLIENT_HasRCONAccess()
 
 //*****************************************************************************
 bool CLIENT_GainingRCONAccess()
-=======
-//
-// :(. This is needed so that the MOTD can be printed in the color the user wishes to print
-// mid-screen messages in.
-extern	int PrintColors[7];
-void CLIENT_DisplayMOTD( void )
->>>>>>> 65fd01059 (Converted the command DoScroller to the protocol specification.)
 {
 	return g_GainingRCONAccess;
 }
@@ -8910,6 +8895,7 @@ static void client_EarthQuake( BYTESTREAM_s *pByteStream )
 void ServerCommands::DoScroller::Execute()
 {
 	int control = ContainsSector() ? (int)(sector - sectors) : -1;
+	int position = ContainsPos() ? pos : DScroller::scw_all;
 
 	// Check to make sure what we've read in is valid.
 	// [BB] sc_side is allowed, too, but we need to make a different check for it.
@@ -8935,7 +8921,7 @@ void ServerCommands::DoScroller::Execute()
 	}
 
 	// Finally, create the scroller.
-	new DScroller( (DScroller::EScrollType)type, x, y, control, affectee, (int)accel );
+	new DScroller( (DScroller::EScrollType)type, x, y, control, affectee, (int)accel, position );
 }
 
 //*****************************************************************************

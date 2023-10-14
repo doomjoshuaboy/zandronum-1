@@ -7,13 +7,11 @@
 
 #ifndef NO_OPENAL
 
-#ifndef APPLE
-#include <AL/al.h>
-#include <AL/alc.h>
-#else 
 #include <al.h>
 #include <alc.h>
-#endif
+#include <alext.h>
+
+#include <efx.h>
 
 #ifndef ALC_ENUMERATE_ALL_EXT
 #define ALC_ENUMERATE_ALL_EXT 1
@@ -24,6 +22,28 @@
 #ifndef ALC_EXT_disconnect
 #define ALC_EXT_disconnect 1
 #define ALC_CONNECTED                            0x313
+#endif
+
+#ifndef ALC_SOFT_HRTF
+#define ALC_SOFT_HRTF 1
+#define ALC_HRTF_SOFT                            0x1992
+#define ALC_DONT_CARE_SOFT                       0x0002
+#define ALC_HRTF_STATUS_SOFT                     0x1993
+#define ALC_HRTF_DISABLED_SOFT                   0x0000
+#define ALC_HRTF_ENABLED_SOFT                    0x0001
+#define ALC_HRTF_DENIED_SOFT                     0x0002
+#define ALC_HRTF_REQUIRED_SOFT                   0x0003
+#define ALC_HRTF_HEADPHONES_DETECTED_SOFT        0x0004
+#define ALC_HRTF_UNSUPPORTED_FORMAT_SOFT         0x0005
+#define ALC_NUM_HRTF_SPECIFIERS_SOFT             0x1994
+#define ALC_HRTF_SPECIFIER_SOFT                  0x1995
+#define ALC_HRTF_ID_SOFT                         0x1996
+typedef const ALCchar* (ALC_APIENTRY* LPALCGETSTRINGISOFT)(ALCdevice* device, ALCenum paramName, ALCsizei index);
+typedef ALCboolean(ALC_APIENTRY* LPALCRESETDEVICESOFT)(ALCdevice* device, const ALCint* attribs);
+#ifdef AL_ALEXT_PROTOTYPES
+ALC_API const ALCchar* ALC_APIENTRY alcGetStringiSOFT(ALCdevice* device, ALCenum paramName, ALCsizei index);
+ALC_API ALCboolean ALC_APIENTRY alcResetDeviceSOFT(ALCdevice* device, const ALCint* attribs);
+#endif
 #endif
 
 #ifndef AL_EXT_source_distance_model
@@ -61,11 +81,17 @@
 #define AL_FORMAT_71CHN32                        0x1212
 #endif
 
-#ifndef APPLE
-#include <AL/efx.h>
-#else
-#include "efx.h"
+#ifndef AL_EXT_SOURCE_RADIUS
+#define AL_EXT_SOURCE_RADIUS 1
+#define AL_SOURCE_RADIUS                         0x1031
 #endif
+
+#ifndef AL_SOFT_source_spatialize
+#define AL_SOFT_source_spatialize
+#define AL_SOURCE_SPATIALIZE_SOFT                0x1214
+#define AL_AUTO_SOFT                             0x0002
+#endif
+
 
 class OpenALSoundStream;
 
@@ -73,68 +99,73 @@ class OpenALSoundRenderer : public SoundRenderer
 {
 public:
 	OpenALSoundRenderer();
-	virtual ~OpenALSoundRenderer();
+	~OpenALSoundRenderer();
 
-	virtual void SetSfxVolume(float volume);
-	virtual void SetMusicVolume(float volume);
-	virtual SoundHandle LoadSound(BYTE *sfxdata, int length);
-	virtual SoundHandle LoadSoundRaw(BYTE *sfxdata, int length, int frequency, int channels, int bits, int loopstart, int loopend = -1);
-	virtual void UnloadSound(SoundHandle sfx);
-	virtual unsigned int GetMSLength(SoundHandle sfx);
-	virtual unsigned int GetSampleLength(SoundHandle sfx);
-	virtual float GetOutputRate();
+	void SetSfxVolume(float volume);
+	void SetMusicVolume(float volume);
+	SoundHandle LoadSound(BYTE *sfxdata, int length, int def_loop_start, int def_loop_end);
+	SoundHandle LoadSoundRaw(BYTE *sfxdata, int length, int frequency, int channels, int bits, int loopstart, int loopend);
+	void UnloadSound(SoundHandle sfx);
+	unsigned int GetMSLength(SoundHandle sfx);
+	unsigned int GetSampleLength(SoundHandle sfx);
+	float GetOutputRate();
 
 	// Streaming sounds.
-	virtual SoundStream *CreateStream(SoundStreamCallback callback, int buffbytes, int flags, int samplerate, void *userdata);
-	virtual SoundStream *OpenStream(const char *filename, int flags, int offset, int length);
+	SoundStream *CreateStream(SoundStreamCallback callback, int buffbytes, int flags, int samplerate, void *userdata);
+	SoundStream *OpenStream(const char *filename, int flags, int offset, int length);
 
 	// Starts a sound.
-	virtual FISoundChannel *StartSound(SoundHandle sfx, float vol, int pitch, int chanflags, FISoundChannel *reuse_chan);
-	virtual FISoundChannel *StartSound3D(SoundHandle sfx, SoundListener *listener, float vol, FRolloffInfo *rolloff, float distscale, int pitch, int priority, const FVector3 &pos, const FVector3 &vel, int channum, int chanflags, FISoundChannel *reuse_chan);
+	FISoundChannel *StartSound(SoundHandle sfx, float vol, int pitch, int chanflags, FISoundChannel *reuse_chan);
+	FISoundChannel *StartSound3D(SoundHandle sfx, SoundListener *listener, float vol, FRolloffInfo *rolloff, float distscale, int pitch, int priority, const FVector3 &pos, const FVector3 &vel, int channum, int chanflags, FISoundChannel *reuse_chan);
 
 	// Changes a channel's volume.
-	virtual void ChannelVolume(FISoundChannel *chan, float volume);
+	void ChannelVolume(FISoundChannel *chan, float volume);
 
 	// Stops a sound channel.
-	virtual void StopChannel(FISoundChannel *chan);
+	void StopChannel(FISoundChannel *chan);
 
 	// Returns position of sound on this channel, in samples.
-	virtual unsigned int GetPosition(FISoundChannel *chan);
+	unsigned int GetPosition(FISoundChannel *chan);
 
 	// Synchronizes following sound startups.
-	virtual void Sync(bool sync);
+	void Sync(bool sync);
 
 	// Pauses or resumes all sound effect channels.
-	virtual void SetSfxPaused(bool paused, int slot);
+	void SetSfxPaused(bool paused, int slot);
 
 	// Pauses or resumes *every* channel, including environmental reverb.
-	virtual void SetInactive(SoundRenderer::EInactiveState inactive);
+	void SetInactive(SoundRenderer::EInactiveState inactive);
 
 	// Updates the volume, separation, and pitch of a sound channel.
-	virtual void UpdateSoundParams3D(SoundListener *listener, FISoundChannel *chan, bool areasound, const FVector3 &pos, const FVector3 &vel);
+	void UpdateSoundParams3D(SoundListener *listener, FISoundChannel *chan, bool areasound, const FVector3 &pos, const FVector3 &vel);
 
-	virtual void UpdateListener(SoundListener *);
-	virtual void UpdateSounds();
+	void UpdateListener(SoundListener *);
+	void UpdateSounds();
 
-	virtual void MarkStartTime(FISoundChannel*);
-	virtual float GetAudibility(FISoundChannel*);
+	void MarkStartTime(FISoundChannel*);
+	float GetAudibility(FISoundChannel*);
 
 
-	virtual bool IsValid();
-	virtual void PrintStatus();
-	virtual void PrintDriversList();
-	virtual FString GatherStats();
+	bool IsValid();
+	void PrintStatus();
+	void PrintDriversList();
+	FString GatherStats();
 
+	virtual MIDIDevice* CreateMIDIDevice() const override;
 private:
-    struct {
-        bool EXT_EFX;
-        bool EXT_disconnect;
-    } ALC;
-    struct {
-        bool EXT_source_distance_model;
-        bool SOFT_deferred_updates;
-        bool SOFT_loop_points;
-    } AL;
+	struct {
+		bool EXT_EFX;
+		bool EXT_disconnect;
+		bool SOFT_HRTF;
+		bool SOFT_pause_device;
+	} ALC;
+	struct {
+		bool EXT_source_distance_model;
+		bool EXT_SOURCE_RADIUS;
+		bool SOFT_deferred_updates;
+		bool SOFT_loop_points;
+		bool SOFT_source_spatialize;
+	} AL;
 
 	// EFX Extension function pointer variables. Loaded after context creation
 	// if EFX is supported. These pointers may be context- or device-dependant,
@@ -176,8 +207,12 @@ private:
 	LPALGETAUXILIARYEFFECTSLOTF alGetAuxiliaryEffectSlotf;
 	LPALGETAUXILIARYEFFECTSLOTFV alGetAuxiliaryEffectSlotfv;
 
-    ALvoid (AL_APIENTRY*alDeferUpdatesSOFT)(void);
-    ALvoid (AL_APIENTRY*alProcessUpdatesSOFT)(void);
+	ALvoid (AL_APIENTRY* alDeferUpdatesSOFT)(void);
+	ALvoid (AL_APIENTRY* alProcessUpdatesSOFT)(void);
+
+	void (ALC_APIENTRY* alcDevicePauseSOFT)(ALCdevice* device);
+	void (ALC_APIENTRY* alcDeviceResumeSOFT)(ALCdevice* device);
+
 
 	void LoadReverb(const ReverbContainer *env);
 	void PurgeStoppedSources();

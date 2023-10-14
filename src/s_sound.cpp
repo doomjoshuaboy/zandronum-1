@@ -141,7 +141,7 @@ BYTE *S_SoundCurve;
 int S_SoundCurveSize;
 
 FBoolCVar noisedebug ("noise", false, 0);	// [RH] Print sound debugging info?
-CVAR (Int, snd_channels, 32, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)	// number of channels available
+CVAR (Int, snd_channels, 128, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)	// number of channels available
 CVAR (Bool, snd_flipstereo, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 
 // [AK] Prevents any music changes as if a playlist was playing, originally from ZCC.
@@ -1424,12 +1424,12 @@ sfxinfo_t *S_LoadSound(sfxinfo_t *sfx)
 					}
 					sfxstart = sfxdata + 8;
 				}
-				sfx->data = GSnd->LoadSoundRaw(sfxstart, len, frequency, 1, 8, sfx->LoopStart);
+				sfx->data = GSnd->LoadSoundRaw(sfxstart, len, frequency, 1, 8, sfx->LoopStart, sfx->LoopEnd);
 			}
 			else
 			{
 				len = Wads.LumpLength (sfx->lumpnum);
-				sfx->data = GSnd->LoadSound(sfxstart, len);
+				sfx->data = GSnd->LoadSound(sfxstart, len, sfx->LoopStart, sfx->LoopEnd);
 			}
 			
 			if (sfxdata != NULL)

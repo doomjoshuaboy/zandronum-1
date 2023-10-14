@@ -1,13 +1,13 @@
 #ifndef MPG123_DECODER_H
 #define MPG123_DECODER_H
 
-#include "vectors.h"
 #include "i_soundinternal.h"
 
 #ifdef HAVE_MPG123
 
 #ifdef _MSC_VER
-typedef int ssize_t;
+#include <stddef.h>
+typedef ptrdiff_t ssize_t;
 #endif
 #include "mpg123.h"
 
@@ -31,7 +31,6 @@ private:
     bool Done;
 
     FileReader *Reader;
-    int StartOffset;
     static off_t file_lseek(void *handle, off_t offset, int whence);
     static ssize_t file_read(void *handle, void *buffer, size_t bytes);
 
@@ -43,4 +42,3 @@ private:
 #endif
 
 #endif /* MPG123_DECODER_H */
-

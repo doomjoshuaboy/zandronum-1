@@ -34,7 +34,7 @@ static void AddDefaultMidiDevices(FOptionValues *opt)
 	pair[p+1].Value = -3.0;
 	pair[p+2].Text = "TiMidity++";
 	pair[p+2].Value = -2.0;
-	pair[p+3].Text = "FMOD";
+	pair[p+3].Text = "System";
 	pair[p+3].Value = -1.0;
 
 }
@@ -63,10 +63,16 @@ static void MIDIDeviceChanged(int newdev)
 	oldmididev = newdev;
 }
 
+#ifdef HAVE_FLUIDSYNTH
+#define DEF_MIDIDEVICE -5
+#else
+#define DEF_MIDIDEVICE -1
+#endif
+
 #ifdef _WIN32
 UINT mididevice;
 
-CUSTOM_CVAR (Int, snd_mididevice, -1, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+CUSTOM_CVAR (Int, snd_mididevice, DEF_MIDIDEVICE, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 {
 	if (!nummididevicesset)
 		return;
@@ -173,7 +179,7 @@ CCMD (snd_listmididevices)
 	PrintMidiDevice (-4, "Gravis Ultrasound Emulation", MOD_SWSYNTH, 0);
 	PrintMidiDevice (-3, "Emulated OPL FM Synth", MOD_FMSYNTH, 0);
 	PrintMidiDevice (-2, "TiMidity++", MOD_SWSYNTH, 0);
-	PrintMidiDevice (-1, "FMOD", MOD_SWSYNTH, 0);
+	PrintMidiDevice (-1, "System", MOD_SWSYNTH, 0);
 	if (nummididevices != 0)
 	{
 		for (id = 0; id < nummididevices; ++id)
@@ -195,7 +201,7 @@ CCMD (snd_listmididevices)
 
 // Everything but Windows uses this code.
 
-CUSTOM_CVAR(Int, snd_mididevice, -1, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+CUSTOM_CVAR (Int, snd_mididevice, DEF_MIDIDEVICE, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 {
 	if (self < -5)
 		self = -5;
@@ -218,6 +224,6 @@ CCMD (snd_listmididevices)
 	Printf("%s-4. Gravis Ultrasound Emulation\n", -4 == snd_mididevice ? TEXTCOLOR_BOLD : "");
 	Printf("%s-3. Emulated OPL FM Synth\n", -3 == snd_mididevice ? TEXTCOLOR_BOLD : "");
 	Printf("%s-2. TiMidity++\n", -2 == snd_mididevice ? TEXTCOLOR_BOLD : "");
-	Printf("%s-1. FMOD\n", -1 == snd_mididevice ? TEXTCOLOR_BOLD : "");
+	Printf("%s-1. Default\n", -1 == snd_mididevice ? TEXTCOLOR_BOLD : "");
 }
 #endif

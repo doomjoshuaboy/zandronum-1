@@ -63,7 +63,7 @@ bool IsOpenALPresent()
 {
 #ifdef NO_OPENAL
 	return false;
-#elif !defined _WIN32
+#elif !defined _MSC_VER
 	return true;	// on non-Windows we cannot delay load the library so it has to be present.
 #else
 	static bool cached_result;
@@ -122,6 +122,7 @@ EXTERN_CVAR (Int, snd_channels)
 EXTERN_CVAR (Int, snd_samplerate)
 EXTERN_CVAR (Bool, snd_waterreverb)
 EXTERN_CVAR (Bool, snd_pitched)
+EXTERN_CVAR (Bool, snd_hrtf)
 
 
 #define MAKE_PTRID(x)  ((void*)(uintptr_t)(x))
@@ -172,6 +173,232 @@ static ALvoid AL_APIENTRY _wrap_ProcessUpdatesSOFT(void)
     alcProcessContext(alcGetCurrentContext());
 }
 
+//==========================================================================
+//
+// Try to find the LOOP_START/LOOP_END tags in a Vorbis Comment block
+//
+// We have to parse through the FLAC or Ogg headers manually, since sndfile
+// doesn't provide proper access to the comments and we'd rather not require
+// using libFLAC and libvorbisfile directly.
+//
+//==========================================================================
+
+static void ParseVorbisComments(MemoryReader *mr, unsigned int *start, bool *startass, unsigned int *end, bool *endass)
+{
+	BYTE vc_data[4];
+
+	// The VC block starts with a 32LE integer for the vendor string length,
+	// followed by the vendor string
+	if(mr->Read(vc_data, 4) != 4)
+		return;
+    unsigned int vndr_len = vc_data[0] | (vc_data[1]<<8) | (vc_data[2]<<16) | (vc_data[3]<<24);
+
+	// Skip vendor string
+	if(mr->Seek(vndr_len, SEEK_CUR) == -1)
+		return;
+
+	// Following the vendor string is a 32LE integer for the number of
+	// comments, followed by each comment.
+	if(mr->Read(vc_data, 4) != 4)
+		return;
+	size_t count = vc_data[0] | (vc_data[1]<<8) | (vc_data[2]<<16) | (vc_data[3]<<24);
+
+	bool loopass = false;
+    unsigned int looplen = 0;
+	bool endfound = false;
+
+	for(size_t i = 0; i < count; i++)
+	{
+		// Each comment is a 32LE integer for the comment length, followed by
+		// the comment text (not null terminated!)
+		if(mr->Read(vc_data, 4) != 4)
+			return;
+        unsigned int length = vc_data[0] | (vc_data[1]<<8) | (vc_data[2]<<16) | (vc_data[3]<<24);
+
+		if(length >= 128)
+		{
+			// If the comment is "big", skip it
+			if(mr->Seek(length, SEEK_CUR) == -1)
+				return;
+			continue;
+		}
+
+		char strdat[128];
+		if(mr->Read(strdat, length) != (long)length)
+			return;
+		strdat[length] = 0;
+
+		static const char* loopStartTags[] = { "LOOP_START=", "LOOPSTART=", "LOOP=" };
+		static const char* loopEndTags[] = { "LOOP_END=", "LOOPEND=" };
+		static const char* loopLengthTags[] = { "LOOP_LENGTH=", "LOOPLENGTH=" };
+
+		for (auto tag : loopStartTags)
+		{
+			const size_t tagLength = strlen(tag);
+
+			if (!strnicmp(strdat, tag, tagLength))
+			{
+				S_ParseTimeTag(strdat + tagLength, startass, start);
+				break;
+			}
+		}
+		for (auto tag : loopEndTags)
+		{
+			const size_t tagLength = strlen(tag);
+
+			if (!strnicmp(strdat, tag, tagLength))
+			{
+				S_ParseTimeTag(strdat + tagLength, endass, end);
+				endfound = true;
+				break;
+			}
+		}
+		for (auto tag : loopLengthTags)
+		{
+			const size_t tagLength = strlen(tag);
+
+			if (!strnicmp(strdat, tag, tagLength))
+			{
+				S_ParseTimeTag(strdat + tagLength, &loopass, &looplen);
+				*end += *start;
+				break;
+			}
+		}
+	}
+	// Use loop length only if no end defined.
+	if (!endfound && looplen && loopass == *startass)
+	{
+		*endass = loopass;
+		*end = *start + looplen;
+	}
+}
+
+static void FindFlacComments(MemoryReader *mr, unsigned int *loop_start, bool *startass, unsigned int *loop_end, bool *endass)
+{
+	// Already verified the fLaC marker, so we're 4 bytes into the file
+	bool lastblock = false;
+	BYTE header[4];
+
+	while(!lastblock && mr->Read(header, 4) == 4)
+	{
+		// The first byte of the block header contains the type and a flag
+		// indicating the last metadata block
+		char blocktype = header[0]&0x7f;
+		lastblock = !!(header[0]&0x80);
+		// Following the type is a 24BE integer for the size of the block
+        unsigned int blocksize = (header[1]<<16) | (header[2]<<8) | header[3];
+
+		// FLAC__METADATA_TYPE_VORBIS_COMMENT is 4
+		if(blocktype == 4)
+		{
+			ParseVorbisComments(mr, loop_start, startass, loop_end, endass);
+			return;
+		}
+
+		if(mr->Seek(blocksize, SEEK_CUR) == -1)
+			break;
+	}
+}
+
+static void FindOggComments(MemoryReader *mr, unsigned int *loop_start, bool *startass, unsigned int *loop_end, bool *endass)
+{
+	BYTE ogghead[27];
+
+	// We already read and verified the OggS marker, so skip the first 4 bytes
+	// of the Ogg page header.
+	while(mr->Read(ogghead+4, 23) == 23)
+	{
+		// The 19th byte of the Ogg header is a 32LE integer for the page
+		// number, and the 27th is a uint8 for the number of segments in the
+		// page.
+        unsigned int ogg_pagenum = ogghead[18] | (ogghead[19]<<8) | (ogghead[20]<<16) |
+		                       (ogghead[21]<<24);
+		BYTE ogg_segments = ogghead[26];
+
+		// Following the Ogg page header is a series of uint8s for the length of
+		// each segment in the page. The page segment data follows contiguously
+		// after.
+		BYTE segsizes[256];
+		if(mr->Read(segsizes, ogg_segments) != ogg_segments)
+			break;
+
+		// Find the segment with the Vorbis Comment packet (type 3) or Opus tags.
+		bool vorbis_comments = false;
+		for(int i = 0; i < ogg_segments; ++i)
+		{
+			BYTE segsize = segsizes[i];
+
+			if(segsize > 16)
+			{
+				BYTE vorbhead[8];
+				if(mr->Read(vorbhead, 8) != 8)
+					return;
+
+				if(vorbhead[0] == 3 && memcmp(vorbhead + 1, "vorbis", 6) == 0)
+				{
+					// Seek back because the vorbis tag is only 7 bytes long.
+					if(mr->Seek(-1, SEEK_CUR) == -1)
+						return;
+					segsize++;
+
+					vorbis_comments = true;
+				}
+				else if(memcmp(vorbhead, "OpusTags", 8) == 0)
+					vorbis_comments = true;
+
+				if(vorbis_comments)
+				{
+					// If the packet is 'laced', it spans multiple segments (a
+					// segment size of 255 indicates the next segment continues
+					// the packet, ending with a size less than 255). Vorbis
+					// packets always start and end on segment boundaries. A
+					// packet that's an exact multiple of 255 ends with a
+					// segment of 0 size.
+					while(segsize == 255 && ++i < ogg_segments)
+						segsize = segsizes[i];
+
+					// TODO: A Vorbis packet can theoretically span multiple
+					// Ogg pages (e.g. start in the last segment of one page
+					// and end in the first segment of a following page). That
+					// will require extra logic to decode as the VC block will
+					// be broken up with non-Vorbis data in-between. For now,
+					// just handle the common case where it's all in one page.
+					if(i < ogg_segments)
+						ParseVorbisComments(mr, loop_start, startass, loop_end, endass);
+					return;
+				}
+
+				segsize -= 8;
+			}
+			if(mr->Seek(segsize, SEEK_CUR) == -1)
+				return;
+		}
+
+		// Don't keep looking after the third page
+		if(ogg_pagenum >= 2)
+			break;
+
+		if(mr->Read(ogghead, 4) != 4 || memcmp(ogghead, "OggS", 4) != 0)
+			break;
+	}
+}
+
+static void FindLoopTags(MemoryReader *mr, unsigned int *start, bool *startass, unsigned int *end, bool *endass)
+{
+	BYTE signature[4];
+
+	mr->Read(signature, 4);
+	if(memcmp(signature, "fLaC", 4) == 0)
+		FindFlacComments(mr, start, startass, end, endass);
+	else if(memcmp(signature, "OggS", 4) == 0)
+		FindOggComments(mr, start, startass, end, endass);
+}
+
+static void FindLoopTags(const BYTE *data, size_t size, unsigned int *start, bool *startass, unsigned int *end, bool *endass)
+{
+	MemoryReader *reader = new MemoryReader((const char*)data, (long)size);
+	FindLoopTags(reader, start, startass, end, endass);
+}
 
 class OpenALSoundStream : public SoundStream
 {
@@ -227,6 +454,7 @@ class OpenALSoundStream : public SoundStream
         }
         Renderer->FreeSfx.Pop(Source);
 
+
         /* Set the default properties for localized playback */
         alSource3f(Source, AL_DIRECTION, 0.f, 0.f, 0.f);
         alSource3f(Source, AL_VELOCITY, 0.f, 0.f, 0.f);
@@ -238,13 +466,17 @@ class OpenALSoundStream : public SoundStream
         alSourcef(Source, AL_SEC_OFFSET, 0.f);
         alSourcei(Source, AL_SOURCE_RELATIVE, AL_TRUE);
         alSourcei(Source, AL_LOOPING, AL_FALSE);
-        if(Renderer->EnvSlot)
+        if (Renderer->EnvSlot)
         {
             alSourcef(Source, AL_ROOM_ROLLOFF_FACTOR, 0.f);
             alSourcef(Source, AL_AIR_ABSORPTION_FACTOR, 0.f);
             alSourcei(Source, AL_DIRECT_FILTER, AL_FILTER_NULL);
             alSource3i(Source, AL_AUXILIARY_SEND_FILTER, 0, 0, AL_FILTER_NULL);
         }
+        if (Renderer->AL.EXT_SOURCE_RADIUS)
+            alSourcef(Source, AL_SOURCE_RADIUS, 0.f);
+		if (Renderer->AL.SOFT_source_spatialize)
+			alSourcei(Source, AL_SOURCE_SPATIALIZE_SOFT, AL_AUTO_SOFT);
 
         alGenBuffers(BufferCount, Buffers);
         return (getALError() == AL_NO_ERROR);
@@ -258,7 +490,7 @@ public:
         memset(Buffers, 0, sizeof(Buffers));
     }
 
-    virtual ~OpenALSoundStream()
+    ~OpenALSoundStream()
     {
         if(Source)
         {
@@ -284,7 +516,7 @@ public:
     }
 
 
-    virtual bool Play(bool loop, float vol)
+    bool Play(bool loop, float vol)
     {
         SetVolume(vol);
 
@@ -314,7 +546,7 @@ public:
         return Playing;
     }
 
-    virtual void Stop()
+    void Stop()
     {
         if(!Playing)
             return;
@@ -326,7 +558,7 @@ public:
         Playing = false;
     }
 
-    virtual void SetVolume(float vol)
+    void SetVolume(float vol)
     {
         Volume = vol;
         UpdateVolume();
@@ -338,7 +570,7 @@ public:
         getALError();
     }
 
-    virtual bool SetPaused(bool pause)
+    bool SetPaused(bool pause)
     {
         if(pause)
             alSourcePause(Source);
@@ -347,7 +579,7 @@ public:
         return (getALError()==AL_NO_ERROR);
     }
 
-    virtual bool SetPosition(unsigned int ms_pos)
+    bool SetPosition(unsigned int ms_pos)
     {
         if(!Decoder->seek(ms_pos))
             return false;
@@ -362,7 +594,7 @@ public:
         return !IsEnded();
     }
 
-    virtual unsigned int GetPosition()
+    unsigned int GetPosition()
     {
         ALint offset, queued, state;
         alGetSourcei(Source, AL_SAMPLE_OFFSET, &offset);
@@ -381,7 +613,7 @@ public:
         return (unsigned int)(pos * 1000.0 / SampleRate);
     }
 
-    virtual bool IsEnded()
+    bool IsEnded()
     {
         if(!Playing)
             return true;
@@ -433,7 +665,7 @@ public:
     FString GetStats()
     {
         FString stats;
-        size_t pos, len;
+        size_t pos = 0, len = 0;
         ALfloat volume;
         ALint offset;
         ALint processed;
@@ -453,26 +685,33 @@ public:
             return stats;
         }
 
+        if (Decoder != NULL)
+		{
+			pos = Decoder->getSampleOffset();
+			len = Decoder->getSampleLength();
+		}
+
         stats = (state == AL_INITIAL) ? "Buffering" : (state == AL_STOPPED) ? "Underrun" :
                 (state == AL_PLAYING || state == AL_PAUSED) ? "Ready" : "Unknown state";
 
-        pos = Decoder->getSampleOffset();
-        len = Decoder->getSampleLength();
-        if(state == AL_STOPPED)
-            offset = BufferCount * (Data.Size()/FrameSize);
-        else
-        {
-            size_t rem = queued*(Data.Size()/FrameSize) - offset;
-            if(pos > rem) pos -= rem;
-            else if(len > 0) pos += len - rem;
-            else pos = 0;
-        }
-        pos = (size_t)(pos * 1000.0 / SampleRate);
-        len = (size_t)(len * 1000.0 / SampleRate);
-        stats.AppendFormat(",%3u%% buffered", 100 - 100*offset/(BufferCount*(Data.Size()/FrameSize)));
-        stats.AppendFormat(", %zu.%03zu", pos/1000, pos%1000);
-        if(len > 0)
-            stats.AppendFormat(" / %zu.%03zu", len/1000, len%1000);
+		if (Decoder != NULL)
+		{
+			if (state == AL_STOPPED)
+				offset = BufferCount * (Data.Size() / FrameSize);
+			else
+			{
+				size_t rem = queued*(Data.Size() / FrameSize) - offset;
+				if (pos > rem) pos -= rem;
+				else if (len > 0) pos += len - rem;
+				else pos = 0;
+			}
+			pos = (size_t)(pos * 1000.0 / SampleRate);
+			len = (size_t)(len * 1000.0 / SampleRate);
+			stats.AppendFormat(",%3u%% buffered", 100 - 100 * offset / (BufferCount*(Data.Size() / FrameSize)));
+			stats.AppendFormat(", %zu.%03zu", pos / 1000, pos % 1000);
+			if (len > 0)
+				stats.AppendFormat(" / %zu.%03zu", len / 1000, len % 1000);
+		}
         if(state == AL_PAUSED)
             stats += ", paused";
         if(state == AL_PLAYING)
@@ -589,7 +828,7 @@ public:
         SampleRate = srate;
         Looping = loop;
 
-        Data.Resize((size_t)(0.2 * SampleRate) * FrameSize);
+        Data.Resize((SampleRate / 5) * FrameSize);
 
         return true;
     }
@@ -642,7 +881,7 @@ public:
         SampleRate = srate;
         Looping = loop;
 
-        Data.Resize((size_t)(0.2 * SampleRate) * FrameSize);
+        Data.Resize((SampleRate / 5) * FrameSize);
 
         return true;
     }
@@ -657,6 +896,15 @@ extern ReverbContainer *ForcedEnvironment;
 
 #define PITCH(pitch) (snd_pitched ? (pitch)/128.f : 1.f)
 
+static size_t GetChannelCount(ChannelConfig chans)
+{
+    switch (chans)
+    {
+    case ChannelConfig_Mono: return 1;
+    case ChannelConfig_Stereo: return 2;
+    }
+    return 0;
+}
 
 static float GetRolloff(const FRolloffInfo *rolloff, float distance)
 {
@@ -708,217 +956,260 @@ ALCdevice *OpenALSoundRenderer::InitDevice()
 
 
 template<typename T>
-static void LoadALFunc(const char *name, T *x)
-{ *x = reinterpret_cast<T>(alGetProcAddress(name)); }
+static void LoadALFunc(const char* name, T* x)
+{
+    *x = reinterpret_cast<T>(alGetProcAddress(name));
+}
+
+template<typename T>
+static void LoadALCFunc(ALCdevice* device, const char* name, T* x)
+{
+    *x = reinterpret_cast<T>(alcGetProcAddress(device, name));
+}
 
 #define LOAD_FUNC(x)  (LoadALFunc(#x, &x))
+#define LOAD_DEV_FUNC(d, x)  (LoadALCFunc(d, #x, &x))
 OpenALSoundRenderer::OpenALSoundRenderer()
     : Device(NULL), Context(NULL), SFXPaused(0), PrevEnvironment(NULL), EnvSlot(0)
 {
-    EnvFilters[0] = EnvFilters[1] = 0;
+        EnvFilters[0] = EnvFilters[1] = 0;
 
-    Printf("I_InitSound: Initializing OpenAL\n");
+        Printf("I_InitSound: Initializing OpenAL\n");
 
-	Device = InitDevice();
-	if (Device == NULL) return;
+        Device = InitDevice();
+        if (Device == NULL) return;
+        
+        ALC.EXT_EFX = !!alcIsExtensionPresent(Device, "ALC_EXT_EFX");
+        ALC.EXT_disconnect = !!alcIsExtensionPresent(Device, "ALC_EXT_disconnect");
+        ALC.SOFT_HRTF = !!alcIsExtensionPresent(Device, "ALC_SOFT_HRTF");
+        ALC.SOFT_pause_device = !!alcIsExtensionPresent(Device, "ALC_SOFT_pause_device");
 
-    const ALCchar *current = NULL;
-    if(alcIsExtensionPresent(Device, "ALC_ENUMERATE_ALL_EXT"))
-        current = alcGetString(Device, ALC_ALL_DEVICES_SPECIFIER);
-    if(alcGetError(Device) != ALC_NO_ERROR || !current)
-        current = alcGetString(Device, ALC_DEVICE_SPECIFIER);
-    Printf("  Opened device " TEXTCOLOR_ORANGE "%s\n", current);
 
-    ALCint major=0, minor=0;
-    alcGetIntegerv(Device, ALC_MAJOR_VERSION, 1, &major);
-    alcGetIntegerv(Device, ALC_MINOR_VERSION, 1, &minor);
-    DPrintf("  ALC Version: " TEXTCOLOR_BLUE "%d.%d\n", major, minor);
-    DPrintf("  ALC Extensions: " TEXTCOLOR_ORANGE "%s\n", alcGetString(Device, ALC_EXTENSIONS));
+        const ALCchar* current = NULL;
+        if (alcIsExtensionPresent(Device, "ALC_ENUMERATE_ALL_EXT"))
+            current = alcGetString(Device, ALC_ALL_DEVICES_SPECIFIER);
+        if (alcGetError(Device) != ALC_NO_ERROR || !current)
+            current = alcGetString(Device, ALC_DEVICE_SPECIFIER);
+        Printf("  Opened device " TEXTCOLOR_ORANGE"%s\n", current);
 
-    TArray<ALCint> attribs;
-    if(*snd_samplerate > 0)
-    {
-        attribs.Push(ALC_FREQUENCY);
-        attribs.Push(*snd_samplerate);
-    }
-    // Make sure one source is capable of stereo output with the rest doing
-    // mono, without running out of voices
-    attribs.Push(ALC_MONO_SOURCES);
-    attribs.Push(MAX<ALCint>(*snd_channels, 2) - 1);
-    attribs.Push(ALC_STEREO_SOURCES);
-    attribs.Push(1);
-    // Other attribs..?
-    attribs.Push(0);
+        ALCint major = 0, minor = 0;
+        alcGetIntegerv(Device, ALC_MAJOR_VERSION, 1, &major);
+        alcGetIntegerv(Device, ALC_MINOR_VERSION, 1, &minor);
+        DPrintf("	ALC Version: " TEXTCOLOR_BLUE"%d.%d\n", major, minor);
+        DPrintf("	ALC Extensions: " TEXTCOLOR_ORANGE"%s\n", alcGetString(Device, ALC_EXTENSIONS));
 
-    Context = alcCreateContext(Device, &attribs[0]);
-    if(!Context || alcMakeContextCurrent(Context) == ALC_FALSE)
-    {
-        Printf(TEXTCOLOR_RED "  Failed to setup context: %s\n", alcGetString(Device, alcGetError(Device)));
-        if(Context)
-            alcDestroyContext(Context);
-        Context = NULL;
-        alcCloseDevice(Device);
-        Device = NULL;
-        return;
-    }
-    attribs.Clear();
-
-    DPrintf("  Vendor: " TEXTCOLOR_ORANGE "%s\n", alGetString(AL_VENDOR));
-    DPrintf("  Renderer: " TEXTCOLOR_ORANGE "%s\n", alGetString(AL_RENDERER));
-    DPrintf("  Version: " TEXTCOLOR_ORANGE "%s\n", alGetString(AL_VERSION));
-    DPrintf("  Extensions: " TEXTCOLOR_ORANGE "%s\n", alGetString(AL_EXTENSIONS));
-
-    ALC.EXT_EFX = !!alcIsExtensionPresent(Device, "ALC_EXT_EFX");
-    ALC.EXT_disconnect = !!alcIsExtensionPresent(Device, "ALC_EXT_disconnect");;
-    AL.EXT_source_distance_model = !!alIsExtensionPresent("AL_EXT_source_distance_model");
-    AL.SOFT_deferred_updates = !!alIsExtensionPresent("AL_SOFT_deferred_updates");
-    AL.SOFT_loop_points = !!alIsExtensionPresent("AL_SOFT_loop_points");
-
-    if(strstr(alGetString(AL_VERSION), "1.19.1")) ALC.EXT_EFX = 0;	// disabled EFX on 1.19.1
-
-    alDopplerFactor(0.5f);
-    alSpeedOfSound(343.3f * 96.0f);
-    alDistanceModel(AL_INVERSE_DISTANCE);
-    if(AL.EXT_source_distance_model)
-        alEnable(AL_SOURCE_DISTANCE_MODEL);
-
-    if(AL.SOFT_deferred_updates)
-    {
-        LOAD_FUNC(alDeferUpdatesSOFT);
-        LOAD_FUNC(alProcessUpdatesSOFT);
-    }
-    else
-    {
-        alDeferUpdatesSOFT = _wrap_DeferUpdatesSOFT;
-        alProcessUpdatesSOFT = _wrap_ProcessUpdatesSOFT;
-    }
-
-    ALenum err = getALError();
-    if(err != AL_NO_ERROR)
-    {
-        alcMakeContextCurrent(NULL);
-        alcDestroyContext(Context);
-        Context = NULL;
-        alcCloseDevice(Device);
-        Device = NULL;
-        return;
-    }
-
-    ALCint numMono=0, numStereo=0;
-    alcGetIntegerv(Device, ALC_MONO_SOURCES, 1, &numMono);
-    alcGetIntegerv(Device, ALC_STEREO_SOURCES, 1, &numStereo);
-
-    Sources.Resize(MIN<int>(MAX<int>(*snd_channels, 2), numMono+numStereo));
-    for(size_t i = 0;i < Sources.Size();i++)
-    {
-        alGenSources(1, &Sources[i]);
-        if(getALError() != AL_NO_ERROR)
+        TArray<ALCint> attribs;
+        if (*snd_samplerate > 0)
         {
-            Sources.Resize(i);
-            Sources.ShrinkToFit();
-            break;
+            attribs.Push(ALC_FREQUENCY);
+            attribs.Push(*snd_samplerate);
         }
-    }
-    if(Sources.Size() == 0)
-    {
-        Printf(TEXTCOLOR_RED " Error: could not generate any sound sources!\n");
-        alcMakeContextCurrent(NULL);
-        alcDestroyContext(Context);
-        Context = NULL;
-        alcCloseDevice(Device);
-        Device = NULL;
-        return;
-    }
-    FreeSfx = Sources;
-    DPrintf("  Allocated " TEXTCOLOR_BLUE "%u" TEXTCOLOR_NORMAL " sources\n", Sources.Size());
+        // Make sure one source is capable of stereo output with the rest doing
+        // mono, without running out of voices
+        attribs.Push(ALC_MONO_SOURCES);
+        attribs.Push(MAX<ALCint>(*snd_channels, 2) - 1);
+        attribs.Push(ALC_STEREO_SOURCES);
+        attribs.Push(1);
+	    if(ALC.SOFT_HRTF)
+	    {
+		    attribs.Push(ALC_HRTF_SOFT);
+		    if(snd_hrtf == 0)
+                attribs.Push(ALC_TRUE);
+            else
+			    attribs.Push(ALC_FALSE);
+	    }
+        attribs.Push(0);
 
-    WasInWater = false;
-    if(*snd_efx && ALC.EXT_EFX)
-    {
-        // EFX function pointers
-        LOAD_FUNC(alGenEffects);
-        LOAD_FUNC(alDeleteEffects);
-        LOAD_FUNC(alIsEffect);
-        LOAD_FUNC(alEffecti);
-        LOAD_FUNC(alEffectiv);
-        LOAD_FUNC(alEffectf);
-        LOAD_FUNC(alEffectfv);
-        LOAD_FUNC(alGetEffecti);
-        LOAD_FUNC(alGetEffectiv);
-        LOAD_FUNC(alGetEffectf);
-        LOAD_FUNC(alGetEffectfv);
-
-        LOAD_FUNC(alGenFilters);
-        LOAD_FUNC(alDeleteFilters);
-        LOAD_FUNC(alIsFilter);
-        LOAD_FUNC(alFilteri);
-        LOAD_FUNC(alFilteriv);
-        LOAD_FUNC(alFilterf);
-        LOAD_FUNC(alFilterfv);
-        LOAD_FUNC(alGetFilteri);
-        LOAD_FUNC(alGetFilteriv);
-        LOAD_FUNC(alGetFilterf);
-        LOAD_FUNC(alGetFilterfv);
-
-        LOAD_FUNC(alGenAuxiliaryEffectSlots);
-        LOAD_FUNC(alDeleteAuxiliaryEffectSlots);
-        LOAD_FUNC(alIsAuxiliaryEffectSlot);
-        LOAD_FUNC(alAuxiliaryEffectSloti);
-        LOAD_FUNC(alAuxiliaryEffectSlotiv);
-        LOAD_FUNC(alAuxiliaryEffectSlotf);
-        LOAD_FUNC(alAuxiliaryEffectSlotfv);
-        LOAD_FUNC(alGetAuxiliaryEffectSloti);
-        LOAD_FUNC(alGetAuxiliaryEffectSlotiv);
-        LOAD_FUNC(alGetAuxiliaryEffectSlotf);
-        LOAD_FUNC(alGetAuxiliaryEffectSlotfv);
-        if(getALError() == AL_NO_ERROR)
+        Context = alcCreateContext(Device, &attribs[0]);
+        if (!Context || alcMakeContextCurrent(Context) == ALC_FALSE)
         {
-            ALuint envReverb;
-            alGenEffects(1, &envReverb);
-            if(getALError() == AL_NO_ERROR)
-            {
-                alEffecti(envReverb, AL_EFFECT_TYPE, AL_EFFECT_EAXREVERB);
-                if(alGetError() == AL_NO_ERROR)
-                    DPrintf("  EAX Reverb found\n");
-                alEffecti(envReverb, AL_EFFECT_TYPE, AL_EFFECT_REVERB);
-                if(alGetError() == AL_NO_ERROR)
-                    DPrintf("  Standard Reverb found\n");
+            Printf(TEXTCOLOR_RED "  Failed to setup context: %s\n", alcGetString(Device, alcGetError(Device)));
+            if (Context)
+                alcDestroyContext(Context);
+            Context = NULL;
+            alcCloseDevice(Device);
+            Device = NULL;
+            return;
+        }
+        attribs.Clear();
 
-                alDeleteEffects(1, &envReverb);
-                getALError();
+        DPrintf("	Vendor: " TEXTCOLOR_ORANGE"%s\n", alGetString(AL_VENDOR));
+        DPrintf("	Renderer: " TEXTCOLOR_ORANGE"%s\n", alGetString(AL_RENDERER));
+        DPrintf("	Version: " TEXTCOLOR_ORANGE"%s\n", alGetString(AL_VERSION));
+        DPrintf("	Extensions: " TEXTCOLOR_ORANGE"%s\n", alGetString(AL_EXTENSIONS));
+
+        AL.EXT_source_distance_model = !!alIsExtensionPresent("AL_EXT_source_distance_model");
+        AL.EXT_SOURCE_RADIUS = !!alIsExtensionPresent("AL_EXT_SOURCE_RADIUS");
+        AL.SOFT_deferred_updates = !!alIsExtensionPresent("AL_SOFT_deferred_updates");
+        AL.SOFT_loop_points = !!alIsExtensionPresent("AL_SOFT_loop_points");
+        AL.SOFT_source_spatialize = !!alIsExtensionPresent("AL_SOFT_source_spatialize");
+
+        alDopplerFactor(0.5f);
+        alSpeedOfSound(343.3f * 96.0f);
+        if (ALC.EXT_EFX)
+            alListenerf(AL_METERS_PER_UNIT, 1.0f / 32.0f);
+
+        alDistanceModel(AL_INVERSE_DISTANCE);
+        if (AL.EXT_source_distance_model)
+            alEnable(AL_SOURCE_DISTANCE_MODEL);
+
+        if (AL.SOFT_deferred_updates)
+        {
+            LOAD_FUNC(alDeferUpdatesSOFT);
+            LOAD_FUNC(alProcessUpdatesSOFT);
+        }
+        else
+        {
+            alDeferUpdatesSOFT = _wrap_DeferUpdatesSOFT;
+            alProcessUpdatesSOFT = _wrap_ProcessUpdatesSOFT;
+        }
+
+        if (ALC.SOFT_pause_device)
+        {
+            LOAD_DEV_FUNC(Device, alcDevicePauseSOFT);
+            LOAD_DEV_FUNC(Device, alcDeviceResumeSOFT);
+        }
+
+        ALenum err = getALError();
+        if (err != AL_NO_ERROR)
+        {
+            alcMakeContextCurrent(NULL);
+            alcDestroyContext(Context);
+            Context = NULL;
+            alcCloseDevice(Device);
+            Device = NULL;
+            return;
+        }
+
+        ALCint numMono = 0, numStereo = 0;
+        alcGetIntegerv(Device, ALC_MONO_SOURCES, 1, &numMono);
+        alcGetIntegerv(Device, ALC_STEREO_SOURCES, 1, &numStereo);
+
+        // OpenAL specification doesn't require alcGetIntegerv() to return
+        // meaningful values for ALC_MONO_SOURCES and ALC_MONO_SOURCES.
+        // At least Apple's OpenAL implementation returns zeroes,
+        // although it can generate reasonable number of sources.
+
+        const int numChannels = MAX<int>(*snd_channels, 2);
+        int numSources = numMono + numStereo;
+
+        if (0 == numSources)
+        {
+            numSources = numChannels;
+        }
+
+        Sources.Resize(MIN<int>(numChannels, numSources));
+        for (unsigned i = 0; i < Sources.Size(); i++)
+        {
+            alGenSources(1, &Sources[i]);
+            if (getALError() != AL_NO_ERROR)
+            {
+                Sources.Resize(i);
+                Sources.ShrinkToFit();
+                break;
             }
+        }
+        if (Sources.Size() == 0)
+        {
+            Printf(TEXTCOLOR_RED" Error: could not generate any sound sources!\n");
+            alcMakeContextCurrent(NULL);
+            alcDestroyContext(Context);
+            Context = NULL;
+            alcCloseDevice(Device);
+            Device = NULL;
+            return;
+        }
+        FreeSfx = Sources;
+        DPrintf("	Allocated " TEXTCOLOR_BLUE"%u" TEXTCOLOR_NORMAL" sources\n", Sources.Size());
 
-            alGenAuxiliaryEffectSlots(1, &EnvSlot);
-            alGenFilters(2, EnvFilters);
-            if(getALError() == AL_NO_ERROR)
+        WasInWater = false;
+        if (*snd_efx && ALC.EXT_EFX)
+        {
+            // EFX function pointers
+            LOAD_FUNC(alGenEffects);
+            LOAD_FUNC(alDeleteEffects);
+            LOAD_FUNC(alIsEffect);
+            LOAD_FUNC(alEffecti);
+            LOAD_FUNC(alEffectiv);
+            LOAD_FUNC(alEffectf);
+            LOAD_FUNC(alEffectfv);
+            LOAD_FUNC(alGetEffecti);
+            LOAD_FUNC(alGetEffectiv);
+            LOAD_FUNC(alGetEffectf);
+            LOAD_FUNC(alGetEffectfv);
+
+            LOAD_FUNC(alGenFilters);
+            LOAD_FUNC(alDeleteFilters);
+            LOAD_FUNC(alIsFilter);
+            LOAD_FUNC(alFilteri);
+            LOAD_FUNC(alFilteriv);
+            LOAD_FUNC(alFilterf);
+            LOAD_FUNC(alFilterfv);
+            LOAD_FUNC(alGetFilteri);
+            LOAD_FUNC(alGetFilteriv);
+            LOAD_FUNC(alGetFilterf);
+            LOAD_FUNC(alGetFilterfv);
+
+            LOAD_FUNC(alGenAuxiliaryEffectSlots);
+            LOAD_FUNC(alDeleteAuxiliaryEffectSlots);
+            LOAD_FUNC(alIsAuxiliaryEffectSlot);
+            LOAD_FUNC(alAuxiliaryEffectSloti);
+            LOAD_FUNC(alAuxiliaryEffectSlotiv);
+            LOAD_FUNC(alAuxiliaryEffectSlotf);
+            LOAD_FUNC(alAuxiliaryEffectSlotfv);
+            LOAD_FUNC(alGetAuxiliaryEffectSloti);
+            LOAD_FUNC(alGetAuxiliaryEffectSlotiv);
+            LOAD_FUNC(alGetAuxiliaryEffectSlotf);
+            LOAD_FUNC(alGetAuxiliaryEffectSlotfv);
+            if (getALError() == AL_NO_ERROR)
             {
-                alFilteri(EnvFilters[0], AL_FILTER_TYPE, AL_FILTER_LOWPASS);
-                alFilteri(EnvFilters[1], AL_FILTER_TYPE, AL_FILTER_LOWPASS);
-                if(getALError() == AL_NO_ERROR)
-                    DPrintf("  Lowpass found\n");
+                ALuint envReverb;
+                alGenEffects(1, &envReverb);
+                if (getALError() == AL_NO_ERROR)
+                {
+                    alEffecti(envReverb, AL_EFFECT_TYPE, AL_EFFECT_EAXREVERB);
+                    if (alGetError() == AL_NO_ERROR)
+                        DPrintf("	EAX Reverb found\n");
+                    alEffecti(envReverb, AL_EFFECT_TYPE, AL_EFFECT_REVERB);
+                    if (alGetError() == AL_NO_ERROR)
+                        DPrintf("	Standard Reverb found\n");
+
+                    alDeleteEffects(1, &envReverb);
+                    getALError();
+                }
+
+                alGenAuxiliaryEffectSlots(1, &EnvSlot);
+                alGenFilters(2, EnvFilters);
+                if (getALError() == AL_NO_ERROR)
+                {
+                    alFilteri(EnvFilters[0], AL_FILTER_TYPE, AL_FILTER_LOWPASS);
+                    alFilteri(EnvFilters[1], AL_FILTER_TYPE, AL_FILTER_LOWPASS);
+                    if (getALError() == AL_NO_ERROR)
+                        DPrintf("	Lowpass found\n");
+                    else
+                    {
+                        alDeleteFilters(2, EnvFilters);
+                        EnvFilters[0] = EnvFilters[1] = 0;
+                        alDeleteAuxiliaryEffectSlots(1, &EnvSlot);
+                        EnvSlot = 0;
+                        getALError();
+                    }
+                }
                 else
                 {
                     alDeleteFilters(2, EnvFilters);
-                    EnvFilters[0] = EnvFilters[1] = 0;
                     alDeleteAuxiliaryEffectSlots(1, &EnvSlot);
+                    EnvFilters[0] = EnvFilters[1] = 0;
                     EnvSlot = 0;
                     getALError();
                 }
             }
-            else
-            {
-                alDeleteFilters(2, EnvFilters);
-                alDeleteAuxiliaryEffectSlots(1, &EnvSlot);
-                EnvFilters[0] = EnvFilters[1] = 0;
-                EnvSlot = 0;
-                getALError();
-            }
         }
-    }
 
-    if(EnvSlot)
-        Printf("  EFX enabled\n");
+        if (EnvSlot)
+            Printf("  EFX enabled\n");
 }
+#undef LOAD_DEV_FUNC
 #undef LOAD_FUNC
 
 OpenALSoundRenderer::~OpenALSoundRenderer()
@@ -945,7 +1236,7 @@ OpenALSoundRenderer::~OpenALSoundRenderer()
     }
     EnvEffects.Clear();
 
-    if(EnvSlot)
+    if (EnvSlot)
     {
         alDeleteAuxiliaryEffectSlots(1, &EnvSlot);
         alDeleteFilters(2, EnvFilters);
@@ -1002,7 +1293,7 @@ unsigned int OpenALSoundRenderer::GetMSLength(SoundHandle sfx)
             alGetBufferi(buffer, AL_FREQUENCY, &freq);
             alGetBufferi(buffer, AL_SIZE, &size);
             if(getALError() == AL_NO_ERROR)
-                return (unsigned int)(size / (channels*bits/8) * 1000. / freq);
+                return (unsigned int)(size / (static_cast<double>(channels) * bits / 8) * 1000. / freq);
         }
     }
     return 0;
@@ -1039,40 +1330,40 @@ SoundHandle OpenALSoundRenderer::LoadSoundRaw(BYTE *sfxdata, int length, int fre
 {
     SoundHandle retval = { NULL };
 
-    if(length == 0) return retval;
+    if (length == 0) return retval;
 
-    if(bits == -8)
+    if (bits == -8)
     {
         // Simple signed->unsigned conversion
-        for(int i = 0;i < length;i++)
+        for (int i = 0; i < length; i++)
             sfxdata[i] ^= 0x80;
         bits = -bits;
     }
 
     ALenum format = AL_NONE;
-    if(bits == 16)
+    if (bits == 16)
     {
-        if(channels == 1) format = AL_FORMAT_MONO16;
-        if(channels == 2) format = AL_FORMAT_STEREO16;
+        if (channels == 1) format = AL_FORMAT_MONO16;
+        if (channels == 2) format = AL_FORMAT_STEREO16;
     }
-    else if(bits == 8)
+    else if (bits == 8)
     {
-        if(channels == 1) format = AL_FORMAT_MONO8;
-        if(channels == 2) format = AL_FORMAT_STEREO8;
+        if (channels == 1) format = AL_FORMAT_MONO8;
+        if (channels == 2) format = AL_FORMAT_STEREO8;
     }
 
-    if(format == AL_NONE || frequency <= 0)
+    if (format == AL_NONE || frequency <= 0)
     {
         Printf("Unhandled format: %d bit, %d channel, %d hz\n", bits, channels, frequency);
         return retval;
     }
-    length -= length%(channels*bits/8);
+    length -= length % (channels * bits / 8);
 
     ALenum err;
     ALuint buffer = 0;
     alGenBuffers(1, &buffer);
     alBufferData(buffer, format, sfxdata, length, frequency);
-    if((err=getALError()) != AL_NO_ERROR)
+    if ((err = getALError()) != AL_NO_ERROR)
     {
         Printf("Failed to buffer data: %s\n", alGetString(err));
         alDeleteBuffers(1, &buffer);
@@ -1080,22 +1371,22 @@ SoundHandle OpenALSoundRenderer::LoadSoundRaw(BYTE *sfxdata, int length, int fre
         return retval;
     }
 
-    if((loopstart > 0 || loopend > 0) && AL.SOFT_loop_points)
+    if ((loopstart > 0 || loopend > 0) && AL.SOFT_loop_points)
     {
-        if(loopstart < 0)
+        if (loopstart < 0)
             loopstart = 0;
-        if(loopend < loopstart)
-            loopend = length / (channels*bits/8);
+        if (loopend < loopstart)
+            loopend = length / (channels * bits / 8);
 
         ALint loops[2] = { loopstart, loopend };
         DPrintf("Setting loop points %d -> %d\n", loops[0], loops[1]);
         alBufferiv(buffer, AL_LOOP_POINTS_SOFT, loops);
         getALError();
     }
-    else if(loopstart > 0 || loopend > 0)
+    else if (loopstart > 0 || loopend > 0)
     {
         static bool warned = false;
-        if(!warned)
+        if (!warned)
             Printf("Loop points not supported!\n");
         warned = true;
     }
@@ -1104,7 +1395,7 @@ SoundHandle OpenALSoundRenderer::LoadSoundRaw(BYTE *sfxdata, int length, int fre
     return retval;
 }
 
-SoundHandle OpenALSoundRenderer::LoadSound(BYTE *sfxdata, int length)
+SoundHandle OpenALSoundRenderer::LoadSound(BYTE* sfxdata, int length, int def_loop_start, int def_loop_end)
 {
     SoundHandle retval = { NULL };
     MemoryReader reader((const char*)sfxdata, length);
@@ -1112,23 +1403,37 @@ SoundHandle OpenALSoundRenderer::LoadSound(BYTE *sfxdata, int length)
     ChannelConfig chans;
     SampleType type;
     int srate;
+    unsigned int loop_start = 0, loop_end = ~0u;
+    bool startass = false, endass = false;
+    
+	if (def_loop_start < 0)
+	{
+		FindLoopTags(sfxdata, length, &loop_start, &startass, &loop_end, &endass);
+	}
+	else
+	{
+		loop_start = def_loop_start;
+		loop_end = def_loop_end;
+		startass = endass = true;
+	}
 
-    SoundDecoder *decoder = CreateDecoder(&reader);
-    if(!decoder) return retval;
+    SoundDecoder* decoder = CreateDecoder(&reader);
+    if (!decoder) return retval;
 
     decoder->getInfo(&srate, &chans, &type);
-    if(chans == ChannelConfig_Mono)
+    int samplesize = 1;
+    if (chans == ChannelConfig_Mono)
     {
-        if(type == SampleType_UInt8) format = AL_FORMAT_MONO8;
-        if(type == SampleType_Int16) format = AL_FORMAT_MONO16;
+        if (type == SampleType_UInt8) { format = AL_FORMAT_MONO8; samplesize = 1; }
+        if (type == SampleType_Int16) { format = AL_FORMAT_MONO16; samplesize = 2; }
     }
-    if(chans == ChannelConfig_Stereo)
+    if (chans == ChannelConfig_Stereo)
     {
-        if(type == SampleType_UInt8) format = AL_FORMAT_STEREO8;
-        if(type == SampleType_Int16) format = AL_FORMAT_STEREO16;
+        if (type == SampleType_UInt8) { format = AL_FORMAT_STEREO8; samplesize = 2; }
+        if (type == SampleType_Int16) { format = AL_FORMAT_STEREO16; samplesize = 4; }
     }
 
-    if(format == AL_NONE)
+    if (format == AL_NONE)
     {
         /*Printf("Unsupported audio format: %s, %s\n", GetChannelConfigName(chans),
                GetSampleTypeName(type));*/
@@ -1145,7 +1450,7 @@ SoundHandle OpenALSoundRenderer::LoadSound(BYTE *sfxdata, int length)
     alBufferData(buffer, format, &data[0], data.Size(), srate);
 
     ALenum err;
-    if((err=getALError()) != AL_NO_ERROR)
+    if ((err = getALError()) != AL_NO_ERROR)
     {
         Printf("Failed to buffer data: %s\n", alGetString(err));
         alDeleteBuffers(1, &buffer);
@@ -1153,6 +1458,20 @@ SoundHandle OpenALSoundRenderer::LoadSound(BYTE *sfxdata, int length)
         delete decoder;
         return retval;
     }
+    
+	if (!startass) loop_start = Scale(loop_start, srate, 1000);
+	if (!endass && loop_end != ~0u) loop_end = Scale(loop_end, srate, 1000);
+	const unsigned int samples = data.Size() / samplesize;
+	if (loop_start > samples) loop_start = 0;
+	if (loop_end > samples) loop_end = samples;
+
+	if ((loop_start > 0 || loop_end > 0) && loop_end > loop_start && AL.SOFT_loop_points)
+	{
+		ALint loops[2] = { static_cast<ALint>(loop_start), static_cast<ALint>(loop_end) };
+		DPrintf("Setting loop points %d -> %d\n", loops[0], loops[1]);
+		alBufferiv(buffer, AL_LOOP_POINTS_SOFT, loops);
+		// no console messages here, please!
+	}
 
     retval.data = MAKE_PTRID(buffer);
     delete decoder;
@@ -1214,12 +1533,12 @@ SoundStream *OpenALSoundRenderer::OpenStream(const char *filename, int flags, in
 
 FISoundChannel *OpenALSoundRenderer::StartSound(SoundHandle sfx, float vol, int pitch, int chanflags, FISoundChannel *reuse_chan)
 {
-    if(FreeSfx.Size() == 0)
+    if (FreeSfx.Size() == 0)
     {
-        FSoundChan *lowest = FindLowestChannel();
-        if(lowest) StopChannel(lowest);
+        FSoundChan* lowest = FindLowestChannel();
+        if (lowest) StopChannel(lowest);
 
-        if(FreeSfx.Size() == 0)
+        if (FreeSfx.Size() == 0)
             return NULL;
     }
 
@@ -1230,17 +1549,21 @@ FISoundChannel *OpenALSoundRenderer::StartSound(SoundHandle sfx, float vol, int 
     alSource3f(source, AL_DIRECTION, 0.f, 0.f, 0.f);
     alSourcei(source, AL_SOURCE_RELATIVE, AL_TRUE);
 
-    alSourcei(source, AL_LOOPING, (chanflags&SNDF_LOOP) ? AL_TRUE : AL_FALSE);
+    alSourcei(source, AL_LOOPING, (chanflags & SNDF_LOOP) ? AL_TRUE : AL_FALSE);
 
     alSourcef(source, AL_REFERENCE_DISTANCE, 1.f);
     alSourcef(source, AL_MAX_DISTANCE, 1000.f);
     alSourcef(source, AL_ROLLOFF_FACTOR, 0.f);
     alSourcef(source, AL_MAX_GAIN, SfxVolume);
-    alSourcef(source, AL_GAIN, SfxVolume*vol);
+    alSourcef(source, AL_GAIN, SfxVolume * vol);
+    if (AL.EXT_SOURCE_RADIUS)
+        alSourcef(source, AL_SOURCE_RADIUS, 0.f);
+	if (AL.SOFT_source_spatialize)
+		alSourcei(source, AL_SOURCE_SPATIALIZE_SOFT, AL_AUTO_SOFT);
 
-    if(EnvSlot)
+    if (EnvSlot)
     {
-        if(!(chanflags&SNDF_NOREVERB))
+        if (!(chanflags & SNDF_NOREVERB))
         {
             alSourcei(source, AL_DIRECT_FILTER, EnvFilters[0]);
             alSource3i(source, AL_AUXILIARY_SEND_FILTER, EnvSlot, 0, EnvFilters[1]);
@@ -1252,8 +1575,213 @@ FISoundChannel *OpenALSoundRenderer::StartSound(SoundHandle sfx, float vol, int 
         }
         alSourcef(source, AL_ROOM_ROLLOFF_FACTOR, 0.f);
     }
-    if(WasInWater && !(chanflags&SNDF_NOREVERB))
-        alSourcef(source, AL_PITCH, PITCH(pitch)*PITCH_MULT);
+    if (WasInWater && !(chanflags & SNDF_NOREVERB))
+        alSourcef(source, AL_PITCH, PITCH(pitch) * PITCH_MULT);
+    else
+        alSourcef(source, AL_PITCH, PITCH(pitch));
+
+    if (!reuse_chan || reuse_chan->StartTime.AsOne == 0)
+        alSourcef(source, AL_SEC_OFFSET, 0.f);
+    else
+    {
+        if ((chanflags & SNDF_ABSTIME))
+            alSourcei(source, AL_SAMPLE_OFFSET, reuse_chan->StartTime.Lo);
+        else
+            alSourcef(source, AL_SEC_OFFSET, 0.f);
+    }
+    if (getALError() != AL_NO_ERROR)
+        return NULL;
+
+    alSourcei(source, AL_BUFFER, buffer);
+    if ((chanflags & SNDF_NOPAUSE) || !SFXPaused)
+        alSourcePlay(source);
+    if (getALError() != AL_NO_ERROR)
+    {
+        alSourcei(source, AL_BUFFER, 0);
+        getALError();
+        return NULL;
+    }
+
+    if (!(chanflags & SNDF_NOREVERB))
+        ReverbSfx.Push(source);
+    if (!(chanflags & SNDF_NOPAUSE))
+        PausableSfx.Push(source);
+    SfxGroup.Push(source);
+    FreeSfx.Pop();
+
+    FISoundChannel* chan = reuse_chan;
+    if (!chan) chan = S_GetChannel(MAKE_PTRID(source));
+    else chan->SysChannel = MAKE_PTRID(source);
+
+    chan->Rolloff.RolloffType = ROLLOFF_Log;
+    chan->Rolloff.RolloffFactor = 0.f;
+    chan->Rolloff.MinDistance = 1.f;
+    chan->DistanceSqr = 0.f;
+    chan->ManualRolloff = false;
+
+    return chan;
+}
+
+FISoundChannel *OpenALSoundRenderer::StartSound3D(SoundHandle sfx, SoundListener *listener, float vol,
+    FRolloffInfo *rolloff, float distscale, int pitch, int priority, const FVector3 &pos, const FVector3 &vel,
+    int channum, int chanflags, FISoundChannel *reuse_chan)
+{
+    float dist_sqr = (float)(pos - listener->position).LengthSquared();
+
+    if (FreeSfx.Size() == 0)
+    {
+        FSoundChan* lowest = FindLowestChannel();
+        if (lowest)
+        {
+            if (lowest->Priority < priority || (lowest->Priority == priority &&
+                lowest->DistanceSqr > dist_sqr))
+                StopChannel(lowest);
+        }
+        if (FreeSfx.Size() == 0)
+            return NULL;
+    }
+
+    bool manualRolloff = true;
+    ALuint buffer = GET_PTRID(sfx.data);
+    ALuint source = FreeSfx.Last();
+    if (rolloff->RolloffType == ROLLOFF_Log)
+    {
+        if (AL.EXT_source_distance_model)
+            alSourcei(source, AL_DISTANCE_MODEL, AL_INVERSE_DISTANCE);
+        alSourcef(source, AL_REFERENCE_DISTANCE, rolloff->MinDistance / distscale);
+        alSourcef(source, AL_MAX_DISTANCE, (1000.f + rolloff->MinDistance) / distscale);
+        alSourcef(source, AL_ROLLOFF_FACTOR, rolloff->RolloffFactor);
+        manualRolloff = false;
+    }
+    else if (rolloff->RolloffType == ROLLOFF_Linear && AL.EXT_source_distance_model)
+    {
+        alSourcei(source, AL_DISTANCE_MODEL, AL_LINEAR_DISTANCE);
+        alSourcef(source, AL_REFERENCE_DISTANCE, rolloff->MinDistance / distscale);
+        alSourcef(source, AL_MAX_DISTANCE, rolloff->MaxDistance / distscale);
+        alSourcef(source, AL_ROLLOFF_FACTOR, 1.f);
+        manualRolloff = false;
+    }
+    if (manualRolloff)
+    {
+        // How manual rolloff works:
+        //
+        // If a sound is using Custom or Doom style rolloff, or Linear style
+        // when AL_EXT_source_distance_model is not supported, we have to play
+        // around a bit to get appropriate distance attenation. What we do is
+        // calculate the attenuation that should be applied, then given an
+        // Inverse Distance rolloff model with OpenAL, reverse the calculation
+        // to get the distance needed for that much attenuation. The Inverse
+        // Distance calculation is:
+        //
+        // Gain = MinDist / (MinDist + RolloffFactor*(Distance - MinDist))
+        //
+        // Thus, the reverse is:
+        //
+        // Distance = (MinDist/Gain - MinDist)/RolloffFactor + MinDist
+        //
+        // This can be simplified by using a MinDist and RolloffFactor of 1,
+        // which makes it:
+        //
+        // Distance = 1.0f/Gain;
+        //
+        // The source position is then set that many units away from the
+        // listener position, and OpenAL takes care of the rest.
+        if (AL.EXT_source_distance_model)
+            alSourcei(source, AL_DISTANCE_MODEL, AL_INVERSE_DISTANCE);
+        alSourcef(source, AL_REFERENCE_DISTANCE, 1.f);
+        alSourcef(source, AL_MAX_DISTANCE, 100000.f);
+        alSourcef(source, AL_ROLLOFF_FACTOR, 1.f);
+
+        FVector3 dir = pos - listener->position;
+        if (dir.DoesNotApproximatelyEqual(FVector3(0.f, 0.f, 0.f)))
+        {
+            float gain = GetRolloff(rolloff, sqrtf(dist_sqr) * distscale);
+            dir.Resize((gain > 0.00001f) ? 1.f / gain : 100000.f);
+        }
+        if (AL.EXT_SOURCE_RADIUS)
+        {
+            /* Since the OpenAL distance is decoupled from the sound's distance, get the OpenAL
+             * distance that corresponds to the area radius. */
+            alSourcef(source, AL_SOURCE_RADIUS, (chanflags & SNDF_AREA) ?
+                // Clamp in case the max distance is <= the area radius
+                1.f / MAX<float>(GetRolloff(rolloff, AREA_SOUND_RADIUS), 0.00001f) : 0.f
+            );
+        }
+        else if ((chanflags & SNDF_AREA) && dist_sqr < AREA_SOUND_RADIUS * AREA_SOUND_RADIUS)
+        {
+            FVector3 amb(0.f, !(dir.Y >= 0.f) ? -1.f : 1.f, 0.f);
+            float a = sqrtf(dist_sqr) / AREA_SOUND_RADIUS;
+            dir = amb + (dir - amb) * a;
+        }
+        dir += listener->position;
+
+        if (dist_sqr < (0.0004f * 0.0004f))
+        {
+            // Head relative
+            alSourcei(source, AL_SOURCE_RELATIVE, AL_TRUE);
+            alSource3f(source, AL_POSITION, 0.f, 0.f, 0.f);
+        }
+        else
+        {
+            alSourcei(source, AL_SOURCE_RELATIVE, AL_FALSE);
+            alSource3f(source, AL_POSITION, dir[0], dir[1], -dir[2]);
+        }
+    }
+    else
+    {
+        FVector3 dir = pos;
+        if (AL.EXT_SOURCE_RADIUS)
+            alSourcef(source, AL_SOURCE_RADIUS, (chanflags & SNDF_AREA) ? AREA_SOUND_RADIUS : 0.f);
+        else if ((chanflags & SNDF_AREA) && dist_sqr < AREA_SOUND_RADIUS * AREA_SOUND_RADIUS)
+        {
+            dir -= listener->position;
+
+            float mindist = rolloff->MinDistance / distscale;
+            FVector3 amb(0.f, !(dir.Y >= 0.f) ? -mindist : mindist, 0.f);
+            float a = sqrtf(dist_sqr) / AREA_SOUND_RADIUS;
+            dir = amb + (dir - amb) * a;
+
+            dir += listener->position;
+        }
+        if (dist_sqr < (0.0004f * 0.0004f))
+        {
+            // Head relative
+            alSourcei(source, AL_SOURCE_RELATIVE, AL_TRUE);
+            alSource3f(source, AL_POSITION, 0.f, 0.f, 0.f);
+        }
+        else
+        {
+            alSourcei(source, AL_SOURCE_RELATIVE, AL_FALSE);
+            alSource3f(source, AL_POSITION, dir[0], dir[1], -dir[2]);
+        }
+    }
+
+        alSource3f(source, AL_VELOCITY, vel[0], vel[1], -vel[2]);
+    alSource3f(source, AL_DIRECTION, 0.f, 0.f, 0.f);
+
+    alSourcei(source, AL_LOOPING, (chanflags & SNDF_LOOP) ? AL_TRUE : AL_FALSE);
+
+    alSourcef(source, AL_MAX_GAIN, SfxVolume);
+    alSourcef(source, AL_GAIN, SfxVolume * vol);
+	if (AL.SOFT_source_spatialize)
+		alSourcei(source, AL_SOURCE_SPATIALIZE_SOFT, AL_TRUE);
+
+    if (EnvSlot)
+    {
+        if (!(chanflags & SNDF_NOREVERB))
+        {
+            alSourcei(source, AL_DIRECT_FILTER, EnvFilters[0]);
+            alSource3i(source, AL_AUXILIARY_SEND_FILTER, EnvSlot, 0, EnvFilters[1]);
+        }
+        else
+        {
+            alSourcei(source, AL_DIRECT_FILTER, AL_FILTER_NULL);
+            alSource3i(source, AL_AUXILIARY_SEND_FILTER, 0, 0, AL_FILTER_NULL);
+        }
+        alSourcef(source, AL_ROOM_ROLLOFF_FACTOR, 0.f);
+    }
+    if (WasInWater && !(chanflags & SNDF_NOREVERB))
+        alSourcef(source, AL_PITCH, PITCH(pitch) * PITCH_MULT);
     else
         alSourcef(source, AL_PITCH, PITCH(pitch));
 
@@ -1262,7 +1790,7 @@ FISoundChannel *OpenALSoundRenderer::StartSound(SoundHandle sfx, float vol, int 
     else
     {
         if((chanflags&SNDF_ABSTIME))
-            alSourcef(source, AL_SEC_OFFSET, reuse_chan->StartTime.Lo/1000.f);
+            alSourcei(source, AL_SAMPLE_OFFSET, reuse_chan->StartTime.Lo);
         else
         {
             // FIXME: set offset based on the current time and the StartTime
@@ -1293,182 +1821,7 @@ FISoundChannel *OpenALSoundRenderer::StartSound(SoundHandle sfx, float vol, int 
     if(!chan) chan = S_GetChannel(MAKE_PTRID(source));
     else chan->SysChannel = MAKE_PTRID(source);
 
-    chan->Rolloff.RolloffType = ROLLOFF_Log;
-    chan->Rolloff.RolloffFactor = 0.f;
-    chan->Rolloff.MinDistance = 1.f;
-    chan->DistanceScale = 1.f;
-    chan->DistanceSqr = 0.f;
-    chan->ManualRolloff = false;
-
-    return chan;
-}
-
-FISoundChannel *OpenALSoundRenderer::StartSound3D(SoundHandle sfx, SoundListener *listener, float vol,
-    FRolloffInfo *rolloff, float distscale, int pitch, int priority, const FVector3 &pos, const FVector3 &vel,
-    int channum, int chanflags, FISoundChannel *reuse_chan)
-{
-    float dist_sqr = (float)(pos - listener->position).LengthSquared();
-
-    if(FreeSfx.Size() == 0)
-    {
-        FSoundChan *lowest = FindLowestChannel();
-        if(lowest)
-        {
-            if(lowest->Priority < priority || (lowest->Priority == priority &&
-                                               lowest->DistanceSqr > dist_sqr))
-                StopChannel(lowest);
-        }
-        if(FreeSfx.Size() == 0)
-            return NULL;
-    }
-
-    bool manualRolloff = true;
-    ALuint buffer = GET_PTRID(sfx.data);
-    ALuint source = FreeSfx.Last();
-    if(rolloff->RolloffType == ROLLOFF_Log)
-    {
-        if(AL.EXT_source_distance_model)
-            alSourcei(source, AL_DISTANCE_MODEL, AL_INVERSE_DISTANCE);
-        alSourcef(source, AL_REFERENCE_DISTANCE, rolloff->MinDistance/distscale);
-        alSourcef(source, AL_MAX_DISTANCE, (1000.f+rolloff->MinDistance)/distscale);
-        alSourcef(source, AL_ROLLOFF_FACTOR, rolloff->RolloffFactor);
-        manualRolloff = false;
-    }
-    else if(rolloff->RolloffType == ROLLOFF_Linear && AL.EXT_source_distance_model)
-    {
-        alSourcei(source, AL_DISTANCE_MODEL, AL_LINEAR_DISTANCE);
-        alSourcef(source, AL_REFERENCE_DISTANCE, rolloff->MinDistance/distscale);
-        alSourcef(source, AL_MAX_DISTANCE, rolloff->MaxDistance/distscale);
-        alSourcef(source, AL_ROLLOFF_FACTOR, 1.f);
-        manualRolloff = false;
-    }
-    if(manualRolloff)
-    {
-        // How manual rolloff works:
-        //
-        // If a sound is using Custom or Doom style rolloff, or Linear style
-        // when AL_EXT_source_distance_model is not supported, we have to play
-        // around a bit to get appropriate distance attenation. What we do is
-        // calculate the attenuation that should be applied, then given an
-        // Inverse Distance rolloff model with OpenAL, reverse the calculation
-        // to get the distance needed for that much attenuation. The Inverse
-        // Distance calculation is:
-        //
-        // Gain = MinDist / (MinDist + RolloffFactor*(Distance - MinDist))
-        //
-        // Thus, the reverse is:
-        //
-        // Distance = (MinDist/Gain - MinDist)/RolloffFactor + MinDist
-        //
-        // This can be simplified by using a MinDist and RolloffFactor of 1,
-        // which makes it:
-        //
-        // Distance = 1.0f/Gain;
-        //
-        // The source position is then set that many units away from the
-        // listener position, and OpenAL takes care of the rest.
-        if(AL.EXT_source_distance_model)
-            alSourcei(source, AL_DISTANCE_MODEL, AL_INVERSE_DISTANCE);
-        alSourcef(source, AL_REFERENCE_DISTANCE, 1.f);
-        alSourcef(source, AL_MAX_DISTANCE, 100000.f);
-        alSourcef(source, AL_ROLLOFF_FACTOR, 1.f);
-
-        FVector3 dir = pos - listener->position;
-        if(dir.DoesNotApproximatelyEqual(FVector3(0.f, 0.f, 0.f)))
-        {
-            float gain = GetRolloff(rolloff, sqrt(dist_sqr) * distscale);
-            dir.Resize((gain > 0.00001f) ? 1.f/gain : 100000.f);
-        }
-        if((chanflags&SNDF_AREA) && dist_sqr < AREA_SOUND_RADIUS*AREA_SOUND_RADIUS)
-        {
-            FVector3 amb(0.f, !(dir.Y>=0.f) ? -1.f : 1.f, 0.f);
-            float a = sqrt(dist_sqr) / AREA_SOUND_RADIUS;
-            dir = amb + (dir-amb)*a;
-        }
-        dir += listener->position;
-
-        alSource3f(source, AL_POSITION, dir[0], dir[1], -dir[2]);
-    }
-    else if((chanflags&SNDF_AREA) && dist_sqr < AREA_SOUND_RADIUS*AREA_SOUND_RADIUS)
-    {
-        FVector3 dir = pos - listener->position;
-
-        float mindist = rolloff->MinDistance/distscale;
-        FVector3 amb(0.f, !(dir.Y>=0.f) ? -mindist : mindist, 0.f);
-        float a = sqrt(dist_sqr) / AREA_SOUND_RADIUS;
-        dir = amb + (dir-amb)*a;
-
-        dir += listener->position;
-        alSource3f(source, AL_POSITION, dir[0], dir[1], -dir[2]);
-    }
-    else
-        alSource3f(source, AL_POSITION, pos[0], pos[1], -pos[2]);
-    alSource3f(source, AL_VELOCITY, vel[0], vel[1], -vel[2]);
-    alSource3f(source, AL_DIRECTION, 0.f, 0.f, 0.f);
-
-    alSourcei(source, AL_SOURCE_RELATIVE, AL_FALSE);
-    alSourcei(source, AL_LOOPING, (chanflags&SNDF_LOOP) ? AL_TRUE : AL_FALSE);
-
-    alSourcef(source, AL_MAX_GAIN, SfxVolume);
-    alSourcef(source, AL_GAIN, SfxVolume);
-
-    if(EnvSlot)
-    {
-        if(!(chanflags&SNDF_NOREVERB))
-        {
-            alSourcei(source, AL_DIRECT_FILTER, EnvFilters[0]);
-            alSource3i(source, AL_AUXILIARY_SEND_FILTER, EnvSlot, 0, EnvFilters[1]);
-        }
-        else
-        {
-            alSourcei(source, AL_DIRECT_FILTER, AL_FILTER_NULL);
-            alSource3i(source, AL_AUXILIARY_SEND_FILTER, 0, 0, AL_FILTER_NULL);
-        }
-        alSourcef(source, AL_ROOM_ROLLOFF_FACTOR, 0.f);
-    }
-    if(WasInWater && !(chanflags&SNDF_NOREVERB))
-        alSourcef(source, AL_PITCH, PITCH(pitch)*PITCH_MULT);
-    else
-        alSourcef(source, AL_PITCH, PITCH(pitch));
-
-    if(!reuse_chan)
-        alSourcef(source, AL_SEC_OFFSET, 0.f);
-    else
-    {
-        if((chanflags&SNDF_ABSTIME))
-            alSourcef(source, AL_SEC_OFFSET, reuse_chan->StartTime.Lo/1000.f);
-        else
-        {
-            // FIXME: set offset based on the current time and the StartTime
-            alSourcef(source, AL_SAMPLE_OFFSET, 0.f);
-        }
-    }
-    if(getALError() != AL_NO_ERROR)
-        return NULL;
-
-    alSourcei(source, AL_BUFFER, buffer);
-    if((chanflags&SNDF_NOPAUSE) || !SFXPaused)
-        alSourcePlay(source);
-    if(getALError() != AL_NO_ERROR)
-    {
-        alSourcei(source, AL_BUFFER, 0);
-        getALError();
-        return NULL;
-    }
-
-    if(!(chanflags&SNDF_NOREVERB))
-        ReverbSfx.Push(source);
-    if(!(chanflags&SNDF_NOPAUSE))
-        PausableSfx.Push(source);
-    SfxGroup.Push(source);
-    FreeSfx.Pop();
-
-    FISoundChannel *chan = reuse_chan;
-    if(!chan) chan = S_GetChannel(MAKE_PTRID(source));
-    else chan->SysChannel = MAKE_PTRID(source);
-
     chan->Rolloff = *rolloff;
-    chan->DistanceScale = distscale;
     chan->DistanceSqr = dist_sqr;
     chan->ManualRolloff = manualRolloff;
 
@@ -1488,7 +1841,7 @@ void OpenALSoundRenderer::ChannelVolume(FISoundChannel *chan, float volume)
 
 void OpenALSoundRenderer::StopChannel(FISoundChannel *chan)
 {
-    if(chan == NULL || chan->SysChannel == NULL)
+    if (chan == NULL || chan->SysChannel == NULL)
         return;
 
     ALuint source = GET_PTRID(chan->SysChannel);
@@ -1501,9 +1854,9 @@ void OpenALSoundRenderer::StopChannel(FISoundChannel *chan)
     getALError();
 
     uint32 i;
-    if((i=PausableSfx.Find(source)) < PausableSfx.Size())
+    if ((i = PausableSfx.Find(source)) < PausableSfx.Size())
         PausableSfx.Delete(i);
-    if((i=ReverbSfx.Find(source)) < ReverbSfx.Size())
+    if ((i = ReverbSfx.Find(source)) < ReverbSfx.Size())
         ReverbSfx.Delete(i);
 
     SfxGroup.Delete(SfxGroup.Find(source));
@@ -1527,10 +1880,10 @@ void OpenALSoundRenderer::SetSfxPaused(bool paused, int slot)
 {
     int oldslots = SFXPaused;
 
-    if(paused)
+    if (paused)
     {
         SFXPaused |= 1 << slot;
-        if(oldslots == 0 && PausableSfx.Size() > 0)
+        if (oldslots == 0 && PausableSfx.Size() > 0)
         {
             alSourcePausev(PausableSfx.Size(), &PausableSfx[0]);
             getALError();
@@ -1540,7 +1893,7 @@ void OpenALSoundRenderer::SetSfxPaused(bool paused, int slot)
     else
     {
         SFXPaused &= ~(1 << slot);
-        if(SFXPaused == 0 && oldslots != 0 && PausableSfx.Size() > 0)
+        if (SFXPaused == 0 && oldslots != 0 && PausableSfx.Size() > 0)
         {
             alSourcePlayv(PausableSfx.Size(), &PausableSfx[0]);
             getALError();
@@ -1550,25 +1903,35 @@ void OpenALSoundRenderer::SetSfxPaused(bool paused, int slot)
 
 void OpenALSoundRenderer::SetInactive(SoundRenderer::EInactiveState state)
 {
-    switch(state)
+    switch (state)
     {
-        case SoundRenderer::INACTIVE_Active:
-            alListenerf(AL_GAIN, 1.0f);
-            break;
+    case SoundRenderer::INACTIVE_Active:
+        alListenerf(AL_GAIN, 1.0f);
+        if (ALC.SOFT_pause_device)
+        {
+            alcDeviceResumeSOFT(Device);
+            getALCError(Device);
+        }
+        break;
 
-        /* FIXME: This doesn't stop anything. */
-        case SoundRenderer::INACTIVE_Complete:
-        case SoundRenderer::INACTIVE_Mute:
-            alListenerf(AL_GAIN, 0.0f);
-            break;
+    case SoundRenderer::INACTIVE_Complete:
+        if (ALC.SOFT_pause_device)
+        {
+            alcDevicePauseSOFT(Device);
+            getALCError(Device);
+        }
+        /* fall-through */
+    case SoundRenderer::INACTIVE_Mute:
+        alListenerf(AL_GAIN, 0.0f);
+        break;
     }
 }
 
 void OpenALSoundRenderer::Sync(bool sync)
 {
-    if(sync)
+    if (sync)
     {
-        if(SfxGroup.Size() > 0)
+        if (SfxGroup.Size() > 0)
         {
             alSourcePausev(SfxGroup.Size(), &SfxGroup[0]);
             getALError();
@@ -1581,19 +1944,19 @@ void OpenALSoundRenderer::Sync(bool sync)
         // of all values in SfxGroup that are not also in PausableSfx (when
         // SFXPaused is non-0).
         TArray<ALuint> toplay = SfxGroup;
-        if(SFXPaused)
+        if (SFXPaused)
         {
             uint32 i = 0;
-            while(i < toplay.Size())
+            while (i < toplay.Size())
             {
                 uint32 p = PausableSfx.Find(toplay[i]);
-                if(p < PausableSfx.Size())
+                if (p < PausableSfx.Size())
                     toplay.Delete(i);
                 else
                     i++;
             }
         }
-        if(toplay.Size() > 0)
+        if (toplay.Size() > 0)
         {
             alSourcePlayv(toplay.Size(), &toplay[0]);
             getALError();
@@ -1603,41 +1966,52 @@ void OpenALSoundRenderer::Sync(bool sync)
 
 void OpenALSoundRenderer::UpdateSoundParams3D(SoundListener *listener, FISoundChannel *chan, bool areasound, const FVector3 &pos, const FVector3 &vel)
 {
-    if(chan == NULL || chan->SysChannel == NULL)
-        return;
+	if(chan == NULL || chan->SysChannel == NULL)
+		return;
 
-    alDeferUpdatesSOFT();
+	FVector3 dir = pos - listener->position;
+	chan->DistanceSqr = (float)dir.LengthSquared();
 
-    FVector3 dir = pos - listener->position;
-    chan->DistanceSqr = (float)dir.LengthSquared();
+	if(chan->ManualRolloff)
+	{
+		if(!AL.EXT_SOURCE_RADIUS && areasound &&
+		   chan->DistanceSqr < AREA_SOUND_RADIUS*AREA_SOUND_RADIUS)
+		{
+			FVector3 amb(0.f, !(dir.Y>=0.f) ? -1.f : 1.f, 0.f);
+			float a = sqrtf(chan->DistanceSqr) / AREA_SOUND_RADIUS;
+			dir = amb + (dir-amb)*a;
+		}
+		if(dir.DoesNotApproximatelyEqual(FVector3(0.f, 0.f, 0.f)))
+		{
+			float gain = GetRolloff(&chan->Rolloff, sqrtf(chan->DistanceSqr)*chan->DistanceScale);
+			dir.Resize((gain > 0.00001f) ? 1.f/gain : 100000.f);
+		}
+	}
+	else if(!AL.EXT_SOURCE_RADIUS && areasound &&
+			chan->DistanceSqr < AREA_SOUND_RADIUS*AREA_SOUND_RADIUS)
+	{
+		float mindist = chan->Rolloff.MinDistance / chan->DistanceScale;
+		FVector3 amb(0.f, !(dir.Y>=0.f) ? -mindist : mindist, 0.f);
+		float a = sqrtf(chan->DistanceSqr) / AREA_SOUND_RADIUS;
+		dir = amb + (dir-amb)*a;
+	}
+	dir += listener->position;
 
-    if(chan->ManualRolloff)
-    {
-        if(dir.DoesNotApproximatelyEqual(FVector3(0.f, 0.f, 0.f)))
-        {
-            float gain = GetRolloff(&chan->Rolloff, sqrt(chan->DistanceSqr) * chan->DistanceScale);
-            dir.Resize((gain > 0.00001f) ? 1.f/gain : 100000.f);
-        }
-        if(areasound && chan->DistanceSqr < AREA_SOUND_RADIUS*AREA_SOUND_RADIUS)
-        {
-            FVector3 amb(0.f, !(dir.Y>=0.f) ? -1.f : 1.f, 0.f);
-            float a = sqrt(chan->DistanceSqr) / AREA_SOUND_RADIUS;
-            dir = amb + (dir-amb)*a;
-        }
-    }
-    else if(areasound && chan->DistanceSqr < AREA_SOUND_RADIUS*AREA_SOUND_RADIUS)
-    {
-        float mindist = chan->Rolloff.MinDistance / chan->DistanceScale;
-        FVector3 amb(0.f, !(dir.Y>=0.f) ? -mindist : mindist, 0.f);
-        float a = sqrt(chan->DistanceSqr) / AREA_SOUND_RADIUS;
-        dir = amb + (dir-amb)*a;
-    }
-    dir += listener->position;
+	alDeferUpdatesSOFT();
+	ALuint source = GET_PTRID(chan->SysChannel);
 
-    ALuint source = GET_PTRID(chan->SysChannel);
-    alSource3f(source, AL_POSITION, dir[0], dir[1], -dir[2]);
-    alSource3f(source, AL_VELOCITY, vel[0], vel[1], -vel[2]);
-    getALError();
+	if(chan->DistanceSqr < (0.0004f*0.0004f))
+	{
+		alSourcei(source, AL_SOURCE_RELATIVE, AL_TRUE);
+		alSource3f(source, AL_POSITION, 0.f, 0.f, 0.f);
+	}
+	else
+	{
+		alSourcei(source, AL_SOURCE_RELATIVE, AL_FALSE);
+		alSource3f(source, AL_POSITION, dir[0], dir[1], -dir[2]);
+	}
+	alSource3f(source, AL_VELOCITY, vel[0], vel[1], -vel[2]);
+	getALError();
 }
 
 void OpenALSoundRenderer::UpdateListener(SoundListener *listener)
@@ -1650,9 +2024,9 @@ void OpenALSoundRenderer::UpdateListener(SoundListener *listener)
     float angle = listener->angle;
     ALfloat orient[6];
     // forward
-    orient[0] = cos(angle);
+    orient[0] = (float) cos(angle);
     orient[1] = 0.f;
-    orient[2] = -sin(angle);
+    orient[2] = (float) -sin(angle);
     // up
     orient[3] = 0.f;
     orient[4] = 1.f;
@@ -1788,7 +2162,7 @@ float OpenALSoundRenderer::GetAudibility(FISoundChannel *chan)
     alGetSourcef(source, AL_GAIN, &volume);
     getALError();
 
-    volume *= GetRolloff(&chan->Rolloff, sqrt(chan->DistanceSqr) * chan->DistanceScale);
+    volume *= GetRolloff(&chan->Rolloff, (float) sqrt(chan->DistanceSqr) * chan->DistanceScale);
     return volume;
 }
 
@@ -1851,34 +2225,46 @@ FString OpenALSoundRenderer::GatherStats()
 void OpenALSoundRenderer::PrintDriversList()
 {
     const ALCchar *drivers = (alcIsExtensionPresent(NULL, "ALC_ENUMERATE_ALL_EXT") ?
-                              alcGetString(NULL, ALC_ALL_DEVICES_SPECIFIER) :
-                              alcGetString(NULL, ALC_DEVICE_SPECIFIER));
-    if(drivers == NULL)
+        alcGetString(NULL, ALC_ALL_DEVICES_SPECIFIER) :
+        alcGetString(NULL, ALC_DEVICE_SPECIFIER));
+    if (drivers == NULL)
     {
-        Printf(TEXTCOLOR_YELLOW "Failed to retrieve device list: %s\n", alcGetString(NULL, alcGetError(NULL)));
+        Printf(TEXTCOLOR_YELLOW"Failed to retrieve device list: %s\n", alcGetString(NULL, alcGetError(NULL)));
         return;
     }
 
-    const ALCchar *current = NULL;
-    if(alcIsExtensionPresent(Device, "ALC_ENUMERATE_ALL_EXT"))
+    const ALCchar* current = NULL;
+    if (alcIsExtensionPresent(Device, "ALC_ENUMERATE_ALL_EXT"))
         current = alcGetString(Device, ALC_ALL_DEVICES_SPECIFIER);
-    if(alcGetError(Device) != ALC_NO_ERROR || !current)
+    if (alcGetError(Device) != ALC_NO_ERROR || !current)
         current = alcGetString(Device, ALC_DEVICE_SPECIFIER);
-    if(current == NULL)
+    if (current == NULL)
     {
-        Printf(TEXTCOLOR_YELLOW "Failed to retrieve device name: %s\n", alcGetString(Device, alcGetError(Device)));
+        Printf(TEXTCOLOR_YELLOW"Failed to retrieve device name: %s\n", alcGetString(Device, alcGetError(Device)));
         return;
     }
 
     Printf("%c%s%2d. %s\n", ' ', ((strcmp(snd_aldevice, "Default") == 0) ? TEXTCOLOR_BOLD : ""), 0,
-           "Default");
-    for(int i = 1;*drivers;i++)
+        "Default");
+    for (int i = 1; *drivers; i++)
     {
-        Printf("%c%s%2d. %s\n", ((strcmp(current, drivers)==0) ? '*' : ' '),
-               ((strcmp(*snd_aldevice, drivers)==0) ? TEXTCOLOR_BOLD : ""), i,
-               drivers);
-        drivers += strlen(drivers)+1;
+        Printf("%c%s%2d. %s\n", ((strcmp(current, drivers) == 0) ? '*' : ' '),
+            ((strcmp(*snd_aldevice, drivers) == 0) ? TEXTCOLOR_BOLD : ""), i,
+            drivers);
+        drivers += strlen(drivers) + 1;
     }
+}
+
+MIDIDevice* OpenALSoundRenderer::CreateMIDIDevice() const
+{
+#ifdef _WIN32
+    extern UINT mididevice;
+    return new WinMIDIDevice(mididevice);
+#elif defined __APPLE__
+    return new AudioToolboxMIDIDevice;
+#else
+    return new OPLMIDIDevice;
+#endif
 }
 
 void OpenALSoundRenderer::PurgeStoppedSources()

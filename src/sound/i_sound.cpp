@@ -60,9 +60,12 @@ extern HINSTANCE g_hInst;
 #include "doomtype.h"
 #include <math.h>
 
-#ifndef NO_SOUND
+#include "except.h"
 #include "fmodsound.h"
-#endif
+#include "oalsound.h"
+
+#include "mpg123_decoder.h"
+#include "sndfile_decoder.h"
 
 #include "m_swap.h"
 #include "stats.h"
@@ -86,6 +89,27 @@ EXTERN_CVAR (Float, snd_sfxvolume)
 CVAR (Int, snd_samplerate, 0, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR (Int, snd_buffersize, 0, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR (String, snd_output, "default", CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+CVAR (Bool, snd_hrtf, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+
+#ifndef NO_OPENAL
+#define DEF_BACKEND "openal"
+#elif !defined(NO_FMOD)
+#define DEF_BACKEND "fmod"
+#else
+#define DEF_BACKEND "null"
+#endif
+
+void I_CloseSound();
+
+CUSTOM_CVAR(String, snd_backend, DEF_BACKEND, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+{
+	I_ShutdownMusic();
+	S_EvictAllChannels();
+	I_CloseSound();
+	I_InitSound();
+	S_RestartMusic();
+	S_RestoreEvictedChannels();
+}
 
 // killough 2/21/98: optionally use varying pitched sounds
 CVAR (Bool, snd_pitched, false, CVAR_ARCHIVE)
@@ -93,8 +117,6 @@ CVAR (Bool, snd_pitched, false, CVAR_ARCHIVE)
 SoundRenderer *GSnd;
 bool nosound;
 bool nosfx;
-
-void I_CloseSound ();
 
 
 //
@@ -108,7 +130,7 @@ void I_CloseSound ();
 // Maximum volume of a sound effect.
 //==========================================================================
 
-CUSTOM_CVAR (Float, snd_sfxvolume, 1.f, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOINITCALL)
+CUSTOM_CVAR (Float, snd_sfxvolume, 0.5f, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOINITCALL)
 {
 	if (self < 0.f)
 		self = 0.f;
@@ -130,7 +152,7 @@ public:
 	void SetMusicVolume (float volume)
 	{
 	}
-	SoundHandle LoadSound(BYTE *sfxdata, int length)
+	SoundHandle LoadSound(BYTE *sfxdata, int length, int def_loop_start, int def_loop_end)
 	{
 		SoundHandle retval = { NULL };
 		return retval;
@@ -244,14 +266,15 @@ public:
 	{
 		return "Null sound module has no stats.";
 	}
+
+	virtual MIDIDevice* CreateMIDIDevice() const override
+	{
+		return NULL;
+	}
 };
 
 void I_InitSound ()
 {
-#ifdef NO_SOUND
-	GSnd = new NullSoundRenderer;
-	I_InitMusic ();
-#else
 	/* Get command line options: */
 	nosound = !!Args->CheckParm ("-nosound") || !!Args->CheckParm("-host"); // [BB] No sound for the server
 	nosfx = !!Args->CheckParm ("-nosfx") || !!Args->CheckParm("-host"); // [BB]
@@ -263,17 +286,60 @@ void I_InitSound ()
 		return;
 	}
 
-	GSnd = new FMODSoundRenderer;
-
-	if (!GSnd->IsValid ())
+	// This has been extended to allow falling back from FMod to OpenAL and vice versa if the currently active sound system cannot be found.
+	if (stricmp(snd_backend, "null") == 0)
+	{
+		GSnd = new NullSoundRenderer;
+	}
+	else if (stricmp(snd_backend, "fmod") == 0)
+	{
+		#ifndef NO_FMOD
+		if (IsFModExPresent())
+		{
+			GSnd = new FMODSoundRenderer;
+		}
+		#endif
+		#ifndef NO_OPENAL
+		if ((!GSnd || !GSnd->IsValid()) && IsOpenALPresent())
+		{
+			Printf( TEXTCOLOR_RED "FMod Ex Sound init failed. Trying OpenAL.\n");
+			I_CloseSound();
+			GSnd = new OpenALSoundRenderer;
+			snd_backend = "openal";
+		}
+		#endif
+	}
+	else if (stricmp(snd_backend, "openal") == 0)
+	{
+		#ifndef NO_OPENAL
+		if (IsOpenALPresent())
+		{
+			GSnd = new OpenALSoundRenderer;
+		}
+		#endif
+		#ifndef NO_FMOD
+		if ((!GSnd || !GSnd->IsValid()) && IsFModExPresent())
+		{
+			Printf( TEXTCOLOR_RED "OpenAL Sound init failed. Trying FMod Ex.\n");
+			I_CloseSound();
+			GSnd = new FMODSoundRenderer;
+			snd_backend = "fmod";
+		}
+		#endif
+	}
+	else
+	{
+		Printf(TEXTCOLOR_RED "%s: Unknown sound system specified\n", *snd_backend);
+		snd_backend = "null";
+	}
+	if (!GSnd || !GSnd->IsValid())
 	{
 		I_CloseSound();
 		GSnd = new NullSoundRenderer;
-		Printf (TEXTCOLOR_RED"Sound init failed. Using nosound.\n");
+		Printf(TEXTCOLOR_RED "Sound init failed. Using nosound.\n");
 	}
 	I_InitMusic ();
 	snd_sfxvolume.Callback ();
-#endif
 }
 
 
@@ -336,9 +402,28 @@ FString SoundRenderer::GatherStats ()
 	return "No stats for this sound renderer.";
 }
 
-short *SoundRenderer::DecodeSample(int outlen, const void *coded, int sizebytes, ECodecType type)
+short *SoundRenderer::DecodeSample(int outlen, const void *coded, int sizebytes, ECodecType ctype)
 {
-	return NULL;
+    MemoryReader reader((const char*)coded, sizebytes);
+    short *samples = (short*)calloc(1, outlen);
+    ChannelConfig chans;
+    SampleType type;
+    int srate;
+
+    SoundDecoder *decoder = CreateDecoder(&reader);
+    if(!decoder) return samples;
+
+    decoder->getInfo(&srate, &chans, &type);
+    if(chans != ChannelConfig_Mono || type != SampleType_Int16)
+    {
+        DPrintf("Sample is not 16-bit mono\n");
+        delete decoder;
+        return samples;
+    }
+
+    decoder->read((char*)samples, outlen);
+    delete decoder;
+    return samples;
 }
 
 void SoundRenderer::DrawWaveDebug(int mode)
@@ -509,7 +594,6 @@ SoundHandle SoundRenderer::LoadSoundVoc(BYTE *sfxdata, int length)
 					break;
 				default: break;
 				}
-				i += blocksize;
 			}
 		}
 
@@ -519,3 +603,46 @@ SoundHandle SoundRenderer::LoadSoundVoc(BYTE *sfxdata, int length)
 	return retval;
 }
 
+SoundDecoder* SoundRenderer::CreateDecoder(FileReader* reader)
+{
+	SoundDecoder* decoder = NULL;
+	int pos = reader->Tell();
+
+#ifdef HAVE_SNDFILE
+	decoder = new SndFileDecoder;
+	if (decoder->open(reader))
+		return decoder;
+	reader->Seek(pos, SEEK_SET);
+
+	delete decoder;
+	decoder = NULL;
+#endif
+#ifdef HAVE_MPG123
+	decoder = new MPG123Decoder;
+	if (decoder->open(reader))
+		return decoder;
+	reader->Seek(pos, SEEK_SET);
+
+	delete decoder;
+	decoder = NULL;
+#endif
+	return decoder;
+}
+
+
+// Default readAll implementation, for decoders that can't do anything better
+TArray<char> SoundDecoder::readAll()
+{
+    TArray<char> output;
+    size_t total = 0;
+    size_t got;
+
+    output.Resize(total+32768);
+    while((got=read(&output[total], output.Size()-total)) > 0)
+    {
+        total += got;
+        output.Resize(total*2);
+    }
+    output.Resize(total);
+    return output;
+}

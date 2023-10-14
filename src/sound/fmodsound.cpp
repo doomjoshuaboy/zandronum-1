@@ -53,10 +53,9 @@ extern HWND Window;
 #include <malloc.h>
 #endif
 
+#include "except.h"
 #include "templates.h"
-#ifndef NO_SOUND
 #include "fmodsound.h"
-#endif
 #include "c_cvars.h"
 #include "i_system.h"
 #include "i_music.h"
@@ -65,6 +64,7 @@ extern HWND Window;
 #include "v_palette.h"
 #include "cmdlib.h"
 #include "s_sound.h"
+#include "i_musicinterns.h"
 
 #if FMOD_VERSION > 0x42899 && FMOD_VERSION < 0x43600
 #error You are trying to compile with an unsupported version of FMOD.
@@ -97,6 +97,7 @@ struct FEnumList
 // EXTERNAL FUNCTION PROTOTYPES --------------------------------------------
 
 #ifndef NO_SOUND
+
 // PUBLIC FUNCTION PROTOTYPES ----------------------------------------------
 
 // PRIVATE FUNCTION PROTOTYPES ---------------------------------------------
@@ -123,11 +124,10 @@ ReverbContainer *ForcedEnvironment;
 
 CVAR (Int, snd_driver, 0, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR (Int, snd_buffercount, 0, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
-CVAR (Bool, snd_hrtf, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR (Bool, snd_waterreverb, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR (String, snd_resampler, "Linear", CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR (String, snd_speakermode, "Auto", CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
-CVAR (String, snd_output_format, "PCM-16", CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+CVAR (String, snd_output_format, "PCM-32", CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR (Bool, snd_profile, false, 0)
 CVAR (String, snd_midipatchset, "", CVAR_ARCHIVE|CVAR_GLOBALCONFIG);
 
@@ -145,7 +145,9 @@ CUSTOM_CVAR (Float, snd_waterlp, 250, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 	}
 }
 
-#ifndef NO_SOUND
+#ifndef NO_FMOD
+
+EXTERN_CVAR(Bool, snd_hrtf)
 
 // PRIVATE DATA DEFINITIONS ------------------------------------------------
 
@@ -632,30 +634,6 @@ bool FMODSoundRenderer::IsValid()
 	return InitSuccess;
 }
 
-#ifdef _MSC_VER
-//==========================================================================
-//
-// CheckException
-//
-//==========================================================================
-
-#ifndef FACILITY_VISUALCPP
-#define FACILITY_VISUALCPP  ((LONG)0x6d)
-#endif
-#define VcppException(sev,err)  ((sev) | (FACILITY_VISUALCPP<<16) | err)
-
-static int CheckException(DWORD code)
-{
-	if (code == VcppException(ERROR_SEVERITY_ERROR,ERROR_MOD_NOT_FOUND) ||
-		code == VcppException(ERROR_SEVERITY_ERROR,ERROR_PROC_NOT_FOUND))
-	{
-		return EXCEPTION_EXECUTE_HANDLER;
-	}
-	return EXCEPTION_CONTINUE_SEARCH;
-}
-
-#endif
-
 //==========================================================================
 //
 // FMODSoundRenderer :: Init
@@ -693,24 +671,20 @@ bool FMODSoundRenderer::Init()
 
 	Printf("I_InitSound: Initializing FMOD\n");
 
-	// Create a System object and initialize.
-#ifdef _MSC_VER
-	__try {
-#endif
-	result = FMOD::System_Create(&Sys);
-#ifdef _MSC_VER
-	}
-	__except(CheckException(GetExceptionCode()))
+	// This is just for safety. Normally this should never be called if FMod Ex cannot be found.
+	if (!IsFModExPresent())
 	{
 		Sys = NULL;
-		Printf(TEXTCOLOR_ORANGE"Failed to load fmodex"
+		Printf(TEXTCOLOR_ORANGE "Failed to load fmodex"
 #ifdef _WIN64
 			"64"
 #endif
 			".dll\n");
 		return false;
 	}
-#endif
+
+	// Create a System object and initialize.
+	result = FMOD::System_Create(&Sys);
 	if (result != FMOD_OK)
 	{
 		Sys = NULL;
@@ -2461,7 +2435,7 @@ SoundHandle FMODSoundRenderer::LoadSoundRaw(BYTE *sfxdata, int length, int frequ
 		{
 			sfxdata[i] = sfxdata[i] - 128;
 		}
-
+		// fall through
 	case -8:
 		exinfo.format = FMOD_SOUND_FORMAT_PCM8;
 		numsamples = length;
@@ -2509,7 +2483,7 @@ SoundHandle FMODSoundRenderer::LoadSoundRaw(BYTE *sfxdata, int length, int frequ
 //
 //==========================================================================
 
-SoundHandle FMODSoundRenderer::LoadSound(BYTE *sfxdata, int length)
+SoundHandle FMODSoundRenderer::LoadSound(BYTE *sfxdata, int length, int def_loop_start, int def_loop_end)
 {
 	FMOD_CREATESOUNDEXINFO exinfo;
 	SoundHandle retval = { NULL };
@@ -3109,4 +3083,49 @@ FMOD_RESULT FMODSoundRenderer::SetSystemReverbProperties(const REVERB_PROPERTIES
 #endif
 }
 
-#endif //NO_SOUND
+MIDIDevice* FMODSoundRenderer::CreateMIDIDevice() const
+{
+	return new SndSysMIDIDevice;
+}
+
+#endif //NO_FMOD
+
+//==========================================================================
+//
+// IsFModExPresent
+//
+// Check if FMod can be used
+//
+//==========================================================================
+
+bool IsFModExPresent()
+{
+#ifdef NO_FMOD
+	return false;
+#elif !defined _MSC_VER
+	return true;	// on non-MSVC we cannot delay load the library so it has to be present.
+#else
+	static bool cached_result;
+	static bool done = false;
+
+	if (!done)
+	{
+		done = true;
+
+		FMOD::System* Sys;
+		FMOD_RESULT result;
+		__try
+		{
+			result = FMOD::System_Create(&Sys);
+		}
+		__except (CheckException(GetExceptionCode()))
+		{
+			// FMod could not be delay loaded
+			return false;
+		}
+		if (result == FMOD_OK) Sys->release();
+		cached_result = true;
+	}
+	return cached_result;
+#endif
+}

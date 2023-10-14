@@ -695,42 +695,39 @@ void SERVERCOMMANDS_SetPlayerKillCount( ULONG ulPlayer, ULONG ulPlayerExtra, Ser
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetPlayerChatStatus( ULONG ulPlayer, ULONG ulPlayerExtra, ServerCommandFlags flags )
+void SERVERCOMMANDS_SetPlayerStatus( ULONG ulPlayer, PlayerStatusType type, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
-	ServerCommands::SetPlayerChatStatus command;
+	bool bEnable;
+
+	// [AK] Get the value of whatever status we're trying to update.
+	switch ( type )
+	{
+		case PLAYERSTATUS_CHATTING:
+			bEnable = players[ulPlayer].bChatting;
+			break;
+
+		case PLAYERSTATUS_INCONSOLE:
+			bEnable = players[ulPlayer].bInConsole;
+			break;
+
+		case PLAYERSTATUS_INMENU:
+			bEnable = players[ulPlayer].bInMenu;
+			break;
+
+		case PLAYERSTATUS_LAGGING:
+			bEnable = players[ulPlayer].bLagging;
+			break;
+
+		case PLAYERSTATUS_READYTOGOON:
+			bEnable = players[ulPlayer].bReadyToGoOn;
+			break;
+	}
+
+	ServerCommands::SetPlayerStatus command;
 	command.SetPlayer( &players[ulPlayer] );
-	command.SetChatting( players[ulPlayer].bChatting );
+	command.SetType( type );
+	command.SetValue( bEnable );
 	command.sendCommandToClients( ulPlayerExtra, flags );
-}
-
-//*****************************************************************************
-//
-void SERVERCOMMANDS_SetPlayerLaggingStatus( ULONG ulPlayer )
-{
-	ServerCommands::SetPlayerLaggingStatus command;
-	command.SetPlayer( &players[ulPlayer] );
-	command.SetLagging( players[ulPlayer].bLagging );
-	command.sendCommandToClients();
-}
-
-//*****************************************************************************
-//
-void SERVERCOMMANDS_SetPlayerConsoleStatus( ULONG ulPlayer, ULONG ulPlayerExtra, ServerCommandFlags flags )
-{
-	ServerCommands::SetPlayerConsoleStatus command;
-	command.SetPlayer( &players[ulPlayer] );
-	command.SetInConsole( players[ulPlayer].bInConsole );
-	command.sendCommandToClients( ulPlayerExtra, flags );
-}
-
-//*****************************************************************************
-//
-void SERVERCOMMANDS_SetPlayerReadyToGoOnStatus( ULONG ulPlayer )
-{
-	ServerCommands::SetPlayerReadyToGoOnStatus command;
-	command.SetPlayer( &players[ulPlayer] );
-	command.SetReadyToGoOn( players[ulPlayer].bReadyToGoOn );
-	command.sendCommandToClients();
 }
 
 //*****************************************************************************
@@ -1028,19 +1025,6 @@ void SERVERCOMMANDS_SetLocalPlayerJumpTics( ULONG ulPlayer )
 {
 	// [AK] Don't update this client's jump tics while we're extrapolating their movement.
 	if (( SERVER_IsValidClient( ulPlayer ) == false ) || ( SERVER_GetClient( ulPlayer )->ulExtrapolatedTics > 0 ))
-		return;
-
-	ServerCommands::SetLocalPlayerJumpTics command;
-	command.SetClientTicOnServerEnd( SERVER_GetClient( ulPlayer )->ulClientGameTic );
-	command.SetJumpTics( players[ulPlayer].jumpTics );
-	command.sendCommandToClients( ulPlayer, SVCF_ONLYTHISCLIENT );
-}
-
-//*****************************************************************************
-//
-void SERVERCOMMANDS_SetLocalPlayerJumpTics( ULONG ulPlayer )
-{
-	if ( SERVER_IsValidClient( ulPlayer ) == false )
 		return;
 
 	ServerCommands::SetLocalPlayerJumpTics command;
@@ -5059,6 +5043,18 @@ void SERVERCOMMANDS_ShootDecal ( const FDecalTemplate* tpl, AActor* actor, fixed
 	command.addLong( tracedist );
 	command.addByte( permanent );
 	command.sendCommandToClients ( ulPlayerExtra, flags );
+}
+
+//*****************************************************************************
+// [TP]
+void SERVERCOMMANDS_RCONAccess( int client )
+{
+	if ( SERVER_IsValidClient( client ) == false )
+		return;
+
+	NetCommand command ( SVC2_RCONACCESS );
+	command.addByte ( SERVER_GetClient( client )->bRCONAccess );
+	command.sendCommandToOneClient( client );
 }
 
 //*****************************************************************************
